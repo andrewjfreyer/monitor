@@ -420,11 +420,15 @@ while true; do
 		#ECHO VALUES FOR DEBUGGING
 		if [ "$cmd" == "NAME" ] || [ "$cmd" == "BEAC" ]; then 
 			#PRINT RAW COMMAND; DEBUGGING
-			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$name${NC} $manufacturer${NC} $is_new"
+			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$name${NC} $manufacturer${NC}"
 			continue
-		
+
+		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ]; then 
+			echo -e "${RED}[CMD-$cmd]	${NC}$data ${GREEN}$name${NC} $manufacturer${NC}"
+			continue
+		fi 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ]; then 
-			echo -e "${RED}[CMD-$cmd]	${NC}$data ${GREEN}$name${NC} $manufacturer${NC} $is_new"
+			echo -e "${RED}[CMD-$cmd]	${NC}$data ${GREEN}$name${NC} $manufacturer${NC}"
 			continue
 		fi 
 
