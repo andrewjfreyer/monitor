@@ -1,7 +1,25 @@
+
 #!/bin/bash
 
-#KILL ANY OTHER PRESENCE SCRIPT
-#while read line; do `$line` ;done < <(ps ax | grep "bash presence.sh" | grep -v "$$" | awk '{print "sudo kill "$1}')
+# ----------------------------------------------------------------------------------------
+# GENERAL INFORMATION
+# ----------------------------------------------------------------------------------------
+#
+# Written by Andrew J Freyer
+# GNU General Public License
+# http://github.com/andrewjfreyer/presence
+#
+# Credits to:
+#		Radius Networks iBeacon Script
+#			• http://developer.radiusnetworks.com/ibeacon/idk/ibeacon_scan
+#
+#		Reely Active advlib
+#			• https://github.com/reelyactive/advlib
+#
+# ----------------------------------------------------------------------------------------
+
+#KILL ANY OTHER PRESENCE SCRIPT; DEBUG ONLY 
+[ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash presence.sh" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #CYCLE BLUETOOTH INTERFACE
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -9,6 +27,18 @@ sudo hciconfig hci0 down && sudo hciconfig hci0 up
 #SETUP MAIN PIPE
 sudo rm main_pipe
 mkfifo main_pipe
+
+#FIND DEPENDENCY PATHS, ELSE MANUALLY SET
+mosquitto_pub_path=$(which mosquitto_pub)
+mosquitto_sub_path=$(which mosquitto_sub)
+hcidump_path=$(which hcidump)
+bc_path=$(which bc)
+
+#ERROR CHECKING FOR MOSQUITTO PUBLICATION 
+[ -z "$mosquitto_pub_path" ] && echo "Required package 'mosquitto_pub' not found. Please install." && exit 1
+[ -z "$mosquitto_sub_path" ] && echo "Required package 'mosquitto_sub' not found. Please install." && exit 1
+[ -z "$hcidump_path" ] && echo "Required package 'hcidump' not found. Please install." && exit 1
+[ -z "$bc_path" ] && echo "Required package 'bc' not found. Please install." && exit 1
 
 #COLOR OUTPUT FOR RICH DEBUG 
 ORANGE='\033[0;33m'
@@ -18,7 +48,9 @@ GREEN='\033[0;32m'
 PURPLE='\033[0;35m'
 BLUE='\033[0;34m'
 
-#BLUETOOTH LE SCANNING
+# ----------------------------------------------------------------------------------------
+# BLUETOOTH LE BACKGROUND SCANNING
+# ----------------------------------------------------------------------------------------
 bluetooth_scanner () {
 	echo "BTLE scanner started" >&2 
 	while true; do 
@@ -28,7 +60,9 @@ bluetooth_scanner () {
 	done
 }
 
-#BTLE LISTENER
+# ----------------------------------------------------------------------------------------
+# BLUETOOTH LE RAW PACKET ANALYSIS
+# ----------------------------------------------------------------------------------------
 btle_listener () {
 	echo "BTLE trigger started" >&2 
 	
@@ -148,16 +182,20 @@ btle_listener () {
 	done < <(sudo hcidump --raw filter hci)
 }
 
-#MQTT LISTENER
+# ----------------------------------------------------------------------------------------
+# MQTT LISTENER
+# ----------------------------------------------------------------------------------------
 mqtt_listener (){
 	echo "MQTT trigger started" >&2 
 	#MQTT LOOP
 	while read instruction; do 
 		echo "MQTT$instruction" > main_pipe
-	done < <($(which mosquitto_sub) -v -h "192.168.1.27" -u "pi" -P "A_Fjac17mqtt1" -t "location/scan") 
+	done < <($(which mosquitto_sub) -v -h "HOSTNAME" -u "USERNAME" -P "PASSWORD" -t "location/scan") 
 }
 
-#PERIODIC TRIGGER
+# ----------------------------------------------------------------------------------------
+# PERIODIC TRIGGER TO MAIN LOOP
+# ----------------------------------------------------------------------------------------
 period_trigger (){
 	echo "TIME trigger started" >&2 
 	#MQTT LOOP
@@ -167,7 +205,9 @@ period_trigger (){
 	done
 }
 
-#GET MANUFACTURER INFO
+# ----------------------------------------------------------------------------------------
+# OBTAIN MANUFACTURER INFORMATION FOR A PARTICULAR BLUETOOTH MAC ADDRESS
+# ----------------------------------------------------------------------------------------
 determine_manufacturer () {
 
 	#IF NO ADDRESS, RETURN BLANK
@@ -187,7 +227,9 @@ determine_manufacturer () {
 	fi 
 }
 
-#SINGLE REQUEST NAME SCAN 
+# ----------------------------------------------------------------------------------------
+# INITATE SINGLE SCAN, SKIPPING HCITOOL 'NAME' LOGIC (REPETITIONS)
+# ----------------------------------------------------------------------------------------
 hci_name_scan () {
 	if [ ! -z "$1" ]; then 
 		#ONLY SCAN FOR PROPERLY-FORMATTED MAC ADDRESSES
@@ -207,7 +249,9 @@ hci_name_scan () {
 	fi 
 }
 
-#START BACKGROUND PROCESSES AND CAPTURE PIDS
+# ----------------------------------------------------------------------------------------
+# OBTAIN PIDS OF BACKGROUND PROCESSES FOR TRAP
+# ----------------------------------------------------------------------------------------
 bluetooth_scanner & 
 scan_pid="$!"
 
@@ -223,6 +267,11 @@ period_pid="$!"
 #TRAP EXIT FOR CLEANUP
 trap "sudo rm main_pipe; sudo kill -9 $btle_pid; sudo kill -9 $mqtt_pid; sudo kill -9 $scan_pid; sudo kill -9 $period_pid" EXIT
 
+
+# ----------------------------------------------------------------------------------------
+# DEFINE VALUES AND VARIABLES
+# ----------------------------------------------------------------------------------------
+
 #DEFINE VARIABLES FOR EVENT PROCESSING
 declare -A device_log
 declare -A scan_log
@@ -236,6 +285,10 @@ devices[1]="34:08:BC:14:6F:74"
 device_count=${#devices[@]}
 device_index=-1
 
+
+# ----------------------------------------------------------------------------------------
+# MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
+# ----------------------------------------------------------------------------------------
 
 #MAIN LOOP
 while true; do 
@@ -279,9 +332,6 @@ while true; do
 
 					#SCAN THE ABSENT DEVICE 
 					hci_name_scan $device
-
-					#WAIT
-					sleep 5
 				fi 
 			fi 
 		fi  
