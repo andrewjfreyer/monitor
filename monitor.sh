@@ -21,6 +21,9 @@
 #KILL ANY OTHER PRESENCE SCRIPT; DEBUG ONLY 
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
+#DEBUG TESTING UPDATE 
+[ "$1" == "-u" ] && sleep 1 && git pull && exit 
+
 #CYCLE BLUETOOTH INTERFACE
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
 
@@ -33,12 +36,14 @@ mosquitto_pub_path=$(which mosquitto_pub)
 mosquitto_sub_path=$(which mosquitto_sub)
 hcidump_path=$(which hcidump)
 bc_path=$(which bc)
+git_path=$(which git)
 
 #ERROR CHECKING FOR MOSQUITTO PUBLICATION 
 [ -z "$mosquitto_pub_path" ] && echo "Required package 'mosquitto_pub' not found. Please install." && exit 1
 [ -z "$mosquitto_sub_path" ] && echo "Required package 'mosquitto_sub' not found. Please install." && exit 1
 [ -z "$hcidump_path" ] && echo "Required package 'hcidump' not found. Please install." && exit 1
 [ -z "$bc_path" ] && echo "Required package 'bc' not found. Please install." && exit 1
+[ -z "$git_path" ] && echo "Required package 'git' not found. Please install." && exit 1
 
 #COLOR OUTPUT FOR RICH DEBUG 
 ORANGE='\033[0;33m'
