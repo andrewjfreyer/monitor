@@ -19,7 +19,7 @@
 # ----------------------------------------------------------------------------------------
 
 #KILL ANY OTHER PRESENCE SCRIPT; DEBUG ONLY 
-[ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash presence.sh" | grep -v "$$" | awk '{print "sudo kill "$1}')
+[ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #CYCLE BLUETOOTH INTERFACE
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
