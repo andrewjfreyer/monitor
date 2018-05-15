@@ -43,7 +43,7 @@ git_path=$(which git)
 [ -z "$mosquitto_sub_path" ] && echo "Required package 'mosquitto_sub' not found. Please install." && exit 1
 [ -z "$hcidump_path" ] && echo "Required package 'hcidump' not found. Please install." && exit 1
 [ -z "$bc_path" ] && echo "Required package 'bc' not found. Please install." && exit 1
-[ -z "$git_path" ] && echo "Required package 'git' not found. Please install." && exit 1
+[ -z "$git_path" ] && echo "Recommended package 'git' not found. Please consider installing."
 
 #COLOR OUTPUT FOR RICH DEBUG 
 ORANGE='\033[0;33m'
@@ -243,13 +243,13 @@ hci_name_scan () {
 			#SET SCAN STATUS FOR THIS DEVICE
 			scan_status["$mac"]=1
 
-			echo -e "		${GREEN}Scanning: $mac${NC}"
+			echo -e "**********	${GREEN}Scanning: $mac${NC}"
 
 			#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
 			hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 2>&1 1>/dev/null
 
 			#SCHEDULE A TIMEOUT MESSAGE
-			(sleep 7 && echo "NAME$mac|TIMEOUT" > main_pipe) & 
+			(sleep 10 && echo "NAME$mac|TIMEOUT" > main_pipe) & 
 		fi 
 	fi 
 }
@@ -290,6 +290,12 @@ devices[1]="34:08:BC:14:6F:74"
 device_count=${#devices[@]}
 device_index=-1
 
+containsElement () {
+  local e match="$1"
+  shift
+  for e; do [[ "$e" == "$match" ]] && return 0; done
+  return 1
+}
 
 # ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
@@ -299,6 +305,9 @@ device_index=-1
 while true; do 
 
 	scan_next () {
+
+		[ "$(containsElement 1 "${scan_status[@]}")" == "1" ] && echo "REJECTED" && return 0
+
 		#ITERATE TO DETERMINE WHETHER AT LEAST ONE DEVICE IS NOT HOME
 		device_index=$((device_index + 1))
 		[ "$device_index" -gt $(( device_count - 1 )) ] && device_index=-1
