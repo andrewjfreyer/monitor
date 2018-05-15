@@ -21,9 +21,6 @@
 #KILL ANY OTHER PRESENCE SCRIPT; DEBUG ONLY 
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
-#DEBUG TESTING UPDATE 
-[ "$1" == "-u" ] && sleep 1 && git pull && exit
-
 #VERSION NUMBER
 version=0.1 
 
