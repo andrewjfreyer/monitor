@@ -24,7 +24,7 @@
 #DEBUG TESTING UPDATE 
 [ "$1" == "-u" ] && sleep 1 && git pull && exit 
 
-#CYCLE BLUETOOTH INTERFACE
+#CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
 
 #SETUP MAIN PIPE
