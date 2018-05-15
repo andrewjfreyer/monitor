@@ -426,7 +426,6 @@ while true; do
 		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ]; then 
 			echo -e "${RED}[CMD-$cmd]	${NC}$data ${GREEN}$name${NC} $manufacturer${NC}"
 			continue
-		fi 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ]; then 
 			echo -e "${RED}[CMD-$cmd]	${NC}$data ${GREEN}$name${NC} $manufacturer${NC}"
 			continue
