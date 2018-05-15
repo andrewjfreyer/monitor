@@ -28,7 +28,7 @@ version=0.1
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
 
 #SETUP MAIN PIPE
-sudo rm main_pipe
+sudo rm main_pipe 2>&1 1>/dev/null
 mkfifo main_pipe
 
 #FIND DEPENDENCY PATHS, ELSE MANUALLY SET
