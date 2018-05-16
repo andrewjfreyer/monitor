@@ -300,6 +300,7 @@ scan_next () {
 	#ARE WE SCANNING FOR *ANYTHING* RIGHT NOW? 
 	for key in "${!scan_status[@]}"; do
 		if [ "${scan_status[$key]}" == "1" ]; then 
+			echo "Rejecting: $key"
 			return 0
 		fi  
 	done 
@@ -324,7 +325,7 @@ scan_next () {
 		scan_log["$device"]=$now
 
 		#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
-		if [ "$((now - previous_scan))" -gt "60" ]; then 
+		if [ "$((now - previous_scan))" -gt "30" ]; then 
 
 			status=${device_log["$device"]}
 			scanning=${scan_status["$device"]}
