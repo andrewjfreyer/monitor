@@ -297,9 +297,9 @@ device_index=-1
 scan_next () {
 	#DETERMINE IF SAN IS REQUIRED
 	#ARE WE SCANNING FOR *ANYTHING* RIGHT NOW? 
-	for device in "${scan_status[@]}"; do 
-		if [ "${scan_status[$device]}" == 1 ]; then 
-			echo -e "${RED}**********	${NC}Scan request ${RED}rejected${NC} for $device_index because $device is scanning.${NC}"
+	for device_status in "${scan_status[@]}"; do 
+		if [ "${scan_status[$device_status]}" == 1 ]; then 
+			echo -e "${RED}**********	${NC}Scan request ${RED}rejected${NC} for $device_index because $device_status is scanning.${NC}"
 			return 0
 		fi  
 	done 
@@ -459,7 +459,7 @@ while true; do
 
 			#TIMEOUT AFTER 120 SECONDS
 			if [ "$difference" -gt "45" ]; then 
-				echo -e "${BLUE}[CLEARED]	${NC}$key	Expired after $difference seconds.${NC} "
+				echo -e "${BLUE}[CLEARED]	${NC}$key Expired after $difference seconds.${NC} "
 				unset device_log["$key"]
 			fi 
 		done
