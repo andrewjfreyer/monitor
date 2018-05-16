@@ -28,7 +28,7 @@ version=0.1
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
 
 #SETUP MAIN PIPE
-sudo rm main_pipe 2>&1 1>/dev/null
+sudo rm main_pipe &>/dev/null
 mkfifo main_pipe
 
 #FIND DEPENDENCY PATHS, ELSE MANUALLY SET
@@ -325,7 +325,7 @@ scan_next () {
 		scan_log["$device"]=$now
 
 		#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
-		if [ "$((now - previous_scan))" -gt "30" ]; then 
+		if [ "$((now - previous_scan))" -gt "10" ]; then 
 
 			status=${device_log["$device"]}
 			scanning=${scan_status["$device"]}
