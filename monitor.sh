@@ -295,10 +295,7 @@ device_index=-1
 # ----------------------------------------------------------------------------------------
 
 scan_next () {
-	#ITERATE TO DETERMINE WHETHER AT LEAST ONE DEVICE IS NOT HOME
-	device_index=$((device_index + 1))
-	[ "$device_index" -gt $(( device_count - 1 )) ] && device_index=-1
-
+	
 	#DETERMINE IF SAN IS REQUIRED
 	#ARE WE SCANNING FOR *ANYTHING* RIGHT NOW? 
 	for key in "${!scan_status[@]}"; do
@@ -308,6 +305,10 @@ scan_next () {
 			return 0
 		fi  
 	done 
+
+	#ITERATE TO DETERMINE WHETHER AT LEAST ONE DEVICE IS NOT HOME
+	device_index=$((device_index + 1))
+	[ "$device_index" -gt $(( device_count - 1 )) ] && device_index=-1
 
 	#ONLY PROCEED IF THE LOOP IS INCOMPLETE
 	if [ "$device_index" != -1 ]; then 
