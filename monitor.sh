@@ -295,7 +295,7 @@ device_index=-1
 # ----------------------------------------------------------------------------------------
 
 scan_next () {
-	
+
 	#DETERMINE IF SAN IS REQUIRED
 	#ARE WE SCANNING FOR *ANYTHING* RIGHT NOW? 
 	for key in "${!scan_status[@]}"; do
@@ -391,7 +391,7 @@ while true; do
 					#BLANK NAME OR ACTUAL DEVICE NAME; IGNORE 
 					#FALLBACK TIMOUT)
 					continue
-				fi 
+				fi
 			fi
 
 			#ONLY PROCESS THIS ONE IF WE REQUSETED THE 
@@ -413,6 +413,9 @@ while true; do
 					device_log["$mac"]="$timestamp"
 				fi 
 			fi 
+
+			#LASTLY SCAN THE NEXT DEVICE
+			scan_next
 
 		elif [ "$cmd" == "BEAC" ]; then 
 			#DATA IS DELIMITED BY VERTICAL PIPE
