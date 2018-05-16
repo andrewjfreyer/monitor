@@ -243,7 +243,7 @@ hci_name_scan () {
 			#SET SCAN STATUS FOR THIS DEVICE
 			scan_status["$mac"]=1
 
-			echo -e "**********	${GREEN}Scanning: $mac${NC}"
+			echo -e "${GREEN}**********	${GREEN}Scanning: $mac${NC}"
 
 			#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
 			hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 2>&1 1>/dev/null
@@ -290,66 +290,66 @@ devices[1]="34:08:BC:14:6F:74"
 device_count=${#devices[@]}
 device_index=-1
 
-containsElement () {
-  local e match="$1"
-  shift
-  for e; do [[ "$e" == "$match" ]] && return 0; done
-  return 1
-}
-
 # ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
 # ----------------------------------------------------------------------------------------
 
+scan_next () {
+	#ITERATE TO DETERMINE WHETHER AT LEAST ONE DEVICE IS NOT HOME
+	device_index=$((device_index + 1))
+	[ "$device_index" -gt $(( device_count - 1 )) ] && device_index=-1
+
+	#ONLY PROCEED IF THE LOOP IS INCOMPLETE
+	if [ "$device_index" != -1 ]; then 
+
+		#GET DEVICE
+		device=${devices[$device_index]}
+
+		#GET TIME NOW  
+		now=$(date +%s)
+
+		#PREVIOUS TIME SCANNED
+		previous_scan="${scan_log[$device]}"
+
+		#UPDATE THE SCAN LOG
+		scan_log["$device"]=$now
+
+		#ARE WE SCANNING FOR *ANYTHING* RIGHT NOW? 
+		for device in "${scan_status[@]}"; do 
+			if [ "${scan_status[$device]}" == 1 ]; then 
+				echo "CANCEL"
+				return 0
+			fi  
+		done 
+
+
+		#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
+		if [ "$((now - previous_scan))" -gt "60" ]; then 
+
+			status=${device_log["$device"]}
+			scanning=${scan_status["$device"]}
+
+			#SET DEFAULT VALUES IF THESE HAVE NOT BEEN 
+			#SEEN OR SCANNED FOR THE FIRST TIME YET
+			[ -z "$status" ] && status=0 
+			[ -z "$scanning" ] && scanning=0
+
+			#ONLY SET FOR SCANNING IF THE DEVICE IS NOT PRESENT
+			#AND IF THE DEVICE IS NOT CURRENTLY SCANNING
+			if [ "$status" == "0" ] && [ "$scanning" == 0 ] ; then 
+				#SET VALUES
+				unset device_log["$device"]
+				scan_status["$device"]=1
+
+				#SCAN THE ABSENT DEVICE 
+				hci_name_scan $device
+			fi 
+		fi 
+	fi  
+}
+
 #MAIN LOOP
 while true; do 
-
-	scan_next () {
-
-		[ "$(containsElement 1 "${scan_status[@]}")" == "1" ] && echo "REJECTED" && return 0
-
-		#ITERATE TO DETERMINE WHETHER AT LEAST ONE DEVICE IS NOT HOME
-		device_index=$((device_index + 1))
-		[ "$device_index" -gt $(( device_count - 1 )) ] && device_index=-1
-
-		if [ "$device_index" != -1 ]; then 
-
-			#GET DEVICE
-			device=${devices[$device_index]}
-
-			#GET TIME NOW  
-			now=$(date +%s)
-
-			#PREVIOUS TIME SCANNED
-			previous_scan="${scan_log[$device]}"
-
-			#UPDATE THE SCAN LOG
-			scan_log["$device"]=$now
-
-			#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
-			if [ "$((now - previous_scan))" -gt "60" ]; then 
-
-				status=${device_log["$device"]}
-				scanning=${scan_status["$device"]}
-
-				#SET DEFAULT VALUES IF THESE HAVE NOT BEEN 
-				#SEEN OR SCANNED FOR THE FIRST TIME YET
-				[ -z "$status" ] && status=0 
-				[ -z "$scanning" ] && scanning=0
-
-				#ONLY SET FOR SCANNING IF THE DEVICE IS NOT PRESENT
-				#AND IF THE DEVICE IS NOT CURRENTLY SCANNING
-				if [ "$status" == "0" ] && [ "$scanning" == 0 ] ; then 
-					#SET VALUES
-					unset device_log["$device"]
-					scan_status["$device"]=0
-
-					#SCAN THE ABSENT DEVICE 
-					hci_name_scan $device
-				fi 
-			fi 
-		fi  
-	}
 
 	#READ FROM THE MAIN PIPE
 	while read event; do 
