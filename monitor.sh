@@ -295,6 +295,15 @@ device_index=-1
 # ----------------------------------------------------------------------------------------
 
 scan_next () {
+	#DETERMINE IF SAN IS REQUIRED
+	#ARE WE SCANNING FOR *ANYTHING* RIGHT NOW? 
+	for device in "${scan_status[@]}"; do 
+		if [ "${scan_status[$device]}" == 1 ]; then 
+			echo -e "${RED}**********	${NC}Scan request ${RED}rejected${NC} for $device_index because $device is scanning.${NC}"
+			return 0
+		fi  
+	done 
+
 	#ITERATE TO DETERMINE WHETHER AT LEAST ONE DEVICE IS NOT HOME
 	device_index=$((device_index + 1))
 	[ "$device_index" -gt $(( device_count - 1 )) ] && device_index=-1
@@ -313,15 +322,6 @@ scan_next () {
 
 		#UPDATE THE SCAN LOG
 		scan_log["$device"]=$now
-
-		#ARE WE SCANNING FOR *ANYTHING* RIGHT NOW? 
-		for device in "${scan_status[@]}"; do 
-			if [ "${scan_status[$device]}" == 1 ]; then 
-				echo "CANCEL"
-				return 0
-			fi  
-		done 
-
 
 		#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
 		if [ "$((now - previous_scan))" -gt "60" ]; then 
@@ -433,8 +433,10 @@ while true; do
 
 		#ECHO VALUES FOR DEBUGGING
 		if [ "$cmd" == "NAME" ] || [ "$cmd" == "BEAC" ]; then 
+			debug_name="$name"
+			[ -z "$debug_name" ] && debug_name="${RED}[Error]"
 			#PRINT RAW COMMAND; DEBUGGING
-			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$name${NC} $manufacturer${NC}"
+			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 			continue
 
 		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ]; then 
