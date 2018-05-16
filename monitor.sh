@@ -419,6 +419,7 @@ while true; do
 			#NAME OF THE DEVICE IN AN EARLIER STEP
 			if [ "${scan_status["$mac"]}" == 1 ]; then 
 
+				#GET MANUFACTURER INFORMATION
 				manufacturer="$(determine_manufacturer $data)"
 
 				#SCAN STATUS IS ZERO
@@ -428,10 +429,16 @@ while true; do
 				#AND SHOULD BE REMOVED FROM THE LOG
 				if [ -z "$name" ]; then 
 					unset device_log["$mac"]
+					
+					#PUBLISH TO MQTT BROKER
+					$(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$name Absent ($manufacturer)"
 				else 
 					#ADD TO LOG
 					[ -z "${device_log[$mac]}" ] && is_new=true
 					device_log["$mac"]="$timestamp"
+
+					#PUBLISH TO MQTT BROKER
+					$(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$name Present ($manufacturer)"
 				fi 
 			fi 
 
@@ -450,6 +457,10 @@ while true; do
 			key="$uuid-$major-$minor"
 			[ -z "${device_log[$key]}" ] && is_new=true
 			device_log["$key"]="$timestamp"
+
+			#PUBLISH BECAON IF NEW
+			[ "$is_new" == true ] && $(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$key"
+				
 		fi
 
 		#SHOULD TRIGGER PUBLIC SCAN
