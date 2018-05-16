@@ -461,7 +461,7 @@ while true; do
 			[ -z "$last_seen" ] && continue 
 
 			#TIMEOUT AFTER 120 SECONDS
-			if [ "$difference" -gt "45" ]; then 
+			if [ "$difference" -gt "180" ]; then 
 				echo -e "${BLUE}[CLEARED]	${NC}$key Expired after $difference seconds.${NC} "
 				unset device_log["$key"]
 			fi 
