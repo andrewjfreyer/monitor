@@ -291,7 +291,7 @@ device_count=${#devices[@]}
 device_index=-1
 
 # ----------------------------------------------------------------------------------------
-# MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
+# SCAN NEXT DEVICE IF REQUIRED
 # ----------------------------------------------------------------------------------------
 
 scan_next () {
@@ -300,7 +300,6 @@ scan_next () {
 	#ARE WE SCANNING FOR *ANYTHING* RIGHT NOW? 
 	for key in "${!scan_status[@]}"; do
 		if [ "${scan_status[$key]}" == "1" ]; then 
-			echo "Rejecting: $key"
 			return 0
 		fi  
 	done 
@@ -325,22 +324,20 @@ scan_next () {
 		scan_log["$device"]=$now
 
 		#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
-		if [ "$((now - previous_scan))" -gt "10" ]; then 
+		if [ "$((now - previous_scan))" -gt "5" ]; then 
 
+			#GET CURRENT VALUES 
 			status=${device_log["$device"]}
-			scanning=${scan_status["$device"]}
 
 			#SET DEFAULT VALUES IF THESE HAVE NOT BEEN 
 			#SEEN OR SCANNED FOR THE FIRST TIME YET
 			[ -z "$status" ] && status=0 
-			[ -z "$scanning" ] && scanning=0
 
 			#ONLY SET FOR SCANNING IF THE DEVICE IS NOT PRESENT
 			#AND IF THE DEVICE IS NOT CURRENTLY SCANNING
-			if [ "$status" == "0" ] && [ "$scanning" == 0 ] ; then 
+			if [ "$status" == "0" ] ; then 
 				#SET VALUES
 				unset device_log["$device"]
-				scan_status["$device"]=1
 
 				#SCAN THE ABSENT DEVICE 
 				hci_name_scan $device
@@ -348,6 +345,11 @@ scan_next () {
 		fi 
 	fi  
 }
+
+
+# ----------------------------------------------------------------------------------------
+# MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
+# ----------------------------------------------------------------------------------------
 
 #MAIN LOOP
 while true; do 
