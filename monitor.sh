@@ -295,6 +295,10 @@ device_index=-1
 # ----------------------------------------------------------------------------------------
 
 scan_next () {
+	#ITERATE TO DETERMINE WHETHER AT LEAST ONE DEVICE IS NOT HOME
+	device_index=$((device_index + 1))
+	[ "$device_index" -gt $(( device_count - 1 )) ] && device_index=-1
+
 	#DETERMINE IF SAN IS REQUIRED
 	#ARE WE SCANNING FOR *ANYTHING* RIGHT NOW? 
 	for device_status in "${scan_status[@]}"; do 
@@ -303,10 +307,6 @@ scan_next () {
 			return 0
 		fi  
 	done 
-
-	#ITERATE TO DETERMINE WHETHER AT LEAST ONE DEVICE IS NOT HOME
-	device_index=$((device_index + 1))
-	[ "$device_index" -gt $(( device_count - 1 )) ] && device_index=-1
 
 	#ONLY PROCEED IF THE LOOP IS INCOMPLETE
 	if [ "$device_index" != -1 ]; then 
@@ -440,10 +440,10 @@ while true; do
 			continue
 
 		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ]; then 
-			echo -e "${RED}[CMD-$cmd]	${NC}$data ${GREEN}$name${NC} $manufacturer${NC}"
+			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $manufacturer${NC}"
 			continue
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ]; then 
-			echo -e "${RED}[CMD-$cmd]	${NC}$data ${GREEN}$name${NC} $manufacturer${NC}"
+			echo -e "${RED}[CMD-$cmd]	${NC}$data $name${NC} $manufacturer${NC}"
 			continue
 		fi 
 
