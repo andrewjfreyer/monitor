@@ -31,6 +31,26 @@ sudo hciconfig hci0 down && sudo hciconfig hci0 up
 sudo rm main_pipe &>/dev/null
 mkfifo main_pipe
 
+#BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
+base_directory=$(dirname "$(readlink -f "$0")")
+
+#MQTT PREFERENCES
+MQTT_CONFIG=$base_directory/mqtt_preferences
+if [ -f $MQTT_CONFIG ]; then 
+	source $MQTT_CONFIG
+else
+	#IF NO PREFERENCE FILE; LOAD 
+	echo "mqtt_address='ip.address.of.server'" >> $MQTT_CONFIG
+	echo "mqtt_user='username'" >> $MQTT_CONFIG
+	echo "mqtt_password='password'" >> $MQTT_CONFIG
+	echo "mqtt_topicpath='location" >> $MQTT_CONFIG
+	echo "mqtt_room=''" >> $MQTT_CONFIG
+
+	#LOAD VALUES INTO MQTT CONFIG
+	source $MQTT_CONFIG
+fi 
+
+
 #FIND DEPENDENCY PATHS, ELSE MANUALLY SET
 mosquitto_pub_path=$(which mosquitto_pub)
 mosquitto_sub_path=$(which mosquitto_sub)
@@ -195,7 +215,7 @@ mqtt_listener (){
 	#MQTT LOOP
 	while read instruction; do 
 		echo "MQTT$instruction" > main_pipe
-	done < <($(which mosquitto_sub) -v -h "HOSTNAME" -u "USERNAME" -P "PASSWORD" -t "location/scan") 
+	done < <($(which mosquitto_sub) -v -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan") 
 }
 
 # ----------------------------------------------------------------------------------------
