@@ -431,7 +431,7 @@ while true; do
 					unset device_log["$mac"]
 					
 					#PUBLISH TO MQTT BROKER
-					$(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$name Absent ($manufacturer)"
+					$(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$mac Absent ($manufacturer)"
 				else 
 					#ADD TO LOG
 					[ -z "${device_log[$mac]}" ] && is_new=true
