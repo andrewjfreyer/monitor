@@ -302,6 +302,7 @@ scan_next () {
 	#DETERMINE IF SAN IS REQUIRED
 	#ARE WE SCANNING FOR *ANYTHING* RIGHT NOW? 
 	for device_status in "${scan_status[@]}"; do 
+		echo "${scan_status[$device_status]} $device_status"
 		if [ "${scan_status[$device_status]}" == 1 ]; then 
 			echo -e "${RED}**********	${NC}Scan request ${RED}rejected${NC} for $device_index because $device_status is scanning.${NC}"
 			return 0
