@@ -350,6 +350,8 @@ scan_next () {
 
 		#GET CURRENT VALUES 
 		local status="${device_log["$device"]}"
+		echo "ADDED TO DEVICE LOG: [${device_log["$device"]}] $device"
+
 
 		#DEFAULT SCAN INTERVAL WHEN PRESENT
 		scan_interval=45
@@ -454,11 +456,9 @@ while true; do
 				else 
 					#ADD TO LOG
 					[ -z "${device_log[$mac]}" ] && is_new=true
-
-
 					device_log["$mac"]="$timestamp"
 					echo "ADDED TO DEVICE LOG: $mac"
-					
+
 					#PUBLISH TO MQTT BROKER
 					$(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$name Present ($manufacturer)"
 				fi 
