@@ -475,12 +475,6 @@ while true; do
 					#PUBLISH TO MQTT BROKER
 					$(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$name Present ($manufacturer)"
 				fi
-
-			elif [ "$name" == "TIMEOUT" ]; then 
-				#HERE THE TIMEOUT WAS NOT NECESSARY;
-				#A NAME WAS RECEIVED BEFORE THIS ELAPSED
-				#CONTINUE THE LOOP
-				continue
 			fi 
 
 		elif [ "$cmd" == "BEAC" ]; then 
