@@ -455,7 +455,8 @@ while true; do
 
 				#GET CURRENT DEVICE STATUS
 				current_status="${status_log[$mac]}"
-				
+				[ -z "$current_status" ] && current_status=0
+
 				#IF NAME FIELD IS BLANK; DEVICE IS NOT PRESENT
 				#AND SHOULD BE REMOVED FROM THE LOG
 				if [ -z "$name" ]; then 
