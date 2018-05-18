@@ -351,9 +351,8 @@ scan_next () {
 		#GET CURRENT VALUES 
 		local status="${device_log[$device]}"
 
-
 		#DEFAULT SCAN INTERVAL WHEN PRESENT
-		scan_interval=45
+		scan_interval="45"
 
 		#DETERMINE APPROPRIATE DELAY FOR THIS DEVICE
 		if [ -z "$status" ] ; then 
@@ -362,11 +361,9 @@ scan_next () {
 
 		#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
 		if [ "$((now - previous_scan))" -gt "$scan_interval" ]; then 
-
+			
 			#INTENTIONAL RATE LIMIT
 			sleep 1
-
-			echo "$((now - previous_scan)) -- $scan_interval ... $status"
 
 			#SCAN THE ABSENT DEVICE 
 			hci_name_scan $device 
