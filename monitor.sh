@@ -363,14 +363,6 @@ scan_next () {
 		#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
 		if [ "$((now - previous_scan))" -gt "$scan_interval" ]; then 
 
-			#SET DEFAULT VALUES IF THESE HAVE NOT BEEN 
-			#SEEN OR SCANNED FOR THE FIRST TIME YET
-			[ -z "$status" ] && status=0 
-
-			#ONLY SET FOR SCANNING IF THE DEVICE IS NOT PRESENT
-			#AND IF THE DEVICE IS NOT CURRENTLY SCANNING
-			[ "$status" == "0" ] &&	unset device_log["$device"]
-
 			#INTENTIONAL RATE LIMIT
 			sleep 1
 
