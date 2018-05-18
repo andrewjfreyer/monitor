@@ -22,7 +22,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.6
+version=0.1.7
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -271,8 +271,6 @@ hci_name_scan () {
 			#SET SCAN STATUS FOR THIS DEVICE
 			scan_status=1
 
-			echo -e "${GREEN}**********	${GREEN}Scan: $mac (last: $2s ago)${NC}"
-
 			#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
 			hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 2>&1 1>/dev/null
 
@@ -368,7 +366,7 @@ scan_next () {
 		if [ "$((now - previous_scan))" -gt "$scan_interval" ]; then 
 
 			#SCAN THE ABSENT DEVICE 
-			hci_name_scan $device "$((now - previous_scan))"
+			hci_name_scan $device
 		fi 
 	else
 		echo -e "${GREEN}**********	${GREEN}Completed.${NC}"
