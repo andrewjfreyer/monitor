@@ -227,7 +227,7 @@ period_trigger (){
 	echo "TIME trigger started" >&2 
 	#MQTT LOOP
 	while : ; do 
-		sleep 15
+		sleep 30
 		echo "TIME" > main_pipe
 	done
 }
@@ -361,14 +361,11 @@ scan_next () {
 
 		#DETERMINE APPROPRIATE DELAY FOR THIS DEVICE
 		if [ -z "$status" ] ; then 
-			scan_interval=5
+			scan_interval=7
 		fi 
 
 		#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
 		if [ "$((now - previous_scan))" -gt "$scan_interval" ]; then 
-
-			#INTENTIONAL RATE LIMIT
-			sleep 1
 
 			#SCAN THE ABSENT DEVICE 
 			hci_name_scan $device "$((now - previous_scan))"
