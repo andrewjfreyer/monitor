@@ -366,7 +366,7 @@ scan_next () {
 			sleep 1
 
 			#SCAN THE ABSENT DEVICE 
-			hci_name_scan $device 
+			hci_name_scan $device "$((now - previous_scan))"
 		fi 
 	else
 		echo -e "${GREEN}**********	${GREEN}Completed.${NC}"
