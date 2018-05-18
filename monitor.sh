@@ -262,6 +262,7 @@ hci_name_scan () {
 
 		#MAKE SURE WE AREN'T SCANNING ALREADY
 		local status="${scan_status["$mac"]}"
+		[ -z "$status" ] && status=0
 
 		#ONLY SCAN FOR VALID MAC ADDRESS
 		if [ ! -z "$mac" ] && [ "$status" == "0" ] ; then
