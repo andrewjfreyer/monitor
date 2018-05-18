@@ -430,9 +430,6 @@ while true; do
 				#AND SHOULD BE REMOVED FROM THE LOG
 				if [ -z "$name" ]; then 
 					unset device_log["$mac"]
-					
-					#PUBLISH TO MQTT BROKER
-					$(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$mac Absent ($manufacturer)"
 				else 
 					#ADD TO LOG
 					[ -z "${device_log[$mac]}" ] && is_new=true
@@ -457,11 +454,7 @@ while true; do
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			key="$uuid-$major-$minor"
 			[ -z "${device_log[$key]}" ] && is_new=true
-			device_log["$key"]="$timestamp"
-
-			#PUBLISH BECAON IF NEW
-			[ "$is_new" == true ] && $(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$key"
-				
+			device_log["$key"]="$timestamp"				
 		fi
 
 		#SHOULD TRIGGER PUBLIC SCAN
