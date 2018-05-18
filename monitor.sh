@@ -22,7 +22,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.15
+version=0.1.16
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -71,8 +71,9 @@ devices[3]="C8:69:CD:6A:89:2A"
 
 #LOOP SCAN VARIABLES
 device_count=${#devices[@]}
-device_index=-1
-
+device_index=1
+scanned_devices=0
+scan_responses=0
 
 #FIND DEPENDENCY PATHS, ELSE MANUALLY SET
 mosquitto_pub_path=$(which mosquitto_pub)
@@ -344,44 +345,41 @@ request_public_mac_scan () {
 
 	#ITERATE TO DETERMINE WHETHER AT LEAST ONE DEVICE IS NOT HOME
 	device_index=$((device_index + 1))
-	[ "$device_index" -gt $(( device_count - 1 )) ] && device_index=-1
+	[ "$device_index" -gt $(( device_count - 1 )) ] && device_index=0
 
-	#ONLY PROCEED IF THE LOOP IS INCOMPLETE
-	if [ "$device_index" != -1 ]; then 
+	#GET DEVICE
+	local device=${devices[$device_index]}
 
-		#GET DEVICE
-		local device=${devices[$device_index]}
+	#GET TIME NOW  
+	local now=$(date +%s)
 
-		#GET TIME NOW  
-		local now=$(date +%s)
+	#PREVIOUS TIME SCANNED
+	local previous_scan="${scan_log[$device]}"
 
-		#PREVIOUS TIME SCANNED
-		local previous_scan="${scan_log[$device]}"
+	#UPDATE THE SCAN LOG
+	scan_log["$device"]=$now
 
-		#UPDATE THE SCAN LOG
-		scan_log["$device"]=$now
+	#GET CURRENT VALUES 
+	local status="${device_log[$device]}"
 
-		#GET CURRENT VALUES 
-		local status="${device_log[$device]}"
+	#DEFAULT SCAN INTERVAL WHEN PRESENT
+	scan_interval="45"
 
-		#DEFAULT SCAN INTERVAL WHEN PRESENT
-		scan_interval="45"
+	#DETERMINE APPROPRIATE DELAY FOR THIS DEVICE
+	if [ -z "$status" ] ; then 
+		scan_interval=7
+	fi 
 
-		#DETERMINE APPROPRIATE DELAY FOR THIS DEVICE
-		if [ -z "$status" ] ; then 
-			scan_interval=7
-		fi 
+	#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
+	if [ "$((now - previous_scan))" -gt "$scan_interval" ] ; then 
 
-		#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
-		if [ "$((now - previous_scan))" -gt "$scan_interval" ] ; then 
-
-			#SCAN THE ABSENT DEVICE 
-			last_scan=$(date +%s)
-			hci_name_scan $device
-		fi 
-	else
-		echo -e "${GREEN}**********	${GREEN}Completed at $(date +%H:%M:%S).${NC}"
-	fi  
+		#SCAN THE ABSENT DEVICE 
+		last_scan=$(date +%s)
+		scanned_devices=$((scanned_devices + 1))
+		
+		#PERFORM SCAN
+		hci_name_scan $device
+	fi 
 }
 
 
