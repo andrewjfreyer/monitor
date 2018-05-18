@@ -372,6 +372,9 @@ scan_next () {
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
 # ----------------------------------------------------------------------------------------
 
+#START BY SCANNING
+scan_next
+
 #MAIN LOOP
 while true; do 
 
@@ -402,12 +405,14 @@ while true; do
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			name=$(echo "$data" | awk -F "|" '{print $2}')
 			data=$mac
+			timeout=""
 
 			#IS THIS A NAME SCAN TIMEOUT EVENT
 			if [ "$name" == "TIMEOUT" ]; then 
 				if [ "${scan_status["$mac"]}" == 1 ]; then 
 					#NAME SCANNING FAILED; RESET NAME TO BLANK
 					name=""
+					timeout="[TIMEOUT]"
 				else 
 					#NAME SCANNING SUCCEEDED (RETURNING EITHER 
 					#BLANK NAME OR ACTUAL DEVICE NAME; IGNORE 
@@ -467,7 +472,7 @@ while true; do
 			debug_name="$name"
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]"
 			#PRINT RAW COMMAND; DEBUGGING
-			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
+			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer $timeout${NC}"
 			continue
 
 		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ]; then 
