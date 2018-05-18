@@ -258,7 +258,7 @@ determine_manufacturer () {
 hci_name_scan () {
 	if [ ! -z "$1" ]; then 
 		#ONLY SCAN FOR PROPERLY-FORMATTED MAC ADDRESSES
-		LOCAL mac=$(echo "$1" | grep -ioE "([0-9a-f]{2}:){5}[0-9a-f]{2}")
+		local mac=$(echo "$1" | grep -ioE "([0-9a-f]{2}:){5}[0-9a-f]{2}")
 
 		#MAKE SURE WE AREN'T SCANNING ALREADY
 		local status="${scan_status["$mac"]}"
