@@ -349,8 +349,8 @@ scan_next () {
 		scan_log["$device"]=$now
 
 		#GET CURRENT VALUES 
-		local status="${device_log["$device"]}"
-		echo "ADDED TO DEVICE LOG: [${device_log["$device"]}] $device"
+		local status="${device_log[$device]}"
+		echo "NOT IN LOG: [${device_log[$device]}] $device"
 
 
 		#DEFAULT SCAN INTERVAL WHEN PRESENT
