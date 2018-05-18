@@ -416,6 +416,8 @@ while true; do
 					#FALLBACK TIMOUT)
 					continue
 				fi
+			#else
+				#scan_status["$mac"]=0
 			fi
 
 			#ONLY PROCESS THIS ONE IF WE REQUSETED THE 
@@ -440,6 +442,8 @@ while true; do
 					#PUBLISH TO MQTT BROKER
 					$(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$name Present ($manufacturer)"
 				fi 
+			else
+				echo "NOT SCANNING $mac"
 			fi 
 
 			#LASTLY SCAN THE NEXT DEVICE
