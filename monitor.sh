@@ -22,7 +22,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.14
+version=0.1.15
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -307,7 +307,7 @@ hci_name_scan () {
 			hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
 			#NEED TO TIMEOUT
-			(sleep 5 && echo "NAME$mac|TIMEOUT" > main_pipe) & 
+			(sleep 10 && echo "NAME$mac|TIMEOUT" > main_pipe) & 
 		fi 
 	fi 
 }
