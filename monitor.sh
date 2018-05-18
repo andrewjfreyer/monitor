@@ -22,7 +22,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1 
+version=0.1.5
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -397,9 +397,9 @@ while true; do
 		manufacturer=""
 		name=""
 
-		#IF WE ARE SCANNING; IGNORE NON-BEACON OR NON-NAME REQUESTS
+		#IF WE ARE SCANNING; IGNORE RANDOM AND TIME TRIGGERS
 		if [ "$scan_status" == "1" ]; then 
-			if [ "$cmd" != "NAME" ] && [ "$cmd" != "BEAC" ]; then 
+			if [ "$cmd" == "RAND" ] || [ "$cmd" == "TIME" ]; then 
 				continue
 			fi 
 		fi 
