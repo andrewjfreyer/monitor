@@ -269,7 +269,7 @@ hci_name_scan () {
 			#SET SCAN STATUS FOR THIS DEVICE
 			scan_status=1
 
-			echo -e "${GREEN}**********	${GREEN}Scanning: $mac${NC}"
+			echo -e "${GREEN}**********	${GREEN}Scan: $mac (last scan: $2s ago)${NC}"
 
 			#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
 			hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 2>&1 1>/dev/null
@@ -371,10 +371,10 @@ scan_next () {
 			[ "$status" == "0" ] &&	unset device_log["$device"]
 
 			#SCAN THE ABSENT DEVICE 
-			hci_name_scan $device
+			hci_name_scan $device "$((now - previous_scan))"
 		fi 
 	else
-		echo -e "${GREED}**********	${GREEN}Completed.${NC}"
+		echo -e "${GREEN}**********	${GREEN}Completed.${NC}"
 	fi  
 }
 
