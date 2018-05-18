@@ -370,6 +370,9 @@ scan_next () {
 			#AND IF THE DEVICE IS NOT CURRENTLY SCANNING
 			[ "$status" == "0" ] &&	unset device_log["$device"]
 
+			#INTENTIONA RATE LIMIT
+			sleep 1
+
 			#SCAN THE ABSENT DEVICE 
 			hci_name_scan $device "$((now - previous_scan))"
 		fi 
