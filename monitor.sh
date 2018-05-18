@@ -356,13 +356,10 @@ scan_next () {
 
 			#ONLY SET FOR SCANNING IF THE DEVICE IS NOT PRESENT
 			#AND IF THE DEVICE IS NOT CURRENTLY SCANNING
-			if [ "$status" == "0" ] ; then 
-				#SET VALUES
-				unset device_log["$device"]
+			[ "$status" == "0" ] &&	unset device_log["$device"]
 
-				#SCAN THE ABSENT DEVICE 
-				hci_name_scan $device
-			fi 
+			#SCAN THE ABSENT DEVICE 
+			hci_name_scan $device
 		fi 
 	fi  
 }
