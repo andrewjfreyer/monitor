@@ -391,6 +391,9 @@ while true; do
 
 	#READ FROM THE MAIN PIPE
 	while read event; do 
+		#RATE LIMITING
+		sleep 1
+
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
 		data="${event:4}"
@@ -415,7 +418,7 @@ while true; do
 			#DATA IS DELIMITED BY VERTICAL PIPE
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			name=$(echo "$data" | awk -F "|" '{print $2}')
-			data=$mac
+			data="$mac"
 
 			#IS THIS A NAME SCAN TIMEOUT EVENT
 			if [ "$name" == "TIMEOUT" ]; then 
@@ -454,8 +457,6 @@ while true; do
 					#PUBLISH TO MQTT BROKER
 					$(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$name Present ($manufacturer)"
 				fi 
-			else
-				echo "NOT SCANNING $mac"
 			fi 
 
 			#LASTLY SCAN THE NEXT DEVICE
