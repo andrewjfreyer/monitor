@@ -267,8 +267,6 @@ hci_name_scan () {
 		#ONLY SCAN FOR VALID MAC ADDRESS
 		if [ ! -z "$mac" ] && [ "$status" == "0" ] ; then
 			#SET SCAN STATUS FOR THIS DEVICE
-			echo "Scan status: $mac 1 $$"
-
 			scan_status["$mac"]=1
 
 			echo -e "${GREEN}**********	${GREEN}Scanning: $mac${NC}"
@@ -441,8 +439,6 @@ while true; do
 
 				#GET MANUFACTURER INFORMATION
 				manufacturer="$(determine_manufacturer $data)"
-
-				echo "Scan status: $mac 0 $$"
 
 				#SCAN STATUS IS ZERO
 				scan_status["$mac"]=0
