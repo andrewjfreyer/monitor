@@ -394,7 +394,14 @@ while true; do
 		is_new=false
 		manufacturer=""
 		name=""
-		
+
+		#IF WE ARE SCANNING; IGNORE NON-BEACON OR NON-NAME REQUESTS
+		if [ "$scan_status" == "1" ]; then 
+			if [ "$cmd" != "NAME" ] && [ "$cmd" != "BEAC" ]; then 
+				continue
+			fi 
+		fi 
+
 		#PROCEED BASED ON COMMAND TYPE
 		if [ "$cmd" == "RAND" ]; then 
 			#DATA IS RANDOM MAC ADDRESS; ADD TO LOG
