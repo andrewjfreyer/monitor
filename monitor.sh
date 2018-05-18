@@ -262,11 +262,13 @@ hci_name_scan () {
 
 		#MAKE SURE WE AREN'T SCANNING ALREADY
 		local status="${scan_status["$mac"]}"
-		[ -z "$status" ] && status=0
+		[ -z "$status" ] && status=0 && scan_status["$mac"]=0
 
 		#ONLY SCAN FOR VALID MAC ADDRESS
 		if [ ! -z "$mac" ] && [ "$status" == "0" ] ; then
 			#SET SCAN STATUS FOR THIS DEVICE
+			echo "Scan status: $mac 1 $$"
+
 			scan_status["$mac"]=1
 
 			echo -e "${GREEN}**********	${GREEN}Scanning: $mac${NC}"
@@ -391,8 +393,6 @@ while true; do
 
 	#READ FROM THE MAIN PIPE
 	while read event; do 
-		#RATE LIMITING
-		sleep 1
 
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
@@ -441,6 +441,8 @@ while true; do
 
 				#GET MANUFACTURER INFORMATION
 				manufacturer="$(determine_manufacturer $data)"
+
+				echo "Scan status: $mac 0 $$"
 
 				#SCAN STATUS IS ZERO
 				scan_status["$mac"]=0
