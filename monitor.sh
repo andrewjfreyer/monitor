@@ -22,7 +22,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.17
+version=0.1.19
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -436,46 +436,44 @@ while true; do
 
 			#ONLY PROCESS THIS ONE IF WE REQUSETED THE 
 			#NAME OF THE DEVICE IN AN EARLIER STEP
-			if [ "$scan_status" == "1" ]; then 
 
-				if [ "$name" == "TIMEOUT" ]; then 
-					#HERE, THE TIMEOUT PROCESSED BEFORE 
-					#THE ACTUAL NAME ARRIVED; 
-					name=""
-				fi  
+			if [ "$name" == "TIMEOUT" ]; then 
+				#HERE, THE TIMEOUT PROCESSED BEFORE 
+				#THE ACTUAL NAME ARRIVED; 
+				name=""
+			fi  
 
-				#GET MANUFACTURER INFORMATION
-				manufacturer="$(determine_manufacturer $data)"
+			#GET MANUFACTURER INFORMATION
+			manufacturer="$(determine_manufacturer $data)"
 
-				#SCAN STATUS IS ZERO
-				scan_status=0
+			#SCAN STATUS IS ZERO
+			scan_status=0
 
-				#GET CURRENT DEVICE STATUS
-				current_status="${status_log[$mac]}"
-				[ -z "$current_status" ] && current_status=0
+			#GET CURRENT DEVICE STATUS
+			current_status="${status_log[$mac]}"
+			[ -z "$current_status" ] && current_status=0
 
-				#IF NAME FIELD IS BLANK; DEVICE IS NOT PRESENT
-				#AND SHOULD BE REMOVED FROM THE LOG
-				if [ -z "$name" ]; then 
-					unset device_log["$mac"]
+			#IF NAME FIELD IS BLANK; DEVICE IS NOT PRESENT
+			#AND SHOULD BE REMOVED FROM THE LOG
+			if [ -z "$name" ]; then 
+				unset device_log["$mac"]
 
-					#SET DEVICE STATUS LOG
-					status_log["$mac"]=0
-					[ "$current_status" -gt "0" ] && did_change=true
+				#SET DEVICE STATUS LOG
+				status_log["$mac"]=0
+				[ "$current_status" -gt "0" ] && did_change=true
 
-				else 
-					#ADD TO LOG
-					[ -z "${device_log[$mac]}" ] && is_new=true
-					device_log["$mac"]="$timestamp"
+			else 
+				#ADD TO LOG
+				[ -z "${device_log[$mac]}" ] && is_new=true
+				device_log["$mac"]="$timestamp"
 
-					#SET DEVICE STATUS LOG
-					status_log["$mac"]=1
-					[ "$current_status" == 0 ] && did_change=true
+				#SET DEVICE STATUS LOG
+				status_log["$mac"]=1
+				[ "$current_status" == 0 ] && did_change=true
 
-					#PUBLISH TO MQTT BROKER
-					$(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$name Present ($manufacturer)"
-				fi
-			fi 
+				#PUBLISH TO MQTT BROKER
+				$(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$name Present ($manufacturer)"
+			fi
 
 		elif [ "$cmd" == "BEAC" ]; then 
 			#DATA IS DELIMITED BY VERTICAL PIPE
