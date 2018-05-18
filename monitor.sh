@@ -22,7 +22,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.8
+version=0.1.9
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -273,9 +273,6 @@ hci_name_scan () {
 
 			#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
 			hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 2>&1 1>/dev/null
-
-			#SCHEDULE A TIMEOUT MESSAGE
-			(sleep 5 && echo "NAME$mac|TIMEOUT" > main_pipe) & 
 		fi 
 	fi 
 }
@@ -426,19 +423,6 @@ while true; do
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			name=$(echo "$data" | awk -F "|" '{print $2}')
 			data="$mac"
-
-			#IS THIS A NAME SCAN TIMEOUT EVENT
-			if [ "$name" == "TIMEOUT" ]; then 
-				if [ "$scan_status" == "1" ]; then 
-					#NAME SCANNING FAILED; RESET NAME TO BLANK
-					name=""
-				else 
-					#NAME SCANNING SUCCEEDED (RETURNING EITHER 
-					#BLANK NAME OR ACTUAL DEVICE NAME; IGNORE 
-					#FALLBACK TIMOUT)
-					continue
-				fi
-			fi
 
 			#ONLY PROCESS THIS ONE IF WE REQUSETED THE 
 			#NAME OF THE DEVICE IN AN EARLIER STEP
