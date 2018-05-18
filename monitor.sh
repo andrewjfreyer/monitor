@@ -22,7 +22,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.13
+version=0.1.14
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -106,7 +106,7 @@ BLUE='\033[0;34m'
 bluetooth_scanner () {
 	echo "BTLE scanner started" >&2 
 	while true; do 
-		local error=$(sudo timeout --signal SIGINT 45 hcitool lescan --duplicates 2>&1 | grep -iE 'input/output error')
+		local error=$(sudo timeout --signal SIGINT 45 hcitool lescan 2>&1 | grep -iE 'input/output error')
 		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe
 		sleep 1
 	done
@@ -301,7 +301,7 @@ hci_name_scan () {
 			#SET SCAN STATUS FOR THIS DEVICE
 			scan_status=1
 
-			echo -e "${GREEN}**********	${GREEN}Scanning:${NC}$mac${NC}"
+			echo -e "${GREEN}**********	${GREEN}Scanning:${NC} $mac${NC}"
 
 			#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
 			hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
