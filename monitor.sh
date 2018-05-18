@@ -240,7 +240,7 @@ determine_manufacturer () {
 		local address="$1"
 
 		#CHECK CACHE
-		local manufacturer=$(cat ".manufacturer_cache" | grep "${address:0:8}" | awk -F "\t" '{print $2}')
+		local manufacturer=$(cat ".manufacturer_cache" 2>/dev/null | grep "${address:0:8}" | awk -F "\t" '{print $2}')
 
 		#IF CACHE DOES NOT EXIST, USE MACVENDORS.COM
 		if [ -z "$manufacturer" ]; then 
@@ -295,8 +295,8 @@ btle_pid="$!"
 period_trigger & 
 period_pid="$!"
 
-#TRAP EXIT FOR CLEANUP
-trap "sudo rm main_pipe; sudo kill -9 $btle_pid; sudo kill -9 $mqtt_pid; sudo kill -9 $scan_pid; sudo kill -9 $period_pid" EXIT
+#TRAP EXIT FOR CLEANUP ON OLDER INSTALLATIONS
+trap "sudo rm main_pipe &>/dev/null; sudo kill -9 $btle_pid &>/dev/null; sudo kill -9 $mqtt_pid &>/dev/null; sudo kill -9 $scan_pid &>/dev/null; sudo kill -9 $period_pid &>/dev/null" EXIT
 
 
 # ----------------------------------------------------------------------------------------
