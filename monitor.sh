@@ -22,7 +22,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.5
+version=0.1.6
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -308,6 +308,9 @@ trap "sudo rm main_pipe &>/dev/null; sudo kill -9 $btle_pid &>/dev/null; sudo ki
 #DEFINE VARIABLES FOR EVENT PROCESSING
 declare -A device_log
 declare -A scan_log
+declare -A status_log
+
+#STATUS OF THE BLUETOOTH HARDWARE
 scan_status=0
 
 #NOTE: EDIT LATER FOR A CONFIGURATION FILE
@@ -394,6 +397,7 @@ while true; do
 		data="${event:4}"
 		timestamp=$(date +%s)
 		is_new=false
+		did_change=false
 		manufacturer=""
 		name=""
 
@@ -409,6 +413,10 @@ while true; do
 			#DATA IS RANDOM MAC ADDRESS; ADD TO LOG
 			[ -z "${device_log[$data]}" ] && is_new=true
 			device_log["$data"]="$timestamp"
+
+		elif [ "$cmd" == "MQTT" ]; then 
+			#IN RESPONSE TO MQTT SCAN 
+			scan_next
 
 		elif [ "$cmd" == "PUBL" ]; then 
 			#DATA IS PUBLIC MAC ADDRESS; ADD TO LOG
@@ -444,16 +452,27 @@ while true; do
 
 				#SCAN STATUS IS ZERO
 				scan_status=0
+
+				#GET CURRENT DEVICE STATUS
+				current_status="${status_log[$mac]}"
 				
 				#IF NAME FIELD IS BLANK; DEVICE IS NOT PRESENT
 				#AND SHOULD BE REMOVED FROM THE LOG
 				if [ -z "$name" ]; then 
 					unset device_log["$mac"]
-				
+
+					#SET DEVICE STATUS LOG
+					status_log["$mac"]=0
+					[ "$current_status" -gt "0" ] && did_change=true
+
 				else 
 					#ADD TO LOG
 					[ -z "${device_log[$mac]}" ] && is_new=true
 					device_log["$mac"]="$timestamp"
+
+					#SET DEVICE STATUS LOG
+					status_log["$mac"]=1
+					[ "$current_status" == 0 ] && did_change=true
 
 					#PUBLISH TO MQTT BROKER
 					$(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$name Present ($manufacturer)"
@@ -479,7 +498,7 @@ while true; do
 			debug_name="$name"
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]"
 			#PRINT RAW COMMAND; DEBUGGING
-			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
+			[ "$did_change" == true ] echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 			scan_next 
 			continue
 
