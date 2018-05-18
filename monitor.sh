@@ -22,7 +22,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.9
+version=0.1.10
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -50,6 +50,29 @@ else
 	source $MQTT_CONFIG
 fi 
 
+# ----------------------------------------------------------------------------------------
+# DEFINE VALUES AND VARIABLES
+# ----------------------------------------------------------------------------------------
+
+#DEFINE VARIABLES FOR EVENT PROCESSING
+declare -A device_log
+declare -A scan_log
+declare -A status_log
+
+#STATUS OF THE BLUETOOTH HARDWARE
+scan_status=0
+last_scan=0
+
+#NOTE: EDIT LATER FOR A CONFIGURATION FILE
+devices[0]="34:08:BC:15:24:F7"
+devices[1]="34:08:BC:14:6F:74"
+devices[2]="20:78:f0:dd:7D:94"
+devices[3]="C8:69:CD:6A:89:2A"
+
+#LOOP SCAN VARIABLES
+device_count=${#devices[@]}
+device_index=-1
+
 
 #FIND DEPENDENCY PATHS, ELSE MANUALLY SET
 mosquitto_pub_path=$(which mosquitto_pub)
@@ -59,11 +82,15 @@ bc_path=$(which bc)
 git_path=$(which git)
 
 #ERROR CHECKING FOR MOSQUITTO PUBLICATION 
-[ -z "$mosquitto_pub_path" ] && echo "Required package 'mosquitto_pub' not found. Please install." && exit 1
-[ -z "$mosquitto_sub_path" ] && echo "Required package 'mosquitto_sub' not found. Please install." && exit 1
-[ -z "$hcidump_path" ] && echo "Required package 'hcidump' not found. Please install." && exit 1
-[ -z "$bc_path" ] && echo "Required package 'bc' not found. Please install." && exit 1
+should_exit=false
+[ -z "$mosquitto_pub_path" ] && echo "Required package 'mosquitto_pub' not found. Please install." && should_exit=true
+[ -z "$mosquitto_sub_path" ] && echo "Required package 'mosquitto_sub' not found. Please install." && should_exit=true
+[ -z "$hcidump_path" ] && echo "Required package 'hcidump' not found. Please install." && should_exit=true
+[ -z "$bc_path" ] && echo "Required package 'bc' not found. Please install." && should_exit=true
 [ -z "$git_path" ] && echo "Recommended package 'git' not found. Please consider installing."
+
+#ARE REQUIREMENTS MET? 
+[ "$should_exit" == true ] && exit 1
 
 #COLOR OUTPUT FOR RICH DEBUG 
 ORANGE='\033[0;33m'
@@ -79,7 +106,7 @@ BLUE='\033[0;34m'
 bluetooth_scanner () {
 	echo "BTLE scanner started" >&2 
 	while true; do 
-		local error=$(sudo timeout --signal SIGINT 45 hcitool lescan 2>&1 | grep -iE 'input/output error')
+		local error=$(sudo timeout --signal SIGINT 45 hcitool lescan --duplicates 2>&1 | grep -iE 'input/output error')
 		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe
 		sleep 1
 	done
@@ -294,29 +321,6 @@ period_pid="$!"
 
 #TRAP EXIT FOR CLEANUP ON OLDER INSTALLATIONS
 trap "sudo rm main_pipe &>/dev/null; sudo kill -9 $btle_pid &>/dev/null; sudo kill -9 $mqtt_pid &>/dev/null; sudo kill -9 $scan_pid &>/dev/null; sudo kill -9 $period_pid &>/dev/null" EXIT
-
-
-# ----------------------------------------------------------------------------------------
-# DEFINE VALUES AND VARIABLES
-# ----------------------------------------------------------------------------------------
-
-#DEFINE VARIABLES FOR EVENT PROCESSING
-declare -A device_log
-declare -A scan_log
-declare -A status_log
-
-#STATUS OF THE BLUETOOTH HARDWARE
-scan_status=0
-last_scan=0
-
-#NOTE: EDIT LATER FOR A CONFIGURATION FILE
-devices[0]="34:08:BC:15:24:F7"
-devices[1]="34:08:BC:14:6F:74"
-devices[2]="20:78:f0:dd:7D:94"
-
-#LOOP SCAN VARIABLES
-device_count=${#devices[@]}
-device_index=-1
 
 # ----------------------------------------------------------------------------------------
 # SCAN NEXT DEVICE IF REQUIRED
