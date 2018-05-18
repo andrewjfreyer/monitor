@@ -22,7 +22,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.7
+version=0.1.8
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -310,6 +310,7 @@ declare -A status_log
 
 #STATUS OF THE BLUETOOTH HARDWARE
 scan_status=0
+last_scan=0
 
 #NOTE: EDIT LATER FOR A CONFIGURATION FILE
 devices[0]="34:08:BC:15:24:F7"
@@ -324,7 +325,7 @@ device_index=-1
 # SCAN NEXT DEVICE IF REQUIRED
 # ----------------------------------------------------------------------------------------
 
-scan_next () {
+request_public_mac_scan () {
 
 	#DETERMINE IF SAN IS REQUIRED
 	#ARE WE SCANNING FOR *ANYTHING* RIGHT NOW? 
@@ -363,13 +364,14 @@ scan_next () {
 		fi 
 
 		#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
-		if [ "$((now - previous_scan))" -gt "$scan_interval" ]; then 
+		if [ "$((now - previous_scan))" -gt "$scan_interval" ] ; then 
 
 			#SCAN THE ABSENT DEVICE 
+			last_scan=$(date +%s)
 			hci_name_scan $device
 		fi 
 	else
-		echo -e "${GREEN}**********	${GREEN}Completed.${NC}"
+		echo -e "${GREEN}**********	${GREEN}Completed at $(date +%H:%M:%S).${NC}"
 	fi  
 }
 
@@ -379,7 +381,7 @@ scan_next () {
 # ----------------------------------------------------------------------------------------
 
 #START BY SCANNING
-scan_next
+request_public_mac_scan
 
 #MAIN LOOP
 while true; do 
@@ -411,7 +413,7 @@ while true; do
 
 		elif [ "$cmd" == "MQTT" ]; then 
 			#IN RESPONSE TO MQTT SCAN 
-			scan_next
+			request_public_mac_scan
 
 		elif [ "$cmd" == "PUBL" ]; then 
 			#DATA IS PUBLIC MAC ADDRESS; ADD TO LOG
@@ -495,7 +497,7 @@ while true; do
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]"
 			#PRINT RAW COMMAND; DEBUGGING
 			[ "$did_change" == true ] && echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
-			scan_next 
+			request_public_mac_scan 
 			continue
 
 		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ]; then 
@@ -504,7 +506,7 @@ while true; do
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ]; then 
 			echo -e "${RED}[CMD-$cmd]	${NC}$data $name${NC} $manufacturer${NC}"
-			scan_next
+			request_public_mac_scan
 			continue
 		fi 
 
