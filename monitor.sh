@@ -22,7 +22,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.16
+version=0.1.17
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -308,7 +308,7 @@ hci_name_scan () {
 			hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
 			#NEED TO TIMEOUT
-			(sleep 10 && echo "NAME$mac|TIMEOUT" > main_pipe) & 
+			(sleep 10 && echo "NAME$mac|" > main_pipe) & 
 		fi 
 	fi 
 }
@@ -438,6 +438,12 @@ while true; do
 			#NAME OF THE DEVICE IN AN EARLIER STEP
 			if [ "$scan_status" == "1" ]; then 
 
+				if [ "$name" == "TIMEOUT" ]; then 
+					#HERE, THE TIMEOUT PROCESSED BEFORE 
+					#THE ACTUAL NAME ARRIVED; 
+					name=""
+				fi  
+
 				#GET MANUFACTURER INFORMATION
 				manufacturer="$(determine_manufacturer $data)"
 
@@ -468,7 +474,13 @@ while true; do
 
 					#PUBLISH TO MQTT BROKER
 					$(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$name Present ($manufacturer)"
-				fi 
+				fi
+
+			elif [ "$name" == "TIMEOUT" ]; then 
+				#HERE THE TIMEOUT WAS NOT NECESSARY;
+				#A NAME WAS RECEIVED BEFORE THIS ELAPSED
+				#CONTINUE THE LOOP
+				continue
 			fi 
 
 		elif [ "$cmd" == "BEAC" ]; then 
