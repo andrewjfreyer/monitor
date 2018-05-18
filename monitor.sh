@@ -181,7 +181,7 @@ btle_listener () {
 		if [[ $packet =~ ^04\ 07\ FF\ .*? ]]; then
 
 			#GET HARDWARE MAC ADDRESS FOR THIS REQUEST; REVERSE FOR BIG ENDIAN
-			local received_mac_address=$(echo "$packet" | awk '{print $10":"$9":"$8":"$7":"$6":"$5}')
+			local received_mac_address=$(echo "$packet" | awk '{print $10":"$9":"$8":"$7":"$6":"$5}' | tr -d "\0")
 
 			#CONVERT RECEIVED HEX DATA INTO ASCII
 			local name_as_string=$(echo "${packet:29}" 2>/dev/null | xxd -r -p )
