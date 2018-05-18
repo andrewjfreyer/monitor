@@ -180,11 +180,13 @@ btle_listener () {
 		#NAME RESPONSE 
 		if [[ $packet =~ ^04\ 07\ FF\ .*? ]]; then
 
+			echo "$packet" | tr -d '\0'
+
 			#GET HARDWARE MAC ADDRESS FOR THIS REQUEST; REVERSE FOR BIG ENDIAN
-			local received_mac_address=$(echo "$packet" | awk '{print $10":"$9":"$8":"$7":"$6":"$5}' | tr -d "\0")
+			local received_mac_address=$(echo "$packet" | awk '{print $10":"$9":"$8":"$7":"$6":"$5}')
 
 			#CONVERT RECEIVED HEX DATA INTO ASCII
-			local name_as_string=$(echo "${packet:29}" 2>/dev/null | xxd -r -p )
+			local name_as_string=$(echo "${packet:29}"| xxd -r -p )
 
 			#SEND TO MAIN LOOP
 			echo "NAME$received_mac_address|$name_as_string" > main_pipe
