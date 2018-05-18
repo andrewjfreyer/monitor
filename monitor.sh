@@ -355,7 +355,7 @@ scan_next () {
 		scan_interval=45
 
 		#DETERMINE APPROPRIATE DELAY FOR THIS DEVICE
-		if [ -z "$status" ] || [ "$status" == 0 ]; then 
+		if [ -z "$status" ] ; then 
 			scan_interval=5
 		fi 
 
@@ -373,8 +373,10 @@ scan_next () {
 			#INTENTIONA RATE LIMIT
 			sleep 1
 
+			echo "$((now - previous_scan)) -- $scan_interval"
+
 			#SCAN THE ABSENT DEVICE 
-			hci_name_scan $device "$((now - previous_scan))"
+			hci_name_scan $device 
 		fi 
 	else
 		echo -e "${GREEN}**********	${GREEN}Completed.${NC}"
