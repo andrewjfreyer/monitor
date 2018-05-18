@@ -454,8 +454,11 @@ while true; do
 				else 
 					#ADD TO LOG
 					[ -z "${device_log[$mac]}" ] && is_new=true
-					device_log["$mac"]="$timestamp"
 
+
+					device_log["$mac"]="$timestamp"
+					echo "ADDED TO DEVICE LOG: $mac"
+					
 					#PUBLISH TO MQTT BROKER
 					$(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$name Present ($manufacturer)"
 				fi 
