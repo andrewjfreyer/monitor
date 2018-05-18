@@ -374,7 +374,7 @@ scan_next () {
 			hci_name_scan $device
 		fi 
 	else
-		echo -e "${RED}**********	${GREEN}Scanning: $mac${NC}"
+		echo -e "${GREED}**********	${GREEN}Completed.${NC}"
 	fi  
 }
 
