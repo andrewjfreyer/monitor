@@ -461,9 +461,6 @@ while true; do
 				fi 
 			fi 
 
-			#LASTLY SCAN THE NEXT DEVICE
-			scan_next
-
 		elif [ "$cmd" == "BEAC" ]; then 
 			#DATA IS DELIMITED BY VERTICAL PIPE
 			uuid=$(echo "$data" | awk -F "|" '{print $1}')
@@ -484,14 +481,16 @@ while true; do
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]"
 			#PRINT RAW COMMAND; DEBUGGING
 			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
+			scan_next 
 			continue
 
 		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ]; then 
 			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $manufacturer${NC}"
 			continue
+
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ]; then 
 			echo -e "${RED}[CMD-$cmd]	${NC}$data $name${NC} $manufacturer${NC}"
-			scan_next $mac
+			scan_next
 			continue
 		fi 
 
