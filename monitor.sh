@@ -422,7 +422,7 @@ while true; do
 
 			#IS THIS A NAME SCAN TIMEOUT EVENT
 			if [ "$name" == "TIMEOUT" ]; then 
-				if [ "${scan_status["$mac"]}" == 1 ]; then 
+				if [ "${scan_status["$mac"]}" == "1" ]; then 
 					#NAME SCANNING FAILED; RESET NAME TO BLANK
 					name=""
 				else 
@@ -437,7 +437,7 @@ while true; do
 
 			#ONLY PROCESS THIS ONE IF WE REQUSETED THE 
 			#NAME OF THE DEVICE IN AN EARLIER STEP
-			if [ "${scan_status["$mac"]}" == 1 ]; then 
+			if [ "${scan_status["$mac"]}" == "1" ]; then 
 
 				#GET MANUFACTURER INFORMATION
 				manufacturer="$(determine_manufacturer $data)"
