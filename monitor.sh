@@ -184,7 +184,7 @@ btle_listener () {
 			local received_mac_address=$(echo "$packet" | awk '{print $10":"$9":"$8":"$7":"$6":"$5}')
 
 			#CONVERT RECEIVED HEX DATA INTO ASCII
-			local name_as_string=$(echo "${packet:29}" | xxd -r -p)
+			local name_as_string=$(echo "${packet:29}" | tr -d '\0' | xxd -r -p)
 
 			#SEND TO MAIN LOOP
 			echo "NAME$received_mac_address|$name_as_string" > main_pipe
