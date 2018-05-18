@@ -268,8 +268,11 @@ determine_manufacturer () {
 	if [ ! -z "$1" ]; then  
 		local address="$1"
 
+		#SET THE FILE IF IT DOESN'T EXIST
+		[ ! -f ".manufacturer_cache" ] && echo "" > ".manufacturer_cache"
+
 		#CHECK CACHE
-		local manufacturer=$(cat ".manufacturer_cache" 2>/dev/null | grep "${address:0:8}" | awk -F "\t" '{print $2}')
+		local manufacturer=$(cat ".manufacturer_cache" | grep "${address:0:8}" | awk -F "\t" '{print $2}')
 
 		#IF CACHE DOES NOT EXIST, USE MACVENDORS.COM
 		if [ -z "$manufacturer" ]; then 
@@ -297,6 +300,8 @@ hci_name_scan () {
 		if [ ! -z "$mac" ] && [ "$status" == "0" ] ; then
 			#SET SCAN STATUS FOR THIS DEVICE
 			scan_status=1
+
+			echo -e "${GREEN}**********	${GREEN}Scanning:${NC}%mac${NC}"
 
 			#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
 			hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 2>&1 1>/dev/null
