@@ -40,10 +40,10 @@ if [ -f $MQTT_CONFIG ]; then
 	source $MQTT_CONFIG
 else
 	#IF NO PREFERENCE FILE; LOAD 
-	echo "mqtt_address='ip.address.of.server'" >> $MQTT_CONFIG
-	echo "mqtt_user='username'" >> $MQTT_CONFIG
-	echo "mqtt_password='password'" >> $MQTT_CONFIG
-	echo "mqtt_topicpath='location" >> $MQTT_CONFIG
+	echo "mqtt_address=ip.address.of.server" >> $MQTT_CONFIG
+	echo "mqtt_user=username" >> $MQTT_CONFIG
+	echo "mqtt_password=password" >> $MQTT_CONFIG
+	echo "mqtt_topicpath=location" >> $MQTT_CONFIG
 	echo "mqtt_room=''" >> $MQTT_CONFIG
 
 	#LOAD VALUES INTO MQTT CONFIG
