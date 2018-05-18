@@ -498,7 +498,7 @@ while true; do
 			debug_name="$name"
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]"
 			#PRINT RAW COMMAND; DEBUGGING
-			[ "$did_change" == true ] echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
+			[ "$did_change" == true ] && echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 			scan_next 
 			continue
 
