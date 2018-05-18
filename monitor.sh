@@ -269,7 +269,7 @@ hci_name_scan () {
 			#SET SCAN STATUS FOR THIS DEVICE
 			scan_status=1
 
-			echo -e "${GREEN}**********	${GREEN}Scan: $mac (last scan: $2s ago)${NC}"
+			echo -e "${GREEN}**********	${GREEN}Scan: $mac (last: $2s ago)${NC}"
 
 			#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
 			hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 2>&1 1>/dev/null
@@ -349,7 +349,7 @@ scan_next () {
 		scan_log["$device"]=$now
 
 		#GET CURRENT VALUES 
-		local status=${device_log["$device"]}
+		local status="${device_log["$device"]}"
 
 		#DEFAULT SCAN INTERVAL WHEN PRESENT
 		scan_interval=45
@@ -370,10 +370,10 @@ scan_next () {
 			#AND IF THE DEVICE IS NOT CURRENTLY SCANNING
 			[ "$status" == "0" ] &&	unset device_log["$device"]
 
-			#INTENTIONA RATE LIMIT
+			#INTENTIONAL RATE LIMIT
 			sleep 1
 
-			echo "$((now - previous_scan)) -- $scan_interval"
+			echo "$((now - previous_scan)) -- $scan_interval ... $status"
 
 			#SCAN THE ABSENT DEVICE 
 			hci_name_scan $device 
@@ -434,8 +434,6 @@ while true; do
 					#FALLBACK TIMOUT)
 					continue
 				fi
-			#else
-				#scan_status=0
 			fi
 
 			#ONLY PROCESS THIS ONE IF WE REQUSETED THE 
@@ -452,6 +450,7 @@ while true; do
 				#AND SHOULD BE REMOVED FROM THE LOG
 				if [ -z "$name" ]; then 
 					unset device_log["$mac"]
+				
 				else 
 					#ADD TO LOG
 					[ -z "${device_log[$mac]}" ] && is_new=true
