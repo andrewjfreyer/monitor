@@ -333,22 +333,30 @@ scan_next () {
 	if [ "$device_index" != -1 ]; then 
 
 		#GET DEVICE
-		device=${devices[$device_index]}
+		local device=${devices[$device_index]}
 
 		#GET TIME NOW  
-		now=$(date +%s)
+		local now=$(date +%s)
 
 		#PREVIOUS TIME SCANNED
-		previous_scan="${scan_log[$device]}"
+		local previous_scan="${scan_log[$device]}"
 
 		#UPDATE THE SCAN LOG
 		scan_log["$device"]=$now
 
-		#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
-		if [ "$((now - previous_scan))" -gt "5" ]; then 
+		#GET CURRENT VALUES 
+		local status=${device_log["$device"]}
 
-			#GET CURRENT VALUES 
-			status=${device_log["$device"]}
+		#DEFAULT SCAN INTERVAL WHEN PRESENT
+		scan_interval=45
+
+		#DETERMINE APPROPRIATE DELAY FOR THIS DEVICE
+		if [ -z "$status" ] || [ "$status" == 0 ]; then 
+			scan_interval=5
+		fi 
+
+		#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
+		if [ "$((now - previous_scan))" -gt "$scan_interval" ]; then 
 
 			#SET DEFAULT VALUES IF THESE HAVE NOT BEEN 
 			#SEEN OR SCANNED FOR THE FIRST TIME YET
@@ -402,14 +410,12 @@ while true; do
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			name=$(echo "$data" | awk -F "|" '{print $2}')
 			data=$mac
-			timeout=""
 
 			#IS THIS A NAME SCAN TIMEOUT EVENT
 			if [ "$name" == "TIMEOUT" ]; then 
 				if [ "${scan_status["$mac"]}" == 1 ]; then 
 					#NAME SCANNING FAILED; RESET NAME TO BLANK
 					name=""
-					timeout="[TIMEOUT]"
 				else 
 					#NAME SCANNING SUCCEEDED (RETURNING EITHER 
 					#BLANK NAME OR ACTUAL DEVICE NAME; IGNORE 
@@ -463,17 +469,12 @@ while true; do
 			device_log["$key"]="$timestamp"				
 		fi
 
-		#SHOULD TRIGGER PUBLIC SCAN
-		if [ "$cmd" == "RAND" ] && [ "$is_new" == true ]; then
-			scan_next $mac
-		fi 
-
 		#ECHO VALUES FOR DEBUGGING
 		if [ "$cmd" == "NAME" ] || [ "$cmd" == "BEAC" ]; then 
 			debug_name="$name"
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]"
 			#PRINT RAW COMMAND; DEBUGGING
-			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer $timeout${NC}"
+			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 			continue
 
 		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ]; then 
@@ -481,6 +482,7 @@ while true; do
 			continue
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ]; then 
 			echo -e "${RED}[CMD-$cmd]	${NC}$data $name${NC} $manufacturer${NC}"
+			scan_next $mac
 			continue
 		fi 
 
