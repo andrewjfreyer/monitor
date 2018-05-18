@@ -275,7 +275,7 @@ hci_name_scan () {
 			hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 2>&1 1>/dev/null
 
 			#SCHEDULE A TIMEOUT MESSAGE
-			(sleep 10 && echo "NAME$mac|TIMEOUT" > main_pipe) & 
+			(sleep 5 && echo "NAME$mac|TIMEOUT" > main_pipe) & 
 		fi 
 	fi 
 }
