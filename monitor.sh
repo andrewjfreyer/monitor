@@ -361,7 +361,7 @@ scan_next () {
 
 		#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
 		if [ "$((now - previous_scan))" -gt "$scan_interval" ]; then 
-			
+
 			#INTENTIONAL RATE LIMIT
 			sleep 1
 
@@ -445,7 +445,6 @@ while true; do
 					#ADD TO LOG
 					[ -z "${device_log[$mac]}" ] && is_new=true
 					device_log["$mac"]="$timestamp"
-					echo "ADDED TO DEVICE LOG: $mac ${device_log[$mac]} ${device_log["$mac"]}"
 
 					#PUBLISH TO MQTT BROKER
 					$(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$name Present ($manufacturer)"
