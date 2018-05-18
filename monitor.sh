@@ -261,13 +261,13 @@ hci_name_scan () {
 		local mac=$(echo "$1" | grep -ioE "([0-9a-f]{2}:){5}[0-9a-f]{2}")
 
 		#MAKE SURE WE AREN'T SCANNING ALREADY
-		local status="${scan_status["$mac"]}"
-		[ -z "$status" ] && status=0 && scan_status["$mac"]=0
+		local status="$scan_status"
+		[ -z "$status" ] && status=0 && scan_status=0
 
 		#ONLY SCAN FOR VALID MAC ADDRESS
 		if [ ! -z "$mac" ] && [ "$status" == "0" ] ; then
 			#SET SCAN STATUS FOR THIS DEVICE
-			scan_status["$mac"]=1
+			scan_status=1
 
 			echo -e "${GREEN}**********	${GREEN}Scanning: $mac${NC}"
 
@@ -306,7 +306,7 @@ trap "sudo rm main_pipe; sudo kill -9 $btle_pid; sudo kill -9 $mqtt_pid; sudo ki
 #DEFINE VARIABLES FOR EVENT PROCESSING
 declare -A device_log
 declare -A scan_log
-declare -A scan_status
+scan_status=0
 
 #NOTE: EDIT LATER FOR A CONFIGURATION FILE
 devices[0]="34:08:BC:15:24:F7"
@@ -325,11 +325,9 @@ scan_next () {
 
 	#DETERMINE IF SAN IS REQUIRED
 	#ARE WE SCANNING FOR *ANYTHING* RIGHT NOW? 
-	for key in "${!scan_status[@]}"; do
-		if [ "${scan_status[$key]}" == "1" ]; then 
-			return 0
-		fi  
-	done 
+	if [ "$scan_status" == "1" ]; then 
+		return 0
+	fi  
 
 	#ITERATE TO DETERMINE WHETHER AT LEAST ONE DEVICE IS NOT HOME
 	device_index=$((device_index + 1))
@@ -375,6 +373,8 @@ scan_next () {
 			#SCAN THE ABSENT DEVICE 
 			hci_name_scan $device
 		fi 
+	else
+		echo "SCAN COMPLETE"
 	fi  
 }
 
@@ -420,7 +420,7 @@ while true; do
 
 			#IS THIS A NAME SCAN TIMEOUT EVENT
 			if [ "$name" == "TIMEOUT" ]; then 
-				if [ "${scan_status["$mac"]}" == "1" ]; then 
+				if [ "$scan_status" == "1" ]; then 
 					#NAME SCANNING FAILED; RESET NAME TO BLANK
 					name=""
 				else 
@@ -430,18 +430,18 @@ while true; do
 					continue
 				fi
 			#else
-				#scan_status["$mac"]=0
+				#scan_status=0
 			fi
 
 			#ONLY PROCESS THIS ONE IF WE REQUSETED THE 
 			#NAME OF THE DEVICE IN AN EARLIER STEP
-			if [ "${scan_status["$mac"]}" == "1" ]; then 
+			if [ "$scan_status" == "1" ]; then 
 
 				#GET MANUFACTURER INFORMATION
 				manufacturer="$(determine_manufacturer $data)"
 
 				#SCAN STATUS IS ZERO
-				scan_status["$mac"]=0
+				scan_status=0
 				
 				#IF NAME FIELD IS BLANK; DEVICE IS NOT PRESENT
 				#AND SHOULD BE REMOVED FROM THE LOG
