@@ -305,6 +305,7 @@ declare -A scan_status
 #NOTE: EDIT LATER FOR A CONFIGURATION FILE
 devices[0]="34:08:BC:15:24:F7"
 devices[1]="34:08:BC:14:6F:74"
+devices[2]="20:78:f0:dd:7D:94"
 
 #LOOP SCAN VARIABLES
 device_count=${#devices[@]}
