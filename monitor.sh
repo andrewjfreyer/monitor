@@ -180,7 +180,7 @@ btle_listener () {
 		#NAME RESPONSE 
 		if [[ $packet =~ ^04\ 07\ FF\ .*? ]]; then
 
-			echo "$packet" | tr -d '\0'
+			packet=$(echo "$packet" | tr -d '\0')
 
 			#GET HARDWARE MAC ADDRESS FOR THIS REQUEST; REVERSE FOR BIG ENDIAN
 			local received_mac_address=$(echo "$packet" | awk '{print $10":"$9":"$8":"$7":"$6":"$5}')
