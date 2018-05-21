@@ -22,7 +22,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.22
+version=0.1.23
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
@@ -340,6 +340,7 @@ request_public_mac_scan () {
 	#DETERMINE IF SAN IS REQUIRED
 	#ARE WE SCANNING FOR *ANYTHING* RIGHT NOW? 
 	if [ "$scan_status" == "1" ]; then 
+		echo "INVALID SCAN REQEST; REJECTING"
 		return 0
 	fi  
 
@@ -505,6 +506,7 @@ while true; do
 			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 
 			#REQUEST NEXT SCAN
+			echo "${LINENO}" 
 			request_public_mac_scan 
 			continue
 
@@ -516,6 +518,7 @@ while true; do
 			echo -e "${RED}[CMD-$cmd]	${NC}$data $name${NC} $manufacturer${NC}"
 
 			#REQUEST NEXT SCAN
+			echo "${LINENO}" 
 			request_public_mac_scan
 			continue
 		fi 
