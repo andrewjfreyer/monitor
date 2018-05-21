@@ -316,9 +316,9 @@ public_device_scanner () {
 			name=$(hcitool name "$mac")
 			#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
 			#hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
-
+			echo "Result: $name"
 			#NEED TO TIMEOUT
-			[ ! -z "$name" ] && echo "NAME$mac|TIMEOUT" > main_pipe
+			[ ! -z "$name" ] && echo "NAME$mac|TIMEOUT" > main_pipe & 
 
 			#TESTING
 			echo -e "${GREEN}[CMD-SCAN]	${GREEN}Complete:${NC} $mac${NC}"
