@@ -314,10 +314,11 @@ public_device_scanner () {
 			echo -e "${GREEN}**********	${GREEN}Scanning:${NC} $mac${NC}"
 
 			#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
-			hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
+			hcitool name "$mac"
+			#hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
 			#NEED TO TIMEOUT
-			(sleep 10 && echo "NAME$mac|TIMEOUT" > main_pipe) & 
+			#(sleep 10 && echo "NAME$mac|TIMEOUT" > main_pipe) & 
 
 		done < <(cat < scan_pipe)
 
