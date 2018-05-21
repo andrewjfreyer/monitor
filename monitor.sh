@@ -16,13 +16,20 @@
 #		Reely Active advlib
 #			• https://github.com/reelyactive/advlib
 #
+#                        _ _             
+#                       (_) |            
+#  _ __ ___   ___  _ __  _| |_ ___  _ __ 
+# | '_ ` _ \ / _ \| '_ \| | __/ _ \| '__|
+# | | | | | | (_) | | | | | || (_) | |   
+# |_| |_| |_|\___/|_| |_|_|\__\___/|_|
+#
 # ----------------------------------------------------------------------------------------
 
 #KILL ANY OTHER MONITOR SCRIPT; ONLY NECESSARY ON WHEEZY INSTALLATIOS; DEBUG ONLY 
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.25
+version=0.1.26
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
@@ -307,7 +314,7 @@ public_device_scanner () {
 			echo -e "${GREEN}**********	${GREEN}Scanning:${NC} $mac${NC}"
 
 			#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
-			hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00
+			hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
 			#NEED TO TIMEOUT
 			(sleep 10 && echo "NAME$mac|TIMEOUT" > main_pipe) & 
@@ -443,6 +450,7 @@ while true; do
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			name=$(echo "$data" | awk -F "|" '{print $2}')
 			data="$mac"
+			timedout=""
 
 			#ONLY PROCESS THIS ONE IF WE REQUSETED THE 
 			#NAME OF THE DEVICE IN AN EARLIER STEP
@@ -451,6 +459,9 @@ while true; do
 				#HERE, THE TIMEOUT PROCESSED BEFORE 
 				#THE ACTUAL NAME ARRIVED; 
 				name=""
+
+				#IS THIS A TIMEOUT EVENT?
+				timedout="${BLUE}[Timeout]${NC}"
 
 				#SHOULD TEST IF WE HAVE HAD A RESPONSE 
 				#BEFORE THIS TIMEOUT PERIOD ELAPSED
@@ -509,13 +520,12 @@ while true; do
 		#ECHO VALUES FOR DEBUGGING
 		if [ "$cmd" == "NAME" ] || [ "$cmd" == "BEAC" ]; then 
 			debug_name="$name"
-			[ -z "$debug_name" ] && debug_name="${RED}[Error]"
+			[ -z "$debug_name" ] && debug_name="${RED}[Error]$timedout${NC}"
 			
 			#PRINT RAW COMMAND; DEBUGGING
 			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 
 			#REQUEST NEXT SCAN
-			echo "${LINENO}" 
 			request_public_mac_scan 
 			continue
 
@@ -527,7 +537,6 @@ while true; do
 			echo -e "${RED}[CMD-$cmd]	${NC}$data $name${NC} $manufacturer${NC}"
 
 			#REQUEST NEXT SCAN
-			echo "${LINENO}" 
 			request_public_mac_scan
 			continue
 		fi 
