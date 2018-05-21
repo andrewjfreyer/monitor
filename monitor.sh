@@ -22,7 +22,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.23
+version=0.1.24
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
@@ -30,6 +30,10 @@ sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
 #SETUP MAIN PIPE
 sudo rm main_pipe &>/dev/null
 mkfifo main_pipe
+
+#SETUP SCAN PIPE
+sudo rm scan_pipe &>/dev/null
+mkfifo scan_pipe
 
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
 base_directory=$(dirname "$(readlink -f "$0")")
@@ -286,31 +290,41 @@ determine_manufacturer () {
 }
 
 # ----------------------------------------------------------------------------------------
-# INITATE SINGLE SCAN, SKIPPING HCITOOL 'NAME' LOGIC (REPETITIONS)
+# PUBLIC DEVICE ADDRESS SCAN LOOP
 # ----------------------------------------------------------------------------------------
-hci_name_scan () {
-	if [ ! -z "$1" ]; then 
-		#ONLY SCAN FOR PROPERLY-FORMATTED MAC ADDRESSES
-		local mac=$(echo "$1" | grep -ioE "([0-9a-f]{2}:){5}[0-9a-f]{2}")
+public_device_scanner () {
+	#PUBLIC DEVICE SCANNER LOOP
+	while true; do 
 
-		#MAKE SURE WE AREN'T SCANNING ALREADY
-		local status="$scan_status"
-		[ -z "$status" ] && status=0 && scan_status=0
+		#READ FROM THE MAIN PIPE
+		while read scan_event; do 
+			
+			#ONLY SCAN FOR PROPERLY-FORMATTED MAC ADDRESSES
+			local mac=$(echo "$scan_event" | grep -ioE "([0-9a-f]{2}:){5}[0-9a-f]{2}")
 
-		#ONLY SCAN FOR VALID MAC ADDRESS
-		if [ ! -z "$mac" ] && [ "$status" == "0" ] ; then
-			#SET SCAN STATUS FOR THIS DEVICE
-			scan_status=1
+			#MAKE SURE WE AREN'T SCANNING ALREADY
+			local status="$scan_status"
+			[ -z "$status" ] && status=0 && scan_status=0
 
-			echo -e "${GREEN}**********	${GREEN}Scanning:${NC} $mac${NC}"
+			#ONLY SCAN FOR VALID MAC ADDRESS
+			if [ ! -z "$mac" ] && [ "$status" == "0" ] ; then
+				#SET SCAN STATUS FOR THIS DEVICE
+				scan_status=1
 
-			#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
-			hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
+				echo -e "${GREEN}**********	${GREEN}Scanning:${NC} $mac${NC}"
 
-			#NEED TO TIMEOUT
-			(sleep 10 && echo "NAME$mac|TIMEOUT" > main_pipe) & 
-		fi 
-	fi 
+				#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
+				hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
+
+				#NEED TO TIMEOUT
+				(sleep 10 && echo "NAME$mac|TIMEOUT" > main_pipe) & 
+			fi
+
+		done < <(cat < scan_pipe)
+
+		#PREVENT UNNECESSARY LOOPING
+		sleep 2
+	done 
 }
 
 # ----------------------------------------------------------------------------------------
@@ -328,8 +342,12 @@ btle_pid="$!"
 periodic_trigger & 
 period_pid="$!"
 
+public_device_scanner & 
+public_pid="$!"
+
+
 #TRAP EXIT FOR CLEANUP ON OLDER INSTALLATIONS
-trap "sudo rm main_pipe &>/dev/null; sudo kill -9 $btle_pid &>/dev/null; sudo kill -9 $mqtt_pid &>/dev/null; sudo kill -9 $scan_pid &>/dev/null; sudo kill -9 $period_pid &>/dev/null" EXIT
+trap "sudo rm main_pipe &>/dev/null; sudo rm scan_pipe &>/dev/null; sudo kill -9 $btle_pid &>/dev/null; sudo kill -9 $mqtt_pid &>/dev/null; sudo kill -9 $scan_pid &>/dev/null; sudo kill -9 $period_pid &>/dev/null; sudo kill -9 $public_pid &>/dev/null" EXIT
 
 # ----------------------------------------------------------------------------------------
 # SCAN NEXT DEVICE IF REQUIRED
@@ -379,10 +397,9 @@ request_public_mac_scan () {
 		scanned_devices=$((scanned_devices + 1))
 		
 		#PERFORM SCAN
-		hci_name_scan $device
+		echo "$device" > scan_pipe
 	fi 
 }
-
 
 # ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
@@ -540,5 +557,7 @@ while true; do
 			fi 
 		done
 	done < <(cat < main_pipe)
-	#IF WE ARE HERE, THE MAIN_PIPE HAS CLOSED = NO MESSAGES FOR A WHILE
+
+	#PREVENT UNNECESSARY LOOPING
+	sleep 2
 done
