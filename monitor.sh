@@ -22,7 +22,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.20
+version=0.1.21
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
@@ -448,6 +448,7 @@ while true; do
 
 				#SHOULD WE IGNORE?
 				if [ $((timestamp - last_update)) -lt 10 ]; then 
+					echo "EXITING; TOO RECENT"
 					continue
 				fi  
 			fi  
