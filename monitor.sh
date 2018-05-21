@@ -18,14 +18,14 @@
 #
 # ----------------------------------------------------------------------------------------
 
-#KILL ANY OTHER PRESENCE SCRIPT; DEBUG ONLY 
+#KILL ANY OTHER MONITOR SCRIPT; ONLY NECESSARY ON WHEEZY INSTALLATIOS; DEBUG ONLY 
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.19
+version=0.1.20
 
 #CYCLE BLUETOOTH INTERFACE 
-sudo hciconfig hci0 down && sudo hciconfig hci0 up
+sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
 
 #SETUP MAIN PIPE
 sudo rm main_pipe &>/dev/null
@@ -71,7 +71,7 @@ devices[3]="C8:69:CD:6A:89:2A"
 
 #LOOP SCAN VARIABLES
 device_count=${#devices[@]}
-device_index=1
+device_index=0
 scanned_devices=0
 scan_responses=0
 
@@ -91,7 +91,7 @@ should_exit=false
 [ -z "$git_path" ] && echo "Recommended package 'git' not found. Please consider installing."
 
 #ARE REQUIREMENTS MET? 
-[ "$should_exit" == true ] && exit 1
+[ "$should_exit" == true ] && echo "Exiting." && exit 1
 
 #COLOR OUTPUT FOR RICH DEBUG 
 ORANGE='\033[0;33m'
@@ -170,7 +170,7 @@ btle_listener () {
 			#SEND TO MAIN LOOP
 			echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER" > main_pipe
 
-			#RESET
+			#RESET PACKET STREAM VARIABLES
 			capturing=""
 			packet=""
 
@@ -185,7 +185,7 @@ btle_listener () {
 			#SEND TO MAIN LOOP
 			echo "RAND$received_mac_address" > main_pipe
 
-			#RESET
+			#RESET PACKET STREAM VARIABLES
 			capturing=""
 			packet=""
 			continue
@@ -199,7 +199,7 @@ btle_listener () {
 			#SEND TO MAIN LOOP
 			echo "PUBL$received_mac_address" > main_pipe
 
-			#RESET
+			#RESET PACKET STREAM VARIABLES
 			capturing=""
 			packet=""
 			continue
@@ -251,7 +251,7 @@ mqtt_listener (){
 # ----------------------------------------------------------------------------------------
 # PERIODIC TRIGGER TO MAIN LOOP
 # ----------------------------------------------------------------------------------------
-period_trigger (){
+periodic_trigger (){
 	echo "TIME trigger started" >&2 
 	#MQTT LOOP
 	while : ; do 
@@ -325,7 +325,7 @@ mqtt_pid="$!"
 btle_listener &
 btle_pid="$!"
 
-period_trigger & 
+periodic_trigger & 
 period_pid="$!"
 
 #TRAP EXIT FOR CLEANUP ON OLDER INSTALLATIONS
@@ -441,6 +441,15 @@ while true; do
 				#HERE, THE TIMEOUT PROCESSED BEFORE 
 				#THE ACTUAL NAME ARRIVED; 
 				name=""
+
+				#SHOULD TEST IF WE HAVE HAD A RESPONSE 
+				#BEFORE THIS TIMEOUT PERIOD ELAPSED
+				last_update="${device_log[$mac]}"
+
+				#SHOULD WE IGNORE?
+				if [ $((timestamp - last_update)) -lt 10 ]; then 
+					continue
+				fi  
 			fi  
 
 			#GET MANUFACTURER INFORMATION
@@ -453,20 +462,18 @@ while true; do
 			current_status="${status_log[$mac]}"
 			[ -z "$current_status" ] && current_status=0
 
+			#ADD TO LOG
+			[ -z "${device_log[$mac]}" ] && is_new=true
+			device_log["$mac"]="$timestamp"
+
 			#IF NAME FIELD IS BLANK; DEVICE IS NOT PRESENT
 			#AND SHOULD BE REMOVED FROM THE LOG
 			if [ -z "$name" ]; then 
-				unset device_log["$mac"]
-
 				#SET DEVICE STATUS LOG
 				status_log["$mac"]=0
 				[ "$current_status" -gt "0" ] && did_change=true
 
 			else 
-				#ADD TO LOG
-				[ -z "${device_log[$mac]}" ] && is_new=true
-				device_log["$mac"]="$timestamp"
-
 				#SET DEVICE STATUS LOG
 				status_log["$mac"]=1
 				[ "$current_status" == 0 ] && did_change=true
