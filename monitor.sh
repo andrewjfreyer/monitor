@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.26
+version=0.1.28
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
@@ -559,7 +559,4 @@ while true; do
 			fi 
 		done
 	done < <(cat < main_pipe)
-
-	#PREVENT UNNECESSARY LOOPING
-	sleep 2
 done
