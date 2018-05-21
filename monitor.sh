@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.29
+version=0.1.30
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
@@ -313,12 +313,14 @@ public_device_scanner () {
 
 			echo -e "${GREEN}[CMD-SCAN]	${GREEN}Scanning:${NC} $mac${NC}"
 
-			hcitool name "$mac"
+			name=$(hcitool name "$mac")
 			#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
 			#hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
 			#NEED TO TIMEOUT
-			#(sleep 10 && echo "NAME$mac|TIMEOUT" > main_pipe) & 
+			[ ! -z "$name" ] && echo "NAME$mac|TIMEOUT" > main_pipe) & 
+
+			#TESTING
 			echo -e "${GREEN}[CMD-SCAN]	${GREEN}Complete:${NC} $mac${NC}"
 
 		done < <(cat < scan_pipe)
