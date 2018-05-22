@@ -354,7 +354,7 @@ public_device_scanner () {
 
 		done < <(cat < scan_pipe)
 
-		#PREVENT UNNECESSARY LOOPING
+		#PREVENT UNNECESSARILY FAST LOOPING
 		[ "$scan_event_received" == false ] && sleep 3
 	done 
 }
@@ -368,9 +368,11 @@ publish_message () {
 
 		#SET NAME FOR 'UNKONWN'
 		local name="$3"
+		local confidence="$3"
+		[ -z "$confidence" ] && confidence=0
 
 		#IF NO NAME, RETURN "UNKNOWN"
-		if [ -z "$3" ]; then 
+		if [ -z "$name" ]; then 
 			name="Unknown"
 		fi 
 
@@ -458,9 +460,12 @@ request_public_mac_scan
 
 #MAIN LOOP
 while true; do 
+	event_received=false
 
 	#READ FROM THE MAIN PIPE
 	while read event; do 
+		#EVENT RECEIVED
+		event_received=true
 
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
@@ -590,4 +595,7 @@ while true; do
 			fi 
 		done
 	done < <(cat < main_pipe)
+
+	#PREVENT UNNECESSARILY FAST LOOPING
+	[ "$scan_event_received" == false ] && sleep 3
 done
