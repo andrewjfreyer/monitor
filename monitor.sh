@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "monitor.sh" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.63
+version=0.1.64
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -136,7 +136,7 @@ btle_listener () {
 		#MATCH A SECOND OR LATER SEGMENT OF A PACKET
 		if [[ $segment =~ ^[0-9a-fA-F]{2}\ [0-9a-fA-F] ]]; then
 			#KEEP ADDING TO NEXT PACKET
-			next_packet="$packet $segment"
+			next_packet="$next_packet $segment"
 			continue
 
 		elif [[ $segment =~ ^\> ]]; then
