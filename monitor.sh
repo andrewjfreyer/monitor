@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.37
+version=0.1.38
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
@@ -317,7 +317,7 @@ public_device_scanner () {
 			#IF WE HAVE A BLANK NAME AND THE PREVIOUS STATE OF THIS PUBLIC MAC ADDRESS
 			#WAS A NON-ZERO VALUE, THEN WE PROCEED INTO A VERIFICATION LOOP
 			if [ -z "$name" ]; then 
-				if [ "$previous_status" -gt 0 ]; then  
+				if [ "$previous_status" -gt "0" ]; then  
 					#SHOULD VERIFY ABSENSE
 					for repetition in $(seq 1 4); do 
 						echo -e "${GREEN}[CMD-VERI]	${GREEN}Verify:${NC} $mac${NC}"
