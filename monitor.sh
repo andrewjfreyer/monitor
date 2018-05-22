@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.65
+version=0.1.66
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -373,7 +373,7 @@ public_device_scanner &
 
 
 #TRAP EXIT FOR CLEANUP ON OLDER INSTALLATIONS
-trap "sudo rm main_pipe &>/dev/null; sudo rm scan_pipe &>/dev/null; while read line; do `$line` ;done < <(ps ax | grep $(basename \"$0\") | awk '{print \"sudo kill \"$1}')" EXIT
+trap "sudo rm main_pipe &>/dev/null; sudo rm scan_pipe &>/dev/null; while read line; do `sudo kill $line`;done < <(ps ax | grep monitor.sh | awk '{print $1}')" EXIT
 
 # ----------------------------------------------------------------------------------------
 # SCAN NEXT DEVICE IF REQUIRED
