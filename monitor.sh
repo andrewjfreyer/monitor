@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.49
+version=0.1.51
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -222,6 +222,8 @@ btle_listener () {
 
 			#CONVERT RECEIVED HEX DATA INTO ASCII
 			local name_as_string=$(echo "${packet:29}" | sed 's/ 00//g' | xxd -r -p )
+
+			echo "NAME EVENT RECEIEVD."
 
 			#SEND TO MAIN LOOP
 			echo "NAME$received_mac_address|$name_as_string" > main_pipe
