@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.36
+version=0.1.37
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
@@ -68,6 +68,7 @@ fi
 #DEFINE VARIABLES FOR EVENT PROCESSING
 declare -A device_log
 declare -A status_log
+declare -A scan_log
 
 #NOTE: EDIT LATER FOR A CONFIGURATION FILE
 devices[0]="34:08:BC:15:24:F7"
@@ -315,17 +316,19 @@ public_device_scanner () {
 
 			#IF WE HAVE A BLANK NAME AND THE PREVIOUS STATE OF THIS PUBLIC MAC ADDRESS
 			#WAS A NON-ZERO VALUE, THEN WE PROCEED INTO A VERIFICATION LOOP
-			if [ -z "$name" ] && [ "$previous_status" -gt 0 ]; then  
-				#SHOULD VERIFY ABSENSE
-				for repetition in $(seq 1 4); do 
-					echo -e "${GREEN}[CMD-VERI]	${GREEN}Verify:${NC} $mac${NC}"
+			if [ -z "$name" ]; then 
+				if [ "$previous_status" -gt 0 ]; then  
+					#SHOULD VERIFY ABSENSE
+					for repetition in $(seq 1 4); do 
+						echo -e "${GREEN}[CMD-VERI]	${GREEN}Verify:${NC} $mac${NC}"
 
-					#HCISCAN
-					name=$(hcitool name "$mac")
+						#HCISCAN
+						name=$(hcitool name "$mac")
 
-					#BREAK IF NAME IS FOUND
-					[ ! -z "$name" ] && break
-				done 
+						#BREAK IF NAME IS FOUND
+						[ ! -z "$name" ] && break
+					done
+				fi  
 			fi 
 
 			#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
@@ -408,14 +411,21 @@ request_public_mac_scan () {
 	#GET TIME NOW  
 	local now=$(date +%s)
 
-	#GET CURRENT VALUES 
-	local status="${device_log[$device]}"
+	#GET CURRENT TIMESTAMP
+	local current_status="${status_log[$mac]}"
+	[ -z "$current_status" ] && current_status=0
+
+	#PREVIOUS TIME SCANNED
+	local previous_scan="${scan_log[$device]}"
+
+	#UPDATE THE SCAN LOG
+	scan_log["$device"]=$now
 
 	#DEFAULT SCAN INTERVAL WHEN PRESENT
 	scan_interval="45"
 
 	#DETERMINE APPROPRIATE DELAY FOR THIS DEVICE
-	if [ -z "$status" ] ; then 
+	if  [ "$current_status" == 0 ] ; then 
 		scan_interval=7
 	fi 
 
@@ -423,7 +433,7 @@ request_public_mac_scan () {
 	if [ "$((now - previous_scan))" -gt "$scan_interval" ] ; then 
 		
 		#PERFORM SCAN
-		echo "$device" > scan_pipe
+		echo "$device|$status" > scan_pipe
 	fi 
 }
 
@@ -470,28 +480,10 @@ while true; do
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			name=$(echo "$data" | awk -F "|" '{print $2}')
 			data="$mac"
-			timedout=""
 
-			#ONLY PROCESS THIS ONE IF WE REQUSETED THE 
-			#NAME OF THE DEVICE IN AN EARLIER STEP
-
-			if [ "$name" == "TIMEOUT" ]; then 
-				#HERE, THE TIMEOUT PROCESSED BEFORE 
-				#THE ACTUAL NAME ARRIVED; 
-				name=""
-
-				#IS THIS A TIMEOUT EVENT?
-				timedout="${BLUE}[Timeout]${NC}"
-
-				#SHOULD TEST IF WE HAVE HAD A RESPONSE 
-				#BEFORE THIS TIMEOUT PERIOD ELAPSED
-				last_update="${device_log[$mac]}"
-
-				#SHOULD WE IGNORE?
-				if [ $((timestamp - last_update)) -lt 10 ]; then 
-					continue
-				fi  
-			fi  
+			#UPDATE THE SCAN LOG SO THAT WE DONT' 
+			#END UP SCANNING THIS DEVICE TOO OFTEN
+			scan_log["$mac"]=$timestamp
 
 			#GET MANUFACTURER INFORMATION
 			manufacturer="$(determine_manufacturer $data)"
@@ -544,7 +536,7 @@ while true; do
 			#ECHO VALUES FOR DEBUGGING
 			if [ "$cmd" == "NAME" ] || [ "$cmd" == "BEAC" ]; then 
 				debug_name="$name"
-				[ -z "$debug_name" ] && debug_name="${RED}[Error]$timedout${NC}"
+				[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 				
 				#PRINT RAW COMMAND; DEBUGGING
 				echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
