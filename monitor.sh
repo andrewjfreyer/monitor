@@ -466,6 +466,8 @@ while true; do
 
 	#READ FROM THE MAIN PIPE
 	while read event; do 
+		echo "EVENT: $event"
+
 		#EVENT RECEIVED
 		event_received=true
 
@@ -579,25 +581,8 @@ while true; do
 			request_public_mac_scan
 			continue
 		fi 
-
-		#CLEAN THE DEVICE LOG
-		for key in "${!device_log[@]}"; do
-			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-			now=$(date +%s)
-			last_seen=${device_log["$key"]}
-			difference=$((now - last_seen))
-
-			#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
-			[ -z "$last_seen" ] && continue 
-
-			#TIMEOUT AFTER 120 SECONDS
-			if [ "$difference" -gt "180" ]; then 
-				echo -e "${BLUE}[CLEARED]	${NC}$key Expired after $difference seconds.${NC} "
-				unset device_log["$key"]
-			fi 
-		done
 	done < <(cat < main_pipe)
 
 	#PREVENT UNNECESSARILY FAST LOOPING
-	[ "$scan_event_received" == false ] && sleep 3
+	[ "$event_received" == false ] && sleep 3
 done
