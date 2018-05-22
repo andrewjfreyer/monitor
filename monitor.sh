@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.35
+version=0.1.36
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
@@ -69,9 +69,6 @@ fi
 declare -A device_log
 declare -A status_log
 
-#STATUS OF THE BLUETOOTH HARDWARE
-last_scan=0
-
 #NOTE: EDIT LATER FOR A CONFIGURATION FILE
 devices[0]="34:08:BC:15:24:F7"
 devices[1]="34:08:BC:14:6F:74"
@@ -81,6 +78,9 @@ devices[3]="C8:69:CD:6A:89:2A"
 #LOOP SCAN VARIABLES
 device_count=${#devices[@]}
 device_index=0
+
+#VERIFICIATIONS
+verifications=
 
 #FIND DEPENDENCY PATHS, ELSE MANUALLY SET
 mosquitto_pub_path=$(which mosquitto_pub)
@@ -305,12 +305,29 @@ public_device_scanner () {
 		while read scan_event; do 
 			
 			#ONLY SCAN FOR PROPERLY-FORMATTED MAC ADDRESSES
-			local mac=$(echo "$scan_event" | grep -ioE "([0-9a-f]{2}:){5}[0-9a-f]{2}")
+			local mac=$(echo "$scan_event" | awk -F "|" '{print $1}' |grep -ioE "([0-9a-f]{2}:){5}[0-9a-f]{2}")
+			local previous_status=$( echo "$scan_event" | awk -F "|" '{print $2}' | grep -ioE  "[0-9]{1,")
 
 			echo -e "${GREEN}[CMD-SCAN]	${GREEN}Scanning:${NC} $mac${NC}"
 
 			#HCISCAN
 			name=$(hcitool name "$mac")
+
+			#IF WE HAVE A BLANK NAME AND THE PREVIOUS STATE OF THIS PUBLIC MAC ADDRESS
+			#WAS A NON-ZERO VALUE, THEN WE PROCEED INTO A VERIFICATION LOOP
+			if [ -z "$name" ] && [ "$previous_status" -gt 0 ]; then  
+				#SHOULD VERIFY ABSENSE
+				for repetition in $(seq 1 4); do 
+					echo -e "${GREEN}[CMD-VERI]	${GREEN}Verify:${NC} $mac${NC}"
+
+					#HCISCAN
+					name=$(hcitool name "$mac")
+
+					#BREAK IF NAME IS FOUND
+					[ ! -z "$name" ] && break
+				done 
+			fi 
+
 			#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
 			#hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
@@ -404,9 +421,6 @@ request_public_mac_scan () {
 
 	#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
 	if [ "$((now - previous_scan))" -gt "$scan_interval" ] ; then 
-
-		#SCAN THE ABSENT DEVICE 
-		last_scan=$(date +%s)
 		
 		#PERFORM SCAN
 		echo "$device" > scan_pipe
@@ -493,13 +507,17 @@ while true; do
 			#IF NAME FIELD IS BLANK; DEVICE IS NOT PRESENT
 			#AND SHOULD BE REMOVED FROM THE LOG
 			if [ -z "$name" ]; then 
+
+				#DIVIDE BY FIVE; LOST CONFIDENCE
+				new_status=$(( current_status / 5 ))
+
 				#SET DEVICE STATUS LOG
-				status_log["$mac"]=0
-				[ "$current_status" -gt "0" ] && did_change=true
+				status_log["$mac"]=$new_status
+				[ "$new_status" != "$current_status" ] && did_change=true
 
 			else 
-				#SET DEVICE STATUS LOG
-				status_log["$mac"]=1
+				#SET DEVICE STATUS LOG; RESTORE TO 100
+				status_log["$mac"]=100
 				[ "$current_status" == 0 ] && did_change=true
 
 				#PUBLISH TO MQTT BROKER
@@ -535,7 +553,7 @@ while true; do
 				current_status="${status_log[$data]}"
 
 				#PUBLISH TO MQTT
-				publish_message "$data" "$((current_status * 100))" "$name" "$manufacturer"
+				publish_message "$data" "$current_status" "$name" "$manufacturer"
 
 				#REQUEST NEXT SCAN
 				request_public_mac_scan 
