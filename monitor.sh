@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.57
+version=0.1.59
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -197,7 +197,7 @@ btle_listener () {
 		fi 
 
 		#NAME RESPONSE 
-		if [[ $packet =~ ^04\ 07\ FF\ .*? ]] && [ ${#packet} -gt 180 ]; then; then
+		if [[ $packet =~ ^04\ 07\ FF\ .*? ]] && [ ${#packet} -gt 180 ]; then
 
 			packet=$(echo "$packet" | tr -d '\0')
 
