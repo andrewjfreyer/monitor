@@ -172,10 +172,6 @@ btle_listener () {
 
 			#SEND TO MAIN LOOP
 			echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER" > main_pipe
-
-			#RESET PACKET STREAM VARIABLES
-			capturing=""
-			packet=""
 		fi
 
 		#FIND ADVERTISEMENT PACKET OF RANDOM ADDRESSES                                  __
@@ -187,9 +183,6 @@ btle_listener () {
 			#SEND TO MAIN LOOP
 			echo "RAND$received_mac_address" > main_pipe
 
-			#RESET PACKET STREAM VARIABLES
-			capturing=""
-			packet=""
 		fi
 
 		#FIND ADVERTISEMENT PACKET OF PUBLIC ADDRESSES                                  __
@@ -201,9 +194,6 @@ btle_listener () {
 			#SEND TO MAIN LOOP
 			echo "PUBL$received_mac_address" > main_pipe
 
-			#RESET PACKET STREAM VARIABLES
-			capturing=""
-			packet=""
 		fi 
 
 		#NAME RESPONSE 
@@ -221,12 +211,6 @@ btle_listener () {
 
 			#SEND TO MAIN LOOP
 			echo "NAME$received_mac_address|$name_as_string" > main_pipe
-
-			#RESET PACKET STREAM VARIABLES
-			capturing=""
-			packet=""
-
-			continue
 		fi
 
 		#CONTINUE BUILD OF FULL PACKET
