@@ -26,10 +26,10 @@
 # ----------------------------------------------------------------------------------------
 
 #KILL ANY OTHER MONITOR SCRIPT; ONLY NECESSARY ON WHEEZY INSTALLATIOS; DEBUG ONLY 
-[ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
+[ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "monitor.sh" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.61
+version=0.1.62
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -128,17 +128,26 @@ btle_listener () {
 	
 	#DEFINE VARAIBLES
 	local capturing=""
+	local next_packet=""
 	local packet=""
 
 	while read segment; do
 
 		#MATCH A SECOND OR LATER SEGMENT OF A PACKET
 		if [[ $segment =~ ^[0-9a-fA-F]{2}\ [0-9a-fA-F] ]]; then
-			packet="$packet $segment"
-			continue 
-		fi
+			#KEEP ADDING TO NEXT PACKET
+			next_packet="$packet $segment"
+			continue
 
-		capturing=""
+		elif [[ $segment =~ ^\> ]]; then
+			#NEW PACKET STARTS
+			packet=next_packet
+			next_packet=$(echo $segment | sed 's/^>.\(.*$\)/\1/')
+		elif [[ $segment =~ ^\< ]]; then
+			#INPUT COMMAND; SHOULD IGNORE LATER
+			packet=next_packet
+			next_packet=$(echo $segment | sed 's/^>.\(.*$\)/\1/')
+		fi
 
 		#BEACON PACKET?
 		if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]] && [ ${#packet} -gt 132 ]; then
@@ -209,15 +218,6 @@ btle_listener () {
 
 			#SEND TO MAIN LOOP
 			echo "NAME$received_mac_address|$name_as_string" > main_pipe
-		fi
-
-		#CONTINUE BUILD OF FULL PACKET
-		if [ ! "$capturing" ]; then
-			if [[ $segment =~ ^\> ]]; then
-				#PACKET STARTS
-				packet=$(echo $segment | sed 's/^>.\(.*$\)/\1/')
-				capturing=1
-			fi
 		fi
 	done < <(sudo hcidump --raw)
 }
