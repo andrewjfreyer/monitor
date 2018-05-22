@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.34
+version=0.1.35
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
@@ -328,6 +328,32 @@ public_device_scanner () {
 }
 
 # ----------------------------------------------------------------------------------------
+# PUBLISH MESSAGE
+# ----------------------------------------------------------------------------------------
+
+publish_message () {
+	if [ ! -z "$1" ]; then 
+
+		#SET NAME FOR 'UNKONWN'
+		local name="$3"
+
+		#IF NO NAME, RETURN "UNKNOWN"
+		if [ -z "$3" ]; then 
+			name="Unknown"
+		fi 
+
+		#TIMESTAMP
+		stamp=$(date "+%a %b %d %Y %H:%M:%S GMT%z (%Z)")
+
+		#DEBUGGING 
+		[ "$debug" == "1" ] && (>&2 echo -e "${PURPLE}$mqtt_topicpath$1 { confidence : $2, name : $name, scan_duration_ms: $4, timestamp : $stamp, manufacturer : $manufacturer} ${NC}")
+
+		#POST TO MQTT
+		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath$1" -m "{\"confidence\":\"$2\",\"name\":\"$name\",\"scan_duration_ms\":\"$4\",\"timestamp\":\"$stamp\"}" -r 
+	fi
+}
+
+# ----------------------------------------------------------------------------------------
 # OBTAIN PIDS OF BACKGROUND PROCESSES FOR TRAP
 # ----------------------------------------------------------------------------------------
 bluetooth_scanner & 
@@ -458,7 +484,7 @@ while true; do
 
 			#GET CURRENT DEVICE STATUS
 			current_status="${status_log[$mac]}"
-			[ -z "$current_status" ] && current_status=0
+			[ -z "$current_status" ] && current_status=0 && status_log[$mac]=0
 
 			#ADD TO LOG
 			[ -z "${device_log[$mac]}" ] && is_new=true
@@ -504,6 +530,12 @@ while true; do
 				
 				#PRINT RAW COMMAND; DEBUGGING
 				echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
+
+				#GET CURRENT STATUS
+				current_status="${status_log[$data]}"
+
+				#PUBLISH TO MQTT
+				publish_message "$data" "$((current_status * 100))" "$name" "$manufacturer"
 
 				#REQUEST NEXT SCAN
 				request_public_mac_scan 
