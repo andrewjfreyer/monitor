@@ -29,10 +29,10 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.46
+version=0.1.48
 
 #CYCLE BLUETOOTH INTERFACE 
-sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
+sudo hciconfig hci0 down && sudo hciconfig hci0 up
 
 #SETUP MAIN PIPE
 sudo rm main_pipe &>/dev/null
@@ -74,7 +74,6 @@ declare -A scan_log
 devices[0]="34:08:BC:15:24:F7"
 devices[1]="34:08:BC:14:6F:74"
 devices[2]="20:78:f0:dd:7D:94"
-devices[3]="C8:69:CD:6A:89:2A"
 
 #LOOP SCAN VARIABLES
 device_count=${#devices[@]}
@@ -115,7 +114,7 @@ BLUE='\033[0;34m'
 bluetooth_scanner () {
 	echo "BTLE scanner started" >&2 
 	while true; do 
-		local error=$(sudo timeout --signal SIGINT 45 hcitool lescan 2>&1 | grep -iE 'input/output error')
+		local error=$(sudo timeout --signal SIGINT 120 hcitool lescan 2>&1 | grep -iE 'input/output error')
 		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe
 		sleep 1
 	done
@@ -263,7 +262,7 @@ periodic_trigger (){
 	echo "TIME trigger started" >&2 
 	#MQTT LOOP
 	while : ; do 
-		sleep 30
+		sleep 60
 		echo "TIME" > main_pipe
 	done
 }
@@ -301,13 +300,18 @@ determine_manufacturer () {
 # ----------------------------------------------------------------------------------------
 public_device_scanner () {
 	echo "Public device scanner started" >&2 
+	local scan_event_received=false
 
 	#PUBLIC DEVICE SCANNER LOOP
 	while true; do 
+		#SET SCAN EVENT
+		scan_event_received=false
 
 		#READ FROM THE MAIN PIPE
 		while read scan_event; do 
-			
+			#SET SCAN EVENT RECEIVED
+			scan_event_received=true
+
 			#ONLY SCAN FOR PROPERLY-FORMATTED MAC ADDRESSES
 			local mac=$(echo "$scan_event" | awk -F "|" '{print $1}' |grep -ioE "([0-9a-f]{2}:){5}[0-9a-f]{2}")
 			local previous_status=$( echo "$scan_event" | awk -F "|" '{print $2}' | grep -ioE  "[0-9]{1,")
@@ -338,16 +342,13 @@ public_device_scanner () {
 			#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
 			#hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
-			#NEED TO TIMEOUT
-			#[ ! -z "$name" ] && echo "NAME$mac|TIMEOUT" > main_pipe & 
-
 			#TESTING
 			echo -e "${GREEN}[CMD-SCAN]	${GREEN}Complete:${NC} $mac${NC}"
 
 		done < <(cat < scan_pipe)
 
 		#PREVENT UNNECESSARY LOOPING
-		sleep 1
+		[ "$scan_event_received" == true ] && sleep 3
 	done 
 }
 
