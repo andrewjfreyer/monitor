@@ -141,10 +141,7 @@ btle_listener () {
 		fi
 
 		#BEACON PACKET?
-		if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]]; then
-
-			#IF iBEACON PACKET NOT COMPLETE, CONTINUE
-			[ ${#packet} -lt 133 ] && continue
+		if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]] && [ ${#packet} -gt 132 ]; then
 
 			#RAW VALUES
 			local UUID=$(echo $packet | sed 's/^.\{69\}\(.\{47\}\).*$/\1/')
@@ -200,7 +197,7 @@ btle_listener () {
 		fi 
 
 		#NAME RESPONSE 
-		if [[ $packet =~ ^04\ 07\ FF\ .*? ]]; then
+		if [[ $packet =~ ^04\ 07\ FF\ .*? ]] && [ ${#packet} -gt 180 ]; then; then
 
 			packet=$(echo "$packet" | tr -d '\0')
 
@@ -209,8 +206,6 @@ btle_listener () {
 
 			#CONVERT RECEIVED HEX DATA INTO ASCII
 			local name_as_string=$(echo "${packet:29}" | sed 's/ 00//g' | xxd -r -p )
-
-			echo "NAME EVENT RECEIEVD."
 
 			#SEND TO MAIN LOOP
 			echo "NAME$received_mac_address|$name_as_string" > main_pipe &
