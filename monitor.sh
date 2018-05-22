@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.44
+version=0.1.45
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
@@ -285,7 +285,7 @@ determine_manufacturer () {
 
 		#IF CACHE DOES NOT EXIST, USE MACVENDORS.COM
 		if [ -z "$manufacturer" ]; then 
-			local remote_result=$(curl -sL https://api.macvendors.com/$address | grep -vi "error")
+			local remote_result=$(curl -sL https://api.macvendors.com/${address:0:8} | grep -vi "error")
 			[ ! -z "$remote_result" ] && echo "${address:0:8}	$remote_result" >> .manufacturer_cache
 			manufacturer="$remote_result"
 		fi
@@ -370,10 +370,10 @@ publish_message () {
 		stamp=$(date "+%a %b %d %Y %H:%M:%S GMT%z (%Z)")
 
 		#DEBUGGING 
-		(>&2 echo -e "${PURPLE}$mqtt_topicpath/owner/$1 { confidence : $2, name : $name, scan_duration_ms: $4, timestamp : $stamp, manufacturer : $manufacturer} ${NC}")
+		(>&2 echo -e "${PURPLE}$mqtt_topicpath/owner/$1 { confidence : $2, name : $name, timestamp : $stamp, manufacturer : $4} ${NC}")
 
 		#POST TO MQTT
-		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/owner/$1" -m "{\"confidence\":\"$2\",\"name\":\"$name\",\"scan_duration_ms\":\"$4\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$manufacturer\"}"
+		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/owner/$1" -m "{\"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\"}"
 	fi
 }
 
