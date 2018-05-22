@@ -412,7 +412,7 @@ request_public_mac_scan () {
 	local now=$(date +%s)
 
 	#GET CURRENT TIMESTAMP
-	local current_status="${status_log[$mac]}"
+	local current_status="${status_log[$device]}"
 	[ -z "$current_status" ] && current_status=0
 
 	#PREVIOUS TIME SCANNED
