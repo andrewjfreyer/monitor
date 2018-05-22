@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.53
+version=0.1.54
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -135,11 +135,6 @@ btle_listener () {
 		#MATCH A SECOND OR LATER SEGMENT OF A PACKET
 		if [[ $segment =~ ^[0-9a-fA-F]{2}\ [0-9a-fA-F] ]]; then
 			packet="$packet $segment"
-		else
-			echo "REJECTED: $packet"
-			#NEXT PACKET
-			capturing=""
-			packet=""
 		fi
 
 		#BEACON PACKET?
@@ -181,11 +176,10 @@ btle_listener () {
 			#RESET PACKET STREAM VARIABLES
 			capturing=""
 			packet=""
+		fi
 
-			continue 
-		
 		#FIND ADVERTISEMENT PACKET OF RANDOM ADDRESSES                                  __
-		elif [[ $packet =~ ^04\ 3E\ [0-9a-fA-F]{2}\ 02\ [0-9a-fA-F]{2}\ [0-9a-fA-F]{2}\ 01\ .*? ]]; then
+		if [[ $packet =~ ^04\ 3E\ [0-9a-fA-F]{2}\ 02\ [0-9a-fA-F]{2}\ [0-9a-fA-F]{2}\ 01\ .*? ]]; then
 			
 			#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
@@ -196,10 +190,10 @@ btle_listener () {
 			#RESET PACKET STREAM VARIABLES
 			capturing=""
 			packet=""
-			continue
-		
+		fi
+
 		#FIND ADVERTISEMENT PACKET OF PUBLIC ADDRESSES                                  __
-		elif [[ $packet =~ ^04\ 3E\ [0-9a-fA-F]{2}\ 02\ [0-9a-fA-F]{2}\ [0-9a-fA-F]{2}\ 00\ .*? ]]; then
+		if [[ $packet =~ ^04\ 3E\ [0-9a-fA-F]{2}\ 02\ [0-9a-fA-F]{2}\ [0-9a-fA-F]{2}\ 00\ .*? ]]; then
 			
 			#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
@@ -210,7 +204,6 @@ btle_listener () {
 			#RESET PACKET STREAM VARIABLES
 			capturing=""
 			packet=""
-			continue
 		fi 
 
 		#NAME RESPONSE 
