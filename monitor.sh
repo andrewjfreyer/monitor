@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "monitor.sh" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.62
+version=0.1.63
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -115,7 +115,7 @@ bluetooth_scanner () {
 	echo "BTLE scanner started" >&2 
 	while true; do 
 		local error=$(sudo timeout --signal SIGINT 120 hcitool lescan 2>&1 | grep -iE 'input/output error')
-		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe & 
+		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe
 		sleep 1
 	done
 }
@@ -241,7 +241,7 @@ periodic_trigger (){
 	#MQTT LOOP
 	while : ; do 
 		sleep 60
-		echo "TIME" > main_pipe &
+		echo "TIME" > main_pipe
 	done
 }
 
