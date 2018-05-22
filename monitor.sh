@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.68
+version=0.1.69
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -138,13 +138,15 @@ btle_listener () {
 
 		elif [[ $segment =~ ^\> ]]; then
 			#NEW PACKET STARTS
-			packet=next_packet
+			packet=$next_packet
 			next_packet=$(echo $segment | sed 's/^>.\(.*$\)/\1/')
 		elif [[ $segment =~ ^\< ]]; then
 			#INPUT COMMAND; SHOULD IGNORE LATER
-			packet=next_packet
+			packet=$next_packet
 			next_packet=$(echo $segment | sed 's/^>.\(.*$\)/\1/')
 		fi
+
+		echo "$packet"
 
 		#BEACON PACKET?
 		if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]] && [ ${#packet} -gt 132 ]; then
@@ -376,13 +378,17 @@ public_device_scanner &
 clean() {
 	#CLEANUP FOR TRAP
 	while read line; do 
-		`sudo kill $line`
+		`sudo kill $line` &>/dev/null
 	done < <(ps ax | grep monitor.sh | awk '{print $1}')
 
 	#REMOVE PIPES
 	sudo rm main_pipe &>/dev/null
 	sudo rm scan_pipe &>/dev/null
+
+	#MESSAGE
+	echo -e '${NC}Exited.${}'
 }
+
 trap "clean" EXIT
 
 # ----------------------------------------------------------------------------------------
