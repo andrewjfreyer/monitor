@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.32
+version=0.1.34
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
@@ -67,11 +67,9 @@ fi
 
 #DEFINE VARIABLES FOR EVENT PROCESSING
 declare -A device_log
-declare -A scan_log
 declare -A status_log
 
 #STATUS OF THE BLUETOOTH HARDWARE
-scan_status=0
 last_scan=0
 
 #NOTE: EDIT LATER FOR A CONFIGURATION FILE
@@ -83,8 +81,6 @@ devices[3]="C8:69:CD:6A:89:2A"
 #LOOP SCAN VARIABLES
 device_count=${#devices[@]}
 device_index=0
-scanned_devices=0
-scan_responses=0
 
 #FIND DEPENDENCY PATHS, ELSE MANUALLY SET
 mosquitto_pub_path=$(which mosquitto_pub)
@@ -357,14 +353,7 @@ trap "sudo rm main_pipe &>/dev/null; sudo rm scan_pipe &>/dev/null; sudo kill -9
 # SCAN NEXT DEVICE IF REQUIRED
 # ----------------------------------------------------------------------------------------
 
-request_public_mac_scan () {
-
-	#DETERMINE IF SAN IS REQUIRED
-	#ARE WE SCANNING FOR *ANYTHING* RIGHT NOW? 
-	if [ "$scan_status" == "1" ]; then 
-		echo "INVALID SCAN REQEST; REJECTING"
-		return 0
-	fi  
+request_public_mac_scan () { 
 
 	#ITERATE TO DETERMINE WHETHER AT LEAST ONE DEVICE IS NOT HOME
 	device_index=$((device_index + 1))
@@ -375,12 +364,6 @@ request_public_mac_scan () {
 
 	#GET TIME NOW  
 	local now=$(date +%s)
-
-	#PREVIOUS TIME SCANNED
-	local previous_scan="${scan_log[$device]}"
-
-	#UPDATE THE SCAN LOG
-	scan_log["$device"]=$now
 
 	#GET CURRENT VALUES 
 	local status="${device_log[$device]}"
@@ -396,16 +379,8 @@ request_public_mac_scan () {
 	#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
 	if [ "$((now - previous_scan))" -gt "$scan_interval" ] ; then 
 
-		#DETERMINE SCAN RATE
-		scan_rate=$(((now - last_scan) * 100 / 60)) 
-
-		echo "Scan rate: $scan_rate dev / min"
-
 		#SCAN THE ABSENT DEVICE 
 		last_scan=$(date +%s)
-
-
-		scanned_devices=$((scanned_devices + 1))
 		
 		#PERFORM SCAN
 		echo "$device" > scan_pipe
@@ -433,13 +408,6 @@ while true; do
 		did_change=false
 		manufacturer=""
 		name=""
-
-		#IF WE ARE SCANNING; IGNORE RANDOM AND TIME TRIGGERS
-		if [ "$scan_status" == "1" ]; then 
-			if [ "$cmd" == "RAND" ] || [ "$cmd" == "TIME" ]; then 
-				continue
-			fi 
-		fi 
 
 		#PROCEED BASED ON COMMAND TYPE
 		if [ "$cmd" == "RAND" ]; then 
@@ -488,9 +456,6 @@ while true; do
 			#GET MANUFACTURER INFORMATION
 			manufacturer="$(determine_manufacturer $data)"
 
-			#SCAN STATUS IS ZERO
-			scan_status=0
-
 			#GET CURRENT DEVICE STATUS
 			current_status="${status_log[$mac]}"
 			[ -z "$current_status" ] && current_status=0
@@ -529,25 +494,28 @@ while true; do
 			device_log["$key"]="$timestamp"				
 		fi
 
-		#ECHO VALUES FOR DEBUGGING
-		if [ "$cmd" == "NAME" ] || [ "$cmd" == "BEAC" ]; then 
-			debug_name="$name"
-			[ -z "$debug_name" ] && debug_name="${RED}[Error]$timedout${NC}"
-			
-			#PRINT RAW COMMAND; DEBUGGING
-			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
+		#**********************************************************************
 
-			#REQUEST NEXT SCAN
-			request_public_mac_scan 
-			continue
+		if [ "$did_change" == true ]; then  
+			#ECHO VALUES FOR DEBUGGING
+			if [ "$cmd" == "NAME" ] || [ "$cmd" == "BEAC" ]; then 
+				debug_name="$name"
+				[ -z "$debug_name" ] && debug_name="${RED}[Error]$timedout${NC}"
+				
+				#PRINT RAW COMMAND; DEBUGGING
+				echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 
-		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ]; then 
+				#REQUEST NEXT SCAN
+				request_public_mac_scan 
+				continue
+			fi 
+		fi
+
+		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ]; then 
 			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $manufacturer${NC}"
 			continue
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ]; then 
-			echo -e "${RED}[CMD-$cmd]	${NC}$data $name${NC} $manufacturer${NC}"
-
 			#REQUEST NEXT SCAN
 			request_public_mac_scan
 			continue
