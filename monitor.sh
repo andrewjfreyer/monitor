@@ -339,6 +339,9 @@ public_device_scanner () {
 			#TESTING
 			echo -e "${GREEN}[CMD-SCAN]	${GREEN}Complete:${NC} $mac${NC}"
 
+			#SLEEP AGAIN; DO NOT SCAN TOO FREQUENTLY
+			sleep 3
+
 		done < <(cat < scan_pipe)
 
 		#PREVENT UNNECESSARILY FAST LOOPING
