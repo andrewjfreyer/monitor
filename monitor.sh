@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.40
+version=0.1.41
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
@@ -308,6 +308,7 @@ public_device_scanner () {
 			#ONLY SCAN FOR PROPERLY-FORMATTED MAC ADDRESSES
 			local mac=$(echo "$scan_event" | awk -F "|" '{print $1}' |grep -ioE "([0-9a-f]{2}:){5}[0-9a-f]{2}")
 			local previous_status=$( echo "$scan_event" | awk -F "|" '{print $2}' | grep -ioE  "[0-9]{1,")
+			[ -z "$previous_status" ] && previous_status=0
 
 			echo -e "${GREEN}[CMD-SCAN]	${GREEN}Scanning:${NC} $mac${NC}"
 
