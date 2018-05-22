@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.69
+version=0.1.70
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -146,8 +146,6 @@ btle_listener () {
 			next_packet=$(echo $segment | sed 's/^>.\(.*$\)/\1/')
 		fi
 
-		echo "$packet"
-
 		#BEACON PACKET?
 		if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]] && [ ${#packet} -gt 132 ]; then
 
@@ -178,6 +176,9 @@ btle_listener () {
             #ADD BEACON 
             key_identifier="$UUID-$MAJOR-$MINOR"
 
+            #CLEAR PACKET
+            packet=""
+
 			#SEND TO MAIN LOOP
 			echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER" > main_pipe
 		fi
@@ -187,6 +188,10 @@ btle_listener () {
 			
 			#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
+
+
+            #CLEAR PACKET
+            packet=""
 
 			#SEND TO MAIN LOOP
 			echo "RAND$received_mac_address" > main_pipe
@@ -199,13 +204,15 @@ btle_listener () {
 			#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 
+            #CLEAR PACKET
+            packet=""
+
 			#SEND TO MAIN LOOP
 			echo "PUBL$received_mac_address" > main_pipe
-
 		fi 
 
 		#NAME RESPONSE 
-		if [[ $packet =~ ^04\ 07\ FF\ .*? ]] && [ ${#packet} -gt 840 ]; then
+		if [[ $packet =~ ^04\ 07\ FF\ .*? ]] && [ ${#packet} -gt 700 ]; then
 
 			packet=$(echo "$packet" | tr -d '\0')
 
@@ -215,8 +222,11 @@ btle_listener () {
 			#CONVERT RECEIVED HEX DATA INTO ASCII
 			local name_as_string=$(echo "${packet:29}" | sed 's/ 00//g' | xxd -r -p )
 
-			#SEND TO MAIN LOOP
-			echo "NAME$received_mac_address|$name_as_string" > main_pipe
+            #CLEAR PACKET
+            packet=""
+
+			#SEND TO MAIN LOOP; FORK FOR FASTER RESPONSE
+			echo "NAME$received_mac_address|$name_as_string" > main_pipe &
 		fi
 	done < <(sudo hcidump --raw)
 }
@@ -365,16 +375,8 @@ publish_message () {
 }
 
 # ----------------------------------------------------------------------------------------
-# OBTAIN PIDS OF BACKGROUND PROCESSES FOR TRAP
+# CLEANUP ROUTINE 
 # ----------------------------------------------------------------------------------------
-bluetooth_scanner & 
-mqtt_listener &
-btle_listener &
-periodic_trigger & 
-public_device_scanner & 
-
-
-#TRAP EXIT FOR CLEANUP ON OLDER INSTALLATIONS
 clean() {
 	#CLEANUP FOR TRAP
 	while read line; do 
@@ -390,6 +392,16 @@ clean() {
 }
 
 trap "clean" EXIT
+
+
+# ----------------------------------------------------------------------------------------
+# OBTAIN PIDS OF BACKGROUND PROCESSES FOR TRAP
+# ----------------------------------------------------------------------------------------
+bluetooth_scanner & 
+mqtt_listener &
+btle_listener &
+periodic_trigger & 
+public_device_scanner & 
 
 # ----------------------------------------------------------------------------------------
 # SCAN NEXT DEVICE IF REQUIRED
@@ -429,7 +441,7 @@ request_public_mac_scan () {
 	if [ "$((now - previous_scan))" -gt "$scan_interval" ] ; then 
 		
 		#PERFORM SCAN
-		echo "$device|$current_status" > scan_pipe
+		echo "$device|$current_status" > scan_pipe &
 	fi 
 }
 
