@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.41
+version=0.1.42
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
@@ -288,7 +288,10 @@ determine_manufacturer () {
 			local remote_result=$(curl -sL https://api.macvendors.com/$address | grep -vi "error")
 			[ ! -z "$remote_result" ] && echo "${address:0:8}	$remote_result" >> .manufacturer_cache
 			manufacturer="$remote_result"
-		fi 
+		fi
+
+		#SET DEFAULT MANUFACTURER 
+		[ -z "$manufacturer" ] && manufacturer="Unknown"
 		echo "$manufacturer"
 	fi 
 }
@@ -505,7 +508,7 @@ while true; do
 				new_status=$(( current_status / 5 ))
 
 				#SET DEVICE STATUS LOG
-				status_log["$mac"]=$new_status
+				status_log["$mac"]="$new_status"
 				[ "$new_status" != "$current_status" ] && did_change=true
 
 			else 
@@ -533,26 +536,25 @@ while true; do
 
 		#**********************************************************************
 
-		if [ "$did_change" == true ]; then  
-			#ECHO VALUES FOR DEBUGGING
-			if [ "$cmd" == "NAME" ] || [ "$cmd" == "BEAC" ]; then 
-				debug_name="$name"
-				[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
-				
-				#PRINT RAW COMMAND; DEBUGGING
-				echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
+		#ECHO VALUES FOR DEBUGGING
+		if [ "$cmd" == "NAME" ] || [ "$cmd" == "BEAC" ]; then 
+			debug_name="$name"
+			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
+			
+			#PRINT RAW COMMAND; DEBUGGING
+			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 
-				#GET CURRENT STATUS
-				current_status="${status_log[$data]}"
+			#GET CURRENT STATUS
+			current_status="${status_log[$data]}"
 
-				#PUBLISH TO MQTT
-				publish_message "$data" "$current_status" "$name" "$manufacturer"
+			#PUBLISH TO MQTT
+			publish_message "$data" "$current_status" "$name" "$manufacturer"
 
-				#REQUEST NEXT SCAN
-				request_public_mac_scan 
-				continue
-			fi 
-		fi
+			#REQUEST NEXT SCAN
+			request_public_mac_scan 
+			continue
+		fi 
+
 
 		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ]; then 
 			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $manufacturer${NC}"
