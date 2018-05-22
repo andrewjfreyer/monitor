@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.59
+version=0.1.60
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -135,10 +135,10 @@ btle_listener () {
 		#MATCH A SECOND OR LATER SEGMENT OF A PACKET
 		if [[ $segment =~ ^[0-9a-fA-F]{2}\ [0-9a-fA-F] ]]; then
 			packet="$packet $segment"
-		else
-			packet=""
-			capturing=""
+			continue 
 		fi
+
+		capturing=""
 
 		#BEACON PACKET?
 		if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]] && [ ${#packet} -gt 132 ]; then
@@ -197,7 +197,7 @@ btle_listener () {
 		fi 
 
 		#NAME RESPONSE 
-		if [[ $packet =~ ^04\ 07\ FF\ .*? ]] && [ ${#packet} -gt 180 ]; then
+		if [[ $packet =~ ^04\ 07\ FF\ .*? ]] && [ ${#packet} -gt 840 ]; then
 
 			packet=$(echo "$packet" | tr -d '\0')
 
