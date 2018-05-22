@@ -388,7 +388,7 @@ clean() {
 	sudo rm scan_pipe &>/dev/null
 
 	#MESSAGE
-	echo -e '${NC}Exited.${}'
+	echo 'Exited.'
 }
 
 trap "clean" EXIT
@@ -458,8 +458,6 @@ while true; do
 
 	#READ FROM THE MAIN PIPE
 	while read event; do 
-		echo "EVENT: $event"
-
 		#EVENT RECEIVED
 		event_received=true
 
