@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.43
+version=0.1.44
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
@@ -370,10 +370,10 @@ publish_message () {
 		stamp=$(date "+%a %b %d %Y %H:%M:%S GMT%z (%Z)")
 
 		#DEBUGGING 
-		(>&2 echo -e "${PURPLE}$mqtt_topicpath$1 { confidence : $2, name : $name, scan_duration_ms: $4, timestamp : $stamp, manufacturer : $manufacturer} ${NC}")
+		(>&2 echo -e "${PURPLE}$mqtt_topicpath/owner/$1 { confidence : $2, name : $name, scan_duration_ms: $4, timestamp : $stamp, manufacturer : $manufacturer} ${NC}")
 
 		#POST TO MQTT
-		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath$1" -m "{\"confidence\":\"$2\",\"name\":\"$name\",\"scan_duration_ms\":\"$4\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$manufacturer\"}"
+		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/owner/$1" -m "{\"confidence\":\"$2\",\"name\":\"$name\",\"scan_duration_ms\":\"$4\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$manufacturer\"}"
 	fi
 }
 
@@ -510,14 +510,10 @@ while true; do
 				#SET DEVICE STATUS LOG
 				status_log["$mac"]="$new_status"
 				[ "$new_status" != "$current_status" ] && did_change=true
-
 			else 
 				#SET DEVICE STATUS LOG; RESTORE TO 100
 				status_log["$mac"]=100
 				[ "$current_status" == 0 ] && did_change=true
-
-				#PUBLISH TO MQTT BROKER
-				$(which mosquitto_pub) -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "location/test" -m "$name Present ($manufacturer)"
 			fi
 
 		elif [ "$cmd" == "BEAC" ]; then 
@@ -531,7 +527,10 @@ while true; do
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			key="$uuid-$major-$minor"
 			[ -z "${device_log[$key]}" ] && is_new=true
-			device_log["$key"]="$timestamp"				
+			device_log["$key"]="$timestamp"	
+
+			#GET MANUFACTURER INFORMATION
+			manufacturer="$(determine_manufacturer $data)"			
 		fi
 
 		#**********************************************************************
