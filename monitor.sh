@@ -29,7 +29,7 @@
 [ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "bash monitor" | grep -v "$$" | awk '{print "sudo kill "$1}')
 
 #VERSION NUMBER
-version=0.1.60
+version=0.1.61
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -171,7 +171,7 @@ btle_listener () {
             key_identifier="$UUID-$MAJOR-$MINOR"
 
 			#SEND TO MAIN LOOP
-			echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER" > main_pipe &
+			echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER" > main_pipe
 		fi
 
 		#FIND ADVERTISEMENT PACKET OF RANDOM ADDRESSES                                  __
@@ -181,7 +181,7 @@ btle_listener () {
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 
 			#SEND TO MAIN LOOP
-			echo "RAND$received_mac_address" > main_pipe &
+			echo "RAND$received_mac_address" > main_pipe
 
 		fi
 
@@ -192,7 +192,7 @@ btle_listener () {
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 
 			#SEND TO MAIN LOOP
-			echo "PUBL$received_mac_address" > main_pipe &
+			echo "PUBL$received_mac_address" > main_pipe
 
 		fi 
 
@@ -208,7 +208,7 @@ btle_listener () {
 			local name_as_string=$(echo "${packet:29}" | sed 's/ 00//g' | xxd -r -p )
 
 			#SEND TO MAIN LOOP
-			echo "NAME$received_mac_address|$name_as_string" > main_pipe &
+			echo "NAME$received_mac_address|$name_as_string" > main_pipe
 		fi
 
 		#CONTINUE BUILD OF FULL PACKET
@@ -229,7 +229,7 @@ mqtt_listener (){
 	echo "MQTT trigger started" >&2 
 	#MQTT LOOP
 	while read instruction; do 
-		echo "MQTT$instruction" > main_pipe &
+		echo "MQTT$instruction" > main_pipe
 	done < <($(which mosquitto_sub) -v -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan") 
 }
 
