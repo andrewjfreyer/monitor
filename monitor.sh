@@ -25,11 +25,8 @@
 #
 # ----------------------------------------------------------------------------------------
 
-#KILL ANY OTHER MONITOR SCRIPT; ONLY NECESSARY ON WHEEZY INSTALLATIOS; DEBUG ONLY 
-[ ! -z "$1" ] && while read line; do `$line` ;done < <(ps ax | grep "monitor.sh" | grep -v "$$" | awk '{print "sudo kill "$1}')
-
 #VERSION NUMBER
-version=0.1.64
+version=0.1.65
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -369,23 +366,14 @@ publish_message () {
 # OBTAIN PIDS OF BACKGROUND PROCESSES FOR TRAP
 # ----------------------------------------------------------------------------------------
 bluetooth_scanner & 
-scan_pid="$!"
-
-mqtt_listener & 
-mqtt_pid="$!"
-
+mqtt_listener &
 btle_listener &
-btle_pid="$!"
-
 periodic_trigger & 
-period_pid="$!"
-
 public_device_scanner & 
-public_pid="$!"
 
 
 #TRAP EXIT FOR CLEANUP ON OLDER INSTALLATIONS
-trap "sudo rm main_pipe &>/dev/null; sudo rm scan_pipe &>/dev/null; sudo kill -9 $btle_pid &>/dev/null; sudo kill -9 $mqtt_pid &>/dev/null; sudo kill -9 $scan_pid &>/dev/null; sudo kill -9 $period_pid &>/dev/null; sudo kill -9 $public_pid &>/dev/null" EXIT
+trap "sudo rm main_pipe &>/dev/null; sudo rm scan_pipe &>/dev/null; while read line; do `$line` ;done < <(ps ax | grep $(basename \"$0\") | awk '{print \"sudo kill \"$1}')" EXIT
 
 # ----------------------------------------------------------------------------------------
 # SCAN NEXT DEVICE IF REQUIRED
