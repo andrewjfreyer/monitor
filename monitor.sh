@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.70
+version=0.1.71
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -43,19 +43,54 @@ mkfifo scan_pipe
 base_directory=$(dirname "$(readlink -f "$0")")
 
 #MQTT PREFERENCES
-MQTT_CONFIG=$base_directory/mqtt_preferences
+MQTT_CONFIG="$base_directory/mqtt_preferences"
 if [ -f $MQTT_CONFIG ]; then 
 	source $MQTT_CONFIG
 else
-	#IF NO PREFERENCE FILE; LOAD 
-	echo "mqtt_address=ip.address.of.server" >> $MQTT_CONFIG
+	#LOAD A DEFULT PREFERENCES FILE
+	echo "# ---------------------------" >> $MQTT_CONFIG
+	echo "#								" >> $MQTT_CONFIG
+	echo "#		MOSQUITTO PREFERENCES" >> $MQTT_CONFIG
+	echo "#								" >> $MQTT_CONFIG
+	echo "# ---------------------------" >> $MQTT_CONFIG
+	echo "" >> $MQTT_CONFIG
+
+	echo "# IP ADDRESS OF MQTT BROKER" >> $MQTT_CONFIG
+	echo "mqtt_address=0.0.0.0" >> $MQTT_CONFIG
+
+	echo "" >> $MQTT_CONFIG
+	echo "# MQTT BROKER USERNAME (OR BLANK FOR NONE)" >> $MQTT_CONFIG
 	echo "mqtt_user=username" >> $MQTT_CONFIG
+
+	echo "" >> $MQTT_CONFIG
+	echo "# MQTT BROKER PASSWORD (OR BLANK FOR NONE)" >> $MQTT_CONFIG
 	echo "mqtt_password=password" >> $MQTT_CONFIG
+
+	echo "" >> $MQTT_CONFIG
+	echo "# MQTT PUBLISH TOPIC ROOT " >> $MQTT_CONFIG
 	echo "mqtt_topicpath=location" >> $MQTT_CONFIG
-	echo "mqtt_room=''" >> $MQTT_CONFIG
+
+	echo "" >> $MQTT_CONFIG
+	echo "# PUBLISHER IDENTITY " >> $MQTT_CONFIG
+	echo "mqtt_publisher_identity=''" >> $MQTT_CONFIG
 
 	#LOAD VALUES INTO MQTT CONFIG
 	source $MQTT_CONFIG
+fi 
+
+#MQTT PREFERENCES
+PUB_CONFIG="$base_directory/public_addresses"
+if [ -f $PUB_CONFIG ]; then 
+	source $PUB_CONFIG
+else
+	#IF NO PUBLIC ADDRESS FILE; LOAD 
+	echo "# ---------------------------" >> $PUB_CONFIG
+	echo "#" >> $PUB_CONFIG
+	echo "#		PUBLIC MAC ADDRESS LIST" >> $PUB_CONFIG
+	echo "#" >> $PUB_CONFIG
+	echo "# ---------------------------" >> $PUB_CONFIG
+	echo "" >> $PUB_CONFIG
+	echo "00:00:00:00:00:00 Nickname #comments" >> $PUB_CONFIG
 fi 
 
 # ----------------------------------------------------------------------------------------
@@ -67,17 +102,13 @@ declare -A device_log
 declare -A status_log
 declare -A scan_log
 
-#NOTE: EDIT LATER FOR A CONFIGURATION FILE
-devices[0]="34:08:BC:15:24:F7"
-devices[1]="34:08:BC:14:6F:74"
-devices[2]="20:78:f0:dd:7D:94"
+#LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY
+public_addresses=($(cat "$base_directory/public_mac_addresses" | grep -ioE "^.*?#" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 
 #LOOP SCAN VARIABLES
-device_count=${#devices[@]}
+device_count=${#public_addresses[@]}
 device_index=0
-
-#VERIFICIATIONS
-verifications=
+last_random=""
 
 #FIND DEPENDENCY PATHS, ELSE MANUALLY SET
 mosquitto_pub_path=$(which mosquitto_pub)
@@ -111,7 +142,8 @@ BLUE='\033[0;34m'
 bluetooth_scanner () {
 	echo "BTLE scanner started" >&2 
 	while true; do 
-		local error=$(sudo timeout --signal SIGINT 120 hcitool lescan 2>&1 | grep -iE 'input/output error')
+		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
+		local error=$(sudo timeout --signal SIGINT 120 hcitool lescan 2>&1 | grep -iE 'input/output error|invalid device|invalid|error')
 		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe
 		sleep 1
 	done
@@ -286,7 +318,7 @@ determine_manufacturer () {
 # PUBLIC DEVICE ADDRESS SCAN LOOP
 # ----------------------------------------------------------------------------------------
 public_device_scanner () {
-	echo "Public device scanner started" >&2 
+	echo "Public scanner started" >&2 
 	local scan_event_received=false
 
 	#PUBLIC DEVICE SCANNER LOOP
@@ -300,14 +332,16 @@ public_device_scanner () {
 			scan_event_received=true
 
 			#ONLY SCAN FOR PROPERLY-FORMATTED MAC ADDRESSES
-			local mac=$(echo "$scan_event" | awk -F "|" '{print $1}' |grep -ioE "([0-9a-f]{2}:){5}[0-9a-f]{2}")
+			local mac=$(echo "$scan_event" | awk -F "|" '{print $1}' | grep -ioE "([0-9a-f]{2}:){5}[0-9a-f]{2}")
 			local previous_status=$( echo "$scan_event" | awk -F "|" '{print $2}' | grep -ioE  "[0-9]{1,")
+
+			#HAS THIS DEVICE BEEN SCANNED PREVIOUSLY? 
 			[ -z "$previous_status" ] && previous_status=0
 
 			echo -e "${GREEN}[CMD-SCAN]	${GREEN}Scanning:${NC} $mac${NC}"
 
 			#HCISCAN
-			name=$(hcitool name "$mac")
+			name=$(hcitool name "$mac" | grep -iE 'input/output error|invalid device|invalid|error')
 
 			#DELAY BETWEEN SCANS
 			sleep 3
@@ -322,7 +356,7 @@ public_device_scanner () {
 						echo -e "${GREEN}[CMD-VERI]	${GREEN}Verify:${NC} $mac${NC}"
 
 						#HCISCAN
-						name=$(hcitool name "$mac")
+						name=$(hcitool name "$mac" | grep -iE 'input/output error|invalid device|invalid|error')
 
 						#BREAK IF NAME IS FOUND
 						[ ! -z "$name" ] && break
@@ -340,7 +374,7 @@ public_device_scanner () {
 			echo -e "${GREEN}[CMD-SCAN]	${GREEN}Complete:${NC} $mac${NC}"
 
 			#SLEEP AGAIN; DO NOT SCAN TOO FREQUENTLY
-			sleep 3
+			sleep 2
 
 		done < <(cat < scan_pipe)
 
@@ -373,7 +407,7 @@ publish_message () {
 		(>&2 echo -e "${PURPLE}$mqtt_topicpath/owner/$1 { confidence : $2, name : $name, timestamp : $stamp, manufacturer : $4} ${NC}")
 
 		#POST TO MQTT
-		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/owner/$mqtt_room/$1" -m "{\"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\"}"
+		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/owner/$mqtt_publisher_identity/$1" -m "{\"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\"}"
 	fi
 }
 
@@ -410,35 +444,11 @@ public_device_scanner &
 # SCAN NEXT DEVICE IF REQUIRED
 # ----------------------------------------------------------------------------------------
 
-request_public_mac_scan () { 
+determine_association () { 
+	#RETURN IF NO RANDOM MAC SUPPLIED
+	[ -z "$1" ] && return 0
 
-	#ITERATE TO DETERMINE WHETHER AT LEAST ONE DEVICE IS NOT HOME
-	device_index=$((device_index + 1))
-	[ "$device_index" -gt $(( device_count - 1 )) ] && device_index=0
 
-	#GET DEVICE
-	local device=${devices[$device_index]}
-
-	#GET TIME NOW  
-	local now=$(date +%s)
-
-	#GET CURRENT TIMESTAMP
-	local current_status="${status_log[$device]}"
-	[ -z "$current_status" ] && current_status=0
-
-	#PREVIOUS TIME SCANNED
-	local previous_scan="${scan_log[$device]}"
-
-	#UPDATE THE SCAN LOG
-	scan_log["$device"]=$now
-
-	#DEFAULT SCAN INTERVAL WHEN PRESENT
-	scan_interval="45"
-
-	#DETERMINE APPROPRIATE DELAY FOR THIS DEVICE
-	if  [ "$current_status" == 0 ] ; then 
-		scan_interval=7
-	fi 
 
 	#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
 	if [ "$((now - previous_scan))" -gt "$scan_interval" ] ; then 
@@ -451,9 +461,6 @@ request_public_mac_scan () {
 # ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
 # ----------------------------------------------------------------------------------------
-
-#START BY SCANNING
-request_public_mac_scan
 
 #MAIN LOOP
 while true; do 
@@ -468,8 +475,12 @@ while true; do
 		cmd="${event:0:4}"
 		data="${event:4}"
 		timestamp=$(date +%s)
+
+		#FLAGS TO DETERMINE FRESHNESS OF DATA
 		is_new=false
 		did_change=false
+
+		#DATA FOR PUBLICATION
 		manufacturer=""
 		name=""
 
@@ -481,7 +492,7 @@ while true; do
 
 		elif [ "$cmd" == "MQTT" ]; then 
 			#IN RESPONSE TO MQTT SCAN 
-			request_public_mac_scan
+			determine_association
 
 		elif [ "$cmd" == "PUBL" ]; then 
 			#DATA IS PUBLIC MAC ADDRESS; ADD TO LOG
@@ -504,7 +515,7 @@ while true; do
 
 			#GET CURRENT DEVICE STATUS
 			current_status="${status_log[$mac]}"
-			[ -z "$current_status" ] && current_status=0 && status_log[$mac]=0
+			[ -z "$current_status" ] && current_status=0 && status_log[$mac]=0 && is_new=true
 
 			#ADD TO LOG
 			[ -z "${device_log[$mac]}" ] && is_new=true
@@ -520,6 +531,7 @@ while true; do
 				#SET DEVICE STATUS LOG
 				status_log["$mac"]="$new_status"
 				[ "$new_status" != "$current_status" ] && did_change=true
+			
 			else 
 				#SET DEVICE STATUS LOG; RESTORE TO 100
 				status_log["$mac"]=100
@@ -544,9 +556,15 @@ while true; do
 		fi
 
 		#**********************************************************************
+		#**********************************************************************
+		#**********************************************************************
+		#**********************************************************************
+		#**********************************************************************
 
 		#ECHO VALUES FOR DEBUGGING
-		if [ "$cmd" == "NAME" ] || [ "$cmd" == "BEAC" ]; then 
+		if [ "$cmd" == "NAME" ] ; then 
+			
+			#PRINTING FORMATING
 			debug_name="$name"
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 			
@@ -556,24 +574,35 @@ while true; do
 			#GET CURRENT STATUS
 			current_status="${status_log[$data]}"
 
-			#PUBLISH TO MQTT
-			publish_message "$data" "$current_status" "$name" "$manufacturer"
+			if [ "$did_change" == true ]; then 
+				#PUBLISH TO MQTT
+				publish_message "$data" "$current_status" "$name" "$manufacturer"
+			fi 
 
-			#REQUEST NEXT SCAN
-			request_public_mac_scan 
-			continue
+		elif [ "$cmd" == "BEAC" ]; then 
+			#PRINTING FORMATING
+			debug_name="$name"
+			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
+		
+			#echo 
+			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 		fi 
-
 
 		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ]; then 
 			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $manufacturer${NC}"
-			continue
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ]; then 
-			#REQUEST NEXT SCAN
-			request_public_mac_scan
-			continue
+
+			#SET THE LAST RANDOM VALUE
+			last_random="$data"
+
+			#CHECK FOR EXISTING ASSOCATION
+			if [ -z "${random_associations["$last_random"]}" ]; then 
+				#REQUEST NEXT SCAN
+				determine_association
+			fi 
 		fi 
+
 	done < <(cat < main_pipe)
 
 	#PREVENT UNNECESSARILY FAST LOOPING
