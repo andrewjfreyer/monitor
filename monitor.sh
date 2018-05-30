@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.104
+version=0.1.105
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -144,22 +144,11 @@ declare -A expired_device_log
 #DEVICE EXPIRATION BIASES 
 declare -A device_expiration_biases
 
-#LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY
+#LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY, IGNORING COMMENTS
 public_addresses=($(cat "$PUB_CONFIG" | grep -vE "^#" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 
 #LOOP SCAN VARIABLES
 device_count=${#public_addresses[@]}
-device_index=0
-last_random=""
-
-echo "Publics:"
-
-for key in "${!public_addresses[@]}"; do
-	echo "${public_addresses[$key]}"
-done 
-
-echo "Done:"
-
 
 # ----------------------------------------------------------------------------------------
 # BLUETOOTH LE BACKGROUND SCANNING
