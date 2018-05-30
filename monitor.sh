@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.81
+version=0.1.83
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -136,7 +136,8 @@ sudo rm scan_pipe &>/dev/null
 mkfifo scan_pipe
 
 #DEFINE VARIABLES FOR EVENT PROCESSING
-declare -A device_log
+declare -A static_device_log
+declare -A random_device_log
 
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY
 public_addresses=($(cat "$base_directory/public_addresses" | grep -ioE "^.*?#" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
@@ -479,8 +480,8 @@ while true; do
 		#PROCEED BASED ON COMMAND TYPE
 		if [ "$cmd" == "RAND" ]; then 
 			#DATA IS RANDOM MAC ADDRESS; ADD TO LOG
-			[ -z "${device_log[$data]}" ] && is_new=true
-			device_log["$data"]="$timestamp"
+			[ -z "${random_device_log[$data]}" ] && is_new=true
+			random_device_log["$data"]="$timestamp"
 
 		elif [ "$cmd" == "MQTT" ]; then 
 			#IN RESPONSE TO MQTT SCAN 
@@ -488,8 +489,8 @@ while true; do
 
 		elif [ "$cmd" == "PUBL" ]; then 
 			#DATA IS PUBLIC MAC ADDRESS; ADD TO LOG
-			[ -z "${device_log[$data]}" ] && is_new=true
-			device_log["$data"]="$timestamp"
+			[ -z "${static_device_log[$data]}" ] && is_new=true
+			static_device_log["$data"]="$timestamp"
 			manufacturer="$(determine_manufacturer $data)"
 
 		elif [ "$cmd" == "NAME" ]; then 
@@ -512,7 +513,7 @@ while true; do
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			key="$uuid-$major-$minor"
 			[ -z "${device_log[$key]}" ] && is_new=true
-			device_log["$key"]="$timestamp"	
+			static_device_log["$key"]="$timestamp"	
 
 			#GET MANUFACTURER INFORMATION
 			manufacturer="$(determine_manufacturer $data)"			
@@ -536,15 +537,49 @@ while true; do
 			debug_name="$name"
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 		
-			echo -e "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
+			echo -e "${GREEN}[CMD-$cmd]	${GREEN}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 		fi 
 
-		if [ "$cmd" == "PUBL" ] ; then 
+		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
 			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $manufacturer${NC} $is_new"
 
-		elif [ "$cmd" == "RAND" ] ; then 
+		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
 			echo -e "${RED}[CMD-${BLUE}$cmd${RED}]${NC}	${NC}$data ${NC} $is_new"
 		fi 
+
+		#PURGE OLD KEYS FROM THE DEVICE LOG
+		for key in "${!random_device_log[@]}"; do
+			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
+			now=$(date +%s)
+			last_seen=${random_device_log["$key"]}
+			difference=$((now - last_seen))
+
+			#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
+			[ -z "$last_seen" ] && continue 
+
+			#TIMEOUT AFTER 120 SECONDS
+			if [ "$difference" -gt "180" ]; then 
+				echo -e "${BLUE}[CLEARED]	${NC}$key Random MAC expired after $difference seconds.${NC} "
+				unset random_device_log["$key"]
+			fi 
+		done
+
+		#PURGE OLD KEYS FROM THE DEVICE LOG
+		for key in "${!static_device_log[@]}"; do
+			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
+			now=$(date +%s)
+			last_seen=${static_device_log["$key"]}
+			difference=$((now - last_seen))
+
+			#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
+			[ -z "$last_seen" ] && continue 
+
+			#TIMEOUT AFTER 120 SECONDS
+			if [ "$difference" -gt "180" ]; then 
+				echo -e "${BLUE}[CLEARED]	${NC}$key Public MAC expired after $difference seconds.${NC} "
+				unset static_device_log["$key"]
+			fi 
+		done
 
 	done < <(cat < main_pipe)
 
