@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.96
+version=0.1.97
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -591,7 +591,7 @@ while true; do
 
 			#TIMEOUT AFTER 120 SECONDS
 			if [ "$difference" -gt "$((90 + random_bias))" ]; then 
-				echo -e "${BLUE}[CLEARED]	${NC}$key Random MAC expired after $difference seconds > $((90 + random_bias)) ${NC} "
+				echo -e "${BLUE}[CLEARED]	${NC}$key Random MAC expired after $difference seconds ${#random_device_log[@]} ${NC} "
 				unset random_device_log["$key"]
 
 				#ADD TO THE EXPIRED LOG
@@ -615,7 +615,7 @@ while true; do
 
 			#TIMEOUT AFTER 120 SECONDS
 			if [ "$difference" -gt "$((80 + beacon_bias))" ]; then 
-				echo -e "${BLUE}[CLEARED]	${NC}$key Beacon expired after $difference seconds > $((80 + beacon_bias))${NC} "
+				echo -e "${BLUE}[CLEARED]	${NC}$key Beacon expired after $difference seconds ${#beacon_device_log[@]} ${NC} "
 				unset beacon_device_log["$key"]
 
 				#ADD TO THE EXPIRED LOG
