@@ -26,7 +26,15 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.75
+version=0.1.76
+
+#COLOR OUTPUT FOR RICH OUTPUT 
+ORANGE='\033[0;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+GREEN='\033[0;32m'
+PURPLE='\033[0;35m'
+BLUE='\033[0;34m'
 
 #FIND DEPENDENCY PATHS, ELSE MANUALLY SET
 mosquitto_pub_path=$(which mosquitto_pub)
@@ -37,11 +45,11 @@ git_path=$(which git)
 
 #ERROR CHECKING FOR MOSQUITTO PUBLICATION 
 should_exit=false
-[ -z "$mosquitto_pub_path" ] && echo "Required package 'mosquitto_pub' not found. Please install." && should_exit=true
-[ -z "$mosquitto_sub_path" ] && echo "Required package 'mosquitto_sub' not found. Please install." && should_exit=true
-[ -z "$hcidump_path" ] && echo "Required package 'hcidump' not found. Please install." && should_exit=true
-[ -z "$bc_path" ] && echo "Required package 'bc' not found. Please install." && should_exit=true
-[ -z "$git_path" ] && echo "Recommended package 'git' not found. Please consider installing."
+[ -z "$mosquitto_pub_path" ] && echo "${RED}Error: ${NC}Required package 'mosquitto_pub' not found. Please install." && should_exit=true
+[ -z "$mosquitto_sub_path" ] && echo "${RED}Error: ${NC}Required package 'mosquitto_sub' not found. Please install." && should_exit=true
+[ -z "$hcidump_path" ] && echo "${RED}Error: ${NC}Required package 'hcidump' not found. Please install." && should_exit=true
+[ -z "$bc_path" ] && echo "${RED}Error: ${NC}Required package 'bc' not found. Please install." && should_exit=true
+[ -z "$git_path" ] && echo "${ORANGE}Warning: ${NC}Recommended package 'git' not found. Please consider installing."
 
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
 base_directory=$(dirname "$(readlink -f "$0")")
@@ -52,10 +60,9 @@ if [ -f $MQTT_CONFIG ]; then
 	source $MQTT_CONFIG
 
 	#DOUBLECHECKS 
-	[ "$mqtt_address" == "0.0.0.0" ] && echo "Please customize mqtt broker address." && should_exit=true
-	[ "$mqtt_user" == "username" ] && echo "Please customize mqtt username." && should_exit=true
-	[ "$mqtt_password" == "password" ] && echo "Please customize mqtt password." && should_exit=true
-
+	[ "$mqtt_address" == "0.0.0.0" ] && echo "${RED}Error: ${NC}Please customize mqtt broker address in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
+	[ "$mqtt_user" == "username" ] && echo "${RED}Error: ${NC}Please customize mqtt username in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
+	[ "$mqtt_password" == "password" ] && echo "${RED}Error: ${NC}Please customize mqtt password in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
 else
 	echo "Mosquitto preferences file created. Please customize." 
 
@@ -92,7 +99,10 @@ fi
 
 #MQTT PREFERENCES
 PUB_CONFIG="$base_directory/public_addresses"
-if [ ! -f "$PUB_CONFIG" ]; then 
+if [ -f "$PUB_CONFIG" ]; then 
+	#DOUBLECHECKS 
+	[ ! -z "$(cat "$PUB_CONFIG" | grep -E "^0.0.0.0")" ] && echo "${RED}Error: ${NC}Please customize public mac addresses in: ${BLUE}public_addresses${NC}" && should_exit=true
+else
 	echo "Public MAC address list file created. Please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
 	echo "# ---------------------------" >> $PUB_CONFIG
@@ -137,14 +147,6 @@ public_addresses=($(cat "$base_directory/public_addresses" | grep -ioE "^.*?#" |
 device_count=${#public_addresses[@]}
 device_index=0
 last_random=""
-
-#COLOR OUTPUT FOR RICH DEBUG 
-ORANGE='\033[0;33m'
-RED='\033[0;31m'
-NC='\033[0m'
-GREEN='\033[0;32m'
-PURPLE='\033[0;35m'
-BLUE='\033[0;34m'
 
 # ----------------------------------------------------------------------------------------
 # BLUETOOTH LE BACKGROUND SCANNING
