@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.100
+version=0.1.101
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -152,9 +152,14 @@ device_count=${#public_addresses[@]}
 device_index=0
 last_random=""
 
+echo "Publics:"
+
 for key in "${!public_addresses[@]}"; do
 	echo "$key"
 done 
+
+echo "Done:"
+
 
 # ----------------------------------------------------------------------------------------
 # BLUETOOTH LE BACKGROUND SCANNING
