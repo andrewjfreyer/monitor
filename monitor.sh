@@ -234,7 +234,7 @@ btle_listener () {
 			
 			#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
-			local pdu_header=$(pdu_type $(echo "$packet" | awk '{$6}'))
+			local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
 
             #CLEAR PACKET
             packet=""
@@ -249,7 +249,7 @@ btle_listener () {
 			
 			#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
-			local pdu_header=$(pdu_type $(echo "$packet" | awk '{$6}'))
+			local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
 
             #CLEAR PACKET
             packet=""
