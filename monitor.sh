@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.101
+version=0.1.102
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -145,7 +145,7 @@ declare -A expired_device_log
 declare -A device_expiration_biases
 
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY
-public_addresses=($(cat "$base_directory/public_addresses" | grep -ioE "^.*?#" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
+public_addresses=($(cat "$PUB_CONFIG" | grep -vE "^#" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 
 #LOOP SCAN VARIABLES
 device_count=${#public_addresses[@]}
