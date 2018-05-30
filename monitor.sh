@@ -591,7 +591,7 @@ while true; do
 				unset random_device_log["$key"]
 
 				#ADD TO THE EXPIRED LOG
-				expired_device_log["$key"]
+				expired_device_log["$key"]=$timestamp
 			fi 
 		done
 
@@ -614,7 +614,7 @@ while true; do
 				unset beacon_device_log["$key"]
 
 				#ADD TO THE EXPIRED LOG
-				expired_device_log["$key"]
+				expired_device_log["$key"]=$timestamp
 			fi 
 		done
 
