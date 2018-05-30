@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.87
+version=0.1.89
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -537,9 +537,9 @@ while true; do
 
 			#DO WE NEED TO ADD A LEANRED BIAS FOR EXPIRATION?
 			if [ "$difference" -lt "10" ]; then 
-				device_expiration_biases["$data"]=$(( bias + difference ))
+				device_expiration_biases["$data"]=$(( bias + 15 ))
 
-				echo "SHORT EXPIRATION - NEW BIAS: $(( bias + difference )) $data"
+				echo "SHORT EXPIRATION - NEW BIAS: $(( bias + 15 )) $data"
 			fi  
 		fi 
 
@@ -573,10 +573,11 @@ while true; do
 		#**********************************************************************
 
 		#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
+		random_bias=0
 		for key in "${!random_device_log[@]}"; do
 			#GET BIAS
-			bias=${device_expiration_biases["$key"]}
-			[ -z "$bias" ] && bias=0 
+			random_bias=${device_expiration_biases["$key"]}
+			[ -z "$random_bias" ] && random_bias=0 
 
 			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 			last_seen=${random_device_log["$key"]}
@@ -586,8 +587,8 @@ while true; do
 			[ -z "$last_seen" ] && continue 
 
 			#TIMEOUT AFTER 120 SECONDS
-			if [ "$difference" -gt "$((90 + bias))" ]; then 
-				echo -e "${BLUE}[CLEARED]	${NC}$key Random MAC expired after $difference seconds.${NC} "
+			if [ "$difference" -gt "$((90 + random_bias))" ]; then 
+				echo -e "${BLUE}[CLEARED]	${NC}$key Random MAC expired after $difference seconds > $((90 + random_bias)) ${NC} "
 				unset random_device_log["$key"]
 
 				#ADD TO THE EXPIRED LOG
@@ -596,10 +597,11 @@ while true; do
 		done
 
 		#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
+		beacon_bias=0
 		for key in "${!beacon_device_log[@]}"; do
 			#GET BIAS
-			bias=${device_expiration_biases["$key"]}
-			[ -z "$bias" ] && bias=0 
+			beacon_bias=${device_expiration_biases["$key"]}
+			[ -z "$beacon_bias" ] && beacon_bias=0 
 
 			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 			last_seen=${beacon_device_log["$key"]}
@@ -609,8 +611,8 @@ while true; do
 			[ -z "$last_seen" ] && continue 
 
 			#TIMEOUT AFTER 120 SECONDS
-			if [ "$difference" -gt "$((45 + bias))" ]; then 
-				echo -e "${BLUE}[CLEARED]	${NC}$key Beacon expired after $difference seconds.${NC} "
+			if [ "$difference" -gt "$((45 + beacon_bias))" ]; then 
+				echo -e "${BLUE}[CLEARED]	${NC}$key Beacon expired after $difference seconds > $((45 + beacon_bias))${NC} "
 				unset beacon_device_log["$key"]
 
 				#ADD TO THE EXPIRED LOG
