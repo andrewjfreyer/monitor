@@ -43,17 +43,6 @@ should_exit=false
 [ -z "$bc_path" ] && echo "Required package 'bc' not found. Please install." && should_exit=true
 [ -z "$git_path" ] && echo "Recommended package 'git' not found. Please consider installing."
 
-#CYCLE BLUETOOTH INTERFACE 
-sudo hciconfig hci0 down && sudo hciconfig hci0 up
-
-#SETUP MAIN PIPE
-sudo rm main_pipe &>/dev/null
-mkfifo main_pipe
-
-#SETUP SCAN PIPE
-sudo rm scan_pipe &>/dev/null
-mkfifo scan_pipe
-
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
 base_directory=$(dirname "$(readlink -f "$0")")
 
@@ -114,9 +103,23 @@ else
 	should_exit=true
 fi 
 
+#ARE REQUIREMENTS MET? 
+[ "$should_exit" == true ] && clean && exit 1
+
 # ----------------------------------------------------------------------------------------
 # DEFINE VALUES AND VARIABLES
 # ----------------------------------------------------------------------------------------
+
+#CYCLE BLUETOOTH INTERFACE 
+sudo hciconfig hci0 down && sudo hciconfig hci0 up
+
+#SETUP MAIN PIPE
+sudo rm main_pipe &>/dev/null
+mkfifo main_pipe
+
+#SETUP SCAN PIPE
+sudo rm scan_pipe &>/dev/null
+mkfifo scan_pipe
 
 #DEFINE VARIABLES FOR EVENT PROCESSING
 declare -A device_log
@@ -130,9 +133,6 @@ public_addresses=($(cat "$base_directory/public_addresses" | grep -ioE "^.*?#" |
 device_count=${#public_addresses[@]}
 device_index=0
 last_random=""
-
-#ARE REQUIREMENTS MET? 
-[ "$should_exit" == true ] && echo "Exiting." && exit 1
 
 #COLOR OUTPUT FOR RICH DEBUG 
 ORANGE='\033[0;33m'
