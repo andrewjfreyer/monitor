@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.92
+version=0.1.94
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -516,12 +516,12 @@ while true; do
 			power=$(echo "$data" | awk -F "|" '{print $5}')
 
 			#KEY DEFINED AS UUID-MAJOR-MINOR
-			key="$uuid-$major-$minor"
-			[ -z "${beacon_device_log[$key]}" ] && is_new=true
-			beacon_device_log["$key"]="$timestamp"	
+			data="$uuid-$major-$minor"
+			[ -z "${beacon_device_log[$data]}" ] && is_new=true
+			beacon_device_log["$data"]="$timestamp"	
 
 			#GET MANUFACTURER INFORMATION
-			manufacturer="$(determine_manufacturer $data)"			
+			manufacturer="$(determine_manufacturer $uuid)"			
 		fi
 
 		#**********************************************************************
@@ -542,8 +542,6 @@ while true; do
 				device_expiration_biases["$data"]=$(( bias + 15 ))
 
 				echo "SHORT EXPIRATION - NEW BIAS: $(( bias + 15 )) $data"
-			else
-				echo "EXPIRATION OK: $(( bias + 15 )) $data"
 			fi  
 		fi 
 
