@@ -297,7 +297,7 @@ periodic_trigger (){
 	echo "TIME trigger started" >&2 
 	#MQTT LOOP
 	while : ; do 
-		sleep 60
+		sleep 15
 		echo "TIME" > main_pipe
 	done
 }
@@ -536,7 +536,7 @@ while true; do
 			difference=$((timestamp - last_expired))
 
 			#DO WE NEED TO ADD A LEANRED BIAS FOR EXPIRATION?
-			if [ "$difference" -lt "10" ]; then 
+			if [ "$difference" -lt "20" ]; then 
 				device_expiration_biases["$data"]=$(( bias + 15 ))
 
 				echo "SHORT EXPIRATION - NEW BIAS: $(( bias + 15 )) $data"
