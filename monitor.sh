@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.84
+version=0.1.85
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -138,6 +138,7 @@ mkfifo scan_pipe
 #DEFINE VARIABLES FOR EVENT PROCESSING
 declare -A static_device_log
 declare -A random_device_log
+declare -A beacon_device_log
 
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY
 public_addresses=($(cat "$base_directory/public_addresses" | grep -ioE "^.*?#" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
@@ -512,8 +513,8 @@ while true; do
 
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			key="$uuid-$major-$minor"
-			[ -z "${static_device_log[$key]}" ] && is_new=true
-			static_device_log["$key"]="$timestamp"	
+			[ -z "${beacon_device_log[$key]}" ] && is_new=true
+			beacon_device_log["$key"]="$timestamp"	
 
 			#GET MANUFACTURER INFORMATION
 			manufacturer="$(determine_manufacturer $data)"			
@@ -532,7 +533,7 @@ while true; do
 			#PRINT RAW COMMAND; DEBUGGING
 			echo -e "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 		
-		elif [ "$cmd" == "BEAC" ]; then 
+		elif [ "$cmd" == "BEAC" ] && [ "$is_new" == true ] ; then 
 			#PRINTING FORMATING
 			debug_name="$name"
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
@@ -547,7 +548,10 @@ while true; do
 			echo -e "${RED}[CMD-${BLUE}$cmd${RED}]${NC}	${NC}$data ${NC} $is_new"
 		fi 
 
-		#PURGE OLD KEYS FROM THE DEVICE LOG
+		#**********************************************************************
+		#**********************************************************************
+
+		#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
 		for key in "${!random_device_log[@]}"; do
 			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 			now=$(date +%s)
@@ -558,26 +562,26 @@ while true; do
 			[ -z "$last_seen" ] && continue 
 
 			#TIMEOUT AFTER 120 SECONDS
-			if [ "$difference" -gt "180" ]; then 
+			if [ "$difference" -gt "90" ]; then 
 				echo -e "${BLUE}[CLEARED]	${NC}$key Random MAC expired after $difference seconds.${NC} "
 				unset random_device_log["$key"]
 			fi 
 		done
 
-		#PURGE OLD KEYS FROM THE DEVICE LOG
-		for key in "${!static_device_log[@]}"; do
+		#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
+		for key in "${!beacon_device_log[@]}"; do
 			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 			now=$(date +%s)
-			last_seen=${static_device_log["$key"]}
+			last_seen=${beacon_device_log["$key"]}
 			difference=$((now - last_seen))
 
 			#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
 			[ -z "$last_seen" ] && continue 
 
 			#TIMEOUT AFTER 120 SECONDS
-			if [ "$difference" -gt "180" ]; then 
-				echo -e "${BLUE}[CLEARED]	${NC}$key Public MAC expired after $difference seconds.${NC} "
-				unset static_device_log["$key"]
+			if [ "$difference" -gt "45" ]; then 
+				echo -e "${BLUE}[CLEARED]	${NC}$key Beacon expired after $difference seconds.${NC} "
+				unset beacon_device_log["$key"]
 			fi 
 		done
 
