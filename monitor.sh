@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.109
+version=0.1.110
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -346,25 +346,25 @@ pdu_type () {
 	if [ ! -z "$1" ]; then  
 		local pdu_type="$1"
 		case $pdu_type in
-			0)
+			"00")
 				pdu_type_str="ADV_IND"
 				;;
-			1)
+			"01")
 				pdu_type_str="ADV_DIRECT_IND"
 				;;	
-			2)
+			"02")
 				pdu_type_str="ADV_NONCONN_IND"
 				;;	
-			3)
+			"03")
 				pdu_type_str="SCAN_REQ"
 				;;	
-			4)
+			"04")
 				pdu_type_str="SCAN_RSP"
 				;;	
-			5)
+			"05")
 				pdu_type_str="CONNECT_REQ"
 				;;	
-			6)
+			"06")
 				pdu_type_str="ADV_SCAN_IND"
 				;;	
 			*)
