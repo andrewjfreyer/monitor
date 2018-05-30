@@ -26,7 +26,11 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.114
+version=0.1.115
+
+# ----------------------------------------------------------------------------------------
+# PRETTY PRINT FOR DEBUG
+# ----------------------------------------------------------------------------------------
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -35,6 +39,16 @@ NC='\033[0m'
 GREEN='\033[0;32m'
 PURPLE='\033[0;35m'
 BLUE='\033[0;34m'
+
+#FOR CONSOLE PRINTINT
+log() {
+	#ECHO TO CONSOLE
+	echo -e "$(date "+%I:%M:%S %p") $1"
+}
+
+# ----------------------------------------------------------------------------------------
+# CHECK CONFIGURATION FILES
+# ----------------------------------------------------------------------------------------
 
 #FIND DEPENDENCY PATHS, ELSE MANUALLY SET
 mosquitto_pub_path=$(which mosquitto_pub)
@@ -45,11 +59,11 @@ git_path=$(which git)
 
 #ERROR CHECKING FOR MOSQUITTO PUBLICATION 
 should_exit=false
-[ -z "$mosquitto_pub_path" ] && echo -e "${RED}Error: ${NC}Required package 'mosquitto_pub' not found. Please install." && should_exit=true
-[ -z "$mosquitto_sub_path" ] && echo -e "${RED}Error: ${NC}Required package 'mosquitto_sub' not found. Please install." && should_exit=true
-[ -z "$hcidump_path" ] && echo -e "${RED}Error: ${NC}Required package 'hcidump' not found. Please install." && should_exit=true
-[ -z "$bc_path" ] && echo -e "${RED}Error: ${NC}Required package 'bc' not found. Please install." && should_exit=true
-[ -z "$git_path" ] && echo -e "${ORANGE}Warning: ${NC}Recommended package 'git' not found. Please consider installing."
+[ -z "$mosquitto_pub_path" ] && log "${RED}Error: ${NC}Required package 'mosquitto_pub' not found. Please install." && should_exit=true
+[ -z "$mosquitto_sub_path" ] && log "${RED}Error: ${NC}Required package 'mosquitto_sub' not found. Please install." && should_exit=true
+[ -z "$hcidump_path" ] && log "${RED}Error: ${NC}Required package 'hcidump' not found. Please install." && should_exit=true
+[ -z "$bc_path" ] && log "${RED}Error: ${NC}Required package 'bc' not found. Please install." && should_exit=true
+[ -z "$git_path" ] && log "${ORANGE}Warning: ${NC}Recommended package 'git' not found. Please consider installing."
 
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
 base_directory=$(dirname "$(readlink -f "$0")")
@@ -60,9 +74,9 @@ if [ -f $MQTT_CONFIG ]; then
 	source $MQTT_CONFIG
 
 	#DOUBLECHECKS 
-	[ "$mqtt_address" == "0.0.0.0" ] && echo -e "${RED}Error: ${NC}Please customize mqtt broker address in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
-	[ "$mqtt_user" == "username" ] && echo -e "${RED}Error: ${NC}Please customize mqtt username in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
-	[ "$mqtt_password" == "password" ] && echo -e "${RED}Error: ${NC}Please customize mqtt password in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
+	[ "$mqtt_address" == "0.0.0.0" ] && log "${RED}Error: ${NC}Please customize mqtt broker address in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
+	[ "$mqtt_user" == "username" ] && log "${RED}Error: ${NC}Please customize mqtt username in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
+	[ "$mqtt_password" == "password" ] && log "${RED}Error: ${NC}Please customize mqtt password in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
 else
 	echo "Mosquitto preferences file created. Please customize." 
 
@@ -101,7 +115,7 @@ fi
 PUB_CONFIG="$base_directory/public_addresses"
 if [ -f "$PUB_CONFIG" ]; then 
 	#DOUBLECHECKS 
-	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && echo -e "${RED}Error: ${NC}Please customize public mac addresses in: ${BLUE}public_addresses${NC}" && should_exit=true
+	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && log "${RED}Error: ${NC}Please customize public mac addresses in: ${BLUE}public_addresses${NC}" && should_exit=true
 else
 	echo "Public MAC address list file created. Please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
@@ -273,7 +287,7 @@ btle_listener () {
 			local received_mac_address=$(echo "$packet" | awk '{print $10":"$9":"$8":"$7":"$6":"$5}')
 
 			#CONVERT RECEIVED HEX DATA INTO ASCII
-			local name_as_string=$(echo -e "${packet:29}" | sed 's/ 00//g' | xxd -r -p )
+			local name_as_string=$(log "${packet:29}" | sed 's/ 00//g' | xxd -r -p )
 
             #CLEAR PACKET
             packet=""
@@ -325,7 +339,7 @@ determine_manufacturer () {
 		#IF CACHE DOES NOT EXIST, USE MACVENDORS.COM
 		if [ -z "$manufacturer" ]; then 
 			local remote_result=$(curl -sL https://api.macvendors.com/${address:0:8} | grep -vi "error")
-			[ ! -z "$remote_result" ] && echo -e "${address:0:8}	$remote_result" >> .manufacturer_cache
+			[ ! -z "$remote_result" ] && log "${address:0:8}	$remote_result" >> .manufacturer_cache
 			manufacturer="$remote_result"
 		fi
 
@@ -402,7 +416,7 @@ public_device_scanner () {
 			#HAS THIS DEVICE BEEN SCANNED PREVIOUSLY? 
 			[ -z "$previous_status" ] && previous_status=0
 
-			echo -e "${GREEN}[CMD-SCAN]	${GREEN}Scanning:${NC} $mac${NC}"
+			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning:${NC} $mac${NC}"
 
 			#HCISCAN
 			name=$(hcitool name "$mac" | grep -iE 'input/output error|invalid device|invalid|error')
@@ -417,7 +431,7 @@ public_device_scanner () {
 					#SHOULD VERIFY ABSENSE
 					for repetition in $(seq 1 4); do 
 						#DEBUGGING
-						echo -e "${GREEN}[CMD-VERI]	${GREEN}Verify:${NC} $mac${NC}"
+						log "${GREEN}[CMD-VERI]	${GREEN}Verify:${NC} $mac${NC}"
 
 						#HCISCAN
 						name=$(hcitool name "$mac" | grep -iE 'input/output error|invalid device|invalid|error')
@@ -435,7 +449,7 @@ public_device_scanner () {
 			#hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
 			#TESTING
-			echo -e "${GREEN}[CMD-SCAN]	${GREEN}Complete:${NC} $mac${NC}"
+			log "${GREEN}[CMD-SCAN]	${GREEN}Complete:${NC} $mac${NC}"
 
 			#SLEEP AGAIN; DO NOT SCAN TOO FREQUENTLY
 			sleep 2
@@ -468,7 +482,7 @@ publish_message () {
 		stamp=$(date "+%a %b %d %Y %H:%M:%S GMT%z (%Z)")
 
 		#DEBUGGING 
-		(>&2 echo -e "${PURPLE}$mqtt_topicpath/owner/$1 { confidence : $2, name : $name, timestamp : $stamp, manufacturer : $4} ${NC}")
+		(>&2 log "${PURPLE}$mqtt_topicpath/owner/$1 { confidence : $2, name : $name, timestamp : $stamp, manufacturer : $4} ${NC}")
 
 		#POST TO MQTT
 		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/owner/$mqtt_publisher_identity/$1" -m "{\"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\"}"
@@ -543,11 +557,11 @@ while true; do
 
 		elif [ "$cmd" == "MQTT" ]; then 
 			#IN RESPONSE TO MQTT SCAN 
-			echo -e "${GREEN}[INSTRUCT]	${NC}MQTT Trigger${NC}"
+			log "${GREEN}[INSTRUCT]	${NC}MQTT Trigger${NC}"
 
 		elif [ "$cmd" == "TIME" ]; then 
 			#IN RESPONSE TO MQTT SCAN 
-			echo -e "${GREEN}[INSTRUCT]	${NC}Time Trigger${NC}"
+			log "${GREEN}[INSTRUCT]	${NC}Time Trigger${NC}"
 
 		elif [ "$cmd" == "PUBL" ]; then 
 			#PARSE RECEIVED DATA
@@ -617,21 +631,21 @@ while true; do
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 			
 			#PRINT RAW COMMAND; DEBUGGING
-			echo -e "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
+			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 		
 		elif [ "$cmd" == "BEAC" ] && [ "$is_new" == true ] ; then 
 			#PRINTING FORMATING
 			debug_name="$name"
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 		
-			echo -e "${GREEN}[CMD-$cmd]	${GREEN}$data ${GREEN}$debug_name${NC} $manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
+			log "${GREEN}[CMD-$cmd]	${GREEN}$data ${GREEN}$debug_name${NC} $manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
 		fi 
 
 		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
-			echo -e "${RED}[CMD-$cmd]${NC}	$data $pdu_header $manufacturer${NC}"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $manufacturer${NC}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
-			echo -e "${RED}[CMD-$cmd]${NC}	$data $pdu_header ${NC} RAND_NUM: ${#random_device_log[@]}"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header ${NC} RAND_NUM: ${#random_device_log[@]}"
 		fi 
 
 		#**********************************************************************
@@ -653,7 +667,7 @@ while true; do
 
 			#TIMEOUT AFTER 120 SECONDS
 			if [ "$difference" -gt "$((90 + random_bias))" ]; then 
-				echo -e "${BLUE}[CLEARED]	${NC}$key Random expired after $difference seconds RAND_NUM: ${#random_device_log[@]} ${NC} "
+				log "${BLUE}[CLEARED]	${NC}$key Random expired after $difference seconds RAND_NUM: ${#random_device_log[@]} ${NC} "
 				unset random_device_log["$key"]
 
 				#ADD TO THE EXPIRED LOG
@@ -677,7 +691,7 @@ while true; do
 
 			#TIMEOUT AFTER 120 SECONDS
 			if [ "$difference" -gt "$(( 120 + beacon_bias ))" ]; then 
-				echo -e "${BLUE}[CLEARED]	${NC}$key Beacon expired after $difference seconds Beacon total: ${#beacon_device_log[@]} ${NC} "
+				log "${BLUE}[CLEARED]	${NC}$key Beacon expired after $difference seconds Beacon total: ${#beacon_device_log[@]} ${NC} "
 				unset beacon_device_log["$key"]
 
 				#ADD TO THE EXPIRED LOG
