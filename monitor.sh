@@ -569,7 +569,7 @@ while true; do
 			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $manufacturer${NC}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
-			echo -e "${RED}[CMD-$cmd]${NC}	${NC}$data ${NC} Env. Total: ${#random_device_log[@]}"
+			echo -e "${RED}[CMD-$cmd]${NC}	${NC}$data ${NC} Rand Total: ${#random_device_log[@]}"
 		fi 
 
 		#**********************************************************************
@@ -591,7 +591,7 @@ while true; do
 
 			#TIMEOUT AFTER 120 SECONDS
 			if [ "$difference" -gt "$((90 + random_bias))" ]; then 
-				echo -e "${BLUE}[CLEARED]	${NC}$key Random MAC expired after $difference seconds ${#random_device_log[@]} ${NC} "
+				echo -e "${BLUE}[CLEARED]	${NC}$key Random MAC expired after $difference seconds Random total: ${#random_device_log[@]} ${NC} "
 				unset random_device_log["$key"]
 
 				#ADD TO THE EXPIRED LOG
@@ -615,7 +615,7 @@ while true; do
 
 			#TIMEOUT AFTER 120 SECONDS
 			if [ "$difference" -gt "$((80 + beacon_bias))" ]; then 
-				echo -e "${BLUE}[CLEARED]	${NC}$key Beacon expired after $difference seconds ${#beacon_device_log[@]} ${NC} "
+				echo -e "${BLUE}[CLEARED]	${NC}$key Beacon expired after $difference seconds Beacon total: ${#beacon_device_log[@]} ${NC} "
 				unset beacon_device_log["$key"]
 
 				#ADD TO THE EXPIRED LOG
