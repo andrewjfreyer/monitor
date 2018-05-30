@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.86
+version=0.1.87
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -533,7 +533,7 @@ while true; do
 
 			#WHEN DID THIS LAST EXPIRE?
 			last_expired=${expired_device_log["$data"]}
-			difference=$((timestamp - last_seen))
+			difference=$((timestamp - last_expired))
 
 			#DO WE NEED TO ADD A LEANRED BIAS FOR EXPIRATION?
 			if [ "$difference" -lt "10" ]; then 
