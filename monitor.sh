@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.99
+version=0.1.100
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -618,7 +618,7 @@ while true; do
 			[ -z "$last_seen" ] && continue 
 
 			#TIMEOUT AFTER 120 SECONDS
-			if [ "$difference" -gt "$((80 + beacon_bias))" ]; then 
+			if [ "$difference" -gt "$(( 120 + beacon_bias ))" ]; then 
 				echo -e "${BLUE}[CLEARED]	${NC}$key Beacon expired after $difference seconds Beacon total: ${#beacon_device_log[@]} ${NC} "
 				unset beacon_device_log["$key"]
 
