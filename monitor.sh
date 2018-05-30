@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.85
+version=0.1.86
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -139,6 +139,10 @@ mkfifo scan_pipe
 declare -A static_device_log
 declare -A random_device_log
 declare -A beacon_device_log
+declare -A expired_device_log
+
+#DEVICE EXPIRATION BIASES 
+declare -A device_expiration_biases
 
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY
 public_addresses=($(cat "$base_directory/public_addresses" | grep -ioE "^.*?#" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
@@ -523,6 +527,23 @@ while true; do
 		#**********************************************************************
 		#**********************************************************************
 
+		if [ "$is_new" == true ]; then 
+			#GET CURRENT BIAS
+			bias=${device_expiration_biases["$data"]}
+
+			#WHEN DID THIS LAST EXPIRE?
+			last_expired=${expired_device_log["$data"]}
+			difference=$((timestamp - last_seen))
+
+			#DO WE NEED TO ADD A LEANRED BIAS FOR EXPIRATION?
+			if [ "$difference" -lt "10" ]; then 
+				device_expiration_biases["$data"]=$(( bias + difference ))
+
+				echo "SHORT EXPIRATION - NEW BIAS: $(( bias + difference )) $data"
+			fi  
+		fi 
+
+
 		#ECHO VALUES FOR DEBUGGING
 		if [ "$cmd" == "NAME" ] ; then 
 			
@@ -545,7 +566,7 @@ while true; do
 			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $manufacturer${NC} $is_new"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
-			echo -e "${RED}[CMD-${BLUE}$cmd${RED}]${NC}	${NC}$data ${NC} $is_new"
+			echo -e "${RED}[CMD-$cmd]${NC}	${NC}$data ${NC} $is_new"
 		fi 
 
 		#**********************************************************************
@@ -553,35 +574,47 @@ while true; do
 
 		#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
 		for key in "${!random_device_log[@]}"; do
+			#GET BIAS
+			bias=${device_expiration_biases["$key"]}
+			[ -z "$bias" ] && bias=0 
+
 			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-			now=$(date +%s)
 			last_seen=${random_device_log["$key"]}
-			difference=$((now - last_seen))
+			difference=$((timestamp - last_seen))
 
 			#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
 			[ -z "$last_seen" ] && continue 
 
 			#TIMEOUT AFTER 120 SECONDS
-			if [ "$difference" -gt "90" ]; then 
+			if [ "$difference" -gt "$((90 + bias))" ]; then 
 				echo -e "${BLUE}[CLEARED]	${NC}$key Random MAC expired after $difference seconds.${NC} "
 				unset random_device_log["$key"]
+
+				#ADD TO THE EXPIRED LOG
+				expired_device_log["$key"]
 			fi 
 		done
 
 		#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 		for key in "${!beacon_device_log[@]}"; do
+			#GET BIAS
+			bias=${device_expiration_biases["$key"]}
+			[ -z "$bias" ] && bias=0 
+
 			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-			now=$(date +%s)
 			last_seen=${beacon_device_log["$key"]}
-			difference=$((now - last_seen))
+			difference=$((timestamp - last_seen))
 
 			#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
 			[ -z "$last_seen" ] && continue 
 
 			#TIMEOUT AFTER 120 SECONDS
-			if [ "$difference" -gt "45" ]; then 
+			if [ "$difference" -gt "$((45 + bias))" ]; then 
 				echo -e "${BLUE}[CLEARED]	${NC}$key Beacon expired after $difference seconds.${NC} "
 				unset beacon_device_log["$key"]
+
+				#ADD TO THE EXPIRED LOG
+				expired_device_log["$key"]
 			fi 
 		done
 
