@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.110
+version=0.1.111
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -236,9 +236,6 @@ btle_listener () {
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 			local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
 
-
-			echo "$packet" | awk '{print $6}' >&2
-
             #CLEAR PACKET
             packet=""
 
@@ -252,9 +249,6 @@ btle_listener () {
 			
 			#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
-
-			echo "$packet" | awk '{print $6}' >&2
-
 			local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
 
             #CLEAR PACKET
