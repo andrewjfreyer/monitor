@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.103
+version=0.1.104
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -245,13 +245,13 @@ btle_listener () {
 			
 			#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
-
+			local pdu_header=$(pdu_type $(echo "$packet" | awk '{$6}'))
 
             #CLEAR PACKET
             packet=""
 
 			#SEND TO MAIN LOOP
-			echo "RAND$received_mac_address" > main_pipe
+			echo "RAND$received_mac_address|$pdu_header" > main_pipe
 
 		fi
 
@@ -260,12 +260,13 @@ btle_listener () {
 			
 			#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
+			local pdu_header=$(pdu_type $(echo "$packet" | awk '{$6}'))
 
             #CLEAR PACKET
             packet=""
 
 			#SEND TO MAIN LOOP
-			echo "PUBL$received_mac_address" > main_pipe
+			echo "PUBL$received_mac_address|$pdu_header" > main_pipe
 		fi 
 
 		#NAME RESPONSE 
@@ -338,6 +339,49 @@ determine_manufacturer () {
 		echo "$manufacturer"
 	fi 
 }
+
+
+# ----------------------------------------------------------------------------------------
+# OBTAIN PROTOCOL DATA UNIT TYPE
+# ----------------------------------------------------------------------------------------
+pdu_type () {
+	#IF NO ADDRESS, RETURN BLANK
+	local pdu_type_str="Reserved"
+	
+	if [ ! -z "$1" ]; then  
+		local pdu_type="$1"
+		case $pdu_type in
+			0x00)
+				pdu_type_str="ADV_IND"
+				;;
+			0x01)
+				pdu_type_str="ADV_DIRECT_IND"
+				;;	
+			0x02)
+				pdu_type_str="ADV_NONCONN_IND"
+				;;	
+			0x03)
+				pdu_type_str="SCAN_REQ"
+				;;	
+			0x04)
+				pdu_type_str="SCAN_RSP"
+				;;	
+			0x05)
+				pdu_type_str="CONNECT_REQ"
+				;;	
+			0x06)
+				pdu_type_str="ADV_SCAN_IND"
+				;;	
+			*)
+				pdu_type_str="Reserved"
+				;;	
+		esac
+	fi 
+
+	#RETURN
+	return "$pdu_type_str"
+}
+
 
 # ----------------------------------------------------------------------------------------
 # PUBLIC DEVICE ADDRESS SCAN LOOP
@@ -493,6 +537,11 @@ while true; do
 
 		#PROCEED BASED ON COMMAND TYPE
 		if [ "$cmd" == "RAND" ]; then 
+			#PARSE RECEIVED DATA
+			mac=$(echo "$data" | awk -F "|" '{print $1}')
+			pdu_header=$(echo "$data" | awk -F "|" '{print $2}')
+			data="$mac"
+
 			#DATA IS RANDOM MAC ADDRESS; ADD TO LOG
 			[ -z "${random_device_log[$data]}" ] && is_new=true
 			random_device_log["$data"]="$timestamp"
@@ -502,6 +551,11 @@ while true; do
 			echo "--- MQTT INSTRUCTION TO SCAN RECEVIED"
 
 		elif [ "$cmd" == "PUBL" ]; then 
+			#PARSE RECEIVED DATA
+			mac=$(echo "$data" | awk -F "|" '{print $1}')
+			pdu_header=$(echo "$data" | awk -F "|" '{print $2}')
+			data="$mac"
+
 			#DATA IS PUBLIC MAC ADDRESS; ADD TO LOG
 			[ -z "${static_device_log[$data]}" ] && is_new=true
 			static_device_log["$data"]="$timestamp"
@@ -555,7 +609,6 @@ while true; do
 			fi  
 		fi 
 
-
 		#ECHO VALUES FOR DEBUGGING
 		if [ "$cmd" == "NAME" ] ; then 
 			
@@ -575,10 +628,10 @@ while true; do
 		fi 
 
 		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
-			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $manufacturer${NC}"
+			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $pdu_header $manufacturer${NC}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
-			echo -e "${RED}[CMD-$cmd]${NC}	${NC}$data ${NC} Rand Total: ${#random_device_log[@]}"
+			echo -e "${RED}[CMD-$cmd]${NC}	${NC}$data $pdu_header ${NC}"
 		fi 
 
 		#**********************************************************************
