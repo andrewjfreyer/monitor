@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.80
+version=0.1.81
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -137,8 +137,6 @@ mkfifo scan_pipe
 
 #DEFINE VARIABLES FOR EVENT PROCESSING
 declare -A device_log
-declare -A status_log
-declare -A scan_log
 
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY
 public_addresses=($(cat "$base_directory/public_addresses" | grep -ioE "^.*?#" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
@@ -453,24 +451,6 @@ periodic_trigger &
 public_device_scanner & 
 
 # ----------------------------------------------------------------------------------------
-# SCAN NEXT DEVICE IF REQUIRED
-# ----------------------------------------------------------------------------------------
-
-determine_association () { 
-	#RETURN IF NO RANDOM MAC SUPPLIED
-	[ -z "$1" ] && return 0
-
-
-
-	#ONLY SCAN FOR A DEVICE ONCE EVER [X] SECONDS
-	if [ "$((now - previous_scan))" -gt "$scan_interval" ] ; then 
-		
-		#PERFORM SCAN
-		echo "$device|$current_status" > scan_pipe &
-	fi 
-}
-
-# ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
 # ----------------------------------------------------------------------------------------
 
@@ -518,37 +498,8 @@ while true; do
 			name=$(echo "$data" | awk -F "|" '{print $2}')
 			data="$mac"
 
-			#UPDATE THE SCAN LOG SO THAT WE DONT' 
-			#END UP SCANNING THIS DEVICE TOO OFTEN
-			scan_log["$mac"]=$timestamp
-
 			#GET MANUFACTURER INFORMATION
 			manufacturer="$(determine_manufacturer $data)"
-
-			#GET CURRENT DEVICE STATUS
-			current_status="${status_log[$mac]}"
-			[ -z "$current_status" ] && current_status=0 && status_log[$mac]=0 && is_new=true
-
-			#ADD TO LOG
-			[ -z "${device_log[$mac]}" ] && is_new=true
-			device_log["$mac"]="$timestamp"
-
-			#IF NAME FIELD IS BLANK; DEVICE IS NOT PRESENT
-			#AND SHOULD BE REMOVED FROM THE LOG
-			if [ -z "$name" ]; then 
-
-				#DIVIDE BY FIVE; LOST CONFIDENCE
-				new_status=$(( current_status / 5 ))
-
-				#SET DEVICE STATUS LOG
-				status_log["$mac"]="$new_status"
-				[ "$new_status" != "$current_status" ] && did_change=true
-			
-			else 
-				#SET DEVICE STATUS LOG; RESTORE TO 100
-				status_log["$mac"]=100
-				[ "$current_status" == 0 ] && did_change=true
-			fi
 
 		elif [ "$cmd" == "BEAC" ]; then 
 			#DATA IS DELIMITED BY VERTICAL PIPE
@@ -569,9 +520,6 @@ while true; do
 
 		#**********************************************************************
 		#**********************************************************************
-		#**********************************************************************
-		#**********************************************************************
-		#**********************************************************************
 
 		#ECHO VALUES FOR DEBUGGING
 		if [ "$cmd" == "NAME" ] ; then 
@@ -582,30 +530,20 @@ while true; do
 			
 			#PRINT RAW COMMAND; DEBUGGING
 			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
-
-			#GET CURRENT STATUS
-			current_status="${status_log[$data]}"
-
-			if [ "$did_change" == true ]; then 
-				#PUBLISH TO MQTT
-				publish_message "$data" "$current_status" "$name" "$manufacturer"
-			fi 
-
+		
 		elif [ "$cmd" == "BEAC" ]; then 
 			#PRINTING FORMATING
 			debug_name="$name"
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 		
-			#echo 
 			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 		fi 
 
-		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ]; then 
-			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $manufacturer${NC}"
+		if [ "$cmd" == "PUBL" ] ; then 
+			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $manufacturer${NC} $is_new"
 
-		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ]; then 
-			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC}"
-
+		elif [ "$cmd" == "RAND" ] ; then 
+			echo -e "${RED}[CMD-${BLUE}$cmd${NC}]	${NC}$data ${NC} $is_new"
 		fi 
 
 	done < <(cat < main_pipe)
