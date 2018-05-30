@@ -528,8 +528,10 @@ while true; do
 		#**********************************************************************
 
 		if [ "$is_new" == true ]; then 
+
 			#GET CURRENT BIAS
 			bias=${device_expiration_biases["$data"]}
+			[ -z "$bias" ] && bias=0
 
 			#WHEN DID THIS LAST EXPIRE?
 			last_expired=${expired_device_log["$data"]}
@@ -540,6 +542,8 @@ while true; do
 				device_expiration_biases["$data"]=$(( bias + 15 ))
 
 				echo "SHORT EXPIRATION - NEW BIAS: $(( bias + 15 )) $data"
+			else
+				echo "EXPIRATION OK: $(( bias + 15 )) $data"
 			fi  
 		fi 
 
@@ -611,8 +615,8 @@ while true; do
 			[ -z "$last_seen" ] && continue 
 
 			#TIMEOUT AFTER 120 SECONDS
-			if [ "$difference" -gt "$((45 + beacon_bias))" ]; then 
-				echo -e "${BLUE}[CLEARED]	${NC}$key Beacon expired after $difference seconds > $((45 + beacon_bias))${NC} "
+			if [ "$difference" -gt "$((30 + beacon_bias))" ]; then 
+				echo -e "${BLUE}[CLEARED]	${NC}$key Beacon expired after $difference seconds > $((30 + beacon_bias))${NC} "
 				unset beacon_device_log["$key"]
 
 				#ADD TO THE EXPIRED LOG
