@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.113
+version=0.1.114
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -239,8 +239,14 @@ btle_listener () {
             #CLEAR PACKET
             packet=""
 
-			#SEND TO MAIN LOOP
-			echo "RAND$received_mac_address|$pdu_header" > main_pipe
+            #FILTER TO ADV_IND; EXPERIMENTALLY, THIS IS THE ADV PACKET MOST 
+            #COMMONLY SENT BY APPLE AND ANDROID PHONES TRYING TO ADVERTISE
+            #CONNECTION TO OTHER DEVICES
+
+            if [ "$pdu_header" == "ADV_IND" ]; then 
+				#SEND TO MAIN LOOP
+				echo "RAND$received_mac_address|$pdu_header" > main_pipe
+			fi 
 
 		fi
 
@@ -618,14 +624,14 @@ while true; do
 			debug_name="$name"
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 		
-			echo -e "${GREEN}[CMD-$cmd]	${GREEN}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
+			echo -e "${GREEN}[CMD-$cmd]	${GREEN}$data ${GREEN}$debug_name${NC} $manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
 		fi 
 
 		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
 			echo -e "${RED}[CMD-$cmd]${NC}	$data $pdu_header $manufacturer${NC}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
-			echo -e "${RED}[CMD-$cmd]${NC}	$data $pdu_header ${NC}"
+			echo -e "${RED}[CMD-$cmd]${NC}	$data $pdu_header ${NC} RAND_NUM: ${#random_device_log[@]}"
 		fi 
 
 		#**********************************************************************
@@ -647,7 +653,7 @@ while true; do
 
 			#TIMEOUT AFTER 120 SECONDS
 			if [ "$difference" -gt "$((90 + random_bias))" ]; then 
-				echo -e "${BLUE}[CLEARED]	${NC}$key Random MAC expired after $difference seconds Random total: ${#random_device_log[@]} ${NC} "
+				echo -e "${BLUE}[CLEARED]	${NC}$key Random expired after $difference seconds RAND_NUM: ${#random_device_log[@]} ${NC} "
 				unset random_device_log["$key"]
 
 				#ADD TO THE EXPIRED LOG
