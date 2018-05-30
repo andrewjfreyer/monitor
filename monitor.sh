@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.116
+version=0.1.117
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -42,7 +42,7 @@ BLUE='\033[0;34m'
 REPEAT='\e[1A'
 
 last_log_line=""
-duplicate_log_count=""
+duplicate_log_count=1
 
 #PRINT TO LOG UNLESS DUPLICATE LINE
 log() {
@@ -57,7 +57,7 @@ log() {
 		line_append=" (x$duplicate_log_count)"
 		should_repeat=$REPEAT
 	else 
-		duplicate_log_count=""
+		duplicate_log_count=1
 	fi   
 	#ECHO LAST LINE
 	echo -e "${should_repeat}$version $(date "+%I:%M:%S %p") $line$line_append"
