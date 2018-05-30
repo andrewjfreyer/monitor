@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.89
+version=0.1.91
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -159,7 +159,7 @@ bluetooth_scanner () {
 	echo "BTLE scanner started" >&2 
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
-		local error=$(sudo timeout --signal SIGINT 120 hcitool lescan 2>&1 | grep -iE 'input/output error|invalid device|invalid|error')
+		local error=$(sudo timeout --signal SIGINT 30 hcitool lescan 2>&1 | grep -iE 'input/output error|invalid device|invalid|error')
 		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe
 		sleep 1
 	done
@@ -536,7 +536,7 @@ while true; do
 			difference=$((timestamp - last_expired))
 
 			#DO WE NEED TO ADD A LEANRED BIAS FOR EXPIRATION?
-			if [ "$difference" -lt "20" ]; then 
+			if [ "$difference" -lt "30" ]; then 
 				device_expiration_biases["$data"]=$(( bias + 15 ))
 
 				echo "SHORT EXPIRATION - NEW BIAS: $(( bias + 15 )) $data"
