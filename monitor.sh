@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.73
+version=0.1.74
 
 #FIND DEPENDENCY PATHS, ELSE MANUALLY SET
 mosquitto_pub_path=$(which mosquitto_pub)
@@ -104,7 +104,7 @@ else
 fi 
 
 #ARE REQUIREMENTS MET? 
-[ "$should_exit" == true ] && clean && exit 1
+[ "$should_exit" == true ] && exit 1
 
 # ----------------------------------------------------------------------------------------
 # DEFINE VALUES AND VARIABLES
