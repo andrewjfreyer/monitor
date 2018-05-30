@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.91
+version=0.1.92
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -536,7 +536,7 @@ while true; do
 			difference=$((timestamp - last_expired))
 
 			#DO WE NEED TO ADD A LEANRED BIAS FOR EXPIRATION?
-			if [ "$difference" -lt "30" ]; then 
+			if [ "$difference" -lt "60" ]; then 
 				device_expiration_biases["$data"]=$(( bias + 15 ))
 
 				echo "SHORT EXPIRATION - NEW BIAS: $(( bias + 15 )) $data"
@@ -563,10 +563,10 @@ while true; do
 		fi 
 
 		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
-			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $manufacturer${NC} $is_new"
+			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $manufacturer${NC}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
-			echo -e "${RED}[CMD-$cmd]${NC}	${NC}$data ${NC} $is_new"
+			echo -e "${RED}[CMD-$cmd]${NC}	${NC}$data ${NC}"
 		fi 
 
 		#**********************************************************************
