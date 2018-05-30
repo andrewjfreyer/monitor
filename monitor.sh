@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.115
+version=0.1.116
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -39,11 +39,29 @@ NC='\033[0m'
 GREEN='\033[0;32m'
 PURPLE='\033[0;35m'
 BLUE='\033[0;34m'
+REPEAT='\e[1A'
 
-#FOR CONSOLE PRINTINT
+last_log_line=""
+duplicate_log_count=""
+
+#PRINT TO LOG UNLESS DUPLICATE LINE
 log() {
 	#ECHO TO CONSOLE
-	echo -e "$(date "+%I:%M:%S %p") $1"
+	line="$1"
+	should_repeat=""
+	line_append=""
+
+	#IS THIS LINE DUPLICATED?
+	if [ "$last_log_line" == "$line" ]; then 
+		duplicate_log_count=$((duplicate_log_count + 1 ))
+		line_append=" (x$duplicate_log_count)"
+		should_repeat=$REPEAT
+	else 
+		duplicate_log_count=""
+	fi   
+	#ECHO LAST LINE
+	echo -e "${should_repeat}$version $(date "+%I:%M:%S %p") $line$line_append"
+	last_log_line="$line"
 }
 
 # ----------------------------------------------------------------------------------------
@@ -638,11 +656,11 @@ while true; do
 			debug_name="$name"
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 		
-			log "${GREEN}[CMD-$cmd]	${GREEN}$data ${GREEN}$debug_name${NC} $manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
+			log "${GREEN}[CMD-$cmd]	${GREEN}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 		fi 
 
 		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $manufacturer${NC}"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header ${NC} RAND_NUM: ${#random_device_log[@]}"
