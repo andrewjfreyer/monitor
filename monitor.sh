@@ -26,7 +26,22 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.71
+version=0.1.72
+
+#FIND DEPENDENCY PATHS, ELSE MANUALLY SET
+mosquitto_pub_path=$(which mosquitto_pub)
+mosquitto_sub_path=$(which mosquitto_sub)
+hcidump_path=$(which hcidump)
+bc_path=$(which bc)
+git_path=$(which git)
+
+#ERROR CHECKING FOR MOSQUITTO PUBLICATION 
+should_exit=false
+[ -z "$mosquitto_pub_path" ] && echo "Required package 'mosquitto_pub' not found. Please install." && should_exit=true
+[ -z "$mosquitto_sub_path" ] && echo "Required package 'mosquitto_sub' not found. Please install." && should_exit=true
+[ -z "$hcidump_path" ] && echo "Required package 'hcidump' not found. Please install." && should_exit=true
+[ -z "$bc_path" ] && echo "Required package 'bc' not found. Please install." && should_exit=true
+[ -z "$git_path" ] && echo "Recommended package 'git' not found. Please consider installing."
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
@@ -47,10 +62,12 @@ MQTT_CONFIG="$base_directory/mqtt_preferences"
 if [ -f $MQTT_CONFIG ]; then 
 	source $MQTT_CONFIG
 else
+	echo "Mosquitto preferences file created. Please customize."
+
 	#LOAD A DEFULT PREFERENCES FILE
 	echo "# ---------------------------" >> $MQTT_CONFIG
 	echo "#								" >> $MQTT_CONFIG
-	echo "#		MOSQUITTO PREFERENCES" >> $MQTT_CONFIG
+	echo "#	MOSQUITTO PREFERENCES" >> $MQTT_CONFIG
 	echo "#								" >> $MQTT_CONFIG
 	echo "# ---------------------------" >> $MQTT_CONFIG
 	echo "" >> $MQTT_CONFIG
@@ -74,8 +91,8 @@ else
 	echo "# PUBLISHER IDENTITY " >> $MQTT_CONFIG
 	echo "mqtt_publisher_identity=''" >> $MQTT_CONFIG
 
-	#LOAD VALUES INTO MQTT CONFIG
-	source $MQTT_CONFIG
+	#SET SHOULD EXIT
+	should_exit=true
 fi 
 
 #MQTT PREFERENCES
@@ -83,14 +100,18 @@ PUB_CONFIG="$base_directory/public_addresses"
 if [ -f $PUB_CONFIG ]; then 
 	source $PUB_CONFIG
 else
+	echo "Public MAC address list file created. Please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
 	echo "# ---------------------------" >> $PUB_CONFIG
 	echo "#" >> $PUB_CONFIG
-	echo "#		PUBLIC MAC ADDRESS LIST" >> $PUB_CONFIG
+	echo "#	PUBLIC MAC ADDRESS LIST" >> $PUB_CONFIG
 	echo "#" >> $PUB_CONFIG
 	echo "# ---------------------------" >> $PUB_CONFIG
 	echo "" >> $PUB_CONFIG
-	echo "00:00:00:00:00:00 Nickname #comments" >> $PUB_CONFIG
+	echo "00:00:00:00:00:00 Nickname #comment" >> $PUB_CONFIG
+
+	#SET SHOULD EXIT
+	should_exit=true
 fi 
 
 # ----------------------------------------------------------------------------------------
@@ -103,27 +124,12 @@ declare -A status_log
 declare -A scan_log
 
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY
-public_addresses=($(cat "$base_directory/public_mac_addresses" | grep -ioE "^.*?#" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
+public_addresses=($(cat "$base_directory/public_addresses" | grep -ioE "^.*?#" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 
 #LOOP SCAN VARIABLES
 device_count=${#public_addresses[@]}
 device_index=0
 last_random=""
-
-#FIND DEPENDENCY PATHS, ELSE MANUALLY SET
-mosquitto_pub_path=$(which mosquitto_pub)
-mosquitto_sub_path=$(which mosquitto_sub)
-hcidump_path=$(which hcidump)
-bc_path=$(which bc)
-git_path=$(which git)
-
-#ERROR CHECKING FOR MOSQUITTO PUBLICATION 
-should_exit=false
-[ -z "$mosquitto_pub_path" ] && echo "Required package 'mosquitto_pub' not found. Please install." && should_exit=true
-[ -z "$mosquitto_sub_path" ] && echo "Required package 'mosquitto_sub' not found. Please install." && should_exit=true
-[ -z "$hcidump_path" ] && echo "Required package 'hcidump' not found. Please install." && should_exit=true
-[ -z "$bc_path" ] && echo "Required package 'bc' not found. Please install." && should_exit=true
-[ -z "$git_path" ] && echo "Recommended package 'git' not found. Please consider installing."
 
 #ARE REQUIREMENTS MET? 
 [ "$should_exit" == true ] && echo "Exiting." && exit 1
