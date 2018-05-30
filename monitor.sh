@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.106
+version=0.1.107
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -368,7 +368,7 @@ pdu_type () {
 	fi 
 
 	#RETURN
-	return "$pdu_type_str"
+	echo "$pdu_type_str"
 }
 
 
