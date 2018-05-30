@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.97
+version=0.1.99
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -151,6 +151,10 @@ public_addresses=($(cat "$base_directory/public_addresses" | grep -ioE "^.*?#" |
 device_count=${#public_addresses[@]}
 device_index=0
 last_random=""
+
+for key in "${!public_addresses[@]}"; do
+	echo "$key"
+done 
 
 # ----------------------------------------------------------------------------------------
 # BLUETOOTH LE BACKGROUND SCANNING
