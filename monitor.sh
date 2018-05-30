@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.102
+version=0.1.103
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -155,7 +155,7 @@ last_random=""
 echo "Publics:"
 
 for key in "${!public_addresses[@]}"; do
-	echo "$key"
+	echo "${public_addresses[$key]}"
 done 
 
 echo "Done:"
