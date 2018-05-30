@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.94
+version=0.1.95
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -541,7 +541,8 @@ while true; do
 			if [ "$difference" -lt "60" ]; then 
 				device_expiration_biases["$data"]=$(( bias + 15 ))
 
-				echo "SHORT EXPIRATION - NEW BIAS: $(( bias + 15 )) $data"
+				#REJECT NEW DEVICE
+				is_new=false
 			fi  
 		fi 
 
@@ -568,7 +569,7 @@ while true; do
 			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $manufacturer${NC}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
-			echo -e "${RED}[CMD-$cmd]${NC}	${NC}$data ${NC}"
+			echo -e "${RED}[CMD-$cmd]${NC}	${NC}$data ${NC} Env. Total: ${#random_device_log[@]}"
 		fi 
 
 		#**********************************************************************
