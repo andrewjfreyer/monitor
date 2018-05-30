@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.74
+version=0.1.75
 
 #FIND DEPENDENCY PATHS, ELSE MANUALLY SET
 mosquitto_pub_path=$(which mosquitto_pub)
@@ -50,8 +50,14 @@ base_directory=$(dirname "$(readlink -f "$0")")
 MQTT_CONFIG="$base_directory/mqtt_preferences"
 if [ -f $MQTT_CONFIG ]; then 
 	source $MQTT_CONFIG
+
+	#DOUBLECHECKS 
+	[ "$mqtt_address" == "0.0.0.0" ] && echo "Please customize mqtt broker address." && should_exit=true
+	[ "$mqtt_user" == "username" ] && echo "Please customize mqtt username." && should_exit=true
+	[ "$mqtt_password" == "password" ] && echo "Please customize mqtt password." && should_exit=true
+
 else
-	echo "Mosquitto preferences file created. Please customize."
+	echo "Mosquitto preferences file created. Please customize." 
 
 	#LOAD A DEFULT PREFERENCES FILE
 	echo "# ---------------------------" >> $MQTT_CONFIG
@@ -86,9 +92,7 @@ fi
 
 #MQTT PREFERENCES
 PUB_CONFIG="$base_directory/public_addresses"
-if [ -f $PUB_CONFIG ]; then 
-	source $PUB_CONFIG
-else
+if [ ! -f "$PUB_CONFIG" ]; then 
 	echo "Public MAC address list file created. Please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
 	echo "# ---------------------------" >> $PUB_CONFIG
