@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.78
+version=0.1.80
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -604,15 +604,8 @@ while true; do
 			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $manufacturer${NC}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ]; then 
+			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC}"
 
-			#SET THE LAST RANDOM VALUE
-			last_random="$data"
-
-			#CHECK FOR EXISTING ASSOCATION
-			if [ -z "${random_associations["$last_random"]}" ]; then 
-				#REQUEST NEXT SCAN
-				determine_association
-			fi 
 		fi 
 
 	done < <(cat < main_pipe)
