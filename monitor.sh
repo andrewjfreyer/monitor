@@ -69,7 +69,7 @@ else
 	#LOAD A DEFULT PREFERENCES FILE
 	echo "# ---------------------------" >> $MQTT_CONFIG
 	echo "#								" >> $MQTT_CONFIG
-	echo "#	MOSQUITTO PREFERENCES" >> $MQTT_CONFIG
+	echo "# MOSQUITTO PREFERENCES" >> $MQTT_CONFIG
 	echo "#								" >> $MQTT_CONFIG
 	echo "# ---------------------------" >> $MQTT_CONFIG
 	echo "" >> $MQTT_CONFIG
@@ -101,13 +101,13 @@ fi
 PUB_CONFIG="$base_directory/public_addresses"
 if [ -f "$PUB_CONFIG" ]; then 
 	#DOUBLECHECKS 
-	[ ! -z "$(cat "$PUB_CONFIG" | grep "0.0.0.0")" ] && echo -e "${RED}Error: ${NC}Please customize public mac addresses in: ${BLUE}public_addresses${NC}" && should_exit=true
+	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && echo -e "${RED}Error: ${NC}Please customize public mac addresses in: ${BLUE}public_addresses${NC}" && should_exit=true
 else
 	echo "Public MAC address list file created. Please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
 	echo "# ---------------------------" >> $PUB_CONFIG
 	echo "#" >> $PUB_CONFIG
-	echo "#	PUBLIC MAC ADDRESS LIST" >> $PUB_CONFIG
+	echo "# PUBLIC MAC ADDRESS LIST" >> $PUB_CONFIG
 	echo "#" >> $PUB_CONFIG
 	echo "# ---------------------------" >> $PUB_CONFIG
 	echo "" >> $PUB_CONFIG
