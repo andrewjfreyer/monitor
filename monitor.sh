@@ -484,7 +484,7 @@ while true; do
 
 		elif [ "$cmd" == "MQTT" ]; then 
 			#IN RESPONSE TO MQTT SCAN 
-			determine_association
+			echo "--- MQTT INSTRUCTION TO SCAN RECEVIED"
 
 		elif [ "$cmd" == "PUBL" ]; then 
 			#DATA IS PUBLIC MAC ADDRESS; ADD TO LOG
@@ -529,21 +529,21 @@ while true; do
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 			
 			#PRINT RAW COMMAND; DEBUGGING
-			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
+			echo -e "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 		
 		elif [ "$cmd" == "BEAC" ]; then 
 			#PRINTING FORMATING
 			debug_name="$name"
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 		
-			echo -e "${BLUE}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
+			echo -e "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 		fi 
 
 		if [ "$cmd" == "PUBL" ] ; then 
 			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $manufacturer${NC} $is_new"
 
 		elif [ "$cmd" == "RAND" ] ; then 
-			echo -e "${RED}[CMD-${BLUE}$cmd${NC}]	${NC}$data ${NC} $is_new"
+			echo -e "${RED}[CMD-${BLUE}$cmd${RED}]${NC}	${NC}$data ${NC} $is_new"
 		fi 
 
 	done < <(cat < main_pipe)
