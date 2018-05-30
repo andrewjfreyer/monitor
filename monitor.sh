@@ -45,11 +45,11 @@ git_path=$(which git)
 
 #ERROR CHECKING FOR MOSQUITTO PUBLICATION 
 should_exit=false
-[ -z "$mosquitto_pub_path" ] && echo "${RED}Error: ${NC}Required package 'mosquitto_pub' not found. Please install." && should_exit=true
-[ -z "$mosquitto_sub_path" ] && echo "${RED}Error: ${NC}Required package 'mosquitto_sub' not found. Please install." && should_exit=true
-[ -z "$hcidump_path" ] && echo "${RED}Error: ${NC}Required package 'hcidump' not found. Please install." && should_exit=true
-[ -z "$bc_path" ] && echo "${RED}Error: ${NC}Required package 'bc' not found. Please install." && should_exit=true
-[ -z "$git_path" ] && echo "${ORANGE}Warning: ${NC}Recommended package 'git' not found. Please consider installing."
+[ -z "$mosquitto_pub_path" ] && echo -e "${RED}Error: ${NC}Required package 'mosquitto_pub' not found. Please install." && should_exit=true
+[ -z "$mosquitto_sub_path" ] && echo -e "${RED}Error: ${NC}Required package 'mosquitto_sub' not found. Please install." && should_exit=true
+[ -z "$hcidump_path" ] && echo -e "${RED}Error: ${NC}Required package 'hcidump' not found. Please install." && should_exit=true
+[ -z "$bc_path" ] && echo -e "${RED}Error: ${NC}Required package 'bc' not found. Please install." && should_exit=true
+[ -z "$git_path" ] && echo -e "${ORANGE}Warning: ${NC}Recommended package 'git' not found. Please consider installing."
 
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
 base_directory=$(dirname "$(readlink -f "$0")")
@@ -60,9 +60,9 @@ if [ -f $MQTT_CONFIG ]; then
 	source $MQTT_CONFIG
 
 	#DOUBLECHECKS 
-	[ "$mqtt_address" == "0.0.0.0" ] && echo "${RED}Error: ${NC}Please customize mqtt broker address in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
-	[ "$mqtt_user" == "username" ] && echo "${RED}Error: ${NC}Please customize mqtt username in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
-	[ "$mqtt_password" == "password" ] && echo "${RED}Error: ${NC}Please customize mqtt password in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
+	[ "$mqtt_address" == "0.0.0.0" ] && echo -e "${RED}Error: ${NC}Please customize mqtt broker address in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
+	[ "$mqtt_user" == "username" ] && echo -e "${RED}Error: ${NC}Please customize mqtt username in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
+	[ "$mqtt_password" == "password" ] && echo -e "${RED}Error: ${NC}Please customize mqtt password in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
 else
 	echo "Mosquitto preferences file created. Please customize." 
 
@@ -101,7 +101,7 @@ fi
 PUB_CONFIG="$base_directory/public_addresses"
 if [ -f "$PUB_CONFIG" ]; then 
 	#DOUBLECHECKS 
-	[ ! -z "$(cat "$PUB_CONFIG" | grep -E "^0.0.0.0")" ] && echo "${RED}Error: ${NC}Please customize public mac addresses in: ${BLUE}public_addresses${NC}" && should_exit=true
+	[ ! -z "$(cat "$PUB_CONFIG" | grep -E "^0.0.0.0")" ] && echo -e "${RED}Error: ${NC}Please customize public mac addresses in: ${BLUE}public_addresses${NC}" && should_exit=true
 else
 	echo "Public MAC address list file created. Please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
@@ -264,7 +264,7 @@ btle_listener () {
 			local received_mac_address=$(echo "$packet" | awk '{print $10":"$9":"$8":"$7":"$6":"$5}')
 
 			#CONVERT RECEIVED HEX DATA INTO ASCII
-			local name_as_string=$(echo "${packet:29}" | sed 's/ 00//g' | xxd -r -p )
+			local name_as_string=$(echo -e "${packet:29}" | sed 's/ 00//g' | xxd -r -p )
 
             #CLEAR PACKET
             packet=""
@@ -316,7 +316,7 @@ determine_manufacturer () {
 		#IF CACHE DOES NOT EXIST, USE MACVENDORS.COM
 		if [ -z "$manufacturer" ]; then 
 			local remote_result=$(curl -sL https://api.macvendors.com/${address:0:8} | grep -vi "error")
-			[ ! -z "$remote_result" ] && echo "${address:0:8}	$remote_result" >> .manufacturer_cache
+			[ ! -z "$remote_result" ] && echo -e "${address:0:8}	$remote_result" >> .manufacturer_cache
 			manufacturer="$remote_result"
 		fi
 
