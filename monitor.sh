@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.111
+version=0.1.112
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -537,7 +537,11 @@ while true; do
 
 		elif [ "$cmd" == "MQTT" ]; then 
 			#IN RESPONSE TO MQTT SCAN 
-			echo "--- MQTT INSTRUCTION TO SCAN RECEVIED"
+			echo -e "${GREEN}[INSTRUCT]	${NC}MQTT Trigger${NC}"
+
+		elif [ "$cmd" == "TIME" ]; then 
+			#IN RESPONSE TO MQTT SCAN 
+			echo -e "${GREEN}[INSTRUCT]	${NC}Time Trigger${NC}"
 
 		elif [ "$cmd" == "PUBL" ]; then 
 			#PARSE RECEIVED DATA
@@ -579,6 +583,7 @@ while true; do
 		#**********************************************************************
 		#**********************************************************************
 
+		#FAST EXPIRATION LEARNING
 		if [ "$is_new" == true ]; then 
 
 			#GET CURRENT BIAS
@@ -617,10 +622,10 @@ while true; do
 		fi 
 
 		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
-			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC} $pdu_header $manufacturer${NC}"
+			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC}$pdu_header $manufacturer${NC}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
-			echo -e "${RED}[CMD-$cmd]${NC}	${NC}$data $pdu_header ${NC}"
+			echo -e "${RED}[CMD-$cmd]${NC}	$data $pdu_header ${NC}"
 		fi 
 
 		#**********************************************************************
