@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.112
+version=0.1.113
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -376,7 +376,7 @@ pdu_type () {
 # PUBLIC DEVICE ADDRESS SCAN LOOP
 # ----------------------------------------------------------------------------------------
 public_device_scanner () {
-	echo "Public scanner started" >&2 
+	echo "PUBL scanner started" >&2 
 	local scan_event_received=false
 
 	#PUBLIC DEVICE SCANNER LOOP
@@ -622,7 +622,7 @@ while true; do
 		fi 
 
 		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
-			echo -e "${RED}[CMD-$cmd]	${NC}$data ${NC}$pdu_header $manufacturer${NC}"
+			echo -e "${RED}[CMD-$cmd]${NC}	$data $pdu_header $manufacturer${NC}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
 			echo -e "${RED}[CMD-$cmd]${NC}	$data $pdu_header ${NC}"
