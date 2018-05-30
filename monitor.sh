@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.83
+version=0.1.84
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE='\033[0;33m'
@@ -512,7 +512,7 @@ while true; do
 
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			key="$uuid-$major-$minor"
-			[ -z "${device_log[$key]}" ] && is_new=true
+			[ -z "${static_device_log[$key]}" ] && is_new=true
 			static_device_log["$key"]="$timestamp"	
 
 			#GET MANUFACTURER INFORMATION
