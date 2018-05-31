@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.141
+version=0.1.142
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -130,10 +130,10 @@ else
 fi 
 
 #MQTT PREFERENCES
-PUB_CONFIG="$base_directory/public_addresses"
+PUB_CONFIG="$base_directory/known_static_addresses"
 if [ -f "$PUB_CONFIG" ]; then 
 	#DOUBLECHECKS 
-	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && log "${RED}Error: ${NC}Please customize public mac addresses in: ${BLUE}public_addresses${NC}" && should_exit=true
+	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && log "${RED}Error: ${NC}Please customize public mac addresses in: ${BLUE}known_static_addresses${NC}" && should_exit=true
 else
 	echo "Public MAC address list file created. Please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
@@ -167,21 +167,21 @@ mkfifo main_pipe
 sudo rm scan_pipe &>/dev/null
 mkfifo scan_pipe
 
-#DEFINE VARIABLES FOR EVENT PROCESSING
+#DEFINE DEVICE TRACKING VARS
 declare -A static_device_log
 declare -A random_device_log
 declare -A beacon_device_log
+
+#DEFINE PERFORMANCE TRACKING/IMRROVEMENT VARS
 declare -A expired_device_log
 declare -A named_device_log
-
-#DEVICE EXPIRATION BIASES 
 declare -A device_expiration_biases
 
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY, IGNORING COMMENTS
-public_addresses=($(cat "$PUB_CONFIG" | grep -vE "^#" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
+known_static_addresses=($(cat "$PUB_CONFIG" | grep -vE "^#" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 
 #LOOP SCAN VARIABLES
-device_count=${#public_addresses[@]}
+device_count=${#known_static_addresses[@]}
 
 # ----------------------------------------------------------------------------------------
 # BLUETOOTH LE BACKGROUND SCANNING
@@ -697,9 +697,14 @@ while true; do
 		fi
 
 		#**********************************************************************
+		#
+		#
+		#	THE FOLLOWING INCREASES DEVICE BAISES IF A DEVICE RE-
+		#	APPEARS AFTER A SHORT AMOUNT OF TIME (2 MINUTES)
+		#	
+		#
 		#**********************************************************************
 
-		#FAST EXPIRATION LEARNING
 		if [ "$is_new" == true ]; then 
 
 			#GET CURRENT BIAS
@@ -713,11 +718,18 @@ while true; do
 			#DO WE NEED TO ADD A LEANRED BIAS FOR EXPIRATION?
 			if [ "$difference" -lt "120" ]; then 
 				device_expiration_biases[$data]=$(( bias + 15 ))
-
-				#REJECT NEW DEVICE
-				is_new=false
 			fi  
 		fi 
+
+		#**********************************************************************
+		#
+		#
+		#	THE FOLLOWING CONDITIONS DEFINE BEHAVIOR WHEN A DEVICE ARRIVES
+		#	OR DEPARTS
+		#	
+		#
+		#**********************************************************************
+
 
 		#ECHO VALUES FOR DEBUGGING
 		if [ "$cmd" == "NAME" ] ; then 
@@ -750,7 +762,6 @@ while true; do
 		#	THE FOLLOWING LOOPS CLEAR CACHES OF ALREADY SEEN DEVICES BASED 
 		#	ON APPROPRIATE TIMEOUT PERIODS FOR THOSE DEVICES. 
 		#	
-		#
 		#
 		#**********************************************************************
 
