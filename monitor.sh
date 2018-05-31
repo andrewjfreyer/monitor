@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.154
+version=0.1.155
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -210,10 +210,14 @@ btle_listener () {
 	while read segment; do
 
 		#MATCH A SECOND OR LATER SEGMENT OF A PACKET
-		if [[ $segment =~ ^[0-9a-fA-F]{2}\ [0-9a-fA-F] ]]; then
-			#KEEP ADDING TO NEXT PACKET
+		if [[ $segment =~ ^([0-9a-fA-F]{2}\ ){19}\ [0-9a-fA-F] ]]; then
+			#KEEP ADDING TO NEXT PACKET; WE HAVE A COMPLETE LINE
 			next_packet="$next_packet $segment"
 			continue
+
+		elif [[ $segment =~ ^[0-9a-fA-F]{2}\ [0-9a-fA-F] ]]; then
+			#INCOMPLETE LINE; PACKET LIKELY DONE
+			packet="$next_packet $segment"
 
 		elif [[ $segment =~ ^\> ]]; then
 			#NEW PACKET STARTS
@@ -331,8 +335,6 @@ btle_listener () {
 
 			#CONVERT RECEIVED HEX DATA INTO ASCII
 			local name_as_string=$(echo "${packet:29}" | sed 's/ 00//g' | xxd -r -p )
-
-            echo "$packet" >&2
 
             #CLEAR PACKET
             packet=""
