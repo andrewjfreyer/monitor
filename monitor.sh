@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.144
+version=0.1.145
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -692,7 +692,7 @@ while true; do
 				if [ ! -z "$previous_assocation" ]; then 
 					unset random_known_associations[$mac]
 
-					log "${RED}[CMD-DELE]	${NC}$data UNLINKED $previous_assocation${NC}"
+					log "${RED}[CMD-DELE]	${NC}$data ${BLUE}UNLINKING${NC} $previous_assocation${NC}"
 				fi 
 
 			#IF WE DO HAVE A NAME, BUT WE DO NOT HAVE A PREVIOUS ASSOCIATION
@@ -706,12 +706,13 @@ while true; do
 
 					#NEED TO ITERATE THROUGH ALL OF THESE DEVICES
 					for known_addr in "${!known_static_addresses[@]}"; do
+						echo "$known_addr ? ${random_known_associations[$known_addr]} ? $rand_addr"
 						[ "${random_known_associations[$known_addr]}" == "$rand_addr" ] && found = true && break
 					done
 
 					#IS THIS DEVICE UNLINKED?
 					if [ "$found" == false ]; then 
-						log "${RED}[CMD-LINK]	${NC}$data LINKING $rand_addr${NC}"
+						log "${RED}[CMD-LINK]	${NC}$data ${BLUE}LINKING${NC} $rand_addr${NC}"
 						random_known_associations[$mac]="$rand_addr"
 						linked=true
 						break
@@ -722,6 +723,8 @@ while true; do
 				if [ "$linked" == false ]; then 
 					log "${RED}[CMD-ERRO]	${NC}$data is present, but unlinked.${NC}"	
 				fi 
+			else
+				log "${RED}[CMD-LINK]	${NC}$data ${BLUE}ALREADY LINKED TO${NC} $rand_addr${NC}"
 			fi 
 
 		elif [ "$cmd" == "BEAC" ]; then 
@@ -836,8 +839,9 @@ while true; do
 				for known_addr in "${!known_static_addresses[@]}"; do
 					#IF THIS KNOWN ADDRESS IS ASSOCIATED WITH THIS RANDOM ADDRESS, THEN REMOVE THE RANDOM ADDRESS
 					if [ "${random_known_associations[$known_addr]}" == "$key" ]; then 
-						log "${BLUE}[CLEARED]	${NC}$known_addr UNLINKED from $key $.${NC}"
+						log "${BLUE}[CLEARED]	${NC}$known_addr UNLINKED from $key.${NC}"
 						unset random_known_associations[$known_addr]
+						break
 					fi 
 				done
 			fi 
