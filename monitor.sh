@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.146
+version=0.1.147
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -176,9 +176,6 @@ declare -A beacon_device_log
 declare -A expired_device_log
 declare -A named_device_log
 declare -A device_expiration_biases
-
-#RANDOM/STATIC DEVICE ASSOCIATIONS
-declare -A random_known_associations
 
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY, IGNORING COMMENTS
 known_static_addresses=($(cat "$PUB_CONFIG" | grep -vE "^#" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
@@ -682,53 +679,10 @@ while true; do
 			name=$(echo "$data" | awk -F "|" '{print $2}')
 			data="$mac"
 
+			echo "NAME: $name"
+
 			#GET MANUFACTURER INFORMATION
 			manufacturer="$(determine_manufacturer $data)"
-
-			#DETERMINE WHETHER WE HAVE CREATED OR HAVE LOST
-			#AN ASSOCIATION
-			previous_assocation=${random_known_associations[$mac]}
-
-			#IF NO NAME RETURNED, THEN WE DO NOT NEED TO LINK RAND TO KNOWN
-			if [ -z "$name" ]; then 
-				#PREVIOUS ASSOCIATION? CLEAR IT
-				if [ ! -z "$previous_assocation" ]; then 
-					unset random_known_associations[$mac]
-
-					log "${RED}[CMD-DELE]	${NC}$data ${BLUE}UNLINKING${NC} $previous_assocation${NC}"
-				fi 
-
-			#IF WE DO HAVE A NAME, BUT WE DO NOT HAVE A PREVIOUS ASSOCIATION
-			elif [ -z "$previous_assocation" ]; then 
-				#LINK FLAG
-				linked=false 
-
-				#ITERATE THROUGH ALL RANDOM DEVICES FOR AN UNLINKED RANDOM DEVICE
-				for rand_addr in "${!random_device_log[@]}"; do
-					found=false
-
-					#NEED TO ITERATE THROUGH ALL OF THESE DEVICES
-					for known_addr in "${!known_static_addresses[@]}"; do
-						echo "$known_addr ? ${random_known_associations[$known_addr]} ? $rand_addr"
-						[ "${random_known_associations[$known_addr]}" == "$rand_addr" ] && found = true && break
-					done
-
-					#IS THIS DEVICE UNLINKED?
-					if [ "$found" == false ]; then 
-						log "${RED}[CMD-LINK]	${NC}$data ${BLUE}LINKING${NC} $rand_addr${NC}"
-						random_known_associations[$mac]="$rand_addr"
-						linked=true
-						break
-					fi 
-				done
-				
-				#EDGE CASE - NAME FOUND, BUT NO UNLINKED RANDOM BROADCAST
-				if [ "$linked" == false ]; then 
-					log "${RED}[CMD-ERRO]	${NC}$data is present, but unlinked.${NC}"	
-				fi 
-			else
-				log "${RED}[CMD-LINK]	${NC}$data ${BLUE}ALREADY LINKED TO${NC} $rand_addr${NC}"
-			fi 
 
 		elif [ "$cmd" == "BEAC" ]; then 
 			#DATA IS DELIMITED BY VERTICAL PIPE
@@ -790,7 +744,7 @@ while true; do
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 			
 			#PRINT RAW COMMAND; DEBUGGING
-			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
+			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN} $debug_name ${NC} $manufacturer${NC}"
 		
 		elif [ "$cmd" == "BEAC" ] && [ "$is_new" == true ] ; then 
 			#PRINTING FORMATING
@@ -837,16 +791,6 @@ while true; do
 
 				#ADD TO THE EXPIRED LOG
 				expired_device_log[$key]=$timestamp
-
-				#DO WE NEED TO FIX A LINKE? 
-				for known_addr in "${!known_static_addresses[@]}"; do
-					#IF THIS KNOWN ADDRESS IS ASSOCIATED WITH THIS RANDOM ADDRESS, THEN REMOVE THE RANDOM ADDRESS
-					if [ "${random_known_associations[$known_addr]}" == "$key" ]; then 
-						log "${BLUE}[CLEARED]	${NC}$known_addr UNLINKED from $key.${NC}"
-						unset random_known_associations[$known_addr]
-						break
-					fi 
-				done
 			fi 
 		done
 
