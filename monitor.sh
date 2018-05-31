@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.150
+version=0.1.151
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -602,8 +602,6 @@ public_device_scanner &
 
 #MAIN LOOP
 while true; do 
-	event_received=false
-
 	#READ FROM THE MAIN PIPE
 	while read event; do 
 		#EVENT RECEIVED
@@ -816,7 +814,4 @@ while true; do
 		done
 
 	done < <(cat < main_pipe)
-
-	#PREVENT UNNECESSARILY FAST LOOPING
-	[ "$event_received" == false ] && sleep 1
 done
