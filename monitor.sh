@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.133
+version=0.1.134
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -46,8 +46,8 @@ duplicate_log_count=1
 
 #PRINT TO LOG UNLESS DUPLICATE LINE
 log() {
-	#ECHO TO CONSOLE
-	line="$1"
+	#ECHO TO CONSOLE, REMOVING EXTRA SPACES
+	line=$(echo "$1" | sed 's/  *// g')
 	should_repeat=""
 	line_append=""
 
@@ -738,10 +738,10 @@ while true; do
 		fi 
 
 		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name $manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header ${BLUE}$name${NC} $manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name ${NC} RAND_NUM: ${#random_device_log[@]}"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header ${BLUE}$name${NC} RAND_NUM: ${#random_device_log[@]}"
 		fi 
 
 		#**********************************************************************
