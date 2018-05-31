@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.134
+version=0.1.135
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -47,7 +47,7 @@ duplicate_log_count=1
 #PRINT TO LOG UNLESS DUPLICATE LINE
 log() {
 	#ECHO TO CONSOLE, REMOVING EXTRA SPACES
-	line=$(echo "$1" | sed 's/  *// g')
+	line=$(echo "$1" | sed 's/  */ /g')
 	should_repeat=""
 	line_append=""
 
