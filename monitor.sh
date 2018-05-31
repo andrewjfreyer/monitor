@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.122
+version=0.1.123
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -269,7 +269,7 @@ btle_listener () {
 			local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
 
 			#IS A GAP NAME GIVE? COMPLETE OR LOCAL? 
-			local gap_name=$(pdu_type $(echo "$packet" | awk '{print $16}'))
+			local gap_name=$(echo "$packet" | awk '{print $16}')
 			if [[ $gap_name =~ ^0[89] ]]; then
 				local name_as_string=$(log "${packet:48}" | sed 's/ 00 00 00 [0-9A-Z]{2}$//g; s/ 00//g' | xxd -r -p )
 				echo "NAME: $name_as_string"
