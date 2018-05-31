@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.129
+version=0.1.130
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -270,11 +270,6 @@ btle_listener () {
 
 			#IF THIS IS A SCAN RESPONSE, FIND WHETHER WE HAVE USABLE GAP NAME DATA 
 			if [ "$pdu_header" == 'SCAN_RSP' ]; then 
-				echo ${packet:48:30}
-				echo ${packet:49:30}
-				echo ${packet:50:30}
-				echo ${packet:51:30}
-				echo ${packet:52:30}
 				echo "NAME: $(gap_name "$packet")"
 	        fi
 
@@ -407,7 +402,7 @@ gap_name () {
 	fi
 
 	#RETURN NAME
-    echo "$name_as_string"
+    echo "$name_len_hex > $name_len_dec > $name_len_str == $name_as_string"
 }
 
 # ----------------------------------------------------------------------------------------
