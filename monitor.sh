@@ -756,62 +756,6 @@ while true; do
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 		fi 
 
-		#**********************************************************************
-		#
-		#
-		#	THE FOLLOWING LOOPS CLEAR CACHES OF ALREADY SEEN DEVICES BASED 
-		#	ON APPROPRIATE TIMEOUT PERIODS FOR THOSE DEVICES. 
-		#	
-		#
-		#**********************************************************************
-
-		#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
-		random_bias=0
-		for key in "${!random_device_log[@]}"; do
-			#GET BIAS
-			random_bias=${device_expiration_biases[$key]}
-			[ -z "$random_bias" ] && random_bias=0 
-
-			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-			last_seen=${random_device_log[$key]}
-			difference=$((timestamp - last_seen))
-
-			#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
-			[ -z "$last_seen" ] && continue 
-
-			#TIMEOUT AFTER 120 SECONDS
-			if [ "$difference" -gt "$((90 + random_bias))" ]; then 
-				unset random_device_log[$key]
-				log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
-
-				#ADD TO THE EXPIRED LOG
-				expired_device_log[$key]=$timestamp
-			fi 
-		done
-
-		#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
-		beacon_bias=0
-		for key in "${!beacon_device_log[@]}"; do
-			#GET BIAS
-			beacon_bias=${device_expiration_biases[$key]}
-			[ -z "$beacon_bias" ] && beacon_bias=0 
-
-			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-			last_seen=${beacon_device_log[$key]}
-			difference=$((timestamp - last_seen))
-
-			#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
-			[ -z "$last_seen" ] && continue 
-
-			#TIMEOUT AFTER 120 SECONDS
-			if [ "$difference" -gt "$(( 120 + beacon_bias ))" ]; then 
-				unset beacon_device_log[$key]
-				log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds BEAC_NUM: ${#beacon_device_log[@]}  ${NC}"
-
-				#ADD TO THE EXPIRED LOG
-				expired_device_log[$key]=$timestamp
-			fi 
-		done
-
+	
 	done < main_pipe
 done
