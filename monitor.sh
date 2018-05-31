@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.155
+version=0.1.156
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -210,7 +210,7 @@ btle_listener () {
 	while read segment; do
 
 		#MATCH A SECOND OR LATER SEGMENT OF A PACKET
-		if [[ $segment =~ ^([0-9a-fA-F]{2}\ ){19}\ [0-9a-fA-F] ]]; then
+		if [[ $segment =~ =~ ^[0-9a-fA-F]{2}\ .{55}[0-9a-fA-F] ]]; then
 			#KEEP ADDING TO NEXT PACKET; WE HAVE A COMPLETE LINE
 			next_packet="$next_packet $segment"
 			continue
