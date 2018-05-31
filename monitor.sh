@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.131
+version=0.1.132
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -612,6 +612,7 @@ while true; do
 			#PARSE RECEIVED DATA
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			pdu_header=$(echo "$data" | awk -F "|" '{print $2}')
+			name=$(echo "$data" | awk -F "|" '{print $3}')
 			data="$mac"
 
 			#DATA IS RANDOM MAC ADDRESS; ADD TO LOG
@@ -630,6 +631,7 @@ while true; do
 			#PARSE RECEIVED DATA
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			pdu_header=$(echo "$data" | awk -F "|" '{print $2}')
+			name=$(echo "$data" | awk -F "|" '{print $3}')
 			data="$mac"
 
 			#DATA IS PUBLIC MAC ADDRESS; ADD TO LOG
@@ -705,10 +707,10 @@ while true; do
 		fi 
 
 		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name $manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header ${NC} RAND_NUM: ${#random_device_log[@]}"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name ${NC} RAND_NUM: ${#random_device_log[@]}"
 		fi 
 
 		#**********************************************************************
