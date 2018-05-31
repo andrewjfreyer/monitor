@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.136
+version=0.1.137
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -727,21 +727,21 @@ while true; do
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 			
 			#PRINT RAW COMMAND; DEBUGGING
-			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC}$manufacturer${NC}"
+			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 		
 		elif [ "$cmd" == "BEAC" ] && [ "$is_new" == true ] ; then 
 			#PRINTING FORMATING
 			debug_name="$name"
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 		
-			log "${GREEN}[CMD-$cmd]	${GREEN}$data ${GREEN}$debug_name ${NC}$manufacturer${NC}"
+			log "${GREEN}[CMD-$cmd]	${GREEN}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 		fi 
 
 		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header ${BLUE}$name ${NC}$manufacturer ${NC}PUBL_NUM: ${#static_device_log[@]}"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name $manufacturer PUBL_NUM: ${#static_device_log[@]}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header ${BLUE}$name ${NC}RAND_NUM: ${#random_device_log[@]}"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 		fi 
 
 		#**********************************************************************
@@ -757,6 +757,9 @@ while true; do
 			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 			last_seen=${random_device_log["$key"]}
 			difference=$((timestamp - last_seen))
+
+			#PRINT FOR DEBUGGING
+			echo "				$key for $difference"
 
 			#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
 			[ -z "$last_seen" ] && continue 
