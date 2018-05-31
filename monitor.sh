@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.151
+version=0.1.152
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -533,7 +533,7 @@ public_device_scanner () {
 			#SLEEP AGAIN; DO NOT SCAN TOO FREQUENTLY
 			sleep 2
 
-		done < <(cat < scan_pipe)
+		done < scan_pipe
 
 		#PREVENT UNNECESSARILY FAST LOOPING
 		[ "$scan_event_received" == false ] && sleep 1
@@ -813,5 +813,5 @@ while true; do
 			fi 
 		done
 
-	done < <(cat < main_pipe)
+	done < main_pipe
 done
