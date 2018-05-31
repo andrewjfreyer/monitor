@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.147
+version=0.1.148
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -330,7 +330,7 @@ btle_listener () {
 			local received_mac_address=$(echo "$packet" | awk '{print $10":"$9":"$8":"$7":"$6":"$5}')
 
 			#CONVERT RECEIVED HEX DATA INTO ASCII
-			local name_as_string=$(log "${packet:29}" | sed 's/ 00//g' | xxd -r -p )
+			local name_as_string=$(echo "${packet:29}" | sed 's/ 00//g' | xxd -r -p )
 
             echo "$packet" >&2
 
@@ -385,7 +385,7 @@ determine_manufacturer () {
 		#IF CACHE DOES NOT EXIST, USE MACVENDORS.COM
 		if [ -z "$manufacturer" ]; then 
 			local remote_result=$(curl -sL https://api.macvendors.com/${address:0:8} | grep -vi "error")
-			[ ! -z "$remote_result" ] && log "${address:0:8}	$remote_result" >> .manufacturer_cache
+			[ ! -z "$remote_result" ] && echo "${address:0:8}	$remote_result" >> .manufacturer_cache
 			manufacturer="$remote_result"
 		fi
 
@@ -678,8 +678,6 @@ while true; do
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			name=$(echo "$data" | awk -F "|" '{print $2}')
 			data="$mac"
-
-			echo "NAME: $name"
 
 			#GET MANUFACTURER INFORMATION
 			manufacturer="$(determine_manufacturer $data)"
