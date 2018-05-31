@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.130
+version=0.1.131
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -267,10 +267,11 @@ btle_listener () {
 			#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 			local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
+			local gap_name_str=""
 
 			#IF THIS IS A SCAN RESPONSE, FIND WHETHER WE HAVE USABLE GAP NAME DATA 
 			if [ "$pdu_header" == 'SCAN_RSP' ]; then 
-				echo "NAME: $(gap_name "$packet")"
+				gap_name_str=$(gap_name "$packet")
 	        fi
 
             #CLEAR PACKET
@@ -280,9 +281,9 @@ btle_listener () {
 			#COMMONLY SENT BY APPLE AND ANDROID PHONES TRYING TO ADVERTISE
 			#CONNECTION TO OTHER DEVICES
 
-            if [ "$pdu_header" == "ADV_IND" ]; then 
+            if [ "$pdu_header" == "ADV_IND" ] || [ "$pdu_header" == 'SCAN_RSP' ]; then 
 				#SEND TO MAIN LOOP
-				echo "RAND$received_mac_address|$pdu_header" > main_pipe
+				echo "RAND$received_mac_address|$pdu_header|$gap_name_str" > main_pipe
 			fi 
 
 		fi
@@ -293,12 +294,18 @@ btle_listener () {
 			#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 			local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
+			local gap_name_str=""
+
+			#IF THIS IS A SCAN RESPONSE, FIND WHETHER WE HAVE USABLE GAP NAME DATA 
+			if [ "$pdu_header" == 'SCAN_RSP' ]; then 
+				gap_name_str=$(gap_name "$packet")
+	        fi
 
             #CLEAR PACKET
             packet=""
 
 			#SEND TO MAIN LOOP
-			echo "PUBL$received_mac_address|$pdu_header" > main_pipe
+			echo "PUBL$received_mac_address|$pdu_header|$gap_name_str" > main_pipe
 		fi 
 
 		#NAME RESPONSE 
@@ -398,11 +405,11 @@ gap_name () {
 		local name_len_str=$((name_len_dec * 3))
 		
 		#EXTRACT LOCAL NAME
-		local name_as_string=$(log "${packet:48:name_len_str}" | sed 's/ 00 00 00 [0-9A-Z]{2}$//g; s/ 00//g' | xxd -r -p )
+		local name_as_string=$(echo "${packet:48:name_len_str}" | xxd -r -p )
 	fi
 
 	#RETURN NAME
-    echo "$name_len_hex > $name_len_dec > $name_len_str == $name_as_string"
+    echo "$name_as_string"
 }
 
 # ----------------------------------------------------------------------------------------
