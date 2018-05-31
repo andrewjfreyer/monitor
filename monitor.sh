@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.123
+version=0.1.124
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -271,8 +271,12 @@ btle_listener () {
 			#IS A GAP NAME GIVE? COMPLETE OR LOCAL? 
 			local gap_name=$(echo "$packet" | awk '{print $16}')
 			if [[ $gap_name =~ ^0[89] ]]; then
-				local name_as_string=$(log "${packet:48}" | sed 's/ 00 00 00 [0-9A-Z]{2}$//g; s/ 00//g' | xxd -r -p )
-				echo "NAME: $name_as_string"
+				#HEX
+				local name_len_hex=$(echo "$packet" | awk '{print $15}')
+				local name_len_dec=$(echo "ibase=16; $name_len_hex" | bc)
+				
+				local name_as_string=$(log "${packet:48:name_len_dec}" | sed 's/ 00 00 00 [0-9A-Z]{2}$//g; s/ 00//g' | xxd -r -p )
+				echo "NAME: ($name_len_dec) $name_as_string"
 			fi
 
 			if [ "$pdu_header" == 'SCAN_RSP' ]; then 
