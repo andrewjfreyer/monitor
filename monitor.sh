@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.117
+version=0.1.119
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -275,6 +275,10 @@ btle_listener () {
             #COMMONLY SENT BY APPLE AND ANDROID PHONES TRYING TO ADVERTISE
             #CONNECTION TO OTHER DEVICES
 
+            if [ "$pdu_header" == 'SCAN_RSP' ]; then 
+            	echo "$packet"
+            fi 
+
             if [ "$pdu_header" == "ADV_IND" ]; then 
 				#SEND TO MAIN LOOP
 				echo "RAND$received_mac_address|$pdu_header" > main_pipe
@@ -367,10 +371,28 @@ determine_manufacturer () {
 	fi 
 }
 
+# ----------------------------------------------------------------------------------------
+# DETERMINE IF ADDRESS CONFORMS TO BTLE SPEC STATIC RANDOM 
+# ----------------------------------------------------------------------------------------
+
+is_static () {
+	#BLLE SPEC:
+	#THE TWO MOST SIGNIFICANT BITS OF THE ADDRESS SHALL BE EQUAL TO 1
+	#AT LEAST ONE BIT OF THE RANDOM PART OF THE ADDRESS SHALL BE 0
+	#AT LEAST ONE BIT OF THE RANDOM PART OF THE ADDRESS SHALL BE 1
+
+	#IF NO ADDRESS PRESENT
+	[ -z "$1" ] && return 0 
+
+	#MSB OF THE GROUP MUST BE GREATER THAN 0xC0; ELSE THE TWO MSB ARE NOT 1
+
+
+}
 
 # ----------------------------------------------------------------------------------------
 # OBTAIN PROTOCOL DATA UNIT TYPE
 # ----------------------------------------------------------------------------------------
+
 pdu_type () {
 	#IF NO ADDRESS, RETURN BLANK
 	local pdu_type_str="Reserved"
@@ -633,7 +655,7 @@ while true; do
 			difference=$((timestamp - last_expired))
 
 			#DO WE NEED TO ADD A LEANRED BIAS FOR EXPIRATION?
-			if [ "$difference" -lt "60" ]; then 
+			if [ "$difference" -lt "120" ]; then 
 				device_expiration_biases["$data"]=$(( bias + 15 ))
 
 				#REJECT NEW DEVICE
@@ -685,8 +707,8 @@ while true; do
 
 			#TIMEOUT AFTER 120 SECONDS
 			if [ "$difference" -gt "$((90 + random_bias))" ]; then 
-				log "${BLUE}[CLEARED]	${NC}$key Random expired after $difference seconds RAND_NUM: ${#random_device_log[@]} ${NC} "
 				unset random_device_log["$key"]
+				log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds RAND_NUM: ${#random_device_log[@]} ${NC} "
 
 				#ADD TO THE EXPIRED LOG
 				expired_device_log["$key"]=$timestamp
@@ -709,8 +731,8 @@ while true; do
 
 			#TIMEOUT AFTER 120 SECONDS
 			if [ "$difference" -gt "$(( 120 + beacon_bias ))" ]; then 
-				log "${BLUE}[CLEARED]	${NC}$key Beacon expired after $difference seconds Beacon total: ${#beacon_device_log[@]} ${NC} "
 				unset beacon_device_log["$key"]
+				log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds BEAC_NUM: ${#beacon_device_log[@]} ${NC} "
 
 				#ADD TO THE EXPIRED LOG
 				expired_device_log["$key"]=$timestamp
