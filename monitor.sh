@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.148
+version=0.1.149
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -259,7 +259,7 @@ btle_listener () {
             packet=""
 
 			#SEND TO MAIN LOOP
-			echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER" > main_pipe
+			echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER" > main_pipe & 
 		fi
 
 		#FIND ADVERTISEMENT PACKET OF RANDOM ADDRESSES                                  __
@@ -290,7 +290,7 @@ btle_listener () {
 				local name_str="${named_device_log[$received_mac_address]}"
 
 				#SEND TO MAIN LOOP
-				echo "RAND$received_mac_address|$pdu_header|$name_str" > main_pipe
+				echo "RAND$received_mac_address|$pdu_header|$name_str" > main_pipe &
 			fi 
 
 		fi
@@ -318,7 +318,7 @@ btle_listener () {
 			local name_str="${named_device_log[$received_mac_address]}"
 
 			#SEND TO MAIN LOOP
-			echo "PUBL$received_mac_address|$pdu_header|$name_str" > main_pipe
+			echo "PUBL$received_mac_address|$pdu_header|$name_str" > main_pipe &
 		fi 
 
 		#NAME RESPONSE 
@@ -351,7 +351,7 @@ mqtt_listener (){
 	echo "MQTT trigger started" >&2 
 	#MQTT LOOP
 	while read instruction; do 
-		echo "MQTT$instruction" > main_pipe
+		echo "MQTT$instruction" > main_pipe & 
 	done < <($(which mosquitto_sub) -v -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan") 
 }
 
@@ -363,7 +363,7 @@ periodic_trigger (){
 	#MQTT LOOP
 	while : ; do 
 		sleep 15
-		echo "TIME" > main_pipe
+		echo "TIME" > main_pipe &
 	done
 }
 
@@ -586,7 +586,6 @@ clean() {
 }
 
 trap "clean" EXIT
-
 
 # ----------------------------------------------------------------------------------------
 # OBTAIN PIDS OF BACKGROUND PROCESSES FOR TRAP
