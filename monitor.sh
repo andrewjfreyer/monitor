@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.152
+version=0.1.154
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -160,7 +160,7 @@ fi
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
 
 #SETUP MAIN PIPE
-sudo rm main_pipe &>/dev/null
+sudo rm main_pipe>/dev/null
 mkfifo main_pipe
 
 #SETUP SCAN PIPE
@@ -191,7 +191,7 @@ bluetooth_scanner () {
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
 		local error=$(sudo timeout --signal SIGINT 30 hcitool lescan 2>&1 | grep -iE 'input/output error|invalid device|invalid|error')
-		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe & 
+		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe 
 		sleep 1
 	done
 }
@@ -259,7 +259,7 @@ btle_listener () {
             packet=""
 
 			#SEND TO MAIN LOOP
-			echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER" > main_pipe & 
+			echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER" > main_pipe 
 		fi
 
 		#FIND ADVERTISEMENT PACKET OF RANDOM ADDRESSES                                  __
@@ -290,7 +290,7 @@ btle_listener () {
 				local name_str="${named_device_log[$received_mac_address]}"
 
 				#SEND TO MAIN LOOP
-				echo "RAND$received_mac_address|$pdu_header|$name_str" > main_pipe &
+				echo "RAND$received_mac_address|$pdu_header|$name_str" > main_pipe
 			fi 
 
 		fi
@@ -318,7 +318,7 @@ btle_listener () {
 			local name_str="${named_device_log[$received_mac_address]}"
 
 			#SEND TO MAIN LOOP
-			echo "PUBL$received_mac_address|$pdu_header|$name_str" > main_pipe &
+			echo "PUBL$received_mac_address|$pdu_header|$name_str" > main_pipe
 		fi 
 
 		#NAME RESPONSE 
@@ -337,9 +337,8 @@ btle_listener () {
             #CLEAR PACKET
             packet=""
 
-
 			#SEND TO MAIN LOOP; FORK FOR FASTER RESPONSE
-			echo "NAME$received_mac_address|$name_as_string" > main_pipe &
+			echo "NAME$received_mac_address|$name_as_string" > main_pipe
 		fi
 	done < <(sudo hcidump --raw)
 }
@@ -351,7 +350,7 @@ mqtt_listener (){
 	echo "MQTT trigger started" >&2 
 	#MQTT LOOP
 	while read instruction; do 
-		echo "MQTT$instruction" > main_pipe & 
+		echo "MQTT$instruction" > main_pipe 
 	done < <($(which mosquitto_sub) -v -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan") 
 }
 
@@ -363,7 +362,7 @@ periodic_trigger (){
 	#MQTT LOOP
 	while : ; do 
 		sleep 15
-		echo "TIME" > main_pipe &
+		echo "TIME" > main_pipe
 	done
 }
 
@@ -578,7 +577,7 @@ clean() {
 	done < <(ps ax | grep monitor.sh | awk '{print $1}')
 
 	#REMOVE PIPES
-	sudo rm main_pipe &>/dev/null
+	sudo rm main_pipe>/dev/null
 	sudo rm scan_pipe &>/dev/null
 
 	#MESSAGE
@@ -591,10 +590,10 @@ trap "clean" EXIT
 # OBTAIN PIDS OF BACKGROUND PROCESSES FOR TRAP
 # ----------------------------------------------------------------------------------------
 bluetooth_scanner & 
-mqtt_listener &
+#mqtt_listener &
 btle_listener &
 periodic_trigger & 
-public_device_scanner & 
+#public_device_scanner & 
 
 # ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
@@ -609,8 +608,6 @@ while true; do
 		cmd="${event:0:4}"
 		data="${event:4}"
 		timestamp=$(date +%s)
-
-		echo "CMD=$cmd"
 
 		#FLAGS TO DETERMINE FRESHNESS OF DATA
 		is_new=false
@@ -756,6 +753,61 @@ while true; do
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 		fi 
 
-	
+		#**********************************************************************
+		#
+		#
+		#	THE FOLLOWING LOOPS CLEAR CACHES OF ALREADY SEEN DEVICES BASED 
+		#	ON APPROPRIATE TIMEOUT PERIODS FOR THOSE DEVICES. 
+		#	
+		#
+		#**********************************************************************
+		#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
+		random_bias=0
+		for key in "${!random_device_log[@]}"; do
+			#GET BIAS
+			random_bias=${device_expiration_biases[$key]}
+			[ -z "$random_bias" ] && random_bias=0 
+
+			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
+			last_seen=${random_device_log[$key]}
+			difference=$((timestamp - last_seen))
+
+			#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
+			[ -z "$last_seen" ] && continue 
+
+			#TIMEOUT AFTER 120 SECONDS
+			if [ "$difference" -gt "$((90 + random_bias))" ]; then 
+				unset random_device_log[$key]
+				log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
+
+				#ADD TO THE EXPIRED LOG
+				expired_device_log[$key]=$timestamp
+			fi 
+		done
+
+		#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
+		beacon_bias=0
+		for key in "${!beacon_device_log[@]}"; do
+			#GET BIAS
+			beacon_bias=${device_expiration_biases[$key]}
+			[ -z "$beacon_bias" ] && beacon_bias=0 
+
+			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
+			last_seen=${beacon_device_log[$key]}
+			difference=$((timestamp - last_seen))
+
+			#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
+			[ -z "$last_seen" ] && continue 
+
+			#TIMEOUT AFTER 120 SECONDS
+			if [ "$difference" -gt "$(( 120 + beacon_bias ))" ]; then 
+				unset beacon_device_log[$key]
+				log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds BEAC_NUM: ${#beacon_device_log[@]}  ${NC}"
+
+				#ADD TO THE EXPIRED LOG
+				expired_device_log[$key]=$timestamp
+			fi 
+		done
+
 	done < main_pipe
 done
