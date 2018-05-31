@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.143
+version=0.1.144
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -657,9 +657,9 @@ while true; do
 			#IN RESPONSE TO MQTT SCAN 
 			log "${GREEN}[INSTRUCT]	${NC}MQTT Trigger${NC}"
 
-		elif [ "$cmd" == "TIME" ]; then 
+		#elif [ "$cmd" == "TIME" ]; then 
 			#IN RESPONSE TO MQTT SCAN 
-			log "${GREEN}[INSTRUCT]	${NC}Time Trigger${NC}"
+		#	log "${GREEN}[INSTRUCT]	${NC}Time Trigger${NC}"
 
 		elif [ "$cmd" == "PUBL" ]; then 
 			#PARSE RECEIVED DATA
@@ -701,13 +701,11 @@ while true; do
 				linked=false 
 
 				#ITERATE THROUGH ALL RANDOM DEVICES FOR AN UNLINKED RANDOM DEVICE
-				for rand_key in "${!random_device_log[@]}"; do
-					rand_addr="${random_device_log[$rand_key]}"
+				for rand_addr in "${!random_device_log[@]}"; do
 					found=false
 
 					#NEED TO ITERATE THROUGH ALL OF THESE DEVICES
-					for known_key in "${!known_static_addresses[@]}"; do
-						known_addr="${random_device_log[$rand_key]}"
+					for known_addr in "${!known_static_addresses[@]}"; do
 						[ "${random_known_associations[$known_addr]}" == "$rand_addr" ] && found = true && break
 					done
 
@@ -721,7 +719,7 @@ while true; do
 				done
 				
 				#EDGE CASE - NAME FOUND, BUT NO UNLINKED RANDOM BROADCAST
-				if [ "$found" == false ]; then 
+				if [ "$linked" == false ]; then 
 					log "${RED}[CMD-ERRO]	${NC}$data is present, but unlinked.${NC}"	
 				fi 
 			fi 
@@ -833,6 +831,15 @@ while true; do
 
 				#ADD TO THE EXPIRED LOG
 				expired_device_log[$key]=$timestamp
+
+				#DO WE NEED TO FIX A LINKE? 
+				for known_addr in "${!known_static_addresses[@]}"; do
+					#IF THIS KNOWN ADDRESS IS ASSOCIATED WITH THIS RANDOM ADDRESS, THEN REMOVE THE RANDOM ADDRESS
+					if [ "${random_known_associations[$known_addr]}" == "$key" ]; then 
+						log "${BLUE}[CLEARED]	${NC}$known_addr UNLINKED from $key $.${NC}"
+						unset random_known_associations[$known_addr]
+					fi 
+				done
 			fi 
 		done
 
