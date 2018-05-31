@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.126
+version=0.1.127
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -398,7 +398,7 @@ gap_name () {
 		local name_len_str=$((name_len_dec * 3))
 		
 		#EXTRACT LOCAL NAME
-		local name_as_string=$(log "${packet:48:name_len_str}" | sed 's/ 00 00 00 [0-9A-Z]{2}$//g; s/ 00//g' | xxd -r -p )
+		local name_as_string=$(log "${packet:51:name_len_str}" | sed 's/ 00 00 00 [0-9A-Z]{2}$//g; s/ 00//g' | xxd -r -p )
 	fi
 
 	#RETURN NAME
