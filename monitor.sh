@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.120
+version=0.1.121
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -268,16 +268,19 @@ btle_listener () {
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 			local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
 
-            if [ "$pdu_header" == 'SCAN_RSP' ]; then 
-            	echo "$received_mac_address	$packet"
-            fi 
+			#IS A GAP NAME GIVE? COMPLETE OR LOCAL? 
+			local gap_name=$(pdu_type $(echo "$packet" | awk '{print $16}'))
+			if [[ $gap_name =~ ^0[89] ]]; then
+				local name_as_string=$(log "${packet:48}" | sed 's/ 00 00 00 [0-9A-Z]{2}$//g; s/ 00//g' | xxd -r -p )
+				echo "NAME: $name_as_string"
+			fi
 
             #CLEAR PACKET
-            packet=""
+			packet=""
 
-            #FILTER TO ADV_IND; EXPERIMENTALLY, THIS IS THE ADV PACKET MOST 
-            #COMMONLY SENT BY APPLE AND ANDROID PHONES TRYING TO ADVERTISE
-            #CONNECTION TO OTHER DEVICES
+			#FILTER TO ADV_IND; EXPERIMENTALLY, THIS IS THE ADV PACKET MOST 
+			#COMMONLY SENT BY APPLE AND ANDROID PHONES TRYING TO ADVERTISE
+			#CONNECTION TO OTHER DEVICES
 
             if [ "$pdu_header" == "ADV_IND" ]; then 
 				#SEND TO MAIN LOOP
