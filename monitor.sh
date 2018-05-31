@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.135
+version=0.1.136
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -492,7 +492,7 @@ public_device_scanner () {
 			#HAS THIS DEVICE BEEN SCANNED PREVIOUSLY? 
 			[ -z "$previous_status" ] && previous_status=0
 
-			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning:${NC} $mac${NC}"
+			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning: ${NC}$mac${NC}"
 
 			#HCISCAN
 			name=$(hcitool name "$mac" | grep -iE 'input/output error|invalid device|invalid|error')
@@ -507,7 +507,7 @@ public_device_scanner () {
 					#SHOULD VERIFY ABSENSE
 					for repetition in $(seq 1 4); do 
 						#DEBUGGING
-						log "${GREEN}[CMD-VERI]	${GREEN}Verify:${NC} $mac${NC}"
+						log "${GREEN}[CMD-VERI]	${GREEN}Verify: ${NC}$mac${NC}"
 
 						#HCISCAN
 						name=$(hcitool name "$mac" | grep -iE 'input/output error|invalid device|invalid|error')
@@ -525,7 +525,7 @@ public_device_scanner () {
 			#hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
 			#TESTING
-			log "${GREEN}[CMD-SCAN]	${GREEN}Complete:${NC} $mac${NC}"
+			log "${GREEN}[CMD-SCAN]	${GREEN}Complete: ${NC}$mac${NC}"
 
 			#SLEEP AGAIN; DO NOT SCAN TOO FREQUENTLY
 			sleep 2
@@ -727,21 +727,21 @@ while true; do
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 			
 			#PRINT RAW COMMAND; DEBUGGING
-			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
+			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC}$manufacturer${NC}"
 		
 		elif [ "$cmd" == "BEAC" ] && [ "$is_new" == true ] ; then 
 			#PRINTING FORMATING
 			debug_name="$name"
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 		
-			log "${GREEN}[CMD-$cmd]	${GREEN}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
+			log "${GREEN}[CMD-$cmd]	${GREEN}$data ${GREEN}$debug_name ${NC}$manufacturer${NC}"
 		fi 
 
 		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header ${BLUE}$name${NC} $manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header ${BLUE}$name ${NC}$manufacturer ${NC}PUBL_NUM: ${#static_device_log[@]}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header ${BLUE}$name${NC} RAND_NUM: ${#random_device_log[@]}"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header ${BLUE}$name ${NC}RAND_NUM: ${#random_device_log[@]}"
 		fi 
 
 		#**********************************************************************
@@ -764,7 +764,7 @@ while true; do
 			#TIMEOUT AFTER 120 SECONDS
 			if [ "$difference" -gt "$((90 + random_bias))" ]; then 
 				unset random_device_log["$key"]
-				log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds RAND_NUM: ${#random_device_log[@]} ${NC} "
+				log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
 
 				#ADD TO THE EXPIRED LOG
 				expired_device_log["$key"]=$timestamp
@@ -788,7 +788,7 @@ while true; do
 			#TIMEOUT AFTER 120 SECONDS
 			if [ "$difference" -gt "$(( 120 + beacon_bias ))" ]; then 
 				unset beacon_device_log["$key"]
-				log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds BEAC_NUM: ${#beacon_device_log[@]} ${NC} "
+				log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds BEAC_NUM: ${#beacon_device_log[@]}  ${NC}"
 
 				#ADD TO THE EXPIRED LOG
 				expired_device_log["$key"]=$timestamp
