@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.137
+version=0.1.138
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -275,7 +275,7 @@ btle_listener () {
 				gap_name_str=$(gap_name "$packet")
 
 				#RECORD THE NAME IN THE DEVICE LOG
-				[ ! -z "$gap_name_str" ] && named_device_log["$received_mac_address"]="$gap_name_str"
+				[ ! -z "$gap_name_str" ] && named_device_log[$received_mac_address]="$gap_name_str"
 	        fi
 
             #CLEAR PACKET
@@ -287,7 +287,7 @@ btle_listener () {
 
             if [ "$pdu_header" == "ADV_IND" ]; then 
 				#NAME TO RETURN
-				local name_str="${named_device_log["$received_mac_address"]}"
+				local name_str="${named_device_log[$received_mac_address]}"
 
 				#SEND TO MAIN LOOP
 				echo "RAND$received_mac_address|$pdu_header|$name_str" > main_pipe
@@ -308,14 +308,14 @@ btle_listener () {
 				gap_name_str=$(gap_name "$packet")
 
 				#RECORD THE NAME IN THE DEVICE LOG
-				[ ! -z "$gap_name_str" ] && named_device_log["$received_mac_address"]="$gap_name_str"
+				[ ! -z "$gap_name_str" ] && named_device_log[$received_mac_address]="$gap_name_str"
 	        fi
 
             #CLEAR PACKET
             packet=""
 
             #NAME TO RETURN
-			local name_str="${named_device_log["$received_mac_address"]}"
+			local name_str="${named_device_log[$received_mac_address]}"
 
 			#SEND TO MAIN LOOP
 			echo "PUBL$received_mac_address|$pdu_header|$name_str" > main_pipe
@@ -637,18 +637,18 @@ while true; do
 			if [ ! -z "$name" ]; then 
 				#RESET COMMAND
 				cmd="PUBL"
-				unset random_device_log["$data"]
+				unset random_device_log[$data]
 
 				#IS THIS A NEW STATIC DEVICE?
 				[ -z "${static_device_log[$data]}" ] && is_new=true
-				static_device_log["$data"]="$timestamp"
+				static_device_log[$data]="$timestamp"
 
 			else
 				#DATA IS RANDOM MAC ADDRESS; ADD TO LOG
 				[ -z "${random_device_log[$data]}" ] && is_new=true
 
 				#ONLY ADD THIS TO THE DEVICE LOG 
-				random_device_log["$data"]="$timestamp"
+				random_device_log[$data]="$timestamp"
 			fi 
 		elif [ "$cmd" == "MQTT" ]; then 
 			#IN RESPONSE TO MQTT SCAN 
@@ -667,7 +667,7 @@ while true; do
 
 			#DATA IS PUBLIC MAC ADDRESS; ADD TO LOG
 			[ -z "${static_device_log[$data]}" ] && is_new=true
-			static_device_log["$data"]="$timestamp"
+			static_device_log[$data]="$timestamp"
 			manufacturer="$(determine_manufacturer $data)"
 
 		elif [ "$cmd" == "NAME" ]; then 
@@ -690,7 +690,7 @@ while true; do
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			data="$uuid-$major-$minor"
 			[ -z "${beacon_device_log[$data]}" ] && is_new=true
-			beacon_device_log["$data"]="$timestamp"	
+			beacon_device_log[$data]="$timestamp"	
 
 			#GET MANUFACTURER INFORMATION
 			manufacturer="$(determine_manufacturer $uuid)"			
@@ -703,16 +703,16 @@ while true; do
 		if [ "$is_new" == true ]; then 
 
 			#GET CURRENT BIAS
-			bias=${device_expiration_biases["$data"]}
+			bias=${device_expiration_biases["$data]}
 			[ -z "$bias" ] && bias=0
 
 			#WHEN DID THIS LAST EXPIRE?
-			last_expired=${expired_device_log["$data"]}
+			last_expired=${expired_device_log[$data]}
 			difference=$((timestamp - last_expired))
 
 			#DO WE NEED TO ADD A LEANRED BIAS FOR EXPIRATION?
 			if [ "$difference" -lt "120" ]; then 
-				device_expiration_biases["$data"]=$(( bias + 15 ))
+				device_expiration_biases["$data]=$(( bias + 15 ))
 
 				#REJECT NEW DEVICE
 				is_new=false
@@ -751,11 +751,11 @@ while true; do
 		random_bias=0
 		for key in "${!random_device_log[@]}"; do
 			#GET BIAS
-			random_bias=${device_expiration_biases["$key"]}
+			random_bias=${device_expiration_biases["$key]}
 			[ -z "$random_bias" ] && random_bias=0 
 
 			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-			last_seen=${random_device_log["$key"]}
+			last_seen=${random_device_log[$key]}
 			difference=$((timestamp - last_seen))
 
 			#PRINT FOR DEBUGGING
@@ -766,11 +766,11 @@ while true; do
 
 			#TIMEOUT AFTER 120 SECONDS
 			if [ "$difference" -gt "$((90 + random_bias))" ]; then 
-				unset random_device_log["$key"]
+				unset random_device_log[$key]
 				log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
 
 				#ADD TO THE EXPIRED LOG
-				expired_device_log["$key"]=$timestamp
+				expired_device_log[$key]=$timestamp
 			fi 
 		done
 
@@ -778,11 +778,11 @@ while true; do
 		beacon_bias=0
 		for key in "${!beacon_device_log[@]}"; do
 			#GET BIAS
-			beacon_bias=${device_expiration_biases["$key"]}
+			beacon_bias=${device_expiration_biases["$key]}
 			[ -z "$beacon_bias" ] && beacon_bias=0 
 
 			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-			last_seen=${beacon_device_log["$key"]}
+			last_seen=${beacon_device_log[$key]}
 			difference=$((timestamp - last_seen))
 
 			#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
@@ -790,11 +790,11 @@ while true; do
 
 			#TIMEOUT AFTER 120 SECONDS
 			if [ "$difference" -gt "$(( 120 + beacon_bias ))" ]; then 
-				unset beacon_device_log["$key"]
+				unset beacon_device_log[$key]
 				log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds BEAC_NUM: ${#beacon_device_log[@]}  ${NC}"
 
 				#ADD TO THE EXPIRED LOG
-				expired_device_log["$key"]=$timestamp
+				expired_device_log[$key]=$timestamp
 			fi 
 		done
 
