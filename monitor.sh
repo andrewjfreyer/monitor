@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.140
+version=0.1.141
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -359,7 +359,7 @@ periodic_trigger (){
 	echo "TIME trigger started" >&2 
 	#MQTT LOOP
 	while : ; do 
-		sleep 15
+		sleep 5
 		echo "TIME" > main_pipe
 	done
 }
@@ -745,9 +745,14 @@ while true; do
 		fi 
 
 		#**********************************************************************
+		#
+		#
+		#	THE FOLLOWING LOOPS CLEAR CACHES OF ALREADY SEEN DEVICES BASED 
+		#	ON APPROPRIATE TIMEOUT PERIODS FOR THOSE DEVICES. 
+		#	
+		#
+		#
 		#**********************************************************************
-
-		echo "				**************************"
 
 		#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
 		random_bias=0
@@ -759,9 +764,6 @@ while true; do
 			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 			last_seen=${random_device_log[$key]}
 			difference=$((timestamp - last_seen))
-
-			#PRINT FOR DEBUGGING
-			echo "				$key for $difference"
 
 			#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
 			[ -z "$last_seen" ] && continue 
@@ -803,5 +805,5 @@ while true; do
 	done < <(cat < main_pipe)
 
 	#PREVENT UNNECESSARILY FAST LOOPING
-	[ "$event_received" == false ] && sleep 3
+	[ "$event_received" == false ] && sleep 1
 done
