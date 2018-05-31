@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.145
+version=0.1.146
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -335,8 +335,11 @@ btle_listener () {
 			#CONVERT RECEIVED HEX DATA INTO ASCII
 			local name_as_string=$(log "${packet:29}" | sed 's/ 00//g' | xxd -r -p )
 
+            echo "$packet" >&2
+
             #CLEAR PACKET
             packet=""
+
 
 			#SEND TO MAIN LOOP; FORK FOR FASTER RESPONSE
 			echo "NAME$received_mac_address|$name_as_string" > main_pipe &
@@ -362,7 +365,7 @@ periodic_trigger (){
 	echo "TIME trigger started" >&2 
 	#MQTT LOOP
 	while : ; do 
-		sleep 5
+		sleep 15
 		echo "TIME" > main_pipe
 	done
 }
