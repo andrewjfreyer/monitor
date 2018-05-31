@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.121
+version=0.1.122
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -274,6 +274,10 @@ btle_listener () {
 				local name_as_string=$(log "${packet:48}" | sed 's/ 00 00 00 [0-9A-Z]{2}$//g; s/ 00//g' | xxd -r -p )
 				echo "NAME: $name_as_string"
 			fi
+
+			if [ "$pdu_header" == 'SCAN_RSP' ]; then 
+            	echo "$received_mac_address	($gap_name)	$packet"
+            fi 
 
             #CLEAR PACKET
 			packet=""
