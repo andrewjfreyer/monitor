@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.132
+version=0.1.133
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -172,6 +172,7 @@ declare -A static_device_log
 declare -A random_device_log
 declare -A beacon_device_log
 declare -A expired_device_log
+declare -A named_device_log
 
 #DEVICE EXPIRATION BIASES 
 declare -A device_expiration_biases
@@ -272,6 +273,9 @@ btle_listener () {
 			#IF THIS IS A SCAN RESPONSE, FIND WHETHER WE HAVE USABLE GAP NAME DATA 
 			if [ "$pdu_header" == 'SCAN_RSP' ]; then 
 				gap_name_str=$(gap_name "$packet")
+
+				#RECORD THE NAME IN THE DEVICE LOG
+				[ ! -z "$gap_name_str" ] && named_device_log["$received_mac_address"]="$gap_name_str"
 	        fi
 
             #CLEAR PACKET
@@ -281,9 +285,12 @@ btle_listener () {
 			#COMMONLY SENT BY APPLE AND ANDROID PHONES TRYING TO ADVERTISE
 			#CONNECTION TO OTHER DEVICES
 
-            if [ "$pdu_header" == "ADV_IND" ] || [ "$pdu_header" == 'SCAN_RSP' ]; then 
+            if [ "$pdu_header" == "ADV_IND" ]; then 
+				#NAME TO RETURN
+				local name_str="${named_device_log["$received_mac_address"]}"
+
 				#SEND TO MAIN LOOP
-				echo "RAND$received_mac_address|$pdu_header|$gap_name_str" > main_pipe
+				echo "RAND$received_mac_address|$pdu_header|$name_str" > main_pipe
 			fi 
 
 		fi
@@ -299,13 +306,19 @@ btle_listener () {
 			#IF THIS IS A SCAN RESPONSE, FIND WHETHER WE HAVE USABLE GAP NAME DATA 
 			if [ "$pdu_header" == 'SCAN_RSP' ]; then 
 				gap_name_str=$(gap_name "$packet")
+
+				#RECORD THE NAME IN THE DEVICE LOG
+				[ ! -z "$gap_name_str" ] && named_device_log["$received_mac_address"]="$gap_name_str"
 	        fi
 
             #CLEAR PACKET
             packet=""
 
+            #NAME TO RETURN
+			local name_str="${named_device_log["$received_mac_address"]}"
+
 			#SEND TO MAIN LOOP
-			echo "PUBL$received_mac_address|$pdu_header|$gap_name_str" > main_pipe
+			echo "PUBL$received_mac_address|$pdu_header|$name_str" > main_pipe
 		fi 
 
 		#NAME RESPONSE 
@@ -615,10 +628,28 @@ while true; do
 			name=$(echo "$data" | awk -F "|" '{print $3}')
 			data="$mac"
 
-			#DATA IS RANDOM MAC ADDRESS; ADD TO LOG
-			[ -z "${random_device_log[$data]}" ] && is_new=true
-			random_device_log["$data"]="$timestamp"
+			#IF WE HAVE A NAME; UNSEAT FROM RANDOM AND ADD TO STATIC
+			#THIS IS A BIT OF A FUDGE, A RANDOM DEVICE WITH A LOCAL 
+			#NAME IS TRACKABLE, SO IT'S UNLIKELY THAT ANY CONSUMER
+			#ELECTRONIC DEVICE OR CELL PHONE IS ASSOCIATED WITH THIS 
+			#ADDRESS. CONSIDER THE ADDRESS AS A STATIC ADDRESS
 
+			if [ ! -z "$name" ]; then 
+				#RESET COMMAND
+				cmd="PUBL"
+				unset random_device_log["$data"]
+
+				#IS THIS A NEW STATIC DEVICE?
+				[ -z "${static_device_log[$data]}" ] && is_new=true
+				static_device_log["$data"]="$timestamp"
+
+			else
+				#DATA IS RANDOM MAC ADDRESS; ADD TO LOG
+				[ -z "${random_device_log[$data]}" ] && is_new=true
+
+				#ONLY ADD THIS TO THE DEVICE LOG 
+				random_device_log["$data"]="$timestamp"
+			fi 
 		elif [ "$cmd" == "MQTT" ]; then 
 			#IN RESPONSE TO MQTT SCAN 
 			log "${GREEN}[INSTRUCT]	${NC}MQTT Trigger${NC}"
