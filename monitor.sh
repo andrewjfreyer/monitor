@@ -604,13 +604,13 @@ public_device_scanner &
 while true; do 
 	#READ FROM THE MAIN PIPE
 	while read event; do 
-		#EVENT RECEIVED
-		event_received=true
 
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
 		data="${event:4}"
 		timestamp=$(date +%s)
+
+		echo "CMD=$cmd"
 
 		#FLAGS TO DETERMINE FRESHNESS OF DATA
 		is_new=false
