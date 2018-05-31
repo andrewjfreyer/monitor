@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.124
+version=0.1.125
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -268,20 +268,10 @@ btle_listener () {
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 			local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
 
-			#IS A GAP NAME GIVE? COMPLETE OR LOCAL? 
-			local gap_name=$(echo "$packet" | awk '{print $16}')
-			if [[ $gap_name =~ ^0[89] ]]; then
-				#HEX
-				local name_len_hex=$(echo "$packet" | awk '{print $15}')
-				local name_len_dec=$(echo "ibase=16; $name_len_hex" | bc)
-				
-				local name_as_string=$(log "${packet:48:name_len_dec}" | sed 's/ 00 00 00 [0-9A-Z]{2}$//g; s/ 00//g' | xxd -r -p )
-				echo "NAME: ($name_len_dec) $name_as_string"
-			fi
-
+			#IF THIS IS A SCAN RESPONSE, FIND WHETHER WE HAVE USABLE GAP NAME DATA 
 			if [ "$pdu_header" == 'SCAN_RSP' ]; then 
-            	echo "$received_mac_address	($gap_name)	$packet"
-            fi 
+				echo "NAME: $(gap_name "$packet")"
+	        fi
 
             #CLEAR PACKET
 			packet=""
@@ -383,21 +373,36 @@ determine_manufacturer () {
 }
 
 # ----------------------------------------------------------------------------------------
-# DETERMINE IF ADDRESS CONFORMS TO BTLE SPEC STATIC RANDOM 
+# EXTRACT GENERAL ACCESS PROFILE NAME
 # ----------------------------------------------------------------------------------------
 
-is_static () {
-	#BLLE SPEC:
-	#THE TWO MOST SIGNIFICANT BITS OF THE ADDRESS SHALL BE EQUAL TO 1
-	#AT LEAST ONE BIT OF THE RANDOM PART OF THE ADDRESS SHALL BE 0
-	#AT LEAST ONE BIT OF THE RANDOM PART OF THE ADDRESS SHALL BE 1
+gap_name () {
+	#SET PACKET FROM INPUT
+	local packet="$1"
 
-	#IF NO ADDRESS PRESENT
-	[ -z "$1" ] && return 0 
+	#LOCAL STRING
+	local name_as_string=""
 
-	#MSB OF THE GROUP MUST BE GREATER THAN 0xC0; ELSE THE TWO MSB ARE NOT 1
+	#IS A GAP NAME GIVE? COMPLETE OR LOCAL? 
+	local gap_name=$(echo "$packet" | awk '{print $16}')
 
+	#CHECK IF GAP DATA IS 
+	if [[ $gap_name =~ ^0[89] ]]; then
+		#HEX CONVERSION
+		local name_len_hex=$(echo "$packet" | awk '{print $15}')
 
+		#DECIMAL CONVERSION
+		local name_len_dec=$(echo "ibase=16; $name_len_hex" | bc)
+		
+		#STR CHARACTER COUNT (2 CHAR + 1 _SPACE_ PER BYTE)
+		local name_len_str=$((name_len_dec * 3))
+		
+		#EXTRACT LOCAL NAME
+		local name_as_string=$(log "${packet:48:name_len_str}" | sed 's/ 00 00 00 [0-9A-Z]{2}$//g; s/ 00//g' | xxd -r -p )
+	fi
+
+	#RETURN NAME
+    return "$name_as_string"
 }
 
 # ----------------------------------------------------------------------------------------
