@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.119
+version=0.1.120
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -268,16 +268,16 @@ btle_listener () {
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 			local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
 
+            if [ "$pdu_header" == 'SCAN_RSP' ]; then 
+            	echo "$received_mac_address	$packet"
+            fi 
+
             #CLEAR PACKET
             packet=""
 
             #FILTER TO ADV_IND; EXPERIMENTALLY, THIS IS THE ADV PACKET MOST 
             #COMMONLY SENT BY APPLE AND ANDROID PHONES TRYING TO ADVERTISE
             #CONNECTION TO OTHER DEVICES
-
-            if [ "$pdu_header" == 'SCAN_RSP' ]; then 
-            	echo "$packet"
-            fi 
 
             if [ "$pdu_header" == "ADV_IND" ]; then 
 				#SEND TO MAIN LOOP
