@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.138
+version=0.1.139
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -703,7 +703,7 @@ while true; do
 		if [ "$is_new" == true ]; then 
 
 			#GET CURRENT BIAS
-			bias=${device_expiration_biases["$data]}
+			bias=${device_expiration_biases[$data]}
 			[ -z "$bias" ] && bias=0
 
 			#WHEN DID THIS LAST EXPIRE?
@@ -712,7 +712,7 @@ while true; do
 
 			#DO WE NEED TO ADD A LEANRED BIAS FOR EXPIRATION?
 			if [ "$difference" -lt "120" ]; then 
-				device_expiration_biases["$data]=$(( bias + 15 ))
+				device_expiration_biases[$data]=$(( bias + 15 ))
 
 				#REJECT NEW DEVICE
 				is_new=false
@@ -751,7 +751,7 @@ while true; do
 		random_bias=0
 		for key in "${!random_device_log[@]}"; do
 			#GET BIAS
-			random_bias=${device_expiration_biases["$key]}
+			random_bias=${device_expiration_biases[$key]}
 			[ -z "$random_bias" ] && random_bias=0 
 
 			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
@@ -778,7 +778,7 @@ while true; do
 		beacon_bias=0
 		for key in "${!beacon_device_log[@]}"; do
 			#GET BIAS
-			beacon_bias=${device_expiration_biases["$key]}
+			beacon_bias=${device_expiration_biases[$key]}
 			[ -z "$beacon_bias" ] && beacon_bias=0 
 
 			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
