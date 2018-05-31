@@ -270,6 +270,11 @@ btle_listener () {
 
 			#IF THIS IS A SCAN RESPONSE, FIND WHETHER WE HAVE USABLE GAP NAME DATA 
 			if [ "$pdu_header" == 'SCAN_RSP' ]; then 
+				echo ${packet:48:name_len_str}
+				echo ${packet:49:name_len_str}
+				echo ${packet:50:name_len_str}
+				echo ${packet:51:name_len_str}
+				echo ${packet:52:name_len_str}
 				echo "NAME: $(gap_name "$packet")"
 	        fi
 
@@ -398,7 +403,7 @@ gap_name () {
 		local name_len_str=$((name_len_dec * 3))
 		
 		#EXTRACT LOCAL NAME
-		local name_as_string=$(log "${packet:51:name_len_str}" | sed 's/ 00 00 00 [0-9A-Z]{2}$//g; s/ 00//g' | xxd -r -p )
+		local name_as_string=$(log "${packet:48:name_len_str}" | sed 's/ 00 00 00 [0-9A-Z]{2}$//g; s/ 00//g' | xxd -r -p )
 	fi
 
 	#RETURN NAME
