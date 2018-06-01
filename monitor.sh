@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.163
+version=0.1.164
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -181,6 +181,10 @@ next_scan_type=""
 declare -A expired_device_log
 declare -A named_device_log
 declare -A device_expiration_biases
+
+#GLOBAL STATE VARIABLES
+all_present=false
+all_absent=true
 
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY, IGNORING COMMENTS
 known_static_addresses=($(cat "$PUB_CONFIG" | grep -vE "^#" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
@@ -368,7 +372,7 @@ periodic_trigger (){
 	echo "TIME trigger started" >&2 
 	#MQTT LOOP
 	while : ; do 
-		sleep 1
+		sleep 2
 		echo "TIME" > main_pipe
 	done
 }
@@ -578,9 +582,7 @@ publish_message () {
 # REFRESH KNOWN DEVICE STATES
 # ----------------------------------------------------------------------------------------
 refresh_global_states() {
-	local all_present=false
-	local all_absent=true
-
+	
 	#PROCESS GLOBAL STATES
 	local state_sum=0
 	for known_addr in "${!known_static_addresses[@]}"; do 
@@ -603,8 +605,6 @@ refresh_global_states() {
 			all_present=false
 			;;
 	esac
-
-	echo "$all_present $all_absent"
 }
 
 # ----------------------------------------------------------------------------------------
@@ -627,13 +627,13 @@ clean() {
 trap "clean" EXIT
 
 # ----------------------------------------------------------------------------------------
-# OBTAIN PIDS OF BACKGROUND PROCESSES FOR TRAP
+# LAUNCH BACKGROUND PROCESSES
 # ----------------------------------------------------------------------------------------
 bluetooth_scanner & 
-#mqtt_listener &
+mqtt_listener &
 btle_listener &
 periodic_trigger & 
-#public_device_scanner & 
+public_device_scanner & 
 
 # ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
@@ -697,8 +697,32 @@ while true; do
 			#HAS THE ENVIRONMENT CHANGED? 
 			changes_settled=$((timestamp - random_device_last_update))
 
-			if [ "$changes_settled" -gt "3" ]; then 
-				log "${GREEN}[INSTRUCT]	${NC}Awaiting environment changes. $next_scan_type ${NC}"
+			if [ "$changes_settled" -gt "7" ]; then 
+				#CLEAR SCAN TYPE AFTER FIVE SECONDS 
+				next_scan_type=""
+
+			elif [ "$changes_settled" -gt "3" ]; then 
+			
+				#ANALYZE GLOBAL STATE
+				if [ "$all_present" == true ] && [ "$next_scan_type" == "ARRIVE_SCAN" ]; then 
+					#CLEAR SCAN TYPE
+					next_scan_type=""
+
+				elif [ "$all_absent" == true ] && [ "$next_scan_type" == "DEPARTURE_SCAN" ]; then 
+					#CLEAR SCAN TYPE
+					next_scan_type=""
+
+				elif [ "$all_absent" == true ] && [ "$all_present" == true ]; then 
+					#MASSIVE ERROR IF WE ARE EVER HERE; SHOULD NEVER BE HERE
+					next_scan_type=""
+				fi  
+
+				#PRINT IF WE ARE AWAITING ENVIRONMENTAL CHANGES
+				if [ -z "$next_scan_type" ]; then 
+					log "${GREEN}[INSTRUCT]	${NC}Awaiting environment changes. ${NC}"
+				else
+					log "${GREEN}[INSTRUCT]	${NC}Need to trigger $next_scan_type. ${NC}"
+				fi 
 			fi 
 
 			continue
