@@ -749,7 +749,7 @@ while true; do
 		fi 
 
 		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name $manufacturer PUBL_NUM: ${#static_device_log[@]}"
+			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header $name $manufacturer PUBL_NUM: ${#static_device_log[@]}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
