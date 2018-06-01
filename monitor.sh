@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.161
+version=0.1.162
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -171,6 +171,9 @@ mkfifo scan_pipe
 declare -A static_device_log
 declare -A random_device_log
 declare -A beacon_device_log
+
+#LAST TIME THIS 
+random_device_last_update=$(date +%s)
 
 #DEFINE PERFORMANCE TRACKING/IMRROVEMENT VARS
 declare -A expired_device_log
@@ -363,7 +366,7 @@ periodic_trigger (){
 	echo "TIME trigger started" >&2 
 	#MQTT LOOP
 	while : ; do 
-		sleep 15
+		sleep 5
 		echo "TIME" > main_pipe
 	done
 }
@@ -638,6 +641,9 @@ while true; do
 				cmd="PUBL"
 				unset random_device_log[$data]
 
+				#UPDATE TIMESTAMP
+				random_device_last_update=$(date +%s)
+
 				#IS THIS A NEW STATIC DEVICE?
 				[ -z "${static_device_log[$data]}" ] && is_new=true
 				static_device_log[$data]="$timestamp"
@@ -648,14 +654,26 @@ while true; do
 
 				#ONLY ADD THIS TO THE DEVICE LOG 
 				random_device_log[$data]="$timestamp"
+
+				#UPDATE TIMESTAMP
+				random_device_last_update=$(date +%s)
 			fi 
 		elif [ "$cmd" == "MQTT" ]; then 
 			#IN RESPONSE TO MQTT SCAN 
 			log "${GREEN}[INSTRUCT]	${NC}MQTT Trigger${NC}"
 
-		#elif [ "$cmd" == "TIME" ]; then 
-			#IN RESPONSE TO MQTT SCAN 
-		#	log "${GREEN}[INSTRUCT]	${NC}Time Trigger${NC}"
+		elif [ "$cmd" == "TIME" ]; then 
+			#IN RESPONSE TO TIME SCAN
+
+			#HAS THE ENVIRONMENT CHANGED? 
+			changes_settled=$((timestamp - random_device_last_update))
+
+			if [ "$changes_settled" -gt "15" ]; then 
+				log "${GREEN}[INSTRUCT]	${NC}Environment has settled down.${NC}"
+
+			fi 
+
+			continue
 
 		elif [ "$cmd" == "PUBL" ]; then 
 			#PARSE RECEIVED DATA
@@ -763,6 +781,7 @@ while true; do
 		#	
 		#
 		#**********************************************************************
+		
 		#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
 		random_bias=0
 		for key in "${!random_device_log[@]}"; do
@@ -778,9 +797,12 @@ while true; do
 			[ -z "$last_seen" ] && continue 
 
 			#TIMEOUT AFTER 120 SECONDS
-			if [ "$difference" -gt "$((90 + random_bias))" ]; then 
+			if [ "$difference" -gt "$((120 + random_bias))" ]; then 
 				unset random_device_log[$key]
 				log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
+
+				#UPDATE TIMESTAMP
+				random_device_last_update=$(date +%s)
 
 				#ADD TO THE EXPIRED LOG
 				expired_device_log[$key]=$timestamp
@@ -802,7 +824,7 @@ while true; do
 			[ -z "$last_seen" ] && continue 
 
 			#TIMEOUT AFTER 120 SECONDS
-			if [ "$difference" -gt "$(( 120 + beacon_bias ))" ]; then 
+			if [ "$difference" -gt "$(( 150 + beacon_bias ))" ]; then 
 				unset beacon_device_log[$key]
 				log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds BEAC_NUM: ${#beacon_device_log[@]}  ${NC}"
 
