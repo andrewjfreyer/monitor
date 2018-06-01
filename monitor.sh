@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.162
+version=0.1.163
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -171,9 +171,11 @@ mkfifo scan_pipe
 declare -A static_device_log
 declare -A random_device_log
 declare -A beacon_device_log
+declare -A known_device_log
 
 #LAST TIME THIS 
 random_device_last_update=$(date +%s)
+next_scan_type=""
 
 #DEFINE PERFORMANCE TRACKING/IMRROVEMENT VARS
 declare -A expired_device_log
@@ -366,7 +368,7 @@ periodic_trigger (){
 	echo "TIME trigger started" >&2 
 	#MQTT LOOP
 	while : ; do 
-		sleep 5
+		sleep 1
 		echo "TIME" > main_pipe
 	done
 }
@@ -573,6 +575,39 @@ publish_message () {
 }
 
 # ----------------------------------------------------------------------------------------
+# REFRESH KNOWN DEVICE STATES
+# ----------------------------------------------------------------------------------------
+refresh_global_states() {
+	local all_present=false
+	local all_absent=true
+
+	#PROCESS GLOBAL STATES
+	local state_sum=0
+	for known_addr in "${!known_static_addresses[@]}"; do 
+		local state=known_device_log[$known_addr]
+		state_sum=$((state + state_sum))
+	done
+
+	#DETERMINE GLOBALS FROM STATE SUM
+	case $state_sum in
+		"0")
+			all_absent=true
+			all_present=false
+			;;
+		"$device_count")
+			all_absent=false
+			all_present=true
+			;;
+		*)
+			all_absent=false
+			all_present=false
+			;;
+	esac
+
+	echo "$all_present $all_absent"
+}
+
+# ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
 # ----------------------------------------------------------------------------------------
 clean() {
@@ -641,9 +676,6 @@ while true; do
 				cmd="PUBL"
 				unset random_device_log[$data]
 
-				#UPDATE TIMESTAMP
-				random_device_last_update=$(date +%s)
-
 				#IS THIS A NEW STATIC DEVICE?
 				[ -z "${static_device_log[$data]}" ] && is_new=true
 				static_device_log[$data]="$timestamp"
@@ -654,9 +686,6 @@ while true; do
 
 				#ONLY ADD THIS TO THE DEVICE LOG 
 				random_device_log[$data]="$timestamp"
-
-				#UPDATE TIMESTAMP
-				random_device_last_update=$(date +%s)
 			fi 
 		elif [ "$cmd" == "MQTT" ]; then 
 			#IN RESPONSE TO MQTT SCAN 
@@ -668,9 +697,8 @@ while true; do
 			#HAS THE ENVIRONMENT CHANGED? 
 			changes_settled=$((timestamp - random_device_last_update))
 
-			if [ "$changes_settled" -gt "15" ]; then 
-				log "${GREEN}[INSTRUCT]	${NC}Environment has settled down.${NC}"
-
+			if [ "$changes_settled" -gt "3" ]; then 
+				log "${GREEN}[INSTRUCT]	${NC}Awaiting environment changes. $next_scan_type ${NC}"
 			fi 
 
 			continue
@@ -693,8 +721,24 @@ while true; do
 			name=$(echo "$data" | awk -F "|" '{print $2}')
 			data="$mac"
 
+			#PREVIOUS STATE
+			previous_state="${known_device_log[$mac]}"
+			[ -z "$previous_state" ] && previous_state=0
+
 			#GET MANUFACTURER INFORMATION
 			manufacturer="$(determine_manufacturer $data)"
+
+			#IF NAME IS DISCOVERED, PRESUME HOME
+			if [ ! -z "$name" ]; then 
+				known_device_log[$mac]=1
+				[ "$previous_state" == "0" ] && did_change=true
+			else
+				known_device_log[$mac]=0
+				[ "$previous_state" == "1" ] && did_change=true
+			fi 
+
+			#MUST REFRESH GLOBAL STATES; DID WE HAVE A CHANGE
+			refresh_global_states
 
 		elif [ "$cmd" == "BEAC" ]; then 
 			#DATA IS DELIMITED BY VERTICAL PIPE
@@ -771,6 +815,7 @@ while true; do
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
+			next_scan_type="ARRIVE_SCAN"
 		fi 
 
 		#**********************************************************************
@@ -803,6 +848,7 @@ while true; do
 
 				#UPDATE TIMESTAMP
 				random_device_last_update=$(date +%s)
+				next_scan_type="DEPARTURE_SCAN"
 
 				#ADD TO THE EXPIRED LOG
 				expired_device_log[$key]=$timestamp
