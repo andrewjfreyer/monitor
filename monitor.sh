@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.165
+version=0.1.166
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -362,7 +362,7 @@ mqtt_listener (){
 	#MQTT LOOP
 	while read instruction; do 
 		echo "MQTT$instruction" > main_pipe 
-	done < <($(which mosquitto_sub) -v -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan") 
+	done < <($(which mosquitto_sub) -v -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/#") 
 }
 
 # ----------------------------------------------------------------------------------------
@@ -689,7 +689,27 @@ while true; do
 			fi 
 		elif [ "$cmd" == "MQTT" ]; then 
 			#IN RESPONSE TO MQTT SCAN 
-			log "${GREEN}[INSTRUCT]	${NC}MQTT Trigger${NC}"
+			log "${GREEN}[INSTRUCT]	${NC}MQTT Trigger $data${NC}"
+
+			#GET INSTRUCTION 
+			mqtt_instruction=$(basename $data)
+
+			#NORMALIZE TO UPPERCASE
+			mqtt_instruction=${mqtt_instruction^^}
+
+			if [ "$mqtt_instruction" == "ARRIVE" ]; then 
+				#SET SCAN TYPE
+				next_scan_type="ARRIVAL_SCAN"
+
+			elif [ "$mqtt_instruction" == "DEPART" ]; then 
+
+				#SET SCAN TYPE
+				next_scan_type="DEPARTURE_SCAN"
+
+			else 
+				#SET SCAN TYPE
+				next_scan_type="SCAN_ALL"
+			fi 
 
 		elif [ "$cmd" == "TIME" ]; then 
 			#IN RESPONSE TO TIME SCAN
@@ -704,7 +724,7 @@ while true; do
 			elif [ "$changes_settled" -gt "5" ]; then 
 			
 				#ANALYZE GLOBAL STATE
-				if [ "$all_present" == true ] && [ "$next_scan_type" == "ARRIVE_SCAN" ]; then 
+				if [ "$all_present" == true ] && [ "$next_scan_type" == "ARRIVAL_SCAN" ]; then 
 					#CLEAR SCAN TYPE
 					next_scan_type=""
 
@@ -720,7 +740,7 @@ while true; do
 
 			#PRINT IF WE ARE AWAITING ENVIRONMENTAL CHANGES
 			if [ -z "$next_scan_type" ]; then 
-				log "${GREEN}[INSTRUCT]	${NC}Awaiting environment changes. ${NC}"
+				log "${GREEN}[INSTRUCT]	${NC}Awaiting next environment change... ${NC}"
 			else
 				log "${GREEN}[INSTRUCT]	${NC}Need to trigger $next_scan_type. ${NC}"
 			fi 
@@ -839,7 +859,7 @@ while true; do
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
-			next_scan_type="ARRIVE_SCAN"
+			next_scan_type="ARRIVAL_SCAN"
 		fi 
 
 		#**********************************************************************
