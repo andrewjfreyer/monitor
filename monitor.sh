@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.160
+version=0.1.161
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -295,8 +295,6 @@ btle_listener () {
 
 				#SEND TO MAIN LOOP
 				echo "RAND$received_mac_address|$pdu_header|$name_str" > main_pipe
-			else
-				log "${RED}[REJECT]${NC}	$pdu_header"
 			fi 
 
 		fi
