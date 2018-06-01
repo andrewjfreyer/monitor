@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.157
+version=0.1.158
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -288,8 +288,8 @@ btle_listener () {
 			#FILTER TO ADV_IND; EXPERIMENTALLY, THIS IS THE ADV PACKET MOST 
 			#COMMONLY SENT BY APPLE AND ANDROID PHONES TRYING TO ADVERTISE
 			#CONNECTION TO OTHER DEVICES
-
-            if [ "$pdu_header" == "ADV_IND" ]; then 
+			
+            if [ "$pdu_header" == "ADV_IND" ] || [ "$pdu_header" == "ADV_NONCONN_IND" ] ; then 
 				#NAME TO RETURN
 				local name_str="${named_device_log[$received_mac_address]}"
 
