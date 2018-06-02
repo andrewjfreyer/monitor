@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.179
+version=0.1.180
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -540,21 +540,15 @@ refresh_global_states() {
 # ARRIVAL SCAN 
 # ----------------------------------------------------------------------------------------
 arrival_scan () {
-	echo "$LINENO"
 	#DO NOT SCAN IF ALL DEVICES ARE PRESENT
 	[ "$all_present" == true ] && return 0 
 
-	echo "$LINENO"
 	#ITERATE THROUGH THE KNOWN DEVICES 
 	for known_addr in "${known_static_addresses[@]}"; do 
 		
-		echo "$LINENO $known_addr"
-
 		#GET STATE; ONLY SCAN FOR ARRIVED DEVICES
 		local state="${known_device_log[$known_addr]}"
 		[ -z "$state" ] && state=0
-
-		echo "$LINENO - $state"
 
 		#SCAN 
 		if [ "$state" == "0" ]; then 
@@ -660,7 +654,7 @@ while true; do
 
 			if [ "$mqtt_instruction" == "ARRIVE" ]; then 
 				#SET SCAN TYPE
-				arrival_scan &
+				arrival_scan
 
 			elif [ "$mqtt_instruction" == "DEPART" ]; then 
 
@@ -850,7 +844,7 @@ while true; do
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 			
 			#TRIGGER ARRIVAL SCAN 
-			arrival_scan &
+			arrival_scan
 		fi 
 
 	done < main_pipe
