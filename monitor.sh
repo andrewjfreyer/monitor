@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.175
+version=0.1.176
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -545,8 +545,10 @@ arrival_scan () {
 
 	#ITERATE THROUGH THE KNOWN DEVICES 
 	for known_addr in "${!known_static_addresses[@]}"; do 
+		
 		#GET STATE; ONLY SCAN FOR ARRIVED DEVICES
 		local state=known_device_log[$known_addr]
+		[ -z "$state" ] && state=0
 
 		#SCAN 
 		if [ "$state" == "0" ]; then 
