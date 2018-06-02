@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.188
+version=0.1.189
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -557,11 +557,27 @@ arrival_scan_list () {
 		#SCAN 
 		if [ "$state" == "0" ]; then 
 			#ASSEMBLE LIST OF DEVICE 
-			arrival_scan_list=$(echo "$arrival_scan_list|$known_addr")
+			arrival_scan_list=$(echo "$arrival_scan_list $known_addr")
 		fi 
 	done
 
-	echo "$arrival_scan_list" | sed 's/^|//g'
+	echo "$arrival_scan_list" | sed 's/^ //g'
+}
+
+# ----------------------------------------------------------------------------------------
+# SCAN FOR DEVICES
+# ----------------------------------------------------------------------------------------
+scan () {
+
+	[ -z "$1" ] && return 0
+
+	#ITERATE THROUGH THE KNOWN DEVICES 
+	for known_addr in $1; do 
+		hcitool name "$known_addr"
+		sleep 3
+	done
+
+	echo "$arrival_scan_list" | sed 's/^ //g'
 }
 
 # ----------------------------------------------------------------------------------------
@@ -843,7 +859,8 @@ while true; do
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 			
 			#TRIGGER ARRIVAL SCAN 
-			echo "$(arrival_scan_list)"
+			list=$(arrival_scan_list)
+			scan "$list" & 
 		fi 
 
 	done < main_pipe
