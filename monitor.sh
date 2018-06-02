@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.176
+version=0.1.177
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -540,22 +540,28 @@ refresh_global_states() {
 # ARRIVAL SCAN 
 # ----------------------------------------------------------------------------------------
 arrival_scan () {
+	echo "$LINENO"
 	#DO NOT SCAN IF ALL DEVICES ARE PRESENT
 	[ "$all_present" == true ] && return 0 
 
+	echo "$LINENO"
 	#ITERATE THROUGH THE KNOWN DEVICES 
 	for known_addr in "${!known_static_addresses[@]}"; do 
 		
+		echo "$LINENO $known_addr"
+
 		#GET STATE; ONLY SCAN FOR ARRIVED DEVICES
 		local state=known_device_log[$known_addr]
 		[ -z "$state" ] && state=0
+
+		echo "$LINENO - $state"
 
 		#SCAN 
 		if [ "$state" == "0" ]; then 
 			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning: ${NC}$mac${NC}"
 
 			#HCISCAN
-			name=$(hcitool name "$mac" | grep -iE 'input/output error|invalid device|invalid|error')
+			name=$(hcitool name "$known_addr" | grep -iE 'input/output error|invalid device|invalid|error')
 
 			#DELAY BETWEEN NEXT SCAN
 			sleep 3
