@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.174
+version=0.1.175
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -541,7 +541,7 @@ refresh_global_states() {
 # ----------------------------------------------------------------------------------------
 arrival_scan () {
 	#DO NOT SCAN IF ALL DEVICES ARE PRESENT
-	[ "$all_present" == true] && return 0 
+	[ "$all_present" == true ] && return 0 
 
 	#ITERATE THROUGH THE KNOWN DEVICES 
 	for known_addr in "${!known_static_addresses[@]}"; do 
