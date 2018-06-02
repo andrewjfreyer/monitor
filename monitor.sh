@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.184
+version=0.1.185
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -852,7 +852,7 @@ while true; do
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 			
 			#TRIGGER ARRIVAL SCAN 
-			arrival_scan &
+			arrival_scan
 		fi 
 
 	done < main_pipe
