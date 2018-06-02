@@ -557,10 +557,15 @@ arrival_scan () {
 			#HCISCAN
 			name=$(hcitool name "$known_addr" | grep -iE 'input/output error|invalid device|invalid|error')
 
-			echo '$name'
+			echo "$name"
 
 			#IF WE HAVE A NAME, WE HAVE FOUND AN ARRIVED DEVICE
-			[ ! -z "$name" ] && known_device_log[$known_addr]=1 && break
+			if [ ! -z "$name" ]; then 
+
+				#SET THE STATUS
+				known_device_log[$known_addr]=1
+				break
+			fi 
 
 			#DELAY BETWEEN NEXT SCAN
 			sleep 3
