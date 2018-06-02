@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.170
+version=0.1.171
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -372,7 +372,7 @@ periodic_trigger (){
 	echo "TIME trigger started" >&2 
 	#MQTT LOOP
 	while : ; do 
-		sleep 1
+		sleep 15
 		echo "TIME" > main_pipe
 	done
 }
@@ -408,7 +408,6 @@ determine_manufacturer () {
 # ----------------------------------------------------------------------------------------
 # EXTRACT GENERAL ACCESS PROFILE NAME
 # ----------------------------------------------------------------------------------------
-
 gap_name () {
 	#SET PACKET FROM INPUT
 	local packet="$1"
@@ -712,42 +711,67 @@ while true; do
 			fi 
 
 		elif [ "$cmd" == "TIME" ]; then 
-			#IN RESPONSE TO TIME SCAN
 
-			#HAS THE ENVIRONMENT CHANGED? 
-			changes_settled=$((timestamp - random_device_last_update))
+			#**********************************************************************
+			#
+			#
+			#	THE FOLLOWING LOOPS CLEAR CACHES OF ALREADY SEEN DEVICES BASED 
+			#	ON APPROPRIATE TIMEOUT PERIODS FOR THOSE DEVICES. 
+			#	
+			#
+			#**********************************************************************
+				
+			#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
+			random_bias=0
+			for key in "${!random_device_log[@]}"; do
+				#GET BIAS
+				random_bias=${device_expiration_biases[$key]}
+				[ -z "$random_bias" ] && random_bias=0 
 
-			if [ "$changes_settled" -gt "5" ]; then 
-				#CLEAR SCAN TYPE AFTER FIFTEEN SECONDS 
-				next_scan_type=""
+				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
+				last_seen=${random_device_log[$key]}
+				difference=$((timestamp - last_seen))
 
-			elif [ "$changes_settled" -gt "2" ]; then 
-			
-				#ANALYZE GLOBAL STATE
-				if [ "$all_present" == true ] && [ "$next_scan_type" == "ARRIVAL_SCAN" ]; then 
-					#CLEAR SCAN TYPE
-					next_scan_type=""
+				#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
+				[ -z "$last_seen" ] && continue 
 
-				elif [ "$all_absent" == true ] && [ "$next_scan_type" == "DEPARTURE_SCAN" ]; then 
-					#CLEAR SCAN TYPE
-					next_scan_type=""
+				#TIMEOUT AFTER 120 SECONDS
+				if [ "$difference" -gt "$((120 + random_bias))" ]; then 
+					unset random_device_log[$key]
+					log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
 
-				fi  
-			else
-				continue
-			fi 
+					#UPDATE TIMESTAMP
+					random_device_last_update=$(date +%s)
+					next_scan_type="DEPARTURE_SCAN"
 
-			#PRINT IF WE ARE AWAITING ENVIRONMENTAL CHANGES
-			if [ -z "$next_scan_type" ]; then 
-				log "${GREEN}[INSTRUCT]	${NC}Awaiting next environment change... ${NC}"
-			else
-				log "${GREEN}[INSTRUCT]	${NC}Need to trigger $next_scan_type. ${NC}"
-			fi 
+					#ADD TO THE EXPIRED LOG
+					expired_device_log[$key]=$timestamp
+				fi 
+			done
 
-			#SHOULD NOT BE NECESSARY
-			next_scan_type=""
+			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
+			beacon_bias=0
+			for key in "${!beacon_device_log[@]}"; do
+				#GET BIAS
+				beacon_bias=${device_expiration_biases[$key]}
+				[ -z "$beacon_bias" ] && beacon_bias=0 
 
-			continue
+				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
+				last_seen=${beacon_device_log[$key]}
+				difference=$((timestamp - last_seen))
+
+				#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
+				[ -z "$last_seen" ] && continue 
+
+				#TIMEOUT AFTER 120 SECONDS
+				if [ "$difference" -gt "$(( 150 + beacon_bias ))" ]; then 
+					unset beacon_device_log[$key]
+					log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds BEAC_NUM: ${#beacon_device_log[@]}  ${NC}"
+
+					#ADD TO THE EXPIRED LOG
+					expired_device_log[$key]=$timestamp
+				fi 
+			done
 
 		elif [ "$cmd" == "PUBL" ]; then 
 			#PARSE RECEIVED DATA
@@ -865,66 +889,11 @@ while true; do
 			random_device_last_update=$(date +%s)
 		fi 
 
-		#**********************************************************************
-		#
-		#
-		#	THE FOLLOWING LOOPS CLEAR CACHES OF ALREADY SEEN DEVICES BASED 
-		#	ON APPROPRIATE TIMEOUT PERIODS FOR THOSE DEVICES. 
-		#	
-		#
-		#**********************************************************************
+
+
+
 		
-		#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
-		random_bias=0
-		for key in "${!random_device_log[@]}"; do
-			#GET BIAS
-			random_bias=${device_expiration_biases[$key]}
-			[ -z "$random_bias" ] && random_bias=0 
-
-			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-			last_seen=${random_device_log[$key]}
-			difference=$((timestamp - last_seen))
-
-			#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
-			[ -z "$last_seen" ] && continue 
-
-			#TIMEOUT AFTER 120 SECONDS
-			if [ "$difference" -gt "$((120 + random_bias))" ]; then 
-				unset random_device_log[$key]
-				log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
-
-				#UPDATE TIMESTAMP
-				random_device_last_update=$(date +%s)
-				next_scan_type="DEPARTURE_SCAN"
-
-				#ADD TO THE EXPIRED LOG
-				expired_device_log[$key]=$timestamp
-			fi 
-		done
-
-		#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
-		beacon_bias=0
-		for key in "${!beacon_device_log[@]}"; do
-			#GET BIAS
-			beacon_bias=${device_expiration_biases[$key]}
-			[ -z "$beacon_bias" ] && beacon_bias=0 
-
-			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-			last_seen=${beacon_device_log[$key]}
-			difference=$((timestamp - last_seen))
-
-			#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
-			[ -z "$last_seen" ] && continue 
-
-			#TIMEOUT AFTER 120 SECONDS
-			if [ "$difference" -gt "$(( 150 + beacon_bias ))" ]; then 
-				unset beacon_device_log[$key]
-				log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds BEAC_NUM: ${#beacon_device_log[@]}  ${NC}"
-
-				#ADD TO THE EXPIRED LOG
-				expired_device_log[$key]=$timestamp
-			fi 
-		done
+		
 
 	done < main_pipe
 done
