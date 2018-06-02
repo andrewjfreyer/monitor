@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.166
+version=0.1.167
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -717,8 +717,8 @@ while true; do
 			#HAS THE ENVIRONMENT CHANGED? 
 			changes_settled=$((timestamp - random_device_last_update))
 
-			if [ "$changes_settled" -gt "10" ]; then 
-				#CLEAR SCAN TYPE AFTER FIVE SECONDS 
+			if [ "$changes_settled" -gt "15" ]; then 
+				#CLEAR SCAN TYPE AFTER FIFTEEN SECONDS 
 				next_scan_type=""
 
 			elif [ "$changes_settled" -gt "5" ]; then 
@@ -731,11 +731,9 @@ while true; do
 				elif [ "$all_absent" == true ] && [ "$next_scan_type" == "DEPARTURE_SCAN" ]; then 
 					#CLEAR SCAN TYPE
 					next_scan_type=""
-
-				elif [ "$all_absent" == true ] && [ "$all_present" == true ]; then 
-					#MASSIVE ERROR IF WE ARE EVER HERE; SHOULD NEVER BE HERE
-					next_scan_type=""
 				fi  
+			else
+				continue
 			fi 
 
 			#PRINT IF WE ARE AWAITING ENVIRONMENTAL CHANGES
@@ -744,6 +742,9 @@ while true; do
 			else
 				log "${GREEN}[INSTRUCT]	${NC}Need to trigger $next_scan_type. ${NC}"
 			fi 
+
+			#SHOULD NOT BE NECESSARY
+			next_scan_type=""
 
 			continue
 
