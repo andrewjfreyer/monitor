@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.173
+version=0.1.174
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -541,7 +541,7 @@ refresh_global_states() {
 # ----------------------------------------------------------------------------------------
 arrival_scan () {
 	#DO NOT SCAN IF ALL DEVICES ARE PRESENT
-	[ "$all_present" ] && return 0 
+	[ "$all_present" == true] && return 0 
 
 	#ITERATE THROUGH THE KNOWN DEVICES 
 	for known_addr in "${!known_static_addresses[@]}"; do 
@@ -587,7 +587,6 @@ bluetooth_scanner &
 mqtt_listener &
 btle_listener &
 periodic_trigger & 
-public_device_scanner & 
 
 # ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
