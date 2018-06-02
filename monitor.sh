@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.177
+version=0.1.178
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -514,7 +514,7 @@ refresh_global_states() {
 	
 	#PROCESS GLOBAL STATES
 	local state_sum=0
-	for known_addr in "${!known_static_addresses[@]}"; do 
+	for known_addr in "${known_static_addresses[@]}"; do 
 		local state=known_device_log[$known_addr]
 		state_sum=$((state + state_sum))
 	done
@@ -546,7 +546,7 @@ arrival_scan () {
 
 	echo "$LINENO"
 	#ITERATE THROUGH THE KNOWN DEVICES 
-	for known_addr in "${!known_static_addresses[@]}"; do 
+	for known_addr in "${known_static_addresses[@]}"; do 
 		
 		echo "$LINENO $known_addr"
 
