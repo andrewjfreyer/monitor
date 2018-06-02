@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.168
+version=0.1.170
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -372,7 +372,7 @@ periodic_trigger (){
 	echo "TIME trigger started" >&2 
 	#MQTT LOOP
 	while : ; do 
-		sleep 2
+		sleep 1
 		echo "TIME" > main_pipe
 	done
 }
@@ -689,7 +689,7 @@ while true; do
 			fi 
 		elif [ "$cmd" == "MQTT" ]; then 
 			#IN RESPONSE TO MQTT SCAN 
-			log "${GREEN}[INSTRUCT]	${NC}MQTT Trigger $data${NC}"
+			#log "${GREEN}[INSTRUCT]	${NC}MQTT Trigger $data${NC}"
 
 			#GET INSTRUCTION 
 			mqtt_instruction=$(basename $data)
@@ -717,11 +717,11 @@ while true; do
 			#HAS THE ENVIRONMENT CHANGED? 
 			changes_settled=$((timestamp - random_device_last_update))
 
-			if [ "$changes_settled" -gt "15" ]; then 
+			if [ "$changes_settled" -gt "5" ]; then 
 				#CLEAR SCAN TYPE AFTER FIFTEEN SECONDS 
 				next_scan_type=""
-				
-			elif [ "$changes_settled" -gt "5" ]; then 
+
+			elif [ "$changes_settled" -gt "2" ]; then 
 			
 				#ANALYZE GLOBAL STATE
 				if [ "$all_present" == true ] && [ "$next_scan_type" == "ARRIVAL_SCAN" ]; then 
