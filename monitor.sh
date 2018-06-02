@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.180
+version=0.1.181
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -556,6 +556,9 @@ arrival_scan () {
 
 			#HCISCAN
 			name=$(hcitool name "$known_addr" | grep -iE 'input/output error|invalid device|invalid|error')
+
+			#IF WE HAVE A NAME, WE HAVE FOUND AN ARRIVED DEVICE
+			[ ! -z "$name" ] && break
 
 			#DELAY BETWEEN NEXT SCAN
 			sleep 3
