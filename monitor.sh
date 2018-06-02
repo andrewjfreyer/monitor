@@ -536,12 +536,13 @@ refresh_global_states() {
 	esac
 }
 
+
 # ----------------------------------------------------------------------------------------
-# ARRIVAL SCAN 
+# ARRIVAL SCAN LIST
 # ----------------------------------------------------------------------------------------
-arrival_scan () {
-	#GET THE LOCAL DEVICE LOG
-	local local_known_device_log=("$@")
+arrival_scan_list () {
+
+	local arrival_scan_list=""
 
 	#DO NOT SCAN IF ALL DEVICES ARE PRESENT
 	[ "$all_present" == true ] && return 0 
@@ -550,28 +551,17 @@ arrival_scan () {
 	for known_addr in "${known_static_addresses[@]}"; do 
 		
 		#GET STATE; ONLY SCAN FOR ARRIVED DEVICES
-		local state="${local_known_device_log[$known_addr]}"
+		local state="${known_device_log[$known_addr]}"
 		[ -z "$state" ] && state=0
 
 		#SCAN 
 		if [ "$state" == "0" ]; then 
-			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning: ${NC}$known_addr${NC}"
-
-			#HCISCAN
-			name=$(hcitool name "$known_addr" | grep -ivE 'input/output error|invalid device|invalid|error')
-
-			#IF WE HAVE A NAME, WE HAVE FOUND AN ARRIVED DEVICE
-			if [ ! -z "$name" ]; then 
-
-				#SET THE STATUS
-				known_device_log[$known_addr]=1
-				break
-			fi 
-
-			#DELAY BETWEEN NEXT SCAN
-			sleep 3
+			#ASSEMBLE LIST OF DEVICE 
+			arrival_scan_list=$(echo "$arrival_scan_list|known_addr")
 		fi 
 	done
+
+	echo "$arrival_scan_list" | sed 's/^|//g'
 }
 
 # ----------------------------------------------------------------------------------------
@@ -665,7 +655,7 @@ while true; do
 
 			if [ "$mqtt_instruction" == "ARRIVE" ]; then 
 				#SET SCAN TYPE
-				arrival_scan "${known_device_log[@]}" &
+				arrival_scan
 
 			elif [ "$mqtt_instruction" == "DEPART" ]; then 
 
@@ -828,7 +818,6 @@ while true; do
 		#
 		#**********************************************************************
 
-
 		#ECHO VALUES FOR DEBUGGING
 		if [ "$cmd" == "NAME" ] ; then 
 			
@@ -838,7 +827,6 @@ while true; do
 			
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN} $debug_name ${NC} $manufacturer${NC}"
-		
 		
 		elif [ "$cmd" == "BEAC" ] && [ "$is_new" == true ] ; then 
 			#PRINTING FORMATING
@@ -855,7 +843,7 @@ while true; do
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 			
 			#TRIGGER ARRIVAL SCAN 
-			arrival_scan "${known_device_log[@]}" & 
+			echo "$(arrival_scan_list)"
 		fi 
 
 	done < main_pipe
