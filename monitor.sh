@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.178
+version=0.1.179
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -558,7 +558,7 @@ arrival_scan () {
 
 		#SCAN 
 		if [ "$state" == "0" ]; then 
-			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning: ${NC}$mac${NC}"
+			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning: ${NC}$known_addr${NC}"
 
 			#HCISCAN
 			name=$(hcitool name "$known_addr" | grep -iE 'input/output error|invalid device|invalid|error')
@@ -660,7 +660,7 @@ while true; do
 
 			if [ "$mqtt_instruction" == "ARRIVE" ]; then 
 				#SET SCAN TYPE
-				arrival_scan
+				arrival_scan &
 
 			elif [ "$mqtt_instruction" == "DEPART" ]; then 
 
@@ -850,7 +850,7 @@ while true; do
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 			
 			#TRIGGER ARRIVAL SCAN 
-			arrival_scan
+			arrival_scan &
 		fi 
 
 	done < main_pipe
