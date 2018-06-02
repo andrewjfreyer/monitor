@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.183
+version=0.1.184
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -555,9 +555,7 @@ arrival_scan () {
 			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning: ${NC}$known_addr${NC}"
 
 			#HCISCAN
-			name=$(hcitool name "$known_addr" | grep -iE 'input/output error|invalid device|invalid|error')
-
-			echo "$name"
+			name=$(hcitool name "$known_addr" | grep -ivE 'input/output error|invalid device|invalid|error')
 
 			#IF WE HAVE A NAME, WE HAVE FOUND AN ARRIVED DEVICE
 			if [ ! -z "$name" ]; then 
