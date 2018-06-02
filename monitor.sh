@@ -515,7 +515,7 @@ refresh_global_states() {
 	#PROCESS GLOBAL STATES
 	local state_sum=0
 	for known_addr in "${known_static_addresses[@]}"; do 
-		local state=known_device_log[$known_addr]
+		local state="${known_device_log[$known_addr]}"
 		state_sum=$((state + state_sum))
 	done
 
@@ -551,7 +551,7 @@ arrival_scan () {
 		echo "$LINENO $known_addr"
 
 		#GET STATE; ONLY SCAN FOR ARRIVED DEVICES
-		local state=known_device_log[$known_addr]
+		local state="${known_device_log[$known_addr]}"
 		[ -z "$state" ] && state=0
 
 		echo "$LINENO - $state"
