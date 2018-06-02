@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.167
+version=0.1.168
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -720,6 +720,7 @@ while true; do
 			if [ "$changes_settled" -gt "15" ]; then 
 				#CLEAR SCAN TYPE AFTER FIFTEEN SECONDS 
 				next_scan_type=""
+				echo "				$LINENO"
 
 			elif [ "$changes_settled" -gt "5" ]; then 
 			
@@ -727,10 +728,14 @@ while true; do
 				if [ "$all_present" == true ] && [ "$next_scan_type" == "ARRIVAL_SCAN" ]; then 
 					#CLEAR SCAN TYPE
 					next_scan_type=""
+					echo "				$LINENO"
+
 
 				elif [ "$all_absent" == true ] && [ "$next_scan_type" == "DEPARTURE_SCAN" ]; then 
 					#CLEAR SCAN TYPE
 					next_scan_type=""
+					echo "				$LINENO"
+
 				fi  
 			else
 				continue
@@ -745,6 +750,7 @@ while true; do
 
 			#SHOULD NOT BE NECESSARY
 			next_scan_type=""
+			echo "				$LINENO"
 
 			continue
 
