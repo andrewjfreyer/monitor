@@ -557,7 +557,7 @@ arrival_scan_list () {
 		#SCAN 
 		if [ "$state" == "0" ]; then 
 			#ASSEMBLE LIST OF DEVICE 
-			arrival_scan_list=$(echo "$arrival_scan_list|known_addr")
+			arrival_scan_list=$(echo "$arrival_scan_list|$known_addr")
 		fi 
 	done
 
