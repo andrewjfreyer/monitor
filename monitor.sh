@@ -720,21 +720,17 @@ while true; do
 			if [ "$changes_settled" -gt "15" ]; then 
 				#CLEAR SCAN TYPE AFTER FIFTEEN SECONDS 
 				next_scan_type=""
-				echo "				$LINENO"
-
+				
 			elif [ "$changes_settled" -gt "5" ]; then 
 			
 				#ANALYZE GLOBAL STATE
 				if [ "$all_present" == true ] && [ "$next_scan_type" == "ARRIVAL_SCAN" ]; then 
 					#CLEAR SCAN TYPE
 					next_scan_type=""
-					echo "				$LINENO"
-
 
 				elif [ "$all_absent" == true ] && [ "$next_scan_type" == "DEPARTURE_SCAN" ]; then 
 					#CLEAR SCAN TYPE
 					next_scan_type=""
-					echo "				$LINENO"
 
 				fi  
 			else
@@ -750,7 +746,6 @@ while true; do
 
 			#SHOULD NOT BE NECESSARY
 			next_scan_type=""
-			echo "				$LINENO"
 
 			continue
 
@@ -867,6 +862,7 @@ while true; do
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 			next_scan_type="ARRIVAL_SCAN"
+			random_device_last_update=$(date +%s)
 		fi 
 
 		#**********************************************************************
