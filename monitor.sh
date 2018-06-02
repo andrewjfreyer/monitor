@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.171
+version=0.1.172
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -362,7 +362,7 @@ mqtt_listener (){
 	#MQTT LOOP
 	while read instruction; do 
 		echo "MQTT$instruction" > main_pipe 
-	done < <($(which mosquitto_sub) -v -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/#") 
+	done < <($(which mosquitto_sub) -v -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/#" --will-retain --will-topic "$mqtt_topicpath/owner/$mqtt_publisher_identity" --will-payload "{\"status\":\"offline\"}") 
 }
 
 # ----------------------------------------------------------------------------------------
@@ -372,7 +372,7 @@ periodic_trigger (){
 	echo "TIME trigger started" >&2 
 	#MQTT LOOP
 	while : ; do 
-		sleep 15
+		sleep 10
 		echo "TIME" > main_pipe
 	done
 }
@@ -479,76 +479,6 @@ pdu_type () {
 	echo "$pdu_type_str"
 }
 
-
-# ----------------------------------------------------------------------------------------
-# PUBLIC DEVICE ADDRESS SCAN LOOP
-# ----------------------------------------------------------------------------------------
-public_device_scanner () {
-	echo "PUBL scanner started" >&2 
-	local scan_event_received=false
-
-	#PUBLIC DEVICE SCANNER LOOP
-	while true; do 
-		#SET SCAN EVENT
-		scan_event_received=false
-
-		#READ FROM THE MAIN PIPE
-		while read scan_event; do 
-			#SET SCAN EVENT RECEIVED
-			scan_event_received=true
-
-			#ONLY SCAN FOR PROPERLY-FORMATTED MAC ADDRESSES
-			local mac=$(echo "$scan_event" | awk -F "|" '{print $1}' | grep -ioE "([0-9a-f]{2}:){5}[0-9a-f]{2}")
-			local previous_status=$( echo "$scan_event" | awk -F "|" '{print $2}' | grep -ioE  "[0-9]{1,")
-
-			#HAS THIS DEVICE BEEN SCANNED PREVIOUSLY? 
-			[ -z "$previous_status" ] && previous_status=0
-
-			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning: ${NC}$mac${NC}"
-
-			#HCISCAN
-			name=$(hcitool name "$mac" | grep -iE 'input/output error|invalid device|invalid|error')
-
-			#DELAY BETWEEN SCANS
-			sleep 3
-
-			#IF WE HAVE A BLANK NAME AND THE PREVIOUS STATE OF THIS PUBLIC MAC ADDRESS
-			#WAS A NON-ZERO VALUE, THEN WE PROCEED INTO A VERIFICATION LOOP
-			if [ -z "$name" ]; then 
-				if [ "$previous_status" -gt "0" ]; then  
-					#SHOULD VERIFY ABSENSE
-					for repetition in $(seq 1 4); do 
-						#DEBUGGING
-						log "${GREEN}[CMD-VERI]	${GREEN}Verify: ${NC}$mac${NC}"
-
-						#HCISCAN
-						name=$(hcitool name "$mac" | grep -iE 'input/output error|invalid device|invalid|error')
-
-						#BREAK IF NAME IS FOUND
-						[ ! -z "$name" ] && break
-
-						#DELAY BETWEEN SCANS
-						sleep 3
-					done
-				fi  
-			fi 
-
-			#SCAN FORMATTING; REVERSE MAC ADDRESS FOR BIG ENDIAN
-			#hcitool cmd 0x01 0x0019 $(echo "$mac" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
-
-			#TESTING
-			log "${GREEN}[CMD-SCAN]	${GREEN}Complete: ${NC}$mac${NC}"
-
-			#SLEEP AGAIN; DO NOT SCAN TOO FREQUENTLY
-			sleep 2
-
-		done < scan_pipe
-
-		#PREVENT UNNECESSARILY FAST LOOPING
-		[ "$scan_event_received" == false ] && sleep 1
-	done 
-}
-
 # ----------------------------------------------------------------------------------------
 # PUBLISH MESSAGE
 # ----------------------------------------------------------------------------------------
@@ -604,6 +534,27 @@ refresh_global_states() {
 			all_present=false
 			;;
 	esac
+}
+
+# ----------------------------------------------------------------------------------------
+# ARRIVAL SCAN 
+# ----------------------------------------------------------------------------------------
+arrival_scan () {
+	for known_addr in "${!known_static_addresses[@]}"; do 
+		#GET STATE; ONLY SCAN FOR ARRIVED DEVICES
+		local state=known_device_log[$known_addr]
+
+		#SCAN 
+		if [ "$state" == "0" ]; then 
+			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning: ${NC}$mac${NC}"
+
+			#HCISCAN
+			name=$(hcitool name "$mac" | grep -iE 'input/output error|invalid device|invalid|error')
+
+			#DELAY BETWEEN NEXT SCAN
+			sleep 3
+		fi 
+	done
 }
 
 # ----------------------------------------------------------------------------------------
@@ -872,15 +823,16 @@ while true; do
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN} $debug_name ${NC} $manufacturer${NC}"
 		
+		
 		elif [ "$cmd" == "BEAC" ] && [ "$is_new" == true ] ; then 
 			#PRINTING FORMATING
 			debug_name="$name"
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 		
 			log "${GREEN}[CMD-$cmd]	${GREEN}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
-		fi 
-
-		if [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
+		
+		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
+		
 			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header $name $manufacturer PUBL_NUM: ${#static_device_log[@]}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
@@ -888,12 +840,6 @@ while true; do
 			next_scan_type="ARRIVAL_SCAN"
 			random_device_last_update=$(date +%s)
 		fi 
-
-
-
-
-		
-		
 
 	done < main_pipe
 done
