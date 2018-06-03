@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.195
+version=0.1.196
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -598,13 +598,16 @@ scan_for_arrival () {
 
 			#IF WE SEE THIS DEVICE FOR THE FIRST TIME, BREAK THE LOOP
 			if [ ! -z "$name" ]; then 
+				echo "DONE" > main_pipe
 				return 1
 			fi 
 
 			sleep 3
 		done
 	done 
-	#IF WE HAVE REACHED HERE, WE NEED TO VERIFY 
+
+	#SEND DONE
+	echo "DONE" > main_pipe
 }
 
 # ----------------------------------------------------------------------------------------
@@ -686,6 +689,12 @@ while true; do
 				#ONLY ADD THIS TO THE DEVICE LOG 
 				random_device_log[$data]="$timestamp"
 			fi
+
+		elif [ "$cmd" == "DONE" ]; then 
+
+			#REST SCAN MODE
+			currently_scanning=false
+			continue
 
 		elif [ "$cmd" == "MQTT" ]; then 
 			#IN RESPONSE TO MQTT SCAN 
