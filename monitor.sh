@@ -597,9 +597,11 @@ scan_for_arrival () {
 
 			#IF WE SEE THIS DEVICE FOR THE FIRST TIME, BREAK THE LOOP
 			if [ ! -z "$name" ]; then 
-				echo "HERE $repetition"
+				echo "HERE $repetition" >&2
 				return 1
 			fi 
+
+			echo "$name " >&2
 			sleep 3
 		done
 	done 
