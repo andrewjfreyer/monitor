@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.189
+version=0.1.190
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -567,17 +567,25 @@ arrival_scan_list () {
 # ----------------------------------------------------------------------------------------
 # SCAN FOR DEVICES
 # ----------------------------------------------------------------------------------------
-scan () {
-
+scan_for_arrival () {
+	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
 	[ -z "$1" ] && return 0
 
-	#ITERATE THROUGH THE KNOWN DEVICES 
-	for known_addr in $1; do 
-		hcitool name "$known_addr"
-		sleep 3
-	done
+	#REPEAT THROUGH ALL DEVICES THREE TIMES, THEN RETURN 
+	local repetitions=3
 
-	echo "$arrival_scan_list" | sed 's/^ //g'
+	#ITERATE THROUGH THE KNOWN DEVICES 	
+	for repetition in $(seq 1 $repetitions); 
+		#ITERATE THROUGH THESE 
+		for known_addr in $1; do 
+			local name=$(hcitool name "$known_addr" | grep -iE 'input/output error|invalid device|invalid|error')
+
+			#IF WE SEE THIS DEVICE FOR THE FIRST TIME, BREAK THE LOOP
+			[ ! -z "$name" ] && return 1
+			sleep 3
+		done
+	done 
+	#IF WE HAVE REACHED HERE, WE NEED TO VERIFY 
 }
 
 # ----------------------------------------------------------------------------------------
@@ -860,7 +868,9 @@ while true; do
 			
 			#TRIGGER ARRIVAL SCAN 
 			list=$(arrival_scan_list)
-			scan "$list" & 
+
+			#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
+			scan_for_arrival "$list" & 
 		fi 
 
 	done < main_pipe
