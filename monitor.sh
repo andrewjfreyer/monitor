@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.190
+version=0.1.191
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -172,6 +172,7 @@ declare -A static_device_log
 declare -A random_device_log
 declare -A beacon_device_log
 declare -A known_device_log
+declare -A known_device_scan_log
 
 #LAST TIME THIS 
 random_device_last_update=$(date +%s)
@@ -540,9 +541,12 @@ refresh_global_states() {
 # ----------------------------------------------------------------------------------------
 # ARRIVAL SCAN LIST
 # ----------------------------------------------------------------------------------------
-arrival_scan_list () {
-
-	local arrival_scan_list=""
+assemble_arrival_scan_list () {
+	#VARIABLE HOLDING LIST TO RETURN 
+	local assemble_arrival_scan_list=""
+ 	
+	#TIMESTAMP
+ 	local now=$(date +%s)
 
 	#DO NOT SCAN IF ALL DEVICES ARE PRESENT
 	[ "$all_present" == true ] && return 0 
@@ -554,14 +558,20 @@ arrival_scan_list () {
 		local state="${known_device_log[$known_addr]}"
 		[ -z "$state" ] && state=0
 
-		#SCAN 
-		if [ "$state" == "0" ]; then 
+		#FIND LAST TIME THIS DEVICE WAS SCANNED
+		local last_scan="${known_device_scan_log[$known_addr]}"
+		local time_diff=$((now - last_scan))
+
+		#SCAN IF DEVICE IS NOT PRESENT AND HAS NOT BEEN SCANNED 
+		#WITHIN LAST [X] SECONDS
+		if [ "$state" == "0" ] && [ "$time_diff" -gt "10" ]; then 
 			#ASSEMBLE LIST OF DEVICE 
-			arrival_scan_list=$(echo "$arrival_scan_list $known_addr")
+			assemble_arrival_scan_list=$(echo "$assemble_arrival_scan_list $known_addr")
 		fi 
 	done
 
-	echo "$arrival_scan_list" | sed 's/^ //g'
+	#RETURN LIST
+	echo "$assemble_arrival_scan_list" | sed 's/^ //g'
 }
 
 # ----------------------------------------------------------------------------------------
@@ -867,7 +877,7 @@ while true; do
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 			
 			#TRIGGER ARRIVAL SCAN 
-			list=$(arrival_scan_list)
+			list=$(assemble_arrival_scan_list)
 
 			#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 			scan_for_arrival "$list" & 
