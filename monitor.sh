@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.194
+version=0.1.195
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -592,16 +592,15 @@ scan_for_arrival () {
 		#ITERATE THROUGH THESE 
 		for known_addr in $1; do 
 			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning: ${NC}$known_addr${NC}"
-			
-			local name=$(hcitool name "$known_addr" | grep -iE 'input/output error|invalid device|invalid|error')
+
+			#GET NAME			
+			local name=$(hcitool name "$known_addr" | grep -ivE 'input/output error|invalid device|invalid|error')
 
 			#IF WE SEE THIS DEVICE FOR THE FIRST TIME, BREAK THE LOOP
 			if [ ! -z "$name" ]; then 
-				echo "HERE $repetition" >&2
 				return 1
 			fi 
 
-			echo "$name " >&2
 			sleep 3
 		done
 	done 
