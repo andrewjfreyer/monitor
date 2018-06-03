@@ -575,7 +575,7 @@ scan_for_arrival () {
 	local repetitions=3
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
-	for repetition in $(seq 1 $repetitions); 
+	for repetition in $(seq 1 $repetitions); do
 		#ITERATE THROUGH THESE 
 		for known_addr in $1; do 
 			local name=$(hcitool name "$known_addr" | grep -iE 'input/output error|invalid device|invalid|error')
