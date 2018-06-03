@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.193
+version=0.1.194
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -551,9 +551,6 @@ assemble_arrival_scan_list () {
 	#TIMESTAMP
  	local now=$(date +%s)
 
- 	#SET GLOBAL SCAN STATE
- 	currently_scanning=true
-
 	#DO NOT SCAN IF ALL DEVICES ARE PRESENT
 	[ "$all_present" == true ] && return 0 
 
@@ -888,6 +885,8 @@ while true; do
 
 			if [ "$currently_scanning" == false ]; then 
 
+			 	#SET GLOBAL SCAN STATE
+			 	currently_scanning=true
 
 				echo "				$currently_scanning"
 
