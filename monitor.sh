@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.196
+version=0.1.197
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -904,7 +904,7 @@ while true; do
 				echo "				$currently_scanning"
 
 				#TRIGGER ARRIVAL SCAN 
-				list=$(assemble_arrival_scan_list)
+				list=assemble_arrival_scan_list
 
 				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 				scan_for_arrival "$list" & 
