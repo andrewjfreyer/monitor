@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.192
+version=0.1.193
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -173,6 +173,9 @@ declare -A random_device_log
 declare -A beacon_device_log
 declare -A known_device_log
 declare -A known_device_scan_log
+
+#DEFINE SCAN STATE
+currently_scanning=false
 
 #LAST TIME THIS 
 random_device_last_update=$(date +%s)
@@ -548,6 +551,9 @@ assemble_arrival_scan_list () {
 	#TIMESTAMP
  	local now=$(date +%s)
 
+ 	#SET GLOBAL SCAN STATE
+ 	currently_scanning=true
+
 	#DO NOT SCAN IF ALL DEVICES ARE PRESENT
 	[ "$all_present" == true ] && return 0 
 
@@ -677,7 +683,8 @@ while true; do
 
 				#ONLY ADD THIS TO THE DEVICE LOG 
 				random_device_log[$data]="$timestamp"
-			fi 
+			fi
+
 		elif [ "$cmd" == "MQTT" ]; then 
 			#IN RESPONSE TO MQTT SCAN 
 			#log "${GREEN}[INSTRUCT]	${NC}MQTT Trigger $data${NC}"
@@ -877,11 +884,15 @@ while true; do
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 			
-			#TRIGGER ARRIVAL SCAN 
-			list=$(assemble_arrival_scan_list)
 
-			#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-			scan_for_arrival "$list" & 
+			if [ "$currently_scanning" == false ]; then 
+
+				#TRIGGER ARRIVAL SCAN 
+				list=$(assemble_arrival_scan_list)
+
+				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
+				scan_for_arrival "$list" & 
+			fi 
 		fi 
 
 	done < main_pipe
