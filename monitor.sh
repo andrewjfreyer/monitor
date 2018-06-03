@@ -554,8 +554,6 @@ assemble_arrival_scan_list () {
  	#SET GLOBAL SCAN STATE
  	currently_scanning=true
 
-	echo "				$currently_scanning"
-
 	#DO NOT SCAN IF ALL DEVICES ARE PRESENT
 	[ "$all_present" == true ] && return 0 
 
@@ -596,6 +594,7 @@ scan_for_arrival () {
 	for repetition in $(seq 1 $repetitions); do
 		#ITERATE THROUGH THESE 
 		for known_addr in $1; do 
+			
 			local name=$(hcitool name "$known_addr" | grep -iE 'input/output error|invalid device|invalid|error')
 			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning: ${NC}$known_addr${NC}"
 
