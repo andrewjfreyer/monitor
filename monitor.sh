@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.198
+version=0.1.199
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -864,10 +864,8 @@ while true; do
 
 			 	#SET GLOBAL SCAN STATE
 			 	currently_scanning=true
+			 	assemble_arrival_scan_list=""
 			 	
-				#TIMESTAMP
-			 	local now=$(date +%s)
-
 				#DO NOT SCAN IF ALL DEVICES ARE PRESENT
 				[ "$all_present" == true ] && return 0 
 
@@ -875,26 +873,27 @@ while true; do
 				for known_addr in "${known_static_addresses[@]}"; do 
 					
 					#GET STATE; ONLY SCAN FOR ARRIVED DEVICES
-					local state="${known_device_log[$known_addr]}"
-					[ -z "$state" ] && state=0
+					this_state="${known_device_log[$known_addr]}"
+					[ -z "$this_state" ] && this_state=0
 
 					#FIND LAST TIME THIS DEVICE WAS SCANNED
-					local last_scan="${known_device_scan_log[$known_addr]}"
-					local time_diff=$((now - last_scan))
+					last_scan="${known_device_scan_log[$known_addr]}"
+					time_diff=$((timestamp - last_scan))
 
 					#SCAN IF DEVICE IS NOT PRESENT AND HAS NOT BEEN SCANNED 
 					#WITHIN LAST [X] SECONDS
-					if [ "$state" == "0" ] && [ "$time_diff" -gt "10" ]; then 
+					if [ "$this_state" == "0" ] && [ "$time_diff" -gt "10" ]; then 
 						#ASSEMBLE LIST OF DEVICE 
 						assemble_arrival_scan_list=$(echo "$assemble_arrival_scan_list $known_addr")
+						known_device_scan_log[$known_addr]=$(date +%s)
 					fi 
 				done
 
 				#RETURN LIST
-				local list=$(echo "$assemble_arrival_scan_list" | sed 's/^ //g')
+				arrive_list=$(echo "$assemble_arrival_scan_list" | sed 's/^ //g')
 				
 				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-				scan_for_arrival "$list" & 
+				scan_for_arrival "$arrive_list" & 
 			fi 
 		fi 
 
