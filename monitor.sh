@@ -554,6 +554,8 @@ assemble_arrival_scan_list () {
  	#SET GLOBAL SCAN STATE
  	currently_scanning=true
 
+	echo "				$currently_scanning"
+
 	#DO NOT SCAN IF ALL DEVICES ARE PRESENT
 	[ "$all_present" == true ] && return 0 
 
@@ -886,6 +888,9 @@ while true; do
 			
 
 			if [ "$currently_scanning" == false ]; then 
+
+
+				echo "				$currently_scanning"
 
 				#TRIGGER ARRIVAL SCAN 
 				list=$(assemble_arrival_scan_list)
