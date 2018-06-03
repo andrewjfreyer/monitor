@@ -591,12 +591,15 @@ scan_for_arrival () {
 	for repetition in $(seq 1 $repetitions); do
 		#ITERATE THROUGH THESE 
 		for known_addr in $1; do 
+			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning: ${NC}$known_addr${NC}"
 			
 			local name=$(hcitool name "$known_addr" | grep -iE 'input/output error|invalid device|invalid|error')
-			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning: ${NC}$known_addr${NC}"
 
 			#IF WE SEE THIS DEVICE FOR THE FIRST TIME, BREAK THE LOOP
-			[ ! -z "$name" ] && return 1
+			if [ ! -z "$name" ]; then 
+				echo "HERE $repetition"
+				return 1
+			fi 
 			sleep 3
 		done
 	done 
