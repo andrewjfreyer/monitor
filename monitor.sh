@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.200
+version=0.1.201
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -565,11 +565,14 @@ scan_for_arrival () {
 
 			#IF WE SEE THIS DEVICE FOR THE FIRST TIME, BREAK THE LOOP
 			if [ ! -z "$name" ]; then 
+				log "${GREEN}[CMD-COMP]	${GREEN}Complete: ${NC}$known_addr = $name${NC}"
+
+				sleep 2
 				echo "DONE" > main_pipe
 				return 1
 			fi 
 
-			sleep 3
+			sleep 5
 		done
 	done 
 
