@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.204
+version=0.1.205
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -532,11 +532,12 @@ scan_for_arrival () {
 
 	#REPEAT THROUGH ALL DEVICES THREE TIMES, THEN RETURN 
 	local repetitions=3
+	local devices="$1"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
 		#ITERATE THROUGH THESE 
-		for known_addr in $1; do 
+		for known_addr in $devices; do 
 
 			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning: ${NC}$known_addr${NC}"
 
@@ -555,8 +556,9 @@ scan_for_arrival () {
 				
 				#SEND NAME TO MAIN PIPE; COULD EXTRACT FROM HCIDUMP, BUT THERE IS A DELAY
 				echo "NAME$known_addr|$name" > main_pipe
-				echo "DONE" > main_pipe
-				return 1
+
+				#THID DEVICE IS FOUND; REMOVE FROM DEVICE LIST
+				devices=$(echo "$devices" | sed "s/$known_addr //g")
 			else
 				echo "NAME$known_addr|" > main_pipe
 			fi 
