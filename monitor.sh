@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.202
+version=0.1.203
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -160,7 +160,7 @@ fi
 sudo hciconfig hci0 down && sudo hciconfig hci0 up
 
 #SETUP MAIN PIPE
-sudo rm main_pipe>/dev/null
+sudo rm main_pipe &>/dev/null
 mkfifo main_pipe
 
 #SETUP SCAN PIPE
@@ -572,7 +572,7 @@ scan_for_arrival () {
 				log "${GREEN}[CMD-COMP]	${GREEN}Complete: ${NC}$known_addr = ${GREEN}$name${NC}"
 				
 				#DUPLICATE THE NAME TO THE MAIN PIPE; NOT NECESSARY, BUT IT'LL WORK
-				echo "NAME$known_addr|$name" > main_pipe
+				echo "NAME$known_addr|Boogers" > main_pipe
 
 				sleep 2
 				echo "DONE" > main_pipe
