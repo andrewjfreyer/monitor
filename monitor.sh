@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.201
+version=0.1.202
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -555,9 +555,13 @@ scan_for_arrival () {
 	for repetition in $(seq 1 $repetitions); do
 		#ITERATE THROUGH THESE 
 		for known_addr in $1; do 
+
 			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning: ${NC}$known_addr${NC}"
 
-			#GET NAME			
+			#GET NAME USING HCITOOL; POSSIBLE USING 0x019 HCI COMMNAD, BUT
+			#HCITOOL HAS BUILT-IN ERROR CHECKING THAT IS USEFUL
+			#hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
+
 			local name=$(hcitool name "$known_addr" | grep -ivE 'input/output error|invalid device|invalid|error')
 
 			#MARK THE ADDRESS AS SCANNED
@@ -565,7 +569,10 @@ scan_for_arrival () {
 
 			#IF WE SEE THIS DEVICE FOR THE FIRST TIME, BREAK THE LOOP
 			if [ ! -z "$name" ]; then 
-				log "${GREEN}[CMD-COMP]	${GREEN}Complete: ${NC}$known_addr = $name${NC}"
+				log "${GREEN}[CMD-COMP]	${GREEN}Complete: ${NC}$known_addr = ${GREEN}$name${NC}"
+				
+				#DUPLICATE THE NAME TO THE MAIN PIPE; NOT NECESSARY, BUT IT'LL WORK
+				echo "NAME$known_addr|$name" > main_pipe
 
 				sleep 2
 				echo "DONE" > main_pipe
