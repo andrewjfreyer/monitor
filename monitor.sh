@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.203
+version=0.1.204
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -337,24 +337,6 @@ btle_listener () {
 			#SEND TO MAIN LOOP
 			echo "PUBL$received_mac_address|$pdu_header|$name_str" > main_pipe
 		fi 
-
-		#NAME RESPONSE 
-		if [[ $packet =~ ^04\ 07\ FF\ .*? ]] && [ ${#packet} -gt 700 ]; then
-
-			packet=$(echo "$packet" | tr -d '\0')
-
-			#GET HARDWARE MAC ADDRESS FOR THIS REQUEST; REVERSE FOR BIG ENDIAN
-			local received_mac_address=$(echo "$packet" | awk '{print $10":"$9":"$8":"$7":"$6":"$5}')
-
-			#CONVERT RECEIVED HEX DATA INTO ASCII
-			local name_as_string=$(echo "${packet:29}" | sed 's/ 00//g' | xxd -r -p )
-
-            #CLEAR PACKET
-            packet=""
-
-			#SEND TO MAIN LOOP; FORK FOR FASTER RESPONSE
-			echo "NAME$received_mac_address|$name_as_string" > main_pipe
-		fi
 	done < <(sudo hcidump --raw)
 }
 
@@ -571,12 +553,12 @@ scan_for_arrival () {
 			if [ ! -z "$name" ]; then 
 				log "${GREEN}[CMD-COMP]	${GREEN}Complete: ${NC}$known_addr = ${GREEN}$name${NC}"
 				
-				#DUPLICATE THE NAME TO THE MAIN PIPE; NOT NECESSARY, BUT IT'LL WORK
-				echo "NAME$known_addr|Boogers" > main_pipe
-
-				sleep 2
+				#SEND NAME TO MAIN PIPE; COULD EXTRACT FROM HCIDUMP, BUT THERE IS A DELAY
+				echo "NAME$known_addr|$name" > main_pipe
 				echo "DONE" > main_pipe
 				return 1
+			else
+				echo "NAME$known_addr|" > main_pipe
 			fi 
 
 			sleep 5
