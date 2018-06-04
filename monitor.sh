@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.199
+version=0.1.200
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -560,6 +560,9 @@ scan_for_arrival () {
 			#GET NAME			
 			local name=$(hcitool name "$known_addr" | grep -ivE 'input/output error|invalid device|invalid|error')
 
+			#MARK THE ADDRESS AS SCANNED
+			echo "SCAN$known_addr" > main_pipe
+
 			#IF WE SEE THIS DEVICE FOR THE FIRST TIME, BREAK THE LOOP
 			if [ ! -z "$name" ]; then 
 				echo "DONE" > main_pipe
@@ -654,6 +657,12 @@ while true; do
 				random_device_log[$data]="$timestamp"
 			fi
 
+		elif [ "$cmd" == "SCAN" ]; then 
+
+			#ADD TO THE SCAN LOG
+			known_device_scan_log[$data]=$(date +%s)
+			continue
+
 		elif [ "$cmd" == "DONE" ]; then 
 
 			#REST SCAN MODE
@@ -662,7 +671,7 @@ while true; do
 
 		elif [ "$cmd" == "MQTT" ]; then 
 			#IN RESPONSE TO MQTT SCAN 
-			#log "${GREEN}[INSTRUCT]	${NC}MQTT Trigger $data${NC}"
+			log "${GREEN}[INSTRUCT]	${NC}MQTT Trigger $data${NC}"
 
 			#GET INSTRUCTION 
 			mqtt_instruction=$(basename $data)
@@ -859,7 +868,7 @@ while true; do
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 			
-
+			#ONLY PROCEED IF NOT CURRENTLY SCANNING
 			if [ "$currently_scanning" == false ]; then 
 
 			 	#SET GLOBAL SCAN STATE
@@ -885,7 +894,6 @@ while true; do
 					if [ "$this_state" == "0" ] && [ "$time_diff" -gt "10" ]; then 
 						#ASSEMBLE LIST OF DEVICE 
 						assemble_arrival_scan_list=$(echo "$assemble_arrival_scan_list $known_addr")
-						known_device_scan_log[$known_addr]=$(date +%s)
 					fi 
 				done
 
