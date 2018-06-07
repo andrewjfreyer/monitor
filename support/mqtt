@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# ----------------------------------------------------------------------------------------
+# GENERAL INFORMATION
+# ----------------------------------------------------------------------------------------
+#
+# Written by Andrew J Freyer
+# GNU General Public License
+# http://github.com/andrewjfreyer/monitor
+#
+# MQTT SCANNING
+#
+# ----------------------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------------------
+# MQTT LISTENER
+# ----------------------------------------------------------------------------------------
+mqtt_listener (){
+	echo "MQTT trigger started" >&2 
+	#MQTT LOOP
+	while read instruction; do 
+		echo "MQTT$instruction" > main_pipe 
+	done < <($(which mosquitto_sub) -v -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/#" --will-retain --will-topic "$mqtt_topicpath/owner/$mqtt_publisher_identity" --will-payload "{\"status\":\"offline\"}") 
+}
+# ----------------------------------------------------------------------------------------
+# PUBLISH MESSAGE
+# ----------------------------------------------------------------------------------------
+
+publish_message () {
+	if [ ! -z "$1" ]; then 
+
+		#SET NAME FOR 'UNKONWN'
+		local name="$3"
+		local confidence="$3"
+		[ -z "$confidence" ] && confidence=0
+
+		#IF NO NAME, RETURN "UNKNOWN"
+		if [ -z "$name" ]; then 
+			name="Unknown"
+		fi 
+
+		#TIMESTAMP
+		stamp=$(date "+%a %b %d %Y %H:%M:%S GMT%z (%Z)")
+
+		#DEBUGGING 
+		(>&2 log "${PURPLE}$mqtt_topicpath/owner/$1 { confidence : $2, name : $name, timestamp : $stamp, manufacturer : $4} ${NC}")
+
+		#POST TO MQTT
+		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/owner/$mqtt_publisher_identity/$1" -m "{\"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\"}"
+	fi
+}

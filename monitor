@@ -7,7 +7,7 @@
 #
 # Written by Andrew J Freyer
 # GNU General Public License
-# http://github.com/andrewjfreyer/presence
+# http://github.com/andrewjfreyer/monitor
 #
 # Credits to:
 #		Radius Networks iBeacon Script
@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.210
+version=0.1.211
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -88,7 +88,9 @@ log() {
 # SOURCE FILES 
 # ----------------------------------------------------------------------------------------
 
-source './support/packet_data'
+source './support/data'
+source './support/btle'
+source './support/mqtt'
 
 # ----------------------------------------------------------------------------------------
 # CHECK CONFIGURATION FILES; CREATE IF NECESSARY
@@ -223,161 +225,6 @@ known_static_addresses=($(cat "$PUB_CONFIG" | grep -vE "^#" | awk '{print $1}' |
 device_count=${#known_static_addresses[@]}
 
 # ----------------------------------------------------------------------------------------
-# BLUETOOTH LE BACKGROUND SCANNING
-# ----------------------------------------------------------------------------------------
-btle_scanner () {
-	echo "BTLE scanner started" >&2 
-	while true; do 
-		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
-		local error=$(sudo timeout --signal SIGINT 30 hcitool lescan 2>&1 | grep -iE 'input/output error|invalid device|invalid|error')
-		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe 
-		sleep 1
-	done
-}
-
-# ----------------------------------------------------------------------------------------
-# BLUETOOTH LE RAW PACKET ANALYSIS
-# ----------------------------------------------------------------------------------------
-btle_listener () {
-	echo "BTLE trigger started" >&2 
-	
-	#DEFINE VARAIBLES
-	local capturing=""
-	local next_packet=""
-	local packet=""
-
-	while read segment; do
-
-		#MATCH A SECOND OR LATER SEGMENT OF A PACKET
-		if [[ $segment =~ ^[0-9a-fA-F]{2}\ .{55}[0-9a-fA-F]$ ]]; then
-			#KEEP ADDING TO NEXT PACKET; WE HAVE A COMPLETE LINE
-			next_packet="$next_packet $segment"
-			continue
-
-		elif [[ $segment =~ ^[0-9a-fA-F]{2}\ [0-9a-fA-F] ]]; then
-			#INCOMPLETE LINE; PACKET LIKELY DONE
-			packet="$next_packet $segment"
-
-		elif [[ $segment =~ ^\> ]]; then
-			#NEW PACKET STARTS
-			packet=$next_packet
-			next_packet=$(echo $segment | sed 's/^>.\(.*$\)/\1/')
-		elif [[ $segment =~ ^\< ]]; then
-			#INPUT COMMAND; SHOULD IGNORE LATER
-			packet=$next_packet
-			next_packet=$(echo $segment | sed 's/^>.\(.*$\)/\1/')
-		fi
-
-		#BEACON PACKET?
-		if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]] && [ ${#packet} -gt 132 ]; then
-
-			#RAW VALUES
-			local UUID=$(echo $packet | sed 's/^.\{69\}\(.\{47\}\).*$/\1/')
-			local MAJOR=$(echo $packet | sed 's/^.\{117\}\(.\{5\}\).*$/\1/')
-			local MINOR=$(echo $packet | sed 's/^.\{123\}\(.\{5\}\).*$/\1/')
-			local POWER=$(echo $packet | sed 's/^.\{129\}\(.\{2\}\).*$/\1/')
-			local UUID=$(echo $UUID | sed -e 's/\ //g' -e 's/^\(.\{8\}\)\(.\{4\}\)\(.\{4\}\)\(.\{4\}\)\(.\{12\}\)$/\1-\2-\3-\4-\5/')
-
-			#MAJOR CALCULATION
-			MAJOR=$(echo $MAJOR | sed 's/\ //g')
-			MAJOR=$(echo "ibase=16; $MAJOR" | bc)
-
-			#MINOR CALCULATION
-			MINOR=$(echo $MINOR | sed 's/\ //g')
-			MINOR=$(echo "ibase=16; $MINOR" | bc)
-
-			#POWER CALCULATION
-			POWER=$(echo "ibase=16; $POWER" | bc)
-			POWER=$[POWER - 256]
-
-			#RSSI CALCULATION
-			RSSI=$(echo $packet | sed 's/^.\{132\}\(.\{2\}\).*$/\1/')
-			RSSI=$(echo "ibase=16; $RSSI" | bc)
-			RSSI=$[RSSI - 256]
-
-            #ADD BEACON 
-            key_identifier="$UUID-$MAJOR-$MINOR"
-
-            #CLEAR PACKET
-            packet=""
-
-			#SEND TO MAIN LOOP
-			echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER" > main_pipe 
-		fi
-
-		#FIND ADVERTISEMENT PACKET OF RANDOM ADDRESSES                                  __
-		if [[ $packet =~ ^04\ 3E\ [0-9a-fA-F]{2}\ 02\ [0-9a-fA-F]{2}\ [0-9a-fA-F]{2}\ 01\ .*? ]]; then
-			
-			#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
-			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
-			local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
-			local gap_name_str=""
-
-			#IF THIS IS A SCAN RESPONSE, FIND WHETHER WE HAVE USABLE GAP NAME DATA 
-			if [ "$pdu_header" == 'SCAN_RSP' ]; then 
-				gap_name_str=$(gap_name "$packet")
-
-				#RECORD THE NAME IN THE DEVICE LOG
-				[ ! -z "$gap_name_str" ] && named_device_log[$received_mac_address]="$gap_name_str"
-	        fi
-
-            #CLEAR PACKET
-			packet=""
-
-			#FILTER TO ADV_IND; EXPERIMENTALLY, THIS IS THE ADV PACKET MOST 
-			#COMMONLY SENT BY APPLE AND ANDROID PHONES TRYING TO ADVERTISE
-			#CONNECTION TO OTHER DEVICES
-			
-            if [ "$pdu_header" == "ADV_IND" ] || [ "$pdu_header" == "ADV_NONCONN_IND" ] ; then 
-				#NAME TO RETURN
-				local name_str="${named_device_log[$received_mac_address]}"
-
-				#SEND TO MAIN LOOP
-				echo "RAND$received_mac_address|$pdu_header|$name_str" > main_pipe
-			fi 
-
-		fi
-
-		#FIND ADVERTISEMENT PACKET OF PUBLIC ADDRESSES                                  __
-		if [[ $packet =~ ^04\ 3E\ [0-9a-fA-F]{2}\ 02\ [0-9a-fA-F]{2}\ [0-9a-fA-F]{2}\ 00\ .*? ]]; then
-			
-			#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
-			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
-			local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
-			local gap_name_str=""
-
-			#IF THIS IS A SCAN RESPONSE, FIND WHETHER WE HAVE USABLE GAP NAME DATA 
-			if [ "$pdu_header" == 'SCAN_RSP' ]; then 
-				gap_name_str=$(gap_name "$packet")
-
-				#RECORD THE NAME IN THE DEVICE LOG
-				[ ! -z "$gap_name_str" ] && named_device_log[$received_mac_address]="$gap_name_str"
-	        fi
-
-            #CLEAR PACKET
-            packet=""
-
-            #NAME TO RETURN
-			local name_str="${named_device_log[$received_mac_address]}"
-
-			#SEND TO MAIN LOOP
-			echo "PUBL$received_mac_address|$pdu_header|$name_str" > main_pipe
-		fi 
-	done < <(sudo hcidump --raw)
-}
-
-# ----------------------------------------------------------------------------------------
-# MQTT LISTENER
-# ----------------------------------------------------------------------------------------
-mqtt_listener (){
-	echo "MQTT trigger started" >&2 
-	#MQTT LOOP
-	while read instruction; do 
-		echo "MQTT$instruction" > main_pipe 
-	done < <($(which mosquitto_sub) -v -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/#" --will-retain --will-topic "$mqtt_topicpath/owner/$mqtt_publisher_identity" --will-payload "{\"status\":\"offline\"}") 
-}
-
-# ----------------------------------------------------------------------------------------
 # PERIODIC TRIGGER TO MAIN LOOP
 # ----------------------------------------------------------------------------------------
 periodic_trigger (){
@@ -387,34 +234,6 @@ periodic_trigger (){
 		sleep 10
 		echo "TIME" > main_pipe
 	done
-}
-
-# ----------------------------------------------------------------------------------------
-# PUBLISH MESSAGE
-# ----------------------------------------------------------------------------------------
-
-publish_message () {
-	if [ ! -z "$1" ]; then 
-
-		#SET NAME FOR 'UNKONWN'
-		local name="$3"
-		local confidence="$3"
-		[ -z "$confidence" ] && confidence=0
-
-		#IF NO NAME, RETURN "UNKNOWN"
-		if [ -z "$name" ]; then 
-			name="Unknown"
-		fi 
-
-		#TIMESTAMP
-		stamp=$(date "+%a %b %d %Y %H:%M:%S GMT%z (%Z)")
-
-		#DEBUGGING 
-		(>&2 log "${PURPLE}$mqtt_topicpath/owner/$1 { confidence : $2, name : $name, timestamp : $stamp, manufacturer : $4} ${NC}")
-
-		#POST TO MQTT
-		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/owner/$mqtt_publisher_identity/$1" -m "{\"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\"}"
-	fi
 }
 
 # ----------------------------------------------------------------------------------------
