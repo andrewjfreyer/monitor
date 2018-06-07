@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.208
+version=0.1.209
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -35,7 +35,7 @@ clean() {
 	#CLEANUP FOR TRAP
 	while read line; do 
 		`sudo kill $line` &>/dev/null
-	done < <(ps ax | grep monitor.sh | awk '{print $1}')
+	done < <(ps ax | grep monitor | awk '{print $1}')
 
 	#REMOVE PIPES
 	sudo rm main_pipe &>/dev/null
@@ -390,34 +390,6 @@ periodic_trigger (){
 }
 
 # ----------------------------------------------------------------------------------------
-# OBTAIN MANUFACTURER INFORMATION FOR A PARTICULAR BLUETOOTH MAC ADDRESS
-# ----------------------------------------------------------------------------------------
-determine_manufacturer () {
-
-	#IF NO ADDRESS, RETURN BLANK
-	if [ ! -z "$1" ]; then  
-		local address="$1"
-
-		#SET THE FILE IF IT DOESN'T EXIST
-		[ ! -f ".manufacturer_cache" ] && echo "" > ".manufacturer_cache"
-
-		#CHECK CACHE
-		local manufacturer=$(cat ".manufacturer_cache" | grep "${address:0:8}" | awk -F "\t" '{print $2}')
-
-		#IF CACHE DOES NOT EXIST, USE MACVENDORS.COM
-		if [ -z "$manufacturer" ]; then 
-			local remote_result=$(curl -sL https://api.macvendors.com/${address:0:8} | grep -vi "error")
-			[ ! -z "$remote_result" ] && echo "${address:0:8}	$remote_result" >> .manufacturer_cache
-			manufacturer="$remote_result"
-		fi
-
-		#SET DEFAULT MANUFACTURER 
-		[ -z "$manufacturer" ] && manufacturer="Unknown"
-		echo "$manufacturer"
-	fi 
-}
-
-# ----------------------------------------------------------------------------------------
 # PUBLISH MESSAGE
 # ----------------------------------------------------------------------------------------
 
@@ -488,8 +460,12 @@ perform_arrival_scan () {
 	local repetitions=3
 	local devices="$1"
 
+	
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
+		#LOG START OF DEVICE SCAN 
+		log "${GREEN}[CMD-GROU]	${GREEN}Starting group scan for: ${NC}$devices${NC}"
+
 		#ITERATE THROUGH THESE 
 		for known_addr in $devices; do 
 
@@ -512,17 +488,21 @@ perform_arrival_scan () {
 				#SEND NAME TO MAIN PIPE; COULD EXTRACT FROM HCIDUMP, BUT THERE IS A DELAY
 				echo "NAME$known_addr|$name" > main_pipe
 
-				#THID DEVICE IS FOUND; REMOVE FROM DEVICE LIST
+				#THIS DEVICE IS FOUND; REMOVE FROM DEVICE LIST
 				devices=$(echo "$devices" | sed "s/$known_addr //g")
-			else
-
-				#NO NAME GIVEN
-				echo "NAME$known_addr|" > main_pipe
 			fi 
 
+			#SLEEP TO PREVENT HARDWARE COMMAND COLLISIONS
 			sleep 5
 		done
+
+		log "${GREEN}[CMD-GROU]	${GREEN}Finished group scan for: ${NC}$devices${NC}"
 	done 
+
+	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
+	for known_addr in $devices; do 	
+		echo "NAME$known_addr|" > known_addr
+	done
 
 	#SEND DONE
 	echo "DONE" > main_pipe

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # ----------------------------------------------------------------------------------------
 # GENERAL INFORMATION
 # ----------------------------------------------------------------------------------------
@@ -82,4 +84,33 @@ pdu_type () {
 
 	#RETURN
 	echo "$pdu_type_str"
+}
+
+
+# ----------------------------------------------------------------------------------------
+# OBTAIN MANUFACTURER INFORMATION FOR A PARTICULAR BLUETOOTH MAC ADDRESS
+# ----------------------------------------------------------------------------------------
+determine_manufacturer () {
+
+	#IF NO ADDRESS, RETURN BLANK
+	if [ ! -z "$1" ]; then  
+		local address="$1"
+
+		#SET THE FILE IF IT DOESN'T EXIST
+		[ ! -f ".manufacturer_cache" ] && echo "" > ".manufacturer_cache"
+
+		#CHECK CACHE
+		local manufacturer=$(cat ".manufacturer_cache" | grep "${address:0:8}" | awk -F "\t" '{print $2}')
+
+		#IF CACHE DOES NOT EXIST, USE MACVENDORS.COM
+		if [ -z "$manufacturer" ]; then 
+			local remote_result=$(curl -sL https://api.macvendors.com/${address:0:8} | grep -vi "error")
+			[ ! -z "$remote_result" ] && echo "${address:0:8}	$remote_result" >> .manufacturer_cache
+			manufacturer="$remote_result"
+		fi
+
+		#SET DEFAULT MANUFACTURER 
+		[ -z "$manufacturer" ] && manufacturer="Unknown"
+		echo "$manufacturer"
+	fi 
 }
