@@ -26,7 +26,26 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.205
+version=0.1.207
+
+# ----------------------------------------------------------------------------------------
+# CLEANUP ROUTINE 
+# ----------------------------------------------------------------------------------------
+clean() {
+	#CLEANUP FOR TRAP
+	while read line; do 
+		`sudo kill $line` &>/dev/null
+	done < <(ps ax | grep monitor.sh | awk '{print $1}')
+
+	#REMOVE PIPES
+	sudo rm main_pipe &>/dev/null
+	sudo rm scan_pipe &>/dev/null
+
+	#MESSAGE
+	echo 'Exited.'
+}
+
+trap "clean" EXIT
 
 # ----------------------------------------------------------------------------------------
 # PRETTY PRINT FOR DEBUG
@@ -41,6 +60,7 @@ PURPLE='\033[0;35m'
 BLUE='\033[0;34m'
 REPEAT='\e[1A'
 
+#VARIABLES FOR LOGGING LOGSPAM PREVENTION
 last_log_line=""
 duplicate_log_count=1
 
@@ -65,7 +85,13 @@ log() {
 }
 
 # ----------------------------------------------------------------------------------------
-# CHECK CONFIGURATION FILES
+# SOURCE FILES 
+# ----------------------------------------------------------------------------------------
+
+source '~/support/packet_data'
+
+# ----------------------------------------------------------------------------------------
+# CHECK CONFIGURATION FILES; CREATE IF NECESSARY
 # ----------------------------------------------------------------------------------------
 
 #FIND DEPENDENCY PATHS, ELSE MANUALLY SET
@@ -199,7 +225,7 @@ device_count=${#known_static_addresses[@]}
 # ----------------------------------------------------------------------------------------
 # BLUETOOTH LE BACKGROUND SCANNING
 # ----------------------------------------------------------------------------------------
-bluetooth_scanner () {
+btle_scanner () {
 	echo "BTLE scanner started" >&2 
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
@@ -392,80 +418,6 @@ determine_manufacturer () {
 }
 
 # ----------------------------------------------------------------------------------------
-# EXTRACT GENERAL ACCESS PROFILE NAME
-# ----------------------------------------------------------------------------------------
-gap_name () {
-	#SET PACKET FROM INPUT
-	local packet="$1"
-
-	#LOCAL STRING
-	local name_as_string=""
-
-	#IS A GAP NAME GIVE? COMPLETE OR LOCAL? 
-	local gap_name=$(echo "$packet" | awk '{print $16}')
-
-	#CHECK IF GAP DATA IS 
-	if [[ $gap_name =~ ^0[89] ]]; then
-		#HEX CONVERSION
-		local name_len_hex=$(echo "$packet" | awk '{print $15}')
-
-		#DECIMAL CONVERSION
-		local name_len_dec=$(echo "ibase=16; $name_len_hex" | bc)
-		
-		#STR CHARACTER COUNT (2 CHAR + 1 _SPACE_ PER BYTE)
-		local name_len_str=$((name_len_dec * 3))
-		
-		#EXTRACT LOCAL NAME
-		local name_as_string=$(echo "${packet:48:name_len_str}" | xxd -r -p )
-	fi
-
-	#RETURN NAME
-    echo "$name_as_string"
-}
-
-# ----------------------------------------------------------------------------------------
-# OBTAIN PROTOCOL DATA UNIT TYPE
-# ----------------------------------------------------------------------------------------
-
-pdu_type () {
-	#IF NO ADDRESS, RETURN BLANK
-	local pdu_type_str="Reserved"
-	
-	if [ ! -z "$1" ]; then  
-		local pdu_type="$1"
-		case $pdu_type in
-			"00")
-				pdu_type_str="ADV_IND"
-				;;
-			"01")
-				pdu_type_str="ADV_DIRECT_IND"
-				;;	
-			"02")
-				pdu_type_str="ADV_NONCONN_IND"
-				;;	
-			"03")
-				pdu_type_str="SCAN_REQ"
-				;;	
-			"04")
-				pdu_type_str="SCAN_RSP"
-				;;	
-			"05")
-				pdu_type_str="CONNECT_REQ"
-				;;	
-			"06")
-				pdu_type_str="ADV_SCAN_IND"
-				;;	
-			*)
-				pdu_type_str="Reserved"
-				;;	
-		esac
-	fi 
-
-	#RETURN
-	echo "$pdu_type_str"
-}
-
-# ----------------------------------------------------------------------------------------
 # PUBLISH MESSAGE
 # ----------------------------------------------------------------------------------------
 
@@ -500,6 +452,8 @@ refresh_global_states() {
 	
 	#PROCESS GLOBAL STATES
 	local state_sum=0
+
+	#ITERATE THROUGH ALL KNOWN ADDRESSES TO REFRESH GLOBAL STATE
 	for known_addr in "${known_static_addresses[@]}"; do 
 		local state="${known_device_log[$known_addr]}"
 		state_sum=$((state + state_sum))
@@ -526,7 +480,7 @@ refresh_global_states() {
 # ----------------------------------------------------------------------------------------
 # SCAN FOR DEVICES
 # ----------------------------------------------------------------------------------------
-scan_for_arrival () {
+perform_arrival_scan () {
 	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
 	[ -z "$1" ] && return 0
 
@@ -539,6 +493,7 @@ scan_for_arrival () {
 		#ITERATE THROUGH THESE 
 		for known_addr in $devices; do 
 
+			#LOGGING
 			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning: ${NC}$known_addr${NC}"
 
 			#GET NAME USING HCITOOL; POSSIBLE USING 0x019 HCI COMMNAD, BUT
@@ -560,6 +515,8 @@ scan_for_arrival () {
 				#THID DEVICE IS FOUND; REMOVE FROM DEVICE LIST
 				devices=$(echo "$devices" | sed "s/$known_addr //g")
 			else
+
+				#NO NAME GIVEN
 				echo "NAME$known_addr|" > main_pipe
 			fi 
 
@@ -572,28 +529,9 @@ scan_for_arrival () {
 }
 
 # ----------------------------------------------------------------------------------------
-# CLEANUP ROUTINE 
-# ----------------------------------------------------------------------------------------
-clean() {
-	#CLEANUP FOR TRAP
-	while read line; do 
-		`sudo kill $line` &>/dev/null
-	done < <(ps ax | grep monitor.sh | awk '{print $1}')
-
-	#REMOVE PIPES
-	sudo rm main_pipe>/dev/null
-	sudo rm scan_pipe &>/dev/null
-
-	#MESSAGE
-	echo 'Exited.'
-}
-
-trap "clean" EXIT
-
-# ----------------------------------------------------------------------------------------
 # LAUNCH BACKGROUND PROCESSES
 # ----------------------------------------------------------------------------------------
-bluetooth_scanner & 
+btle_scanner & 
 mqtt_listener &
 btle_listener &
 periodic_trigger & 
@@ -895,7 +833,7 @@ while true; do
 				arrive_list=$(echo "$assemble_arrival_scan_list" | sed 's/^ //g')
 				
 				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-				scan_for_arrival "$arrive_list" & 
+				perform_arrival_scan "$arrive_list" & 
 			fi 
 		fi 
 

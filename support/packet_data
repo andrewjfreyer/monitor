@@ -1,0 +1,85 @@
+# ----------------------------------------------------------------------------------------
+# GENERAL INFORMATION
+# ----------------------------------------------------------------------------------------
+#
+# Written by Andrew J Freyer
+# GNU General Public License
+# http://github.com/andrewjfreyer/presence
+#
+# PACKET INFORMATION GATHERING
+#
+# ----------------------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------------------
+# EXTRACT GENERAL ACCESS PROFILE NAME FROM ADV PACKET
+# ----------------------------------------------------------------------------------------
+gap_name () {
+	#SET PACKET FROM INPUT
+	local packet="$1"
+
+	#LOCAL STRING
+	local name_as_string=""
+
+	#IS A GAP NAME GIVE? COMPLETE OR LOCAL? 
+	local gap_name=$(echo "$packet" | awk '{print $16}')
+
+	#CHECK IF GAP DATA IS 
+	if [[ $gap_name =~ ^0[89] ]]; then
+		#HEX CONVERSION
+		local name_len_hex=$(echo "$packet" | awk '{print $15}')
+
+		#DECIMAL CONVERSION
+		local name_len_dec=$(echo "ibase=16; $name_len_hex" | bc)
+		
+		#STR CHARACTER COUNT (2 CHAR + 1 _SPACE_ PER BYTE)
+		local name_len_str=$((name_len_dec * 3))
+		
+		#EXTRACT LOCAL NAME
+		local name_as_string=$(echo "${packet:48:name_len_str}" | xxd -r -p )
+	fi
+
+	#RETURN NAME
+    echo "$name_as_string"
+}
+
+# ----------------------------------------------------------------------------------------
+# OBTAIN PROTOCOL DATA UNIT TYPE
+# ----------------------------------------------------------------------------------------
+
+pdu_type () {
+	#IF NO ADDRESS, RETURN BLANK
+	local pdu_type_str="Reserved"
+	
+	if [ ! -z "$1" ]; then  
+		local pdu_type="$1"
+		case $pdu_type in
+			"00")
+				pdu_type_str="ADV_IND"
+				;;
+			"01")
+				pdu_type_str="ADV_DIRECT_IND"
+				;;	
+			"02")
+				pdu_type_str="ADV_NONCONN_IND"
+				;;	
+			"03")
+				pdu_type_str="SCAN_REQ"
+				;;	
+			"04")
+				pdu_type_str="SCAN_RSP"
+				;;	
+			"05")
+				pdu_type_str="CONNECT_REQ"
+				;;	
+			"06")
+				pdu_type_str="ADV_SCAN_IND"
+				;;	
+			*)
+				pdu_type_str="Reserved"
+				;;	
+		esac
+	fi 
+
+	#RETURN
+	echo "$pdu_type_str"
+}
