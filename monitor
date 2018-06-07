@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.209
+version=0.1.210
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -457,7 +457,7 @@ perform_arrival_scan () {
 	[ -z "$1" ] && return 0
 
 	#REPEAT THROUGH ALL DEVICES THREE TIMES, THEN RETURN 
-	local repetitions=3
+	local repetitions=1
 	local devices="$1"
 
 	
@@ -468,9 +468,6 @@ perform_arrival_scan () {
 
 		#ITERATE THROUGH THESE 
 		for known_addr in $devices; do 
-
-			#LOGGING
-			log "${GREEN}[CMD-SCAN]	${GREEN}Scanning: ${NC}$known_addr${NC}"
 
 			#GET NAME USING HCITOOL; POSSIBLE USING 0x019 HCI COMMNAD, BUT
 			#HCITOOL HAS BUILT-IN ERROR CHECKING THAT IS USEFUL
@@ -493,10 +490,8 @@ perform_arrival_scan () {
 			fi 
 
 			#SLEEP TO PREVENT HARDWARE COMMAND COLLISIONS
-			sleep 5
+			sleep 3
 		done
-
-		log "${GREEN}[CMD-GROU]	${GREEN}Finished group scan for: ${NC}$devices${NC}"
 	done 
 
 	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
