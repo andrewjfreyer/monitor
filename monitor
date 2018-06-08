@@ -283,7 +283,7 @@ perform_arrival_scan () {
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
 		#LOG START OF DEVICE SCAN 
-		log "${GREEN}[CMD-GROU]	${GREEN}Arrival Scan for Group: ${NC}$devices${NC}"
+		log "${GREEN}[CMD-GROU]	${GREEN}Start Arrival Scan for Group.${NC}"
 
 		#SET DEVICES
 		devices="$devices_next"
@@ -318,7 +318,6 @@ perform_arrival_scan () {
 
 	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
 	for known_addr in $devices_next; do 
-		echo "ERROR: $known_addr"	
 		echo "NAME$known_addr|" > main_pipe
 	done
 
@@ -593,7 +592,7 @@ while true; do
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
 		
-			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header $name $manufacturer PUBL_NUM: ${#static_device_log[@]}"
+			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header $name ${BLUE}$manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
