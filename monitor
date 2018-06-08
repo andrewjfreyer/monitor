@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.227
+version=0.1.229
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -114,6 +114,7 @@ mkfifo scan_pipe
 declare -A static_device_log
 declare -A random_device_log
 declare -A beacon_device_log
+declare -A named_device_log
 
 #STATIC DEVICE ASSOCIATIVE ARRAYS
 declare -A known_static_device_log
