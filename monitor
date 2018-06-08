@@ -205,7 +205,7 @@ perform_arrival_scan () {
 	local devices_next="$devices"
 	
 	#LOG START OF DEVICE SCAN 
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Start arrival scan.${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Start arrival scan **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
@@ -225,7 +225,7 @@ perform_arrival_scan () {
 
 			local name=$(hcitool name "$known_addr" | grep -ivE 'input/output error|invalid device|invalid|error')
 
-			#MARK THE ADDRESS AS SCANNED
+			#MARK THE ADDRESS AS SCANNED SO THAT IT CAN BE LOGGED ON THE MAIN PIPE
 			echo "SCAN$known_addr" > main_pipe
 
 			#IF WE SEE THIS DEVICE FOR THE FIRST TIME, BREAK THE LOOP
@@ -244,7 +244,7 @@ perform_arrival_scan () {
 	done 
 
 	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed arrival scan.${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed arrival scan **** ${NC}"
 
 	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
 	for known_addr in $devices_next; do 
@@ -521,7 +521,7 @@ while true; do
 			[ -z "$expected_name" ] && [ ! -z "$debug_name" ] && known_static_device_name[$data]="$name"
 			
 			#PRINT RAW COMMAND; DEBUGGING
-			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN} $debug_name ${NC} $manufacturer${NC}"
+			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
 		
 		elif [ "$cmd" == "BEAC" ] && [ "$is_new" == true ] ; then 
 			#PRINTING FORMATING
@@ -547,34 +547,35 @@ while true; do
 			 	currently_scanning=true
 			 	assemble_arrival_scan_list=""
 			 	
-				#DO NOT SCAN IF ALL DEVICES ARE PRESENT
-				[ "$all_present" == true ] && return 0 
+				#DO NOT SCAN ANYTHING IF ALL DEVICES ARE PRESENT
+				if [ "$all_present" != true ]; then 
 
-				#ITERATE THROUGH THE KNOWN DEVICES 
-				for known_addr in "${known_static_addresses[@]}"; do 
+					#ITERATE THROUGH THE KNOWN DEVICES 
+					for known_addr in "${known_static_addresses[@]}"; do 
+						
+						#GET STATE; ONLY SCAN FOR ARRIVED DEVICES
+						this_state="${known_static_device_log[$known_addr]}"
+						[ -z "$this_state" ] && this_state=0
+
+						#FIND LAST TIME THIS DEVICE WAS SCANNED
+						last_scan="${known_static_device_scan_log[$known_addr]}"
+						time_diff=$((timestamp - last_scan))
+
+						#SCAN IF DEVICE IS NOT PRESENT AND HAS NOT BEEN SCANNED 
+						#WITHIN LAST [X] SECONDS
+						if [ "$this_state" == "0" ] && [ "$time_diff" -gt "10" ]; then 
+							#ASSEMBLE LIST OF DEVICE 
+							assemble_arrival_scan_list=$(echo "$assemble_arrival_scan_list $known_addr")
+						fi 
+					done
+				 
+					#RETURN LIST
+					arrive_list=$(echo "$assemble_arrival_scan_list" | sed 's/^ //g')
 					
-					#GET STATE; ONLY SCAN FOR ARRIVED DEVICES
-					this_state="${known_static_device_log[$known_addr]}"
-					[ -z "$this_state" ] && this_state=0
-
-					#FIND LAST TIME THIS DEVICE WAS SCANNED
-					last_scan="${known_static_device_scan_log[$known_addr]}"
-					time_diff=$((timestamp - last_scan))
-
-					#SCAN IF DEVICE IS NOT PRESENT AND HAS NOT BEEN SCANNED 
-					#WITHIN LAST [X] SECONDS
-					if [ "$this_state" == "0" ] && [ "$time_diff" -gt "10" ]; then 
-						#ASSEMBLE LIST OF DEVICE 
-						assemble_arrival_scan_list=$(echo "$assemble_arrival_scan_list $known_addr")
-					fi 
-				done
-
-				#RETURN LIST
-				arrive_list=$(echo "$assemble_arrival_scan_list" | sed 's/^ //g')
-				
-				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-				perform_arrival_scan "$arrive_list" & 
-				scan_pid=$!
+					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
+					perform_arrival_scan "$arrive_list" & 
+					scan_pid=$!
+				fi
 			fi 
 		fi 
 
