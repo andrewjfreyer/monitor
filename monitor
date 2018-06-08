@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.217
+version=0.1.219
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -58,6 +58,7 @@ NC='\033[0m'
 GREEN='\033[0;32m'
 PURPLE='\033[0;35m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 REPEAT='\e[1A'
 
 #VARIABLES FOR LOGGING LOGSPAM PREVENTION
@@ -206,7 +207,7 @@ perform_arrival_scan () {
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
 		#LOG START OF DEVICE SCAN 
-		log "${GREEN}[CMD-GROU]	${GREEN}Start Arrival Scan for Group.${NC}"
+		log "${GREEN}[CMD-GROU]	${GREEN}Start arrival scan for known devices presently away.${NC}"
 
 		#SET DEVICES
 		devices="$devices_next"
@@ -228,7 +229,7 @@ perform_arrival_scan () {
 
 			#IF WE SEE THIS DEVICE FOR THE FIRST TIME, BREAK THE LOOP
 			if [ ! -z "$name" ]; then 
-				log "${GREEN}[CMD-COMP]	${GREEN}Complete: ${NC}$known_addr = ${GREEN}$name${NC}"
+				log "${GREEN}[CMD-COMP]	${GREEN}Found: ${NC}$known_addr = ${GREEN}$name${NC}"
 				
 				#SEND NAME TO MAIN PIPE; COULD EXTRACT FROM HCIDUMP, BUT THERE IS A DELAY
 				echo "NAME$known_addr|$name" > main_pipe
@@ -506,14 +507,16 @@ while true; do
 			debug_name="$name"
 			
 			if [ -z "$debug_name" ]; then 
-
+				#SHOW ERROR
+				debug_name="${RED}[Error]${NC}"
+				
 				#CHECK FOR KNOWN NAME
 				expected_name="${known_static_device_name[$data]}"
-				debug_name="${RED}[Error] $expected_name${NC}"
+				[ ! -z "$expected_name" ] && debug_name="${RED}[Error] $expected_name${NC}"
 			fi 
 			
 			#PRINT RAW COMMAND; DEBUGGING
-			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN} $debug_name ${NC} $manufacturer${NC}"
+			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN} $debug_name ${NC} $manufacturer${NC}"
 		
 		elif [ "$cmd" == "BEAC" ] && [ "$is_new" == true ] ; then 
 			#PRINTING FORMATING
