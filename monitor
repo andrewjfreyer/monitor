@@ -135,6 +135,11 @@ declare -A device_expiration_biases
 all_present=false
 all_absent=true
 
+# ----------------------------------------------------------------------------------------
+# POPULATE THE ASSOCIATIVE ARRAYS THAT INCLUDE INFORMATION ABOUT THE STATIC DEVICES
+# WE WANT TO TRACK
+# ----------------------------------------------------------------------------------------
+
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY, IGNORING COMMENTS
 known_static_addresses=($(cat "$PUB_CONFIG" | sed 's/#.\{0,\}//g' | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 
@@ -143,13 +148,12 @@ for addr in ${known_static_addresses[@]}; do
 	#WAS THERE A NAME HERE?
 	known_name=$(grep "$addr" "$PUB_CONFIG" | tr "\t" " " | sed 's/  */ /g;s/#.\{0,\}//g' | sed "s/$addr //g;s/  */ /g" )
 
-	[ ! -z "$known_name" ] && echo "$addr IS NAMED $known_name"
+	#IF WE FOUND A NAME, RECORD IT
+	[ ! -z "$known_name" ] && known_static_device_name[$addr]="$known_name"
 done
 
 #LOOP SCAN VARIABLES
 device_count=${#known_static_addresses[@]}
-
-echo "COUNT: $device_count"
 
 # ----------------------------------------------------------------------------------------
 # REFRESH KNOWN DEVICE STATES
@@ -500,7 +504,13 @@ while true; do
 			
 			#PRINTING FORMATING
 			debug_name="$name"
-			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
+			
+			if [ -z "$debug_name" ]; then 
+
+				#CHECK FOR KNOWN NAME
+				expected_name="${known_static_device_name[$data]}"
+				debug_name="${RED}[Error] $expected_name${NC}"
+			fi 
 			
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN} $debug_name ${NC} $manufacturer${NC}"
@@ -510,13 +520,16 @@ while true; do
 			debug_name="$name"
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 		
+			#PROVIDE USEFUL LOGGING
 			log "${GREEN}[CMD-$cmd]	${GREEN}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
-		
+			
+			#PROVIDE USEFUL LOGGING
 			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header $name ${BLUE}$manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
+			#PROVIDE USEFUL LOGGING
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 			
 			#ONLY PROCEED IF NOT CURRENTLY SCANNING
