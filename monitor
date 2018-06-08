@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.219
+version=0.1.220
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -207,7 +207,7 @@ perform_arrival_scan () {
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
 		#LOG START OF DEVICE SCAN 
-		log "${GREEN}[CMD-GROU]	${GREEN}Start arrival scan for known devices presently away.${NC}"
+		log "${GREEN}[CMD-GROU]	${GREEN}Start arrival scan.${NC}"
 
 		#SET DEVICES
 		devices="$devices_next"
@@ -229,7 +229,6 @@ perform_arrival_scan () {
 
 			#IF WE SEE THIS DEVICE FOR THE FIRST TIME, BREAK THE LOOP
 			if [ ! -z "$name" ]; then 
-				log "${GREEN}[CMD-COMP]	${GREEN}Found: ${NC}$known_addr = ${GREEN}$name${NC}"
 				
 				#SEND NAME TO MAIN PIPE; COULD EXTRACT FROM HCIDUMP, BUT THERE IS A DELAY
 				echo "NAME$known_addr|$name" > main_pipe
@@ -237,6 +236,9 @@ perform_arrival_scan () {
 				#THIS DEVICE IS FOUND; REMOVE FROM DEVICE LIST
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g")
 			fi 
+
+			#PREVENT HARDWARE FAILURES
+			sleep 2
 		done
 	done 
 
@@ -320,6 +322,8 @@ while true; do
 			continue
 
 		elif [ "$cmd" == "DONE" ]; then 
+
+			echo "DONE RECEIVED"
 
 			#REST SCAN MODE
 			currently_scanning=false
