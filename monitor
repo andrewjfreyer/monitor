@@ -129,7 +129,6 @@ next_scan_type=""
 
 #DEFINE PERFORMANCE TRACKING/IMRROVEMENT VARS
 declare -A expired_device_log
-declare -A named_device_log
 declare -A device_expiration_biases
 
 #GLOBAL STATE VARIABLES
@@ -304,6 +303,9 @@ while true; do
 				#RESET COMMAND
 				cmd="PUBL"
 				unset random_device_log[$data]
+
+				#SAVE THE NAME
+				known_static_device_name[$data]="$name"
 
 				#IS THIS A NEW STATIC DEVICE?
 				[ -z "${static_device_log[$data]}" ] && is_new=true
@@ -531,12 +533,15 @@ while true; do
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
 		
 		elif [ "$cmd" == "BEAC" ] ; then 
+
+			#DOES AN EXPECTED NAME EXIST? 
+			expected_name="${known_static_device_name[$data]}"
+
 			#PRINTING FORMATING
-			debug_name="$name"
-			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
+			[ -z "$expected_name" ] && expected_name="${RED}[Error]${NC}"
 		
 			#PROVIDE USEFUL LOGGING
-			log "${GREEN}[CMD-$cmd]	$data ${GREEN}$uuid $major $minor ${GREEN}$debug_name${NC} $manufacturer${NC}"
+			log "${GREEN}[CMD-$cmd]	$data ${GREEN}$uuid $major $minor ${GREEN}$expected_name${NC} $manufacturer${NC}"
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
 			
