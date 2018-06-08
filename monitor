@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.221
+version=0.1.222
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -73,7 +73,7 @@ log() {
 	line_append=""
 
 	#IS THIS LINE DUPLICATED?
-	if [ "$last_log_line" == "$line" ]; then 
+	if [ "$last_log_line" == "$line" ] ; then 
 		duplicate_log_count=$((duplicate_log_count + 1 ))
 		line_append=" (x$duplicate_log_count)"
 		should_repeat=$REPEAT
@@ -204,10 +204,11 @@ perform_arrival_scan () {
 	local devices="$1"
 	local devices_next="$devices"
 	
+	#LOG START OF DEVICE SCAN 
+	log "${GREEN}[CMD-GROU]	${GREEN}Start arrival scan.${NC}"
+
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
-		#LOG START OF DEVICE SCAN 
-		log "${GREEN}[CMD-GROU]	${GREEN}Start arrival scan.${NC}"
 
 		#SET DEVICES
 		devices="$devices_next"
@@ -238,17 +239,20 @@ perform_arrival_scan () {
 			fi 
 
 			#PREVENT HARDWARE FAILURES
-			sleep 2
+			sleep 1
 		done
 	done 
 
 	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-GROU]	${GREEN}Completed Arrival Scan for Group.${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}Completed arrival scan.${NC}"
 
 	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
 	for known_addr in $devices_next; do 
 		echo "NAME$known_addr|" > main_pipe
 	done
+
+	#SET DONE TO MAIN PIPE
+	echo "DONE" > main_pipe
 }
 
 # ----------------------------------------------------------------------------------------
@@ -506,15 +510,17 @@ while true; do
 			
 			#PRINTING FORMATING
 			debug_name="$name"
-			
+			expected_name="${known_static_device_name[$data]}"
+
 			if [ -z "$debug_name" ]; then 
 				#SHOW ERROR
-				debug_name="${RED}[Error]${NC}"
+				debug_name="${RED}[Error] Unknown Name ${NC}"
 				
 				#CHECK FOR KNOWN NAME
-				expected_name="${known_static_device_name[$data]}"
 				[ ! -z "$expected_name" ] && debug_name="${RED}[Error] $expected_name${NC}"
 			fi 
+
+			[ -z "$expected_name" ] && [ ! -z "$debug_name" ] && known_static_device_name[$data]="$debug_name"
 			
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN} $debug_name ${NC} $manufacturer${NC}"
