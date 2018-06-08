@@ -153,7 +153,8 @@ btle_listener () {
             packet=""
 
             #NAME TO RETURN
-			local name_str="${named_device_log[$received_mac_address]}"
+			local name_str=""
+			[ ! -z "${named_device_log[$received_mac_address]}" ] && name_str="${named_device_log[$received_mac_address]}"
 
 			#SEND TO MAIN LOOP
 			echo "PUBL$received_mac_address|$pdu_header|$name_str" > main_pipe
