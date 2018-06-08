@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.230
+version=0.1.231
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -312,11 +312,20 @@ while true; do
 				static_device_log[$data]="$timestamp"
 
 			else
-				#DATA IS RANDOM MAC ADDRESS; ADD TO LOG
-				[ -z "${random_device_log[$data]}" ] && is_new=true
+				#IS THIS ALREADY IN THE STATIC LOG? 
+				if [ ! -z  "${static_device_log[$data]}" ]; then 
+					#IS THIS A NEW STATIC DEVICE?
+					static_device_log[$data]="$timestamp"
+					cmd="PUBL"
 
-				#ONLY ADD THIS TO THE DEVICE LOG 
-				random_device_log[$data]="$timestamp"
+				else 
+
+					#DATA IS RANDOM MAC ADDRESS; ADD TO LOG
+					[ -z "${random_device_log[$data]}" ] && is_new=true
+
+					#ONLY ADD THIS TO THE DEVICE LOG 
+					random_device_log[$data]="$timestamp"
+				fi 
 			fi
 
 		elif [ "$cmd" == "SCAN" ]; then 
