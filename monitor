@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.222
+version=0.1.223
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -205,7 +205,7 @@ perform_arrival_scan () {
 	local devices_next="$devices"
 	
 	#LOG START OF DEVICE SCAN 
-	log "${GREEN}[CMD-GROU]	${GREEN}Start arrival scan.${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Start arrival scan.${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
@@ -244,7 +244,7 @@ perform_arrival_scan () {
 	done 
 
 	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-GROU]	${GREEN}Completed arrival scan.${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed arrival scan.${NC}"
 
 	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
 	for known_addr in $devices_next; do 
@@ -323,8 +323,6 @@ while true; do
 			continue
 
 		elif [ "$cmd" == "DONE" ]; then 
-
-			echo "DONE RECEIVED"
 
 			#REST SCAN MODE
 			scan_pid=""
@@ -520,7 +518,7 @@ while true; do
 				[ ! -z "$expected_name" ] && debug_name="${RED}[Error] $expected_name${NC}"
 			fi 
 
-			[ -z "$expected_name" ] && [ ! -z "$debug_name" ] && known_static_device_name[$data]="$debug_name"
+			[ -z "$expected_name" ] && [ ! -z "$debug_name" ] && known_static_device_name[$data]="$name"
 			
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN} $debug_name ${NC} $manufacturer${NC}"
