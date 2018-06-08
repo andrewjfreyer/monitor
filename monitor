@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.225
+version=0.1.226
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -527,7 +527,7 @@ while true; do
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
 		
-		elif [ "$cmd" == "BEAC" ] && [ "$is_new" == true ] ; then 
+		elif [ "$cmd" == "BEAC" ] ; then 
 			#PRINTING FORMATING
 			debug_name="$name"
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
