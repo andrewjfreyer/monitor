@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.212
+version=0.1.213
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -310,9 +310,6 @@ perform_arrival_scan () {
 				#THIS DEVICE IS FOUND; REMOVE FROM DEVICE LIST
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr //g")
 			fi 
-
-			#SLEEP TO PREVENT HARDWARE COMMAND COLLISIONS
-			sleep 3
 		done
 	done 
 
@@ -322,7 +319,7 @@ perform_arrival_scan () {
 	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
 	for known_addr in $devices_next; do 
 		echo "ERROR: $known_addr"	
-		echo "NAME$known_addr|" > known_addr
+		echo "NAME$known_addr|" > main_pipe
 	done
 
 	#SEND DONE
