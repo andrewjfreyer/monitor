@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.220
+version=0.1.221
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -120,8 +120,8 @@ declare -A known_static_device_log
 declare -A known_static_device_scan_log
 declare -A known_static_device_name
 
-#DEFINE SCAN STATE
-currently_scanning=false
+#DECLARE SCAN PID
+scan_pid=""
 
 #LAST TIME THIS 
 random_device_last_update=$(date +%s)
@@ -249,9 +249,6 @@ perform_arrival_scan () {
 	for known_addr in $devices_next; do 
 		echo "NAME$known_addr|" > main_pipe
 	done
-
-	#SEND DONE
-	echo "DONE" > main_pipe
 }
 
 # ----------------------------------------------------------------------------------------
@@ -326,7 +323,7 @@ while true; do
 			echo "DONE RECEIVED"
 
 			#REST SCAN MODE
-			currently_scanning=false
+			scan_pid=""
 			continue
 
 		elif [ "$cmd" == "MQTT" ]; then 
@@ -540,7 +537,7 @@ while true; do
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 			
 			#ONLY PROCEED IF NOT CURRENTLY SCANNING
-			if [ "$currently_scanning" == false ]; then 
+			if [ -z "$scan_pid" ]; then 
 
 			 	#SET GLOBAL SCAN STATE
 			 	currently_scanning=true
@@ -573,6 +570,7 @@ while true; do
 				
 				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 				perform_arrival_scan "$arrive_list" & 
+				scan_pid=$!
 			fi 
 		fi 
 
