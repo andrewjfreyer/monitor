@@ -62,6 +62,10 @@ btle_listener () {
 		#BEACON PACKET?
 		if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]] && [ ${#packet} -gt 132 ]; then
 
+			#HARDARE MAC AND PDU HEADER
+			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
+			local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
+
 			#RAW VALUES
 			local UUID=$(echo $packet | sed 's/^.\{69\}\(.\{47\}\).*$/\1/')
 			local MAJOR=$(echo $packet | sed 's/^.\{117\}\(.\{5\}\).*$/\1/')
@@ -93,7 +97,7 @@ btle_listener () {
             packet=""
 
 			#SEND TO MAIN LOOP
-			echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER" > main_pipe 
+			echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address|$pdu_header" > main_pipe 
 		fi
 
 		#FIND ADVERTISEMENT PACKET OF RANDOM ADDRESSES                                  __

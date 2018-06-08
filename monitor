@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.226
+version=0.1.227
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -238,9 +238,6 @@ perform_arrival_scan () {
 				#THIS DEVICE IS FOUND; REMOVE FROM DEVICE LIST
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g")
 			fi 
-
-			#PREVENT HARDWARE FAILURES
-			sleep 1
 		done
 	done 
 
@@ -464,8 +461,14 @@ while true; do
 			rssi=$(echo "$data" | awk -F "|" '{print $4}')
 			power=$(echo "$data" | awk -F "|" '{print $5}')
 
+			#GET MAC AND PDU HEADER
+			mac=$(echo "$data" | awk -F "|" '{print $6}')
+			pdu_header=$(echo "$data" | awk -F "|" '{print $7}')
+			manufacturer="$(determine_manufacturer $mac)"
+
+
 			#KEY DEFINED AS UUID-MAJOR-MINOR
-			data="$uuid-$major-$minor"
+			data="$mac"
 			[ -z "${beacon_device_log[$data]}" ] && is_new=true
 			beacon_device_log[$data]="$timestamp"	
 
@@ -533,7 +536,7 @@ while true; do
 			[ -z "$debug_name" ] && debug_name="${RED}[Error]${NC}"
 		
 			#PROVIDE USEFUL LOGGING
-			log "${GREEN}[CMD-$cmd]	${GREEN}$data ${GREEN}$debug_name${NC} $manufacturer${NC}"
+			log "${GREEN}[CMD-$cmd]	$data ${GREEN}$uuid $major $minor ${GREEN}$debug_name${NC} $manufacturer${NC}"
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
 			
