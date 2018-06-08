@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.223
+version=0.1.225
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -203,9 +203,10 @@ perform_arrival_scan () {
 	local repetitions=2
 	local devices="$1"
 	local devices_next="$devices"
+	local initial_count=$(echo "$devices" | wc -w)
 	
 	#LOG START OF DEVICE SCAN 
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Start arrival scan **** ${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Start arrival scan: $initial_count absent **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
@@ -243,8 +244,11 @@ perform_arrival_scan () {
 		done
 	done 
 
+	#FINAL COUNT
+	local final_count=$(echo "$devices_next" | wc -w)
+
 	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed arrival scan **** ${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed arrival scan: $((initial_count - final_count)) found **** ${NC}"
 
 	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
 	for known_addr in $devices_next; do 
