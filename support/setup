@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# ----------------------------------------------------------------------------------------
+# GENERAL INFORMATION
+# ----------------------------------------------------------------------------------------
+#
+# Written by Andrew J Freyer
+# GNU General Public License
+# http://github.com/andrewjfreyer/monitor
+#
+# SETUP NECESSARY FILES 
+#
+# ----------------------------------------------------------------------------------------
+
+ ----------------------------------------------------------------------------------------
+# CHECK CONFIGURATION FILES; CREATE IF NECESSARY
+# ----------------------------------------------------------------------------------------
+
+#FIND DEPENDENCY PATHS, ELSE MANUALLY SET
+mosquitto_pub_path=$(which mosquitto_pub)
+mosquitto_sub_path=$(which mosquitto_sub)
+hcidump_path=$(which hcidump)
+bc_path=$(which bc)
+git_path=$(which git)
+
+#ERROR CHECKING FOR MOSQUITTO PUBLICATION 
+should_exit=false
+[ -z "$mosquitto_pub_path" ] && log "${RED}Error: ${NC}Required package 'mosquitto_pub' not found. Please install." && should_exit=true
+[ -z "$mosquitto_sub_path" ] && log "${RED}Error: ${NC}Required package 'mosquitto_sub' not found. Please install." && should_exit=true
+[ -z "$hcidump_path" ] && log "${RED}Error: ${NC}Required package 'hcidump' not found. Please install." && should_exit=true
+[ -z "$bc_path" ] && log "${RED}Error: ${NC}Required package 'bc' not found. Please install." && should_exit=true
+[ -z "$git_path" ] && log "${ORANGE}Warning: ${NC}Recommended package 'git' not found. Please consider installing."
+
+#BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
+base_directory=$(dirname "$(readlink -f "$0")")
+
+#MQTT PREFERENCES
+MQTT_CONFIG="$base_directory/mqtt_preferences"
+if [ -f $MQTT_CONFIG ]; then 
+	source $MQTT_CONFIG
+
+	#DOUBLECHECKS 
+	[ "$mqtt_address" == "0.0.0.0" ] && log "${RED}Error: ${NC}Please customize mqtt broker address in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
+	[ "$mqtt_user" == "username" ] && log "${RED}Error: ${NC}Please customize mqtt username in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
+	[ "$mqtt_password" == "password" ] && log "${RED}Error: ${NC}Please customize mqtt password in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
+else
+	echo "Mosquitto preferences file created. Please customize." 
+
+	#LOAD A DEFULT PREFERENCES FILE
+	echo "# ---------------------------" >> $MQTT_CONFIG
+	echo "#								" >> $MQTT_CONFIG
+	echo "# MOSQUITTO PREFERENCES" >> $MQTT_CONFIG
+	echo "#								" >> $MQTT_CONFIG
+	echo "# ---------------------------" >> $MQTT_CONFIG
+	echo "" >> $MQTT_CONFIG
+
+	echo "# IP ADDRESS OF MQTT BROKER" >> $MQTT_CONFIG
+	echo "mqtt_address=0.0.0.0" >> $MQTT_CONFIG
+
+	echo "" >> $MQTT_CONFIG
+	echo "# MQTT BROKER USERNAME (OR BLANK FOR NONE)" >> $MQTT_CONFIG
+	echo "mqtt_user=username" >> $MQTT_CONFIG
+
+	echo "" >> $MQTT_CONFIG
+	echo "# MQTT BROKER PASSWORD (OR BLANK FOR NONE)" >> $MQTT_CONFIG
+	echo "mqtt_password=password" >> $MQTT_CONFIG
+
+	echo "" >> $MQTT_CONFIG
+	echo "# MQTT PUBLISH TOPIC ROOT " >> $MQTT_CONFIG
+	echo "mqtt_topicpath=location" >> $MQTT_CONFIG
+
+	echo "" >> $MQTT_CONFIG
+	echo "# PUBLISHER IDENTITY " >> $MQTT_CONFIG
+	echo "mqtt_publisher_identity=''" >> $MQTT_CONFIG
+
+	#SET SHOULD EXIT
+	should_exit=true
+fi 
+
+#MQTT PREFERENCES
+PUB_CONFIG="$base_directory/known_static_addresses"
+if [ -f "$PUB_CONFIG" ]; then 
+	#DOUBLECHECKS 
+	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && log "${RED}Error: ${NC}Please customize public mac addresses in: ${BLUE}known_static_addresses${NC}" && should_exit=true
+else
+	echo "Public MAC address list file created. Please customize."
+	#IF NO PUBLIC ADDRESS FILE; LOAD 
+	echo "# ---------------------------" >> $PUB_CONFIG
+	echo "#" >> $PUB_CONFIG
+	echo "# PUBLIC MAC ADDRESS LIST" >> $PUB_CONFIG
+	echo "#" >> $PUB_CONFIG
+	echo "# ---------------------------" >> $PUB_CONFIG
+	echo "" >> $PUB_CONFIG
+	echo "00:00:00:00:00:00 Nickname #comment" >> $PUB_CONFIG
+
+	#SET SHOULD EXIT
+	should_exit=true
+fi 
+
+#ARE REQUIREMENTS MET? 
+[ "$should_exit" == true ] && exit 1

@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.213
+version=0.1.215
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -88,97 +88,11 @@ log() {
 # SOURCE FILES 
 # ----------------------------------------------------------------------------------------
 
+source './support/setup'
 source './support/data'
 source './support/btle'
 source './support/mqtt'
-
-# ----------------------------------------------------------------------------------------
-# CHECK CONFIGURATION FILES; CREATE IF NECESSARY
-# ----------------------------------------------------------------------------------------
-
-#FIND DEPENDENCY PATHS, ELSE MANUALLY SET
-mosquitto_pub_path=$(which mosquitto_pub)
-mosquitto_sub_path=$(which mosquitto_sub)
-hcidump_path=$(which hcidump)
-bc_path=$(which bc)
-git_path=$(which git)
-
-#ERROR CHECKING FOR MOSQUITTO PUBLICATION 
-should_exit=false
-[ -z "$mosquitto_pub_path" ] && log "${RED}Error: ${NC}Required package 'mosquitto_pub' not found. Please install." && should_exit=true
-[ -z "$mosquitto_sub_path" ] && log "${RED}Error: ${NC}Required package 'mosquitto_sub' not found. Please install." && should_exit=true
-[ -z "$hcidump_path" ] && log "${RED}Error: ${NC}Required package 'hcidump' not found. Please install." && should_exit=true
-[ -z "$bc_path" ] && log "${RED}Error: ${NC}Required package 'bc' not found. Please install." && should_exit=true
-[ -z "$git_path" ] && log "${ORANGE}Warning: ${NC}Recommended package 'git' not found. Please consider installing."
-
-#BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
-base_directory=$(dirname "$(readlink -f "$0")")
-
-#MQTT PREFERENCES
-MQTT_CONFIG="$base_directory/mqtt_preferences"
-if [ -f $MQTT_CONFIG ]; then 
-	source $MQTT_CONFIG
-
-	#DOUBLECHECKS 
-	[ "$mqtt_address" == "0.0.0.0" ] && log "${RED}Error: ${NC}Please customize mqtt broker address in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
-	[ "$mqtt_user" == "username" ] && log "${RED}Error: ${NC}Please customize mqtt username in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
-	[ "$mqtt_password" == "password" ] && log "${RED}Error: ${NC}Please customize mqtt password in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
-else
-	echo "Mosquitto preferences file created. Please customize." 
-
-	#LOAD A DEFULT PREFERENCES FILE
-	echo "# ---------------------------" >> $MQTT_CONFIG
-	echo "#								" >> $MQTT_CONFIG
-	echo "# MOSQUITTO PREFERENCES" >> $MQTT_CONFIG
-	echo "#								" >> $MQTT_CONFIG
-	echo "# ---------------------------" >> $MQTT_CONFIG
-	echo "" >> $MQTT_CONFIG
-
-	echo "# IP ADDRESS OF MQTT BROKER" >> $MQTT_CONFIG
-	echo "mqtt_address=0.0.0.0" >> $MQTT_CONFIG
-
-	echo "" >> $MQTT_CONFIG
-	echo "# MQTT BROKER USERNAME (OR BLANK FOR NONE)" >> $MQTT_CONFIG
-	echo "mqtt_user=username" >> $MQTT_CONFIG
-
-	echo "" >> $MQTT_CONFIG
-	echo "# MQTT BROKER PASSWORD (OR BLANK FOR NONE)" >> $MQTT_CONFIG
-	echo "mqtt_password=password" >> $MQTT_CONFIG
-
-	echo "" >> $MQTT_CONFIG
-	echo "# MQTT PUBLISH TOPIC ROOT " >> $MQTT_CONFIG
-	echo "mqtt_topicpath=location" >> $MQTT_CONFIG
-
-	echo "" >> $MQTT_CONFIG
-	echo "# PUBLISHER IDENTITY " >> $MQTT_CONFIG
-	echo "mqtt_publisher_identity=''" >> $MQTT_CONFIG
-
-	#SET SHOULD EXIT
-	should_exit=true
-fi 
-
-#MQTT PREFERENCES
-PUB_CONFIG="$base_directory/known_static_addresses"
-if [ -f "$PUB_CONFIG" ]; then 
-	#DOUBLECHECKS 
-	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && log "${RED}Error: ${NC}Please customize public mac addresses in: ${BLUE}known_static_addresses${NC}" && should_exit=true
-else
-	echo "Public MAC address list file created. Please customize."
-	#IF NO PUBLIC ADDRESS FILE; LOAD 
-	echo "# ---------------------------" >> $PUB_CONFIG
-	echo "#" >> $PUB_CONFIG
-	echo "# PUBLIC MAC ADDRESS LIST" >> $PUB_CONFIG
-	echo "#" >> $PUB_CONFIG
-	echo "# ---------------------------" >> $PUB_CONFIG
-	echo "" >> $PUB_CONFIG
-	echo "00:00:00:00:00:00 Nickname #comment" >> $PUB_CONFIG
-
-	#SET SHOULD EXIT
-	should_exit=true
-fi 
-
-#ARE REQUIREMENTS MET? 
-[ "$should_exit" == true ] && exit 1
+source './support/time'
 
 # ----------------------------------------------------------------------------------------
 # DEFINE VALUES AND VARIABLES
@@ -199,8 +113,11 @@ mkfifo scan_pipe
 declare -A static_device_log
 declare -A random_device_log
 declare -A beacon_device_log
-declare -A known_device_log
-declare -A known_device_scan_log
+
+#STATIC DEVICE ASSOCIATIVE ARRAYS
+declare -A known_static_device_log
+declare -A known_static_device_scan_log
+declare -A known_static_device_name
 
 #DEFINE SCAN STATE
 currently_scanning=false
@@ -219,22 +136,20 @@ all_present=false
 all_absent=true
 
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY, IGNORING COMMENTS
-known_static_addresses=($(cat "$PUB_CONFIG" | grep -vE "^#" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
+known_static_addresses=($(cat "$PUB_CONFIG" | sed 's/#.\{0,\}//g' | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
+
+#POPULATE KNOWN DEVICE ADDRESS
+for addr in ${known_static_addresses[@]}; do 
+	#WAS THERE A NAME HERE?
+	known_name=$(grep "$addr" "$PUB_CONFIG" | sed 's/#.\{0,\}//g' | sed 's/$addr//g' )
+
+	[ ! -z "$known_name" ] && echo "$addr IS NAMED $known_name"
+done
 
 #LOOP SCAN VARIABLES
 device_count=${#known_static_addresses[@]}
 
-# ----------------------------------------------------------------------------------------
-# PERIODIC TRIGGER TO MAIN LOOP
-# ----------------------------------------------------------------------------------------
-periodic_trigger (){
-	echo "TIME trigger started" >&2 
-	#MQTT LOOP
-	while : ; do 
-		sleep 10
-		echo "TIME" > main_pipe
-	done
-}
+echo "COUNT: $device_count"
 
 # ----------------------------------------------------------------------------------------
 # REFRESH KNOWN DEVICE STATES
@@ -246,7 +161,7 @@ refresh_global_states() {
 
 	#ITERATE THROUGH ALL KNOWN ADDRESSES TO REFRESH GLOBAL STATE
 	for known_addr in "${known_static_addresses[@]}"; do 
-		local state="${known_device_log[$known_addr]}"
+		local state="${known_static_device_log[$known_addr]}"
 		state_sum=$((state + state_sum))
 	done
 
@@ -269,14 +184,18 @@ refresh_global_states() {
 
 
 # ----------------------------------------------------------------------------------------
-# SCAN FOR DEVICES
+# SCAN FOR ARRIVED DEVICE
+#
+# FOR AN ARRIVAL SCAN, WE DO NOT NECESSARILY NEED TO VERIFY A HIGH NUBMER OF TIMES
+# THAT A DEVICE HAS ACTUALLY ARRIVED. 
 # ----------------------------------------------------------------------------------------
+
 perform_arrival_scan () {
 	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
 	[ -z "$1" ] && return 0
 
 	#REPEAT THROUGH ALL DEVICES THREE TIMES, THEN RETURN 
-	local repetitions=1
+	local repetitions=2
 	local devices="$1"
 	local devices_next="$devices"
 	
@@ -290,6 +209,9 @@ perform_arrival_scan () {
 
 		#ITERATE THROUGH THESE 
 		for known_addr in $devices; do 
+
+			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
+			[ -z "$known_addr" ] && continue
 
 			#GET NAME USING HCITOOL; POSSIBLE USING 0x019 HCI COMMNAD, BUT
 			#HCITOOL HAS BUILT-IN ERROR CHECKING THAT IS USEFUL
@@ -308,7 +230,7 @@ perform_arrival_scan () {
 				echo "NAME$known_addr|$name" > main_pipe
 
 				#THIS DEVICE IS FOUND; REMOVE FROM DEVICE LIST
-				devices_next=$(echo "$devices_next" | sed "s/$known_addr //g")
+				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g")
 			fi 
 		done
 	done 
@@ -389,7 +311,7 @@ while true; do
 		elif [ "$cmd" == "SCAN" ]; then 
 
 			#ADD TO THE SCAN LOG
-			known_device_scan_log[$data]=$(date +%s)
+			known_static_device_scan_log[$data]=$(date +%s)
 			continue
 
 		elif [ "$cmd" == "DONE" ]; then 
@@ -504,7 +426,7 @@ while true; do
 			data="$mac"
 
 			#PREVIOUS STATE
-			previous_state="${known_device_log[$mac]}"
+			previous_state="${known_static_device_log[$mac]}"
 			[ -z "$previous_state" ] && previous_state=0
 
 			#GET MANUFACTURER INFORMATION
@@ -512,10 +434,10 @@ while true; do
 
 			#IF NAME IS DISCOVERED, PRESUME HOME
 			if [ ! -z "$name" ]; then 
-				known_device_log[$mac]=1
+				known_static_device_log[$mac]=1
 				[ "$previous_state" == "0" ] && did_change=true
 			else
-				known_device_log[$mac]=0
+				known_static_device_log[$mac]=0
 				[ "$previous_state" == "1" ] && did_change=true
 			fi 
 
@@ -611,11 +533,11 @@ while true; do
 				for known_addr in "${known_static_addresses[@]}"; do 
 					
 					#GET STATE; ONLY SCAN FOR ARRIVED DEVICES
-					this_state="${known_device_log[$known_addr]}"
+					this_state="${known_static_device_log[$known_addr]}"
 					[ -z "$this_state" ] && this_state=0
 
 					#FIND LAST TIME THIS DEVICE WAS SCANNED
-					last_scan="${known_device_scan_log[$known_addr]}"
+					last_scan="${known_static_device_scan_log[$known_addr]}"
 					time_diff=$((timestamp - last_scan))
 
 					#SCAN IF DEVICE IS NOT PRESENT AND HAS NOT BEEN SCANNED 
