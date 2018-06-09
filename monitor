@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.233
+version=0.1.234
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -596,7 +596,11 @@ while true; do
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 					perform_arrival_scan "$arrive_list" & 
 					scan_pid=$!
+				else 
+					echo "Rejected: all devices present"
 				fi
+			else 
+				echo "Rejected: scanning already underway."
 			fi 
 		fi 
 
