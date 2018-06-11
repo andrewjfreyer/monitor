@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.236
+version=0.1.237
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -267,6 +267,9 @@ periodic_trigger &
 # ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
 # ----------------------------------------------------------------------------------------
+
+#STARTUP
+publish_message "location" "100" "Name" "Apple"
 
 #MAIN LOOP
 while true; do 
@@ -532,6 +535,9 @@ while true; do
 				
 				#CHECK FOR KNOWN NAME
 				[ ! -z "$expected_name" ] && debug_name="${RED}[Error] $expected_name${NC}"
+			else
+				#FOR TESTING
+				publish_message "location" "100" "Name" "Apple"
 			fi 
 
 			[ -z "$expected_name" ] && [ ! -z "$debug_name" ] && known_static_device_name[$data]="$name"
