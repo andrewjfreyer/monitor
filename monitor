@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.235
+version=0.1.236
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -156,7 +156,7 @@ refresh_global_states() {
 
 assemble_arrival_scan_list () {
 
-	assemble_arrival_scan_list=""
+	local assemble_arrival_scan_list=""
 			 	
 	#DO NOT SCAN ANYTHING IF ALL DEVICES ARE PRESENT
 	if [ "$all_present" != true ]; then 
@@ -165,12 +165,12 @@ assemble_arrival_scan_list () {
 		for known_addr in "${known_static_addresses[@]}"; do 
 			
 			#GET STATE; ONLY SCAN FOR ARRIVED DEVICES
-			this_state="${known_static_device_log[$known_addr]}"
+			local this_state="${known_static_device_log[$known_addr]}"
 			[ -z "$this_state" ] && this_state=0
 
 			#FIND LAST TIME THIS DEVICE WAS SCANNED
-			last_scan="${known_static_device_scan_log[$known_addr]}"
-			time_diff=$((timestamp - last_scan))
+			local last_scan="${known_static_device_scan_log[$known_addr]}"
+			local time_diff=$((timestamp - last_scan))
 
 			#SCAN IF DEVICE IS NOT PRESENT AND HAS NOT BEEN SCANNED 
 			#WITHIN LAST [X] SECONDS
@@ -180,8 +180,11 @@ assemble_arrival_scan_list () {
 			fi 
 		done
 	 
-		#RETURN LIST
-		arrive_list=$(echo "$assemble_arrival_scan_list" | sed 's/^ //g')
+		#RETURN LIST, CLEANING FOR EXCESS SPACES OR STARTING WITH SPACES
+		local arrive_list=$(echo "$assemble_arrival_scan_list" | sed 's/^ //g;s/ $//g;s/  */ /g')
+
+		#RETURN THE ARRIVAL LIST
+		echo "$arrive_list"
 	fi 
 }
 
@@ -560,8 +563,9 @@ while true; do
 			if [ -z "$scan_pid" ]; then 
 
 			 	#SET GLOBAL SCAN STATE
-			 	arrive_list=assemble_arrival_scan_list
+			 	arrive_list=$(assemble_arrival_scan_list)
 					
+				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 				if [ ! -z "$arrive_list" ]; then 
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 					perform_arrival_scan "$arrive_list" & 
