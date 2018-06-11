@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# ----------------------------------------------------------------------------------------
+# GENERAL INFORMATION
+# ----------------------------------------------------------------------------------------
+#
+# Written by Andrew J Freyer
+# GNU General Public License
+# http://github.com/andrewjfreyer/monitor
+#
+# PRINTING AND DEBUGGING
+#
+# ----------------------------------------------------------------------------------------
+
+
+# ----------------------------------------------------------------------------------------
+# PRETTY PRINT FOR DEBUG
+# ----------------------------------------------------------------------------------------
+
+#COLOR OUTPUT FOR RICH OUTPUT 
+ORANGE='\033[0;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+GREEN='\033[0;32m'
+PURPLE='\033[0;35m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+REPEAT='\e[1A'
+
+#VARIABLES FOR LOGGING LOGSPAM PREVENTION
+last_log_line=""
+duplicate_log_count=1
+
+#PRINT TO LOG UNLESS DUPLICATE LINE
+log() {
+	#ECHO TO CONSOLE, REMOVING EXTRA SPACES
+	line=$(echo "$1" | sed 's/  */ /g')
+	should_repeat=""
+	line_append=""
+
+	#IS THIS LINE DUPLICATED?
+	if [ "$last_log_line" == "$line" ] ; then 
+		duplicate_log_count=$((duplicate_log_count + 1 ))
+		line_append=" (x$duplicate_log_count)"
+		should_repeat=$REPEAT
+	else 
+		duplicate_log_count=1
+	fi   
+	#ECHO LAST LINE
+	echo -e "${should_repeat}$version $(date "+%I:%M:%S %p") $line$line_append"
+	last_log_line="$line"
+}

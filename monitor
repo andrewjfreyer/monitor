@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.234
+version=0.1.235
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -48,47 +48,10 @@ clean() {
 trap "clean" EXIT
 
 # ----------------------------------------------------------------------------------------
-# PRETTY PRINT FOR DEBUG
-# ----------------------------------------------------------------------------------------
-
-#COLOR OUTPUT FOR RICH OUTPUT 
-ORANGE='\033[0;33m'
-RED='\033[0;31m'
-NC='\033[0m'
-GREEN='\033[0;32m'
-PURPLE='\033[0;35m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-REPEAT='\e[1A'
-
-#VARIABLES FOR LOGGING LOGSPAM PREVENTION
-last_log_line=""
-duplicate_log_count=1
-
-#PRINT TO LOG UNLESS DUPLICATE LINE
-log() {
-	#ECHO TO CONSOLE, REMOVING EXTRA SPACES
-	line=$(echo "$1" | sed 's/  */ /g')
-	should_repeat=""
-	line_append=""
-
-	#IS THIS LINE DUPLICATED?
-	if [ "$last_log_line" == "$line" ] ; then 
-		duplicate_log_count=$((duplicate_log_count + 1 ))
-		line_append=" (x$duplicate_log_count)"
-		should_repeat=$REPEAT
-	else 
-		duplicate_log_count=1
-	fi   
-	#ECHO LAST LINE
-	echo -e "${should_repeat}$version $(date "+%I:%M:%S %p") $line$line_append"
-	last_log_line="$line"
-}
-
-# ----------------------------------------------------------------------------------------
 # SOURCE FILES 
 # ----------------------------------------------------------------------------------------
 
+source './support/debug'
 source './support/setup'
 source './support/data'
 source './support/btle'
@@ -186,6 +149,41 @@ refresh_global_states() {
 	esac
 }
 
+
+# ----------------------------------------------------------------------------------------
+# ASSEMBLE ARRIVAL SCAN LISTc
+# ----------------------------------------------------------------------------------------
+
+assemble_arrival_scan_list () {
+
+	assemble_arrival_scan_list=""
+			 	
+	#DO NOT SCAN ANYTHING IF ALL DEVICES ARE PRESENT
+	if [ "$all_present" != true ]; then 
+
+		#ITERATE THROUGH THE KNOWN DEVICES 
+		for known_addr in "${known_static_addresses[@]}"; do 
+			
+			#GET STATE; ONLY SCAN FOR ARRIVED DEVICES
+			this_state="${known_static_device_log[$known_addr]}"
+			[ -z "$this_state" ] && this_state=0
+
+			#FIND LAST TIME THIS DEVICE WAS SCANNED
+			last_scan="${known_static_device_scan_log[$known_addr]}"
+			time_diff=$((timestamp - last_scan))
+
+			#SCAN IF DEVICE IS NOT PRESENT AND HAS NOT BEEN SCANNED 
+			#WITHIN LAST [X] SECONDS
+			if [ "$this_state" == "0" ] && [ "$time_diff" -gt "10" ]; then 
+				#ASSEMBLE LIST OF DEVICE 
+				assemble_arrival_scan_list=$(echo "$assemble_arrival_scan_list $known_addr")
+			fi 
+		done
+	 
+		#RETURN LIST
+		arrive_list=$(echo "$assemble_arrival_scan_list" | sed 's/^ //g')
+	fi 
+}
 
 # ----------------------------------------------------------------------------------------
 # SCAN FOR ARRIVED DEVICE
@@ -359,9 +357,6 @@ while true; do
 				#SET SCAN TYPE
 				departure_scan
 
-			else 
-				#SET SCAN TYPE
-				next_scan_type="SCAN_ALL"
 			fi 
 
 		elif [ "$cmd" == "TIME" ]; then 
@@ -565,40 +560,13 @@ while true; do
 			if [ -z "$scan_pid" ]; then 
 
 			 	#SET GLOBAL SCAN STATE
-			 	currently_scanning=true
-			 	assemble_arrival_scan_list=""
-			 	
-				#DO NOT SCAN ANYTHING IF ALL DEVICES ARE PRESENT
-				if [ "$all_present" != true ]; then 
-
-					#ITERATE THROUGH THE KNOWN DEVICES 
-					for known_addr in "${known_static_addresses[@]}"; do 
-						
-						#GET STATE; ONLY SCAN FOR ARRIVED DEVICES
-						this_state="${known_static_device_log[$known_addr]}"
-						[ -z "$this_state" ] && this_state=0
-
-						#FIND LAST TIME THIS DEVICE WAS SCANNED
-						last_scan="${known_static_device_scan_log[$known_addr]}"
-						time_diff=$((timestamp - last_scan))
-
-						#SCAN IF DEVICE IS NOT PRESENT AND HAS NOT BEEN SCANNED 
-						#WITHIN LAST [X] SECONDS
-						if [ "$this_state" == "0" ] && [ "$time_diff" -gt "10" ]; then 
-							#ASSEMBLE LIST OF DEVICE 
-							assemble_arrival_scan_list=$(echo "$assemble_arrival_scan_list $known_addr")
-						fi 
-					done
-				 
-					#RETURN LIST
-					arrive_list=$(echo "$assemble_arrival_scan_list" | sed 's/^ //g')
+			 	arrive_list=assemble_arrival_scan_list
 					
+				if [ ! -z "$arrive_list" ]; then 
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 					perform_arrival_scan "$arrive_list" & 
 					scan_pid=$!
-				else 
-					echo "Rejected: all devices present"
-				fi
+				fi 
 			else 
 				echo "Rejected: scanning already underway."
 			fi 
