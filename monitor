@@ -269,7 +269,7 @@ periodic_trigger &
 # ----------------------------------------------------------------------------------------
 
 #STARTUP
-publish_message "location" "100" "Name" "Apple"
+publish_message "found" "100" "Name" "Apple"
 
 #MAIN LOOP
 while true; do 
