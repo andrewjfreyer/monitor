@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.240
+version=0.1.241
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -570,7 +570,7 @@ while true; do
 			#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 			if [ ! -z "$arrive_list" ]; then 
 				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-				timeout --signal SIGINT 30 perform_arrival_scan "$arrive_list" & 
+				perform_arrival_scan "$arrive_list" & 
 				scan_pid=$!
 			fi 
 		fi 
