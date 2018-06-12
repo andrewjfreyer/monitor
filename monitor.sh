@@ -196,6 +196,10 @@ perform_arrival_scan () {
 	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
 	[ -z "$1" ] && return 0
 
+
+	ps ax | grep "$FUNCNAME" >&2
+	echo "$BASHPID" >&2
+
 	#DETERMINE WHETHER THIS FUNCTION IS ALREADY PROCESSING
 	[ ! -z "$(ps ax | grep "$FUNCNAME" | grep -v "$BASHPID" )" ] && echo "Already scanning..." && return 0
 
