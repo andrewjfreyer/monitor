@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.237
+version=0.1.240
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -82,9 +82,6 @@ declare -A named_device_log
 declare -A known_static_device_log
 declare -A known_static_device_scan_log
 declare -A known_static_device_name
-
-#DECLARE SCAN PID
-scan_pid=""
 
 #LAST TIME THIS 
 random_device_last_update=$(date +%s)
@@ -198,6 +195,9 @@ assemble_arrival_scan_list () {
 perform_arrival_scan () {
 	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
 	[ -z "$1" ] && return 0
+
+	#DETERMINE WHETHER THIS FUNCTION IS ALREADY PROCESSING
+	[ ! -z "$(ps ax | grep "$FUNCNAME")" ] && echo "Already scanning..." && return 0
 
 	#REPEAT THROUGH ALL DEVICES THREE TIMES, THEN RETURN 
 	local repetitions=1
@@ -340,8 +340,7 @@ while true; do
 
 		elif [ "$cmd" == "DONE" ]; then 
 
-			#REST SCAN MODE
-			scan_pid=""
+			#SCAN MODE IS COMPLETE
 			continue
 
 		elif [ "$cmd" == "MQTT" ]; then 
@@ -565,20 +564,14 @@ while true; do
 			#PROVIDE USEFUL LOGGING
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 			
-			#ONLY PROCEED IF NOT CURRENTLY SCANNING
-			if [ -z "$scan_pid" ]; then 
-
-			 	#SET GLOBAL SCAN STATE
-			 	arrive_list=$(assemble_arrival_scan_list)
-					
-				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
-				if [ ! -z "$arrive_list" ]; then 
-					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-					perform_arrival_scan "$arrive_list" & 
-					scan_pid=$!
-				fi 
-			else 
-				echo "Rejected: scanning already underway."
+		 	#SET GLOBAL SCAN STATE
+		 	arrive_list=$(assemble_arrival_scan_list)
+				
+			#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
+			if [ ! -z "$arrive_list" ]; then 
+				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
+				timeout --signal SIGINT 30 perform_arrival_scan "$arrive_list" & 
+				scan_pid=$!
 			fi 
 		fi 
 
