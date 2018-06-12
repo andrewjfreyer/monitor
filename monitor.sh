@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.242
+version=0.1.243
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -195,13 +195,6 @@ assemble_arrival_scan_list () {
 perform_arrival_scan () {
 	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
 	[ -z "$1" ] && return 0
-
-
-	ps ax | grep "$FUNCNAME" >&2
-	echo "$BASHPID" >&2
-
-	#DETERMINE WHETHER THIS FUNCTION IS ALREADY PROCESSING
-	[ ! -z "$(ps ax | grep "$FUNCNAME" | grep -v "$BASHPID" )" ] && echo "Already scanning..." && return 0
 
 	#REPEAT THROUGH ALL DEVICES THREE TIMES, THEN RETURN 
 	local repetitions=1
