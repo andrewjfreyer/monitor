@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.254
+version=0.1.255
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -240,9 +240,10 @@ perform_scan () {
 
 			echo "--> Scan Start "
 
-			local name=$(hcitool name "$known_addr" | grep -ivE 'input/output error|invalid device|invalid|error')
+			local name_raw=$(hcitool name "$known_addr")
+			local name=$(echo "name_raw" | grep -ivE 'input/output error|invalid device|invalid|error')
 
-			echo "--> Scan End "
+			echo "--> Scan End: $name_raw"
 
 			#MARK THE ADDRESS AS SCANNED SO THAT IT CAN BE LOGGED ON THE MAIN PIPE
 			echo "SCAN$known_addr" > main_pipe
