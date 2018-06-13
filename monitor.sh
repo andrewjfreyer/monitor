@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.257
+version=0.1.258
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -239,12 +239,8 @@ perform_scan () {
 			#HCITOOL HAS BUILT-IN ERROR CHECKING THAT IS USEFUL
 			#hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
-			echo "--> Scan Start: $known_addr"
-
 			local name_raw=$(hcitool name "$known_addr")
 			local name=$(echo "$name_raw" | grep -ivE 'input/output error|invalid device|invalid|error')
-
-			echo "--> Scan End: [$name_raw]"
 
 			#MARK THE ADDRESS AS SCANNED SO THAT IT CAN BE LOGGED ON THE MAIN PIPE
 			echo "SCAN$known_addr" > main_pipe
@@ -273,7 +269,7 @@ perform_scan () {
 	done
 
 	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed scan: $((initial_count - final_count)) end **** ${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed scan: $((initial_count - final_count)) arrived **** ${NC}"
 
 	#SET DONE TO MAIN PIPE
 	echo "DONE" > main_pipe
@@ -624,7 +620,7 @@ while true; do
 				if [ -z "$expected_name" ]; then 
 					expected_name="${RED}[Error]${NC}"
 				else 
-					known_static_device_name[$data]="$expected_name"
+					known_static_device_name[$data]="${GREEN}$expected_name${NC}"
 				fi 
 			fi 
 
