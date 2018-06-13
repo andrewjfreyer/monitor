@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.249
+version=0.1.250
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -260,13 +260,13 @@ perform_scan () {
 	#FINAL COUNT
 	local final_count=$(echo "$devices_next" | wc -w)
 
-	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed scan: $((initial_count - final_count)) end **** ${NC}"
-
 	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
 	for known_addr in $devices_next; do 
 		echo "NAME$known_addr|" > main_pipe
 	done
+
+	#GROUP SCAN FINISHED
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed scan: $((initial_count - final_count)) end **** ${NC}"
 
 	#SET DONE TO MAIN PIPE
 	echo "DONE" > main_pipe
@@ -375,10 +375,10 @@ while true; do
 			 	arrive_list=$(assemble_scan_list 0)
 					
 				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
-				if [ ! -z "$arrive_list" ] && [ -z "$(kill -0 "$scan_pid")" ] ; then 
+				if [ ! -z "$arrive_list" ] && [ -z "$(kill -0 "$scan_pid" >/dev/null 2>&1)" ] ; then 
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 					perform_scan "$arrive_list" 0 & 
-					scan_pid=$! && echo "SCAN PID is: $scan_pid [$(kill -0 "$scan_pid")]"
+					scan_pid=$!
 				fi 
 
 			elif [ "$mqtt_instruction" == "DEPART" ]; then 
@@ -439,7 +439,7 @@ while true; do
 				if [ ! -z "$depart_list" ] && [ -z "$(kill -0 "$scan_pid" >/dev/null 2>&1)" ] ; then 
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 					perform_scan "$depart_list" 3 & 
-					scan_pid=$! && echo "SCAN PID is: $scan_pid [$(kill -0 "$scan_pid")]"
+					scan_pid=$!
 				fi 
 			fi  
 
@@ -629,7 +629,7 @@ while true; do
 			if [ ! -z "$arrive_list" ] && [ -z "$(kill -0 "$scan_pid")" ] ; then 
 				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 				perform_scan "$arrive_list" 1 & 
-				scan_pid=$! && echo "SCAN PID is: $scan_pid [$(kill -0 "$scan_pid")]"
+				scan_pid=$!
 			fi 
 		fi 
 
