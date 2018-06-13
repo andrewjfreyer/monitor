@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.251
+version=0.1.252
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -375,8 +375,7 @@ while true; do
 			 	arrive_list=$(assemble_scan_list 0)
 
 			 	#SCAN ACTIVE?
-			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=true 
-
+			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
 					
 				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 				if [ ! -z "$arrive_list" ] && [ "$scan_active" == false ] ; then 
@@ -440,7 +439,7 @@ while true; do
 			 	depart_list=$(assemble_scan_list 1)
 
 			 	#SCAN ACTIVE? 
- 			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=true 
+ 			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
 
 				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR DEPARTURE
 				if [ ! -z "$depart_list" ] && [ "$scan_active" == false ] ; then 
@@ -633,7 +632,7 @@ while true; do
 		 	arrive_list=$(assemble_scan_list 0)
 
 		 	#SCAN FLAT
-		 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=true 
+		 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
 
 		 	echo "$scan_active"
 				
