@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.253
+version=0.1.254
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -208,8 +208,6 @@ assemble_scan_list () {
 
 perform_scan () {
 
-	echo "DEBUG: PERFORMING SCAN of $1"
-
 	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
 	[ -z "$1" ] && return 0
 
@@ -240,7 +238,11 @@ perform_scan () {
 			#HCITOOL HAS BUILT-IN ERROR CHECKING THAT IS USEFUL
 			#hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
+			echo "--> Scan Start "
+
 			local name=$(hcitool name "$known_addr" | grep -ivE 'input/output error|invalid device|invalid|error')
+
+			echo "--> Scan End "
 
 			#MARK THE ADDRESS AS SCANNED SO THAT IT CAN BE LOGGED ON THE MAIN PIPE
 			echo "SCAN$known_addr" > main_pipe
