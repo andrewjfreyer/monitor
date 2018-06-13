@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.247
+version=0.1.248
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -207,6 +207,9 @@ assemble_scan_list () {
 # ----------------------------------------------------------------------------------------
 
 perform_scan () {
+
+	echo "DEBUG: PERFORMING SCAN of $1"
+
 	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
 	[ -z "$1" ] && return 0
 
@@ -373,7 +376,7 @@ while true; do
 				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 				if [ ! -z "$arrive_list" ] && [ -z "$(kill -0 "$scan_pid" >/dev/null 2>&1)" ] ; then 
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-					perform_scan "$arrive_list" & 
+					perform_scan "$arrive_list" 0 & 
 					scan_pid=$!
 				fi 
 
@@ -394,7 +397,9 @@ while true; do
 			#	
 			#
 			#**********************************************************************
-				
+			#DID ANY DEVICE EXPIRE? 
+			should_scan=false
+
 			#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
 			random_bias=0
 			for key in "${!random_device_log[@]}"; do
@@ -416,22 +421,26 @@ while true; do
 
 					#UPDATE TIMESTAMP
 					random_device_last_update=$(date +%s)
-					
-					#SET GLOBAL SCAN STATE
-				 	depart_list=$(assemble_scan_list 1)
-						
-					#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
-					if [ ! -z "$depart_list" ] && [ -z "$(kill -0 "$scan_pid" >/dev/null 2>&1)" ] ; then 
-						#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-						perform_scan "$depart_list" 3 & 
-						scan_pid=$!
-					fi 
-
+			
+					#AT LEAST ONE DEVICE EXPIRED
+					should_scan=true 
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
 				fi 
 			done
+
+			if [ "$should_scan" == true ]; then 
+				#NEED TO SCAN FOR DEPARTED DEVICES
+			 	depart_list=$(assemble_scan_list 1)
+					
+				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR DEPARTURE
+				if [ ! -z "$depart_list" ] && [ -z "$(kill -0 "$scan_pid" >/dev/null 2>&1)" ] ; then 
+					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
+					perform_scan "$depart_list" 3 & 
+					scan_pid=$!
+				fi 
+			fi  
 
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			beacon_bias=0
