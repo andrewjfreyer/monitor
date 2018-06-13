@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.248
+version=0.1.249
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -357,6 +357,7 @@ while true; do
 		elif [ "$cmd" == "DONE" ]; then 
 
 			#SCAN MODE IS COMPLETE
+			scan_pid=0
 			continue
 
 		elif [ "$cmd" == "MQTT" ]; then 
@@ -374,10 +375,10 @@ while true; do
 			 	arrive_list=$(assemble_scan_list 0)
 					
 				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
-				if [ ! -z "$arrive_list" ] && [ -z "$(kill -0 "$scan_pid" >/dev/null 2>&1)" ] ; then 
+				if [ ! -z "$arrive_list" ] && [ -z "$(kill -0 "$scan_pid")" ] ; then 
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 					perform_scan "$arrive_list" 0 & 
-					scan_pid=$!
+					scan_pid=$! && echo "SCAN PID is: $scan_pid [$(kill -0 "$scan_pid")]"
 				fi 
 
 			elif [ "$mqtt_instruction" == "DEPART" ]; then 
@@ -438,7 +439,7 @@ while true; do
 				if [ ! -z "$depart_list" ] && [ -z "$(kill -0 "$scan_pid" >/dev/null 2>&1)" ] ; then 
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 					perform_scan "$depart_list" 3 & 
-					scan_pid=$!
+					scan_pid=$! && echo "SCAN PID is: $scan_pid [$(kill -0 "$scan_pid")]"
 				fi 
 			fi  
 
@@ -625,10 +626,10 @@ while true; do
 		 	arrive_list=$(assemble_scan_list 0)
 				
 			#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
-			if [ ! -z "$arrive_list" ] && [ -z "$(kill -0 "$scan_pid" >/dev/null 2>&1)" ] ; then 
+			if [ ! -z "$arrive_list" ] && [ -z "$(kill -0 "$scan_pid")" ] ; then 
 				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 				perform_scan "$arrive_list" 1 & 
-				scan_pid=$!
+				scan_pid=$! && echo "SCAN PID is: $scan_pid [$(kill -0 "$scan_pid")]"
 			fi 
 		fi 
 
