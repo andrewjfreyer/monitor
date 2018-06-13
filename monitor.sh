@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.246
+version=0.1.247
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -592,8 +592,19 @@ while true; do
 			expected_name="${known_static_device_name[$data]}"
 
 			#FIND PERMANENT DEVICE NAME OF PUBLIC DEVICE
-			[ -z "$expected_name" ] && expected_name="${RED}[Error]${NC}" && hcitool name "$data"
-			
+			if [ -z "$expected_name" ]; then 
+
+				#FIND NAME OF THIS DEVICE
+				expected_name=$(hcitool name "$data" | grep -ivE 'input/output error|invalid device|invalid|error')
+
+				#IS THE EXPECTED NAME BLANK? 
+				if [ -z "$expected_name" ]; then 
+					expected_name="${RED}[Error]${NC}"
+				else 
+					known_static_device_name[$data]="$expected_name"
+				fi 
+			fi 
+
 			#PROVIDE USEFUL LOGGING
 			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header $expected_name ${BLUE}$manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
 
