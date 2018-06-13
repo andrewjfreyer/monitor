@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.258
+version=0.1.259
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -620,12 +620,12 @@ while true; do
 				if [ -z "$expected_name" ]; then 
 					expected_name="${RED}[Error]${NC}"
 				else 
-					known_static_device_name[$data]="${GREEN}$expected_name${NC}"
+					known_static_device_name[$data]="$expected_name"
 				fi 
 			fi 
 
 			#PROVIDE USEFUL LOGGING
-			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header $expected_name ${BLUE}$manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
+			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
 			#PROVIDE USEFUL LOGGING
