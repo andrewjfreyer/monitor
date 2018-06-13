@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.256
+version=0.1.257
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -214,6 +214,7 @@ perform_scan () {
 	#REPEAT THROUGH ALL DEVICES THREE TIMES, THEN RETURN 
 	local repetitions=1
 	[ ! -z "$2" ] && repetitions="$2"
+	[ "$repetitions" -lt "1" ] && repetitions=1
 
 	local devices="$1"
 	local devices_next="$devices"
@@ -386,7 +387,7 @@ while true; do
 				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 				if [ ! -z "$arrive_list" ] && [ "$scan_active" == false ] ; then 
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-					perform_scan "$arrive_list" 0 & 
+					perform_scan "$arrive_list" 1 & 
 					scan_pid=$!
 				fi 
 
