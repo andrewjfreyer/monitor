@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.243
+version=0.1.244
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -86,6 +86,7 @@ declare -A known_static_device_name
 #LAST TIME THIS 
 random_device_last_update=$(date +%s)
 next_scan_type=""
+scan_pid=""
 
 #DEFINE PERFORMANCE TRACKING/IMRROVEMENT VARS
 declare -A expired_device_log
@@ -565,10 +566,12 @@ while true; do
 		 	arrive_list=$(assemble_arrival_scan_list)
 				
 			#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
-			if [ ! -z "$arrive_list" ]; then 
+			if [ ! -z "$arrive_list" ] && [ -z "$(kill -0 "$scan_pid" >/dev/null 2>&1)" ] ; then 
 				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 				perform_arrival_scan "$arrive_list" & 
 				scan_pid=$!
+			else
+				echo "Already scanning..."
 			fi 
 		fi 
 
