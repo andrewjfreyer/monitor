@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.252
+version=0.1.253
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -222,7 +222,7 @@ perform_scan () {
 	local initial_count=$(echo "$devices" | wc -w)
 	
 	#LOG START OF DEVICE SCAN 
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Start group scan: $initial_count start **** ${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Start group scan: $initial_count start [x$repetitions] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
