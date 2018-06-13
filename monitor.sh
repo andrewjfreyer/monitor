@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.245
+version=0.1.246
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -466,6 +466,7 @@ while true; do
 
 			#DATA IS PUBLIC MAC ADDRESS; ADD TO LOG
 			[ -z "${static_device_log[$data]}" ] && is_new=true
+
 			static_device_log[$data]="$timestamp"
 			manufacturer="$(determine_manufacturer $data)"
 
@@ -586,9 +587,15 @@ while true; do
 			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
+
+			#IF IS NEW AND IS PUBLIC, SHOULD CHECK FOR NAME
+			expected_name="${known_static_device_name[$data]}"
+
+			#FIND PERMANENT DEVICE NAME OF PUBLIC DEVICE
+			[ -z "$expected_name" ] && expected_name="${RED}[Error]${NC}" && hcitool name "$data"
 			
 			#PROVIDE USEFUL LOGGING
-			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header $name ${BLUE}$manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
+			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header $expected_name ${BLUE}$manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
 			#PROVIDE USEFUL LOGGING
