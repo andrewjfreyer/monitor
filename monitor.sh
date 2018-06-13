@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.250
+version=0.1.251
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -357,7 +357,7 @@ while true; do
 		elif [ "$cmd" == "DONE" ]; then 
 
 			#SCAN MODE IS COMPLETE
-			scan_pid=0
+			scan_pid=""
 			continue
 
 		elif [ "$cmd" == "MQTT" ]; then 
@@ -373,9 +373,13 @@ while true; do
 			if [ "$mqtt_instruction" == "ARRIVE" ]; then 
 				#SET SCAN TYPE
 			 	arrive_list=$(assemble_scan_list 0)
+
+			 	#SCAN ACTIVE?
+			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=true 
+
 					
 				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
-				if [ ! -z "$arrive_list" ] && [ -z "$(kill -0 "$scan_pid" >/dev/null 2>&1)" ] ; then 
+				if [ ! -z "$arrive_list" ] && [ "$scan_active" == false ] ; then 
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 					perform_scan "$arrive_list" 0 & 
 					scan_pid=$!
@@ -434,9 +438,12 @@ while true; do
 			if [ "$should_scan" == true ]; then 
 				#NEED TO SCAN FOR DEPARTED DEVICES
 			 	depart_list=$(assemble_scan_list 1)
-					
+
+			 	#SCAN ACTIVE? 
+ 			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=true 
+
 				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR DEPARTURE
-				if [ ! -z "$depart_list" ] && [ -z "$(kill -0 "$scan_pid" >/dev/null 2>&1)" ] ; then 
+				if [ ! -z "$depart_list" ] && [ "$scan_active" == false ] ; then 
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 					perform_scan "$depart_list" 3 & 
 					scan_pid=$!
@@ -624,9 +631,14 @@ while true; do
 			
 		 	#SET GLOBAL SCAN STATE
 		 	arrive_list=$(assemble_scan_list 0)
+
+		 	#SCAN FLAT
+		 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=true 
+
+		 	echo "$scan_active"
 				
 			#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
-			if [ ! -z "$arrive_list" ] && [ -z "$(kill -0 "$scan_pid")" ] ; then 
+			if [ ! -z "$arrive_list" ] && [ "$scan_active" == false ] ; then 
 				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 				perform_scan "$arrive_list" 1 & 
 				scan_pid=$!
