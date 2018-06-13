@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.244
+version=0.1.245
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -152,9 +152,17 @@ refresh_global_states() {
 # ASSEMBLE ARRIVAL SCAN LISTc
 # ----------------------------------------------------------------------------------------
 
-assemble_arrival_scan_list () {
+assemble_scan_list () {
+	#DEFINE LOCAL VARS
+	local return_list=""
 
-	local assemble_arrival_scan_list=""
+	#IF WE ARE SCANNING FOR ARRIVALS, THIS VALUE SHOULD BE 
+	#0; IF WE ARE SCANNING FOR DEPARTURES, THIS VALUE SHOULD
+	#BE 1.
+	local scan_state="$1"
+
+	#SCAN ALL? SET THE SCAN STATE TO 99
+	[ -z "$scan_state" ] && scan_state=99
 			 	
 	#DO NOT SCAN ANYTHING IF ALL DEVICES ARE PRESENT
 	if [ "$all_present" != true ]; then 
@@ -172,17 +180,22 @@ assemble_arrival_scan_list () {
 
 			#SCAN IF DEVICE IS NOT PRESENT AND HAS NOT BEEN SCANNED 
 			#WITHIN LAST [X] SECONDS
-			if [ "$this_state" == "0" ] && [ "$time_diff" -gt "10" ]; then 
+			if [ "$this_state" == "$scan_state" ] && [ "$time_diff" -gt "10" ]; then 
 				#ASSEMBLE LIST OF DEVICE 
-				assemble_arrival_scan_list=$(echo "$assemble_arrival_scan_list $known_addr")
+				return_list=$(echo "$return_list $known_addr")
+
+			elif [ "$scan_state" == "99" ] && [ "$time_diff" -gt "10" ]; then
+
+				#SCAN FOR ALL DEVICES THAT HAVEN'T BEEN RECENTLY SCANNED
+				return_list=$(echo "$return_list $known_addr")
 			fi 
 		done
 	 
 		#RETURN LIST, CLEANING FOR EXCESS SPACES OR STARTING WITH SPACES
-		local arrive_list=$(echo "$assemble_arrival_scan_list" | sed 's/^ //g;s/ $//g;s/  */ /g')
+		return_list=$(echo "$return_list" | sed 's/^ //g;s/ $//g;s/  */ /g')
 
-		#RETURN THE ARRIVAL LIST
-		echo "$arrive_list"
+		#RETURN THE LIST
+		echo "$return_list"
 	fi 
 }
 
@@ -193,18 +206,20 @@ assemble_arrival_scan_list () {
 # THAT A DEVICE HAS ACTUALLY ARRIVED. 
 # ----------------------------------------------------------------------------------------
 
-perform_arrival_scan () {
+perform_scan () {
 	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
 	[ -z "$1" ] && return 0
 
 	#REPEAT THROUGH ALL DEVICES THREE TIMES, THEN RETURN 
 	local repetitions=1
+	[ ! -z "$2" ] && repetitions="$2"
+
 	local devices="$1"
 	local devices_next="$devices"
 	local initial_count=$(echo "$devices" | wc -w)
 	
 	#LOG START OF DEVICE SCAN 
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Start arrival scan: $initial_count absent **** ${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Start group scan: $initial_count start **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
@@ -243,7 +258,7 @@ perform_arrival_scan () {
 	local final_count=$(echo "$devices_next" | wc -w)
 
 	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed arrival scan: $((initial_count - final_count)) found **** ${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed scan: $((initial_count - final_count)) end **** ${NC}"
 
 	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
 	for known_addr in $devices_next; do 
@@ -353,7 +368,14 @@ while true; do
 
 			if [ "$mqtt_instruction" == "ARRIVE" ]; then 
 				#SET SCAN TYPE
-				arrival_scan
+			 	arrive_list=$(assemble_scan_list 0)
+					
+				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
+				if [ ! -z "$arrive_list" ] && [ -z "$(kill -0 "$scan_pid" >/dev/null 2>&1)" ] ; then 
+					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
+					perform_scan "$arrive_list" & 
+					scan_pid=$!
+				fi 
 
 			elif [ "$mqtt_instruction" == "DEPART" ]; then 
 
@@ -394,7 +416,17 @@ while true; do
 
 					#UPDATE TIMESTAMP
 					random_device_last_update=$(date +%s)
-					next_scan_type="DEPARTURE_SCAN"
+					
+					#SET GLOBAL SCAN STATE
+				 	depart_list=$(assemble_scan_list 1)
+						
+					#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
+					if [ ! -z "$depart_list" ] && [ -z "$(kill -0 "$scan_pid" >/dev/null 2>&1)" ] ; then 
+						#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
+						perform_scan "$depart_list" 3 & 
+						scan_pid=$!
+					fi 
+
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
@@ -563,15 +595,13 @@ while true; do
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 			
 		 	#SET GLOBAL SCAN STATE
-		 	arrive_list=$(assemble_arrival_scan_list)
+		 	arrive_list=$(assemble_scan_list 0)
 				
 			#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 			if [ ! -z "$arrive_list" ] && [ -z "$(kill -0 "$scan_pid" >/dev/null 2>&1)" ] ; then 
 				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-				perform_arrival_scan "$arrive_list" & 
+				perform_scan "$arrive_list" 1 & 
 				scan_pid=$!
-			else
-				echo "Already scanning..."
 			fi 
 		fi 
 
