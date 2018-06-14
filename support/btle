@@ -17,7 +17,6 @@
 # BLUETOOTH LE BACKGROUND SCANNING
 # ----------------------------------------------------------------------------------------
 btle_scanner () {
-	echo "BTLE scanner started" >&2 
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
 		local error=$(sudo timeout --signal SIGINT 30 hcitool lescan 2>&1 | grep -iE 'input/output error|invalid device|invalid|error')
@@ -29,9 +28,7 @@ btle_scanner () {
 # ----------------------------------------------------------------------------------------
 # BLUETOOTH LE RAW PACKET ANALYSIS
 # ----------------------------------------------------------------------------------------
-btle_listener () {
-	echo "BTLE trigger started" >&2 
-	
+btle_listener () {	
 	#DEFINE VARAIBLES
 	local capturing=""
 	local next_packet=""

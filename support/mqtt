@@ -16,7 +16,6 @@
 # MQTT LISTENER
 # ----------------------------------------------------------------------------------------
 mqtt_listener (){
-	echo "MQTT trigger started" >&2 
 	#MQTT LOOP
 	while read instruction; do 
 		echo "MQTT$instruction" > main_pipe 

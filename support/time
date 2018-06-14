@@ -17,7 +17,6 @@
 # PERIODIC TRIGGER TO MAIN LOOP
 # ----------------------------------------------------------------------------------------
 periodic_trigger (){
-	echo "TIME trigger started" >&2 
 	#MQTT LOOP
 	while : ; do 
 		sleep 10
