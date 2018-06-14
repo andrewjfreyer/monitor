@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.262
+version=0.1.263
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -234,7 +234,7 @@ perform_scan () {
 
 			#SUBDIVIDE ADDR OBJECT
 			local known_addr="${device_data:1}"
-			local current_state="${device_data:0:1}"
+			local previous_state="${device_data:0:1}"
 
 			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
 			[ -z "$known_addr" ] && continue
@@ -249,15 +249,30 @@ perform_scan () {
 			#MARK THE ADDRESS AS SCANNED SO THAT IT CAN BE LOGGED ON THE MAIN PIPE
 			echo "SCAN$known_addr" > main_pipe
 
-			#IF WE SEE THIS DEVICE FOR THE FIRST TIME, BREAK THE LOOP
-			if [ ! -z "$name" ]; then 
-				
-				#SEND NAME TO MAIN PIPE; COULD EXTRACT FROM HCIDUMP, BUT THERE IS A DELAY
+			#IF STATUS CHANGES TO PRESENT FROM NOT PRESENT, REMOVE FROM VERIFICATIONS
+			if [ ! -z "$name" ] && [ "$previous_state" == "0" ]; then 
+
+				#PUSH TO MAIN POPE
 				echo "NAME$known_addr|$name" > main_pipe
 
-				#THIS DEVICE IS FOUND; REMOVE FROM DEVICE LIST
+				#THIS DEVICE IS CHANGED; REMOVE FROM DEVICE LIST
+				devices_next=$(echo "$devices_next" | sed "s/$device_data//g")
+
+			elif [ ! -z "$name" ] && [ "$previous_state" == "1" ]; then 
+				#THIS DEVICE IS STILL PRESENT; REMOVE FROM VERIFICATIONS
+				devices_next=$(echo "$devices_next" | sed "s/$device_data//g")
+
+			elif [ -z "$name" ] && [ "$previous_state" == "0" ]; then 
+
+				#THIS DEVICE IS STILL NOT PRESENT, REMOVE FROM VERIFICATIONS
 				devices_next=$(echo "$devices_next" | sed "s/$device_data//g")
 			fi 
+
+			#THE THREE BRACHES ABOVE MEAN THAT THE ONLY CIRCUMSTANCE THAT WE WOULD REPEAT 
+			#IS IF A NAME IS NOT DETECTED **AND** THE DEVICE WAS PREVIOUSLY HOME
+			#
+			#IF A NAME IS DETECTED, WE ALWAYS REMOVE; REPORT OUT ONLY IF THERE IS A CHANGE
+			#IF A NAME IS NOT DETECTED AND THIS IS NOT A CHANGE; DO NOT VERIFY
 
 			#TO PREVENT HARDWARE SLIPS
 			sleep 2
@@ -395,7 +410,17 @@ while true; do
 			elif [ "$mqtt_instruction" == "DEPART" ]; then 
 
 				#SET SCAN TYPE
-				departure_scan
+			 	depart_list=$(assemble_scan_list 1)
+
+			 	#SCAN ACTIVE?
+			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
+					
+				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
+				if [ ! -z "$depart_list" ] && [ "$scan_active" == false ] ; then 
+					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
+					perform_scan "$depart_list" 3 & 
+					scan_pid=$!
+				fi
 
 			fi 
 
