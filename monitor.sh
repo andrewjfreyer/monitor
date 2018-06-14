@@ -289,7 +289,7 @@ perform_scan () {
 	done
 
 	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed scan: $((initial_count - final_count)) changed devices_next **** ${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed scan: $((initial_count - final_count)) changed [x$repetitions] $devices_next **** ${NC}"
 
 	#SET DONE TO MAIN PIPE
 	echo "DONE" > main_pipe
