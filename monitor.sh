@@ -221,7 +221,7 @@ perform_scan () {
 	local initial_count=$(echo "$devices" | wc -w)
 	
 	#LOG START OF DEVICE SCAN 
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Start group scan: $initial_count start [x$repetitions] $devices **** ${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Start group scan: $initial_count start [x$repetitions] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
@@ -289,7 +289,7 @@ perform_scan () {
 	done
 
 	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed scan: $((initial_count - final_count)) changed [x$repetitions] $devices_next **** ${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed scan: $((initial_count - final_count)) unchanged [x$repetitions] **** ${NC}"
 
 	#SET DONE TO MAIN PIPE
 	echo "DONE" > main_pipe
