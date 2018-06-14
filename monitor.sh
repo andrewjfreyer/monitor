@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.259
+version=0.1.261
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -149,7 +149,7 @@ refresh_global_states() {
 
 
 # ----------------------------------------------------------------------------------------
-# ASSEMBLE ARRIVAL SCAN LISTc
+# ASSEMBLE ARRIVAL SCAN LIST
 # ----------------------------------------------------------------------------------------
 
 assemble_scan_list () {
@@ -182,12 +182,12 @@ assemble_scan_list () {
 			#WITHIN LAST [X] SECONDS
 			if [ "$this_state" == "$scan_state" ] && [ "$time_diff" -gt "10" ]; then 
 				#ASSEMBLE LIST OF DEVICE 
-				return_list=$(echo "$return_list $known_addr")
+				return_list=$(echo "$return_list $this_state$known_addr")
 
 			elif [ "$scan_state" == "99" ] && [ "$time_diff" -gt "10" ]; then
 
 				#SCAN FOR ALL DEVICES THAT HAVEN'T BEEN RECENTLY SCANNED
-				return_list=$(echo "$return_list $known_addr")
+				return_list=$(echo "$return_list $this_state$known_addr")
 			fi 
 		done
 	 
@@ -221,7 +221,7 @@ perform_scan () {
 	local initial_count=$(echo "$devices" | wc -w)
 	
 	#LOG START OF DEVICE SCAN 
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Start group scan: $initial_count start [x$repetitions] **** ${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Start group scan: $initial_count start [x$repetitions] $devices **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
@@ -230,7 +230,11 @@ perform_scan () {
 		devices="$devices_next"
 
 		#ITERATE THROUGH THESE 
-		for known_addr in $devices; do 
+		for device_data in $devices; do 
+
+			#SUBDIVIDE ADDR OBJECT
+			local known_addr="${device_data:1}"
+			local current_state="${device_data:0:1}"
 
 			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
 			[ -z "$known_addr" ] && continue
@@ -252,7 +256,7 @@ perform_scan () {
 				echo "NAME$known_addr|$name" > main_pipe
 
 				#THIS DEVICE IS FOUND; REMOVE FROM DEVICE LIST
-				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g")
+				devices_next=$(echo "$devices_next" | sed "s/$device_data//g")
 			fi 
 
 			#TO PREVENT HARDWARE SLIPS
@@ -264,12 +268,13 @@ perform_scan () {
 	local final_count=$(echo "$devices_next" | wc -w)
 
 	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
-	for known_addr in $devices_next; do 
+	for device_data in $devices_next; do 
+		local known_addr="${device_data:1}"
 		echo "NAME$known_addr|" > main_pipe
 	done
 
 	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed scan: $((initial_count - final_count)) arrived **** ${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed scan: $((initial_count - final_count)) changed **** ${NC}"
 
 	#SET DONE TO MAIN PIPE
 	echo "DONE" > main_pipe
@@ -636,8 +641,6 @@ while true; do
 
 		 	#SCAN FLAT
 		 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
-
-		 	echo "$scan_active"
 				
 			#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 			if [ ! -z "$arrive_list" ] && [ "$scan_active" == false ] ; then 
