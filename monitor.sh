@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.265
+version=0.1.266
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -456,7 +456,7 @@ while true; do
 				[ -z "$last_seen" ] && continue 
 
 				#TIMEOUT AFTER 120 SECONDS
-				if [ "$difference" -gt "$((120 + random_bias))" ]; then 
+				if [ "$difference" -gt "$((300 + random_bias))" ]; then 
 					unset random_device_log[$key]
 					log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
 
@@ -501,7 +501,7 @@ while true; do
 				[ -z "$last_seen" ] && continue 
 
 				#TIMEOUT AFTER 120 SECONDS
-				if [ "$difference" -gt "$(( 150 + beacon_bias ))" ]; then 
+				if [ "$difference" -gt "$(( 30 + beacon_bias ))" ]; then 
 					unset static_device_log[$key]
 					log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds BEAC_NUM: ${#static_device_log[@]}  ${NC}"
 
