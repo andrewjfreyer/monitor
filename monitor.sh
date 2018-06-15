@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.263
+version=0.1.264
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -216,12 +216,12 @@ perform_scan () {
 	[ ! -z "$2" ] && repetitions="$2"
 	[ "$repetitions" -lt "1" ] && repetitions=1
 
+	#INTERATION VARIABLES
 	local devices="$1"
 	local devices_next="$devices"
-	local initial_count=$(echo "$devices" | wc -w)
 	
 	#LOG START OF DEVICE SCAN 
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Start group scan: $initial_count start [x$repetitions] **** ${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Start scan. [x$repetitions] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
@@ -236,12 +236,19 @@ perform_scan () {
 			local known_addr="${device_data:1}"
 			local previous_state="${device_data:0:1}"
 
+			#SCAN TYPE
+			local transition_type="arrived"
+			[ "$previous_state" == "1" ] && transition_type="departed"
+
 			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
 			[ -z "$known_addr" ] && continue
 
 			#GET NAME USING HCITOOL; POSSIBLE USING 0x019 HCI COMMNAD, BUT
 			#HCITOOL HAS BUILT-IN ERROR CHECKING THAT IS USEFUL
 			#hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
+
+			#DEBUG LOGGING
+			log "${GREEN}[CMD-GROU]	${GREEN} -----> ${NC} Has $known_addr $transition_type? ${NC}"
 
 			local name_raw=$(hcitool name "$known_addr")
 			local name=$(echo "$name_raw" | grep -ivE 'input/output error|invalid device|invalid|error')
