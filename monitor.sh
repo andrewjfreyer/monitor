@@ -279,9 +279,6 @@ perform_scan () {
 		done
 	done 
 
-	#FINAL COUNT
-	local final_count=$(echo "$devices_next" | wc -w)
-
 	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
 	for device_data in $devices_next; do 
 		local known_addr="${device_data:1}"
@@ -289,7 +286,7 @@ perform_scan () {
 	done
 
 	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed scan: $((initial_count - final_count)) unchanged [x$repetitions] **** ${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed scan. **** ${NC}"
 
 	#SET DONE TO MAIN PIPE
 	echo "DONE" > main_pipe
