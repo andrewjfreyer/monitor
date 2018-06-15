@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.264
+version=0.1.265
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -212,7 +212,7 @@ perform_scan () {
 	[ -z "$1" ] && return 0
 
 	#REPEAT THROUGH ALL DEVICES THREE TIMES, THEN RETURN 
-	local repetitions=1
+	local repetitions=2
 	[ ! -z "$2" ] && repetitions="$2"
 	[ "$repetitions" -lt "1" ] && repetitions=1
 
@@ -248,7 +248,7 @@ perform_scan () {
 			#hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
 			#DEBUG LOGGING
-			log "${GREEN}[CMD-GROU]	${GREEN} -----> ${NC} Has $known_addr $transition_type? ${NC}"
+			log "${GREEN}[CMD-GROU]	${GREEN} -----> ${NC} $known_addr $transition_type? ${NC}"
 
 			local name_raw=$(hcitool name "$known_addr")
 			local name=$(echo "$name_raw" | grep -ivE 'input/output error|invalid device|invalid|error')
@@ -263,16 +263,16 @@ perform_scan () {
 				echo "NAME$known_addr|$name" > main_pipe
 
 				#THIS DEVICE IS CHANGED; REMOVE FROM DEVICE LIST
-				devices_next=$(echo "$devices_next" | sed "s/$device_data//g")
+				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
 
 			elif [ ! -z "$name" ] && [ "$previous_state" == "1" ]; then 
 				#THIS DEVICE IS STILL PRESENT; REMOVE FROM VERIFICATIONS
-				devices_next=$(echo "$devices_next" | sed "s/$device_data//g")
+				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
 
 			elif [ -z "$name" ] && [ "$previous_state" == "0" ]; then 
 
 				#THIS DEVICE IS STILL NOT PRESENT, REMOVE FROM VERIFICATIONS
-				devices_next=$(echo "$devices_next" | sed "s/$device_data//g")
+				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
 			fi 
 
 			#THE THREE BRACHES ABOVE MEAN THAT THE ONLY CIRCUMSTANCE THAT WE WOULD REPEAT 
@@ -281,9 +281,14 @@ perform_scan () {
 			#IF A NAME IS DETECTED, WE ALWAYS REMOVE; REPORT OUT ONLY IF THERE IS A CHANGE
 			#IF A NAME IS NOT DETECTED AND THIS IS NOT A CHANGE; DO NOT VERIFY
 
-			#TO PREVENT HARDWARE SLIPS
+			[ -z "$devices_next" ] && break
+
+			#TO PREVENT HARDWARE PROBLEMS
 			sleep 2
 		done
+
+		#ARE WE DONE WITH ALL DEVICES? 
+		[ -z "$devices_next" ] && break
 	done 
 
 	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
@@ -407,7 +412,7 @@ while true; do
 				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 				if [ ! -z "$arrive_list" ] && [ "$scan_active" == false ] ; then 
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-					perform_scan "$arrive_list" 1 & 
+					perform_scan "$arrive_list" 2 & 
 					scan_pid=$!
 				fi 
 
@@ -674,7 +679,7 @@ while true; do
 			#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 			if [ ! -z "$arrive_list" ] && [ "$scan_active" == false ] ; then 
 				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-				perform_scan "$arrive_list" 1 & 
+				perform_scan "$arrive_list" 2 & 
 				scan_pid=$!
 			fi 
 		fi 
