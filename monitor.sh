@@ -268,11 +268,6 @@ perform_scan () {
 			elif [ ! -z "$name" ] && [ "$previous_state" == "1" ]; then 
 				#THIS DEVICE IS STILL PRESENT; REMOVE FROM VERIFICATIONS
 				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
-
-			elif [ -z "$name" ] && [ "$previous_state" == "0" ]; then 
-
-				#THIS DEVICE IS STILL NOT PRESENT, REMOVE FROM VERIFICATIONS
-				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
 			fi 
 
 			#THE THREE BRACHES ABOVE MEAN THAT THE ONLY CIRCUMSTANCE THAT WE WOULD REPEAT 
