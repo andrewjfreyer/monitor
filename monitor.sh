@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.270
+version=0.1.271
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -264,23 +264,19 @@ perform_scan () {
 				#PUSH TO MAIN POPE
 				echo "NAME$known_addr|$name" > main_pipe
 
-				#DEVICE ARRIVED, RETURN IMMEDIATELY
-				return 0 
-
-				#THIS DEVICE IS CHANGED; REMOVE FROM DEVICE LIST
-				#devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
+				#DEVICE ARRIVED, RETURN IMMEDIATELY BY CLEAR THE DEVICES NEXT ARRAY
+				devices_next=""
+				break
 
 			elif [ ! -z "$name" ] && [ "$previous_state" == "1" ]; then 
 				#THIS DEVICE IS STILL PRESENT; REMOVE FROM VERIFICATIONS
 				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
 			fi 
 
-			echo "TESTING: $name $previous_state"
-
 			[ -z "$devices_next" ] && break
 
 			#TO PREVENT HARDWARE PROBLEMS
-			sleep 1
+			sleep 3
 		done
 
 		#ARE WE DONE WITH ALL DEVICES? 
