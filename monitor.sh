@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.269
+version=0.1.270
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -236,6 +236,8 @@ perform_scan () {
 			local known_addr="${device_data:1}"
 			local previous_state="${device_data:0:1}"
 
+			#IF THE PREVIOUS STATE IF 0 THEN WE WILL RETURN IMMEDIATELY IF A DEVICE IS FOUND
+
 			#SCAN TYPE
 			local transition_type="arrived"
 			[ "$previous_state" == "1" ] && transition_type="departed"
@@ -262,8 +264,11 @@ perform_scan () {
 				#PUSH TO MAIN POPE
 				echo "NAME$known_addr|$name" > main_pipe
 
+				#DEVICE ARRIVED, RETURN IMMEDIATELY
+				return 0 
+
 				#THIS DEVICE IS CHANGED; REMOVE FROM DEVICE LIST
-				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
+				#devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
 
 			elif [ ! -z "$name" ] && [ "$previous_state" == "1" ]; then 
 				#THIS DEVICE IS STILL PRESENT; REMOVE FROM VERIFICATIONS
@@ -613,7 +618,7 @@ while true; do
 				[ ! -z "$expected_name" ] && debug_name="${RED}[Error] $expected_name${NC}"
 			else
 				#FOR TESTING
-				publish_message "location" "100" "Name" "Apple"
+				publish_message "location" "100" "$name" "Apple"
 			fi 
 
 			[ -z "$expected_name" ] && [ ! -z "$debug_name" ] && known_static_device_name[$data]="$name"
@@ -669,6 +674,15 @@ while true; do
 				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 				perform_scan "$arrive_list" 2 & 
 				scan_pid=$!
+			else
+				#LETS WAIT FOR THE PROCESS TO COMPLETE
+				wait "$scan_pid"
+
+			 	#SET GLOBAL SCAN STATE
+			 	arrive_list=$(assemble_scan_list 0)
+
+			 	#DO IT AGAIN!
+				perform_scan "$arrive_list" 2 & 
 			fi 
 		fi 
 
