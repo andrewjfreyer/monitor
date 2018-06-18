@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.267
+version=0.1.269
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -270,16 +270,12 @@ perform_scan () {
 				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
 			fi 
 
-			#THE THREE BRACHES ABOVE MEAN THAT THE ONLY CIRCUMSTANCE THAT WE WOULD REPEAT 
-			#IS IF A NAME IS NOT DETECTED **AND** THE DEVICE WAS PREVIOUSLY HOME
-			#
-			#IF A NAME IS DETECTED, WE ALWAYS REMOVE; REPORT OUT ONLY IF THERE IS A CHANGE
-			#IF A NAME IS NOT DETECTED AND THIS IS NOT A CHANGE; DO NOT VERIFY
+			echo "TESTING: $name $previous_state"
 
 			[ -z "$devices_next" ] && break
 
 			#TO PREVENT HARDWARE PROBLEMS
-			sleep 2
+			sleep 1
 		done
 
 		#ARE WE DONE WITH ALL DEVICES? 
@@ -310,9 +306,6 @@ periodic_trigger &
 # ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
 # ----------------------------------------------------------------------------------------
-
-#STARTUP
-publish_message "found" "100" "Name" "Apple"
 
 #MAIN LOOP
 while true; do 
