@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.273
+version=0.1.274
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -670,7 +670,7 @@ while true; do
 				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 				perform_scan "$arrive_list" 2 & 
 				scan_pid=$!
-			else
+			#else
 				#LETS WAIT FOR THE PROCESS TO COMPLETE
 				#wait "$scan_pid"
 			fi 
