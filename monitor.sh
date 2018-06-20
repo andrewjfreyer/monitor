@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.279
+version=0.1.280
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -202,6 +202,8 @@ assemble_scan_list () {
 	 
 		#RETURN LIST, CLEANING FOR EXCESS SPACES OR STARTING WITH SPACES
 		return_list=$(echo "$return_list" | sed 's/^ //g;s/ $//g;s/  */ /g')
+
+		log "LIST: [$return_list]"
 
 		#RETURN THE LIST
 		echo "$return_list"
