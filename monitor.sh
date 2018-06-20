@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.271
+version=0.1.272
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -673,12 +673,6 @@ while true; do
 			else
 				#LETS WAIT FOR THE PROCESS TO COMPLETE
 				wait "$scan_pid"
-
-			 	#SET GLOBAL SCAN STATE
-			 	arrive_list=$(assemble_scan_list 0)
-
-			 	#DO IT AGAIN!
-				perform_scan "$arrive_list" 2 & 
 			fi 
 		fi 
 
