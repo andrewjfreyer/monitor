@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.275
+version=0.1.276
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -266,6 +266,9 @@ perform_scan () {
 
 				#DEVICE ARRIVED, RETURN IMMEDIATELY BY CLEAR THE DEVICES NEXT ARRAY
 				devices_next=""
+
+				#NEED TO SLEEP TO PREVENT HARDWARE COLLISIONS
+				sleep 3
 				break
 
 			elif [ ! -z "$name" ] && [ "$previous_state" == "1" ]; then 
