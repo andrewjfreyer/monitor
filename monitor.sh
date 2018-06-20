@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.272
+version=0.1.273
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -672,7 +672,7 @@ while true; do
 				scan_pid=$!
 			else
 				#LETS WAIT FOR THE PROCESS TO COMPLETE
-				wait "$scan_pid"
+				#wait "$scan_pid"
 			fi 
 		fi 
 
