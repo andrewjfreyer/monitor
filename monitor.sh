@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.276
+version=0.1.277
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -161,8 +161,8 @@ assemble_scan_list () {
 	#BE 1.
 	local scan_state="$1"
 
-	#SCAN ALL? SET THE SCAN STATE TO 99
-	[ -z "$scan_state" ] && scan_state=99
+	#SCAN ALL? SET THE SCAN STATE TO [X]
+	[ -z "$scan_state" ] && scan_state=2
 			 	
 	#DO NOT SCAN ANYTHING IF ALL DEVICES ARE PRESENT
 	if [ "$all_present" != true ]; then 
@@ -172,7 +172,11 @@ assemble_scan_list () {
 			
 			#GET STATE; ONLY SCAN FOR ARRIVED DEVICES
 			local this_state="${known_static_device_log[$known_addr]}"
-			[ -z "$this_state" ] && this_state=0
+
+			#IF WE HAVE NEVER SCANNED THIS DEVICE BEFORE, WE MARK AS 
+			#SCAN STATE [X]; THIS ALLOWS A FIRST SCAN TO PROGRESS TO 
+			#COMPLETION FOR ALL DEVICES
+			[ -z "$this_state" ] && this_state=3
 
 			#FIND LAST TIME THIS DEVICE WAS SCANNED
 			local last_scan="${known_static_device_scan_log[$known_addr]}"
@@ -270,6 +274,10 @@ perform_scan () {
 				#NEED TO SLEEP TO PREVENT HARDWARE COLLISIONS
 				sleep 3
 				break
+
+			elif [ ! -z "$name" ] && [ "$previous_state" == "3" ]; then 
+				#HERE, WE HAVE FOUND A DEVICE FOR THE FIRST TIME
+				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
 
 			elif [ ! -z "$name" ] && [ "$previous_state" == "1" ]; then 
 				#THIS DEVICE IS STILL PRESENT; REMOVE FROM VERIFICATIONS
