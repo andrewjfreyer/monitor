@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.280
+version=0.1.281
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -196,7 +196,12 @@ assemble_scan_list () {
 					#SCAN FOR ALL DEVICES THAT HAVEN'T BEEN RECENTLY SCANNED; 
 					#PRESUME DEVICE IS ABSENT
 					return_list=$(echo "$return_list 0$known_addr")
+				else 
+
+					echo  "REJECTED: $scan_state" >&2
 				fi 
+			else
+				echo  "REJECTED: Time is: $time_diff" >&2
 			fi 
 		done
 	 
