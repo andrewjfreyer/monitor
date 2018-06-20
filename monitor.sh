@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.277
+version=0.1.278
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -184,14 +184,19 @@ assemble_scan_list () {
 
 			#SCAN IF DEVICE IS NOT PRESENT AND HAS NOT BEEN SCANNED 
 			#WITHIN LAST [X] SECONDS
-			if [ "$this_state" == "$scan_state" ] && [ "$time_diff" -gt "10" ]; then 
-				#ASSEMBLE LIST OF DEVICE 
-				return_list=$(echo "$return_list $this_state$known_addr")
+			if [ "$time_diff" -gt "10" ]; then 
 
-			elif [ "$scan_state" == "99" ] && [ "$time_diff" -gt "10" ]; then
+				#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
+				if [ "$this_state" == "$scan_state" ]; then 
+					#ASSEMBLE LIST OF DEVICES TO SCAN
+					return_list=$(echo "$return_list $this_state$known_addr")
 
-				#SCAN FOR ALL DEVICES THAT HAVEN'T BEEN RECENTLY SCANNED
-				return_list=$(echo "$return_list $this_state$known_addr")
+				elif [ "$scan_state" == "2" ] || [ "$scan_state" == "3" ]; then
+
+					#SCAN FOR ALL DEVICES THAT HAVEN'T BEEN RECENTLY SCANNED; 
+					#PRESUME DEVICE IS ABSENT
+					return_list=$(echo "$return_list 0$known_addr")
+				fi 
 			fi 
 		done
 	 
@@ -687,9 +692,9 @@ while true; do
 				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 				perform_scan "$arrive_list" 2 & 
 				scan_pid=$!
-			#else
+			else
 				#LETS WAIT FOR THE PROCESS TO COMPLETE
-				#wait "$scan_pid"
+				wait "$scan_pid"
 			fi 
 		fi 
 
