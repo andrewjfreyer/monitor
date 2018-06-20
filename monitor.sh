@@ -198,7 +198,7 @@ assemble_scan_list () {
 					return_list=$(echo "$return_list 0$known_addr")
 				else 
 
-					echo  "REJECTED: $scan_state" >&2
+					echo  "REJECTED: $scan_state $this_state" >&2
 				fi 
 			else
 				echo  "REJECTED: Time is: $time_diff" >&2
