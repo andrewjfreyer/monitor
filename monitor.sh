@@ -203,7 +203,7 @@ assemble_scan_list () {
 		#RETURN LIST, CLEANING FOR EXCESS SPACES OR STARTING WITH SPACES
 		return_list=$(echo "$return_list" | sed 's/^ //g;s/ $//g;s/  */ /g')
 
-		log "LIST: [$return_list]"
+		echo  "LIST: [$return_list]" >&2
 
 		#RETURN THE LIST
 		echo "$return_list"
