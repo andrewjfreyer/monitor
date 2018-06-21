@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.282
+version=0.1.283
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -197,15 +197,11 @@ assemble_scan_list () {
 					#PRESUME DEVICE IS ABSENT
 					return_list=$(echo "$return_list 0$known_addr")
 				fi 
-			else
-				echo  "REJECTED: Time is: $time_diff" >&2
 			fi 
 		done
 	 
 		#RETURN LIST, CLEANING FOR EXCESS SPACES OR STARTING WITH SPACES
 		return_list=$(echo "$return_list" | sed 's/^ //g;s/ $//g;s/  */ /g')
-
-		echo  "LIST: [$return_list]" >&2
 
 		#RETURN THE LIST
 		echo "$return_list"
@@ -222,7 +218,10 @@ assemble_scan_list () {
 perform_scan () {
 
 	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
-	[ -z "$1" ] && return 0
+	if [ -z "$1" ]; then 
+		log "${GREEN}[CMD-GROU]	${GREEN}**** Rejected scan. No devices in desired state.  **** ${NC}"
+	 	return 0
+	fi
 
 	#REPEAT THROUGH ALL DEVICES THREE TIMES, THEN RETURN 
 	local repetitions=2
@@ -234,7 +233,7 @@ perform_scan () {
 	local devices_next="$devices"
 	
 	#LOG START OF DEVICE SCAN 
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Start scan. [x$repetitions] **** ${NC}"
+	log "${GREEN}[CMD-GROU]	${GREEN}**** Started scan. [x$repetitions] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
@@ -263,7 +262,7 @@ perform_scan () {
 			#hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
 			#DEBUG LOGGING
-			log "${GREEN}[CMD-GROU]	${GREEN} -----> ${NC} $known_addr $transition_type? ${NC}"
+			log "${GREEN}[CMD-GROU]	${GREEN} -----> ($repetitions)${NC} $known_addr $transition_type? ${NC}"
 
 			local name_raw=$(hcitool name "$known_addr")
 			local name=$(echo "$name_raw" | grep -ivE 'input/output error|invalid device|invalid|error')
