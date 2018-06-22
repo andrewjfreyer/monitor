@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.286
+version=0.1.287
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -266,7 +266,7 @@ perform_scan () {
 			hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
 			#DELAY BETWEN SCAN S
-			sleep 1
+			sleep 2
 
 			#DEBUG LOGGING
 			log "${GREEN}[CMD-GROU]	${GREEN} -----> ($repetition)${NC} $known_addr $transition_type? ${NC}"
@@ -277,7 +277,7 @@ perform_scan () {
 			#MARK THE ADDRESS AS SCANNED SO THAT IT CAN BE LOGGED ON THE MAIN PIPE
 			echo "SCAN$known_addr" > main_pipe
 
-			echo "WE HAVE A NAME " >&2
+			echo "WE HAVE A NAME $name_raw" >&2
 
 			#IF STATUS CHANGES TO PRESENT FROM NOT PRESENT, REMOVE FROM VERIFICATIONS
 			if [ ! -z "$name" ] && [ "$previous_state" == "0" ]; then 
