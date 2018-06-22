@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.285
+version=0.1.286
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -260,11 +260,12 @@ perform_scan () {
 			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
 			[ -z "$known_addr" ] && continue
 
-			#GET NAME USING HCITOOL; POSSIBLE USING 0x019 HCI COMMNAD, BUT
-			#HCITOOL HAS BUILT-IN ERROR CHECKING THAT IS USEFUL
+			#GET NAME USING HCITOOL AND RAW COMMAND;
+			#THIS APPEARS TO HAVE THE EFFECT OF PRIMING THE DEVICE THAT WE ARE INQUIRING
+			#WHEN THE DEVICE IS PRESENT
 			hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
-			#DELAY BETWEEN NAME SCAN 
+			#DELAY BETWEN SCAN S
 			sleep 1
 
 			#DEBUG LOGGING
@@ -275,6 +276,8 @@ perform_scan () {
 
 			#MARK THE ADDRESS AS SCANNED SO THAT IT CAN BE LOGGED ON THE MAIN PIPE
 			echo "SCAN$known_addr" > main_pipe
+
+			echo "WE HAVE A NAME " >&2
 
 			#IF STATUS CHANGES TO PRESENT FROM NOT PRESENT, REMOVE FROM VERIFICATIONS
 			if [ ! -z "$name" ] && [ "$previous_state" == "0" ]; then 
@@ -316,6 +319,9 @@ perform_scan () {
 
 	#GROUP SCAN FINISHED
 	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed scan. **** ${NC}"
+
+	#SLEEP BETWEEN SCAN INTERVALS
+	sleep 5
 
 	#SET DONE TO MAIN PIPE
 	echo "DONE" > main_pipe
