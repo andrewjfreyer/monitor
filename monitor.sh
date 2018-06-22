@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.283
+version=0.1.284
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -259,10 +259,13 @@ perform_scan () {
 
 			#GET NAME USING HCITOOL; POSSIBLE USING 0x019 HCI COMMNAD, BUT
 			#HCITOOL HAS BUILT-IN ERROR CHECKING THAT IS USEFUL
-			#hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
+			hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
+
+			#DELAY BETWEEN NAME SCAN 
+			sleep 1
 
 			#DEBUG LOGGING
-			log "${GREEN}[CMD-GROU]	${GREEN} -----> ($repetitions)${NC} $known_addr $transition_type? ${NC}"
+			log "${GREEN}[CMD-GROU]	${GREEN} -----> ($repetition)${NC} $known_addr $transition_type? ${NC}"
 
 			local name_raw=$(hcitool name "$known_addr")
 			local name=$(echo "$name_raw" | grep -ivE 'input/output error|invalid device|invalid|error')
