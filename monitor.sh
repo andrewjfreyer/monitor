@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.284
+version=0.1.285
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -216,9 +216,12 @@ assemble_scan_list () {
 # ----------------------------------------------------------------------------------------
 
 perform_scan () {
-
 	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
 	if [ -z "$1" ]; then 
+		#NEED TO WAIT SO THAT THE PID CAN ACTUALLY RETURN CORRECTLY
+		sleep 1
+
+		#LOG IMMEDIATE RETURN
 		log "${GREEN}[CMD-GROU]	${GREEN}**** Rejected scan. No devices in desired state.  **** ${NC}"
 	 	return 0
 	fi
