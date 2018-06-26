@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.292
+version=0.1.293
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -35,11 +35,10 @@ clean() {
 	#CLEANUP FOR TRAP
 	while read line; do 
 		`sudo kill $line` &>/dev/null
-	done < <(ps ax | grep monitor | awk '{print $1}')
+	done < <(ps ax | grep monitor.sh | awk '{print $1}')
 
 	#REMOVE PIPES
 	sudo rm main_pipe &>/dev/null
-	sudo rm scan_pipe &>/dev/null
 
 	#MESSAGE
 	echo 'Exited.'
@@ -68,10 +67,6 @@ sudo hciconfig hci0 down && sudo hciconfig hci0 up
 #SETUP MAIN PIPE
 sudo rm main_pipe &>/dev/null
 mkfifo main_pipe
-
-#SETUP SCAN PIPE
-sudo rm scan_pipe &>/dev/null
-mkfifo scan_pipe
 
 #DEFINE DEVICE TRACKING VARS
 declare -A static_device_log
