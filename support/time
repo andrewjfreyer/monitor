@@ -18,7 +18,7 @@
 # ----------------------------------------------------------------------------------------
 periodic_trigger (){
 	while : ; do 
-		sleep 2
+		sleep 5
 		echo "TIME" > main_pipe
 	done
 }
