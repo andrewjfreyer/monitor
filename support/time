@@ -17,9 +17,18 @@
 # PERIODIC TRIGGER TO MAIN LOOP
 # ----------------------------------------------------------------------------------------
 periodic_trigger (){
-	#MQTT LOOP
 	while : ; do 
-		sleep 10
+		sleep 2
 		echo "TIME" > main_pipe
+	done
+}
+
+# ----------------------------------------------------------------------------------------
+# PERIODIC TRIGGER TO MAIN LOOP
+# ----------------------------------------------------------------------------------------
+refresh_databases (){
+	while : ; do 
+		sleep 15
+		echo "REFR" > main_pipe
 	done
 }

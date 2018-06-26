@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.287
+version=0.1.289
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -334,6 +334,7 @@ btle_scanner &
 mqtt_listener &
 btle_listener &
 periodic_trigger & 
+refresh_databases &
 
 # ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
@@ -450,10 +451,14 @@ while true; do
 					perform_scan "$depart_list" 3 & 
 					scan_pid=$!
 				fi
-
 			fi 
 
+
 		elif [ "$cmd" == "TIME" ]; then 
+
+			log "${BLUE}[CMD-TIME]	${NC}Clock...${NC}"
+
+		elif [ "$cmd" == "REFR" ]; then 
 
 			#**********************************************************************
 			#
