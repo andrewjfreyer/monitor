@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.290
+version=0.1.291
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -85,8 +85,8 @@ declare -A known_static_device_name
 
 #LAST TIME THIS 
 random_device_last_update=$(date +%s)
-next_scan_type=""
 scan_pid=""
+scan_type=""
 
 #DEFINE PERFORMANCE TRACKING/IMRROVEMENT VARS
 declare -A expired_device_log
@@ -281,8 +281,6 @@ perform_scan () {
 			#MARK THE ADDRESS AS SCANNED SO THAT IT CAN BE LOGGED ON THE MAIN PIPE
 			echo "SCAN$known_addr" > main_pipe
 
-			echo "WE HAVE A NAME $name_raw" >&2
-
 			#IF STATUS CHANGES TO PRESENT FROM NOT PRESENT, REMOVE FROM VERIFICATIONS
 			if [ ! -z "$name" ] && [ "$previous_state" == "0" ]; then 
 
@@ -415,6 +413,12 @@ while true; do
 
 			#SCAN MODE IS COMPLETE
 			scan_pid=""
+
+			#SET LAST ARRIVAL OR DEPARTURE SCAN
+			[ "$scan_type" == "0" ] && last_arrival_scan=$(date +%s)
+			[ "$scan_type" == "1" ] && last_depart_scan=$(date +%s)
+
+			scan_type=""
 			continue
 
 		elif [ "$cmd" == "MQTT" ]; then 
@@ -430,7 +434,6 @@ while true; do
 			if [ "$mqtt_instruction" == "ARRIVE" ]; then 
 				#SET SCAN TYPE
 			 	arrive_list=$(assemble_scan_list 0)
-			 	last_arrival_scan=$(date +%s)
 
 			 	#SCAN ACTIVE?
 			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
@@ -440,6 +443,7 @@ while true; do
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 					perform_scan "$arrive_list" 2 & 
 					scan_pid=$!
+					scan_type=0
 				fi 
 
 			elif [ "$mqtt_instruction" == "DEPART" ]; then 
@@ -455,6 +459,7 @@ while true; do
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 					perform_scan "$depart_list" 3 & 
 					scan_pid=$!
+					scan_type=1
 				fi
 			fi 
 
@@ -465,7 +470,7 @@ while true; do
 			duration_since_arrival_scan=$((timestamp - last_arrival_scan))
 
 			if [ "$duration_since_arrival_scan" -gt 30 ]; then 
-					log "${RED}[WARNING]	${NC}Have not scanned for arrived devices in $duration_since_arrival_scan seconds...${NC}"
+				log "${RED}[WARNING]	${NC}Have not scanned for arrived devices in $duration_since_arrival_scan seconds...${NC}"
 			fi  
 
 
@@ -524,6 +529,7 @@ while true; do
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 					perform_scan "$depart_list" 3 & 
 					scan_pid=$!
+					scan_type=1
 				fi 
 			fi  
 
@@ -714,7 +720,6 @@ while true; do
 			
 		 	#SET GLOBAL SCAN STATE
 		 	arrive_list=$(assemble_scan_list 0)
-		 	last_arrival_scan=$(date +%s)
 
 		 	#SCAN FLAT
 		 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
@@ -724,6 +729,7 @@ while true; do
 				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 				perform_scan "$arrive_list" 2 & 
 				scan_pid=$!
+				scan_type=0
 			else
 				#LETS WAIT FOR THE PROCESS TO COMPLETE
 				wait "$scan_pid"
