@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.291
+version=0.1.292
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -97,8 +97,8 @@ all_present=false
 all_absent=true
 
 #SCAN VARIABLES
-last_arrival_scan=""
-last_depart_scan=""
+last_arrival_scan=$(date +%s)
+last_depart_scan=$(date +%s)
 
 # ----------------------------------------------------------------------------------------
 # POPULATE THE ASSOCIATIVE ARRAYS THAT INCLUDE INFORMATION ABOUT THE STATIC DEVICES
@@ -468,9 +468,38 @@ while true; do
 
 			#SCANNED RECENTLY? 
 			duration_since_arrival_scan=$((timestamp - last_arrival_scan))
+			duration_since_depart_scan=$((timestamp - last_depart_scan))
 
 			if [ "$duration_since_arrival_scan" -gt 30 ]; then 
-				log "${RED}[WARNING]	${NC}Have not scanned for arrived devices in $duration_since_arrival_scan seconds...${NC}"
+				#SET SCAN TYPE
+			 	arrive_list=$(assemble_scan_list 0)
+
+			 	#SCAN ACTIVE?
+			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
+					
+				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
+				if [ ! -z "$arrive_list" ] && [ "$scan_active" == false ] ; then 
+					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
+					perform_scan "$arrive_list" 2 & 
+					scan_pid=$!
+					scan_type=0
+				fi 
+
+			elif [ "$duration_since_depart_scan" -gt 60 ]; then 
+				#SET SCAN TYPE
+			 	depart_list=$(assemble_scan_list 1)
+
+			 	#SCAN ACTIVE?
+			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
+					
+				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
+				if [ ! -z "$depart_list" ] && [ "$scan_active" == false ] ; then 
+					
+					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
+					perform_scan "$depart_list" 2 & 
+					scan_pid=$!
+					scan_type=0
+				fi 
 			fi  
 
 
