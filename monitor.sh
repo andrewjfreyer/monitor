@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.293
+version=0.1.294
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -39,6 +39,7 @@ clean() {
 
 	#REMOVE PIPES
 	sudo rm main_pipe &>/dev/null
+	sudo rm log_pipe &>/dev/null
 
 	#MESSAGE
 	echo 'Exited.'
@@ -67,6 +68,10 @@ sudo hciconfig hci0 down && sudo hciconfig hci0 up
 #SETUP MAIN PIPE
 sudo rm main_pipe &>/dev/null
 mkfifo main_pipe
+
+#SETUP LOG PIPE
+sudo rm log_pipe &>/dev/null
+mkfifo log_pipe
 
 #DEFINE DEVICE TRACKING VARS
 declare -A static_device_log
