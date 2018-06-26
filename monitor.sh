@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.289
+version=0.1.290
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -95,6 +95,10 @@ declare -A device_expiration_biases
 #GLOBAL STATE VARIABLES
 all_present=false
 all_absent=true
+
+#SCAN VARIABLES
+last_arrival_scan=""
+last_depart_scan=""
 
 # ----------------------------------------------------------------------------------------
 # POPULATE THE ASSOCIATIVE ARRAYS THAT INCLUDE INFORMATION ABOUT THE STATIC DEVICES
@@ -170,7 +174,7 @@ assemble_scan_list () {
 		#ITERATE THROUGH THE KNOWN DEVICES 
 		for known_addr in "${known_static_addresses[@]}"; do 
 			
-			#GET STATE; ONLY SCAN FOR ARRIVED DEVICES
+			#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
 			local this_state="${known_static_device_log[$known_addr]}"
 
 			#IF WE HAVE NEVER SCANNED THIS DEVICE BEFORE, WE MARK AS 
@@ -265,7 +269,7 @@ perform_scan () {
 			#WHEN THE DEVICE IS PRESENT
 			hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
-			#DELAY BETWEN SCAN S
+			#DELAY BETWEN SCAN
 			sleep 2
 
 			#DEBUG LOGGING
@@ -321,7 +325,7 @@ perform_scan () {
 	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed scan. **** ${NC}"
 
 	#SLEEP BETWEEN SCAN INTERVALS
-	sleep 5
+	sleep 3
 
 	#SET DONE TO MAIN PIPE
 	echo "DONE" > main_pipe
@@ -426,6 +430,7 @@ while true; do
 			if [ "$mqtt_instruction" == "ARRIVE" ]; then 
 				#SET SCAN TYPE
 			 	arrive_list=$(assemble_scan_list 0)
+			 	last_arrival_scan=$(date +%s)
 
 			 	#SCAN ACTIVE?
 			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
@@ -456,7 +461,13 @@ while true; do
 
 		elif [ "$cmd" == "TIME" ]; then 
 
-			log "${BLUE}[CMD-TIME]	${NC}Clock...${NC}"
+			#SCANNED RECENTLY? 
+			duration_since_arrival_scan=$((timestamp - last_arrival_scan))
+
+			if [ "$duration_since_arrival_scan" -gt 30 ]; then 
+					log "${RED}[WARNING]	${NC}Have not scanned for arrived devices in $duration_since_arrival_scan seconds...${NC}"
+			fi  
+
 
 		elif [ "$cmd" == "REFR" ]; then 
 
@@ -703,6 +714,7 @@ while true; do
 			
 		 	#SET GLOBAL SCAN STATE
 		 	arrive_list=$(assemble_scan_list 0)
+		 	last_arrival_scan=$(date +%s)
 
 		 	#SCAN FLAT
 		 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
