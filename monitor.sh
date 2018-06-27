@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.314
+version=0.1.315
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -751,7 +751,7 @@ while true; do
 			fi 
 
 			#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT THE CHANGE
-			[ "$did_change" == true ] && publish_message "location" "$((current_state * 100))" "$name" "$manufacturer"
+			[ "$did_change" == true ] && publish_message "owner/$mqtt_publisher_identity/$data" "$((current_state * 100))" "$name" "$manufacturer"
 			
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
