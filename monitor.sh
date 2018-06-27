@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.302
+version=0.1.304
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -57,6 +57,22 @@ source './support/data'
 source './support/btle'
 source './support/mqtt'
 source './support/time'
+
+# ----------------------------------------------------------------------------------------
+# BEHAVIOR PREFERENCES
+# ----------------------------------------------------------------------------------------
+
+#DETERMINE WHETHER SHOULD PRIME A DEVICE BEFORE NAME-SCANNING
+PREF_SHOULD_PRIME=false
+
+#DETERMINE DELAY BETWEEN SCANS OF DEVICES 
+PREF_INTERSCAN_DELAY=3
+
+#DETERMINE HOW OFTEN TO CHECK FOR AN EXPIRED DEVICE OR FOR A DEPARTED OR ARRIVED DEVICE
+PREF_CLOCK_INTERVAL=5
+
+#DETERMINE NOW OFTEN TO REFRESH DATABASES TO REMOVE EXPIRED DEVICES
+PREF_DATABASE_REFRESH_INTERVAL=30
 
 # ----------------------------------------------------------------------------------------
 # DEFINE VALUES AND VARIABLES
@@ -227,7 +243,7 @@ perform_scan () {
 		sleep 1
 
 		#LOG IMMEDIATE RETURN
-		log "${GREEN}[CMD-GROU]	${GREEN}**** Rejected scan. No devices in desired state.  **** ${NC}"
+		log "${GREEN}[CMD-SCAN]	${GREEN}**** Rejected scan. No devices in desired state.  **** ${NC}"
 	 	return 0
 	fi
 
@@ -241,7 +257,7 @@ perform_scan () {
 	local devices_next="$devices"
 	
 	#LOG START OF DEVICE SCAN 
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Started scan. [x$repetitions] **** ${NC}"
+	log "${GREEN}[CMD-SCAN]	${GREEN}**** Started scan. [x$repetitions] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
@@ -268,13 +284,15 @@ perform_scan () {
 			#GET NAME USING HCITOOL AND RAW COMMAND;
 			#THIS APPEARS TO HAVE THE EFFECT OF PRIMING THE DEVICE THAT WE ARE INQUIRING
 			#WHEN THE DEVICE IS PRESENT
-			hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
+			if [ "$PREF_SHOULD_PRIME" == true ]; then 
+				hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
-			#DELAY BETWEN SCAN
-			sleep 2
+				#DELAY BETWEN SCAN
+				sleep 2
+			fi 
 
 			#DEBUG LOGGING
-			log "${GREEN}[CMD-GROU]	${GREEN} -----> ($repetition)${NC} $known_addr $transition_type? ${NC}"
+			log "${GREEN}[CMD-SCAN]	${GREEN}(No. $repetition)${NC} $known_addr $transition_type? ${NC}"
 
 			local name_raw=$(hcitool name "$known_addr")
 			local name=$(echo "$name_raw" | grep -ivE 'input/output error|invalid device|invalid|error')
@@ -292,7 +310,7 @@ perform_scan () {
 				devices_next=""
 
 				#NEED TO SLEEP TO PREVENT HARDWARE COLLISIONS
-				sleep 3
+				sleep "$PREF_INTERSCAN_DELAY"
 				break
 
 			elif [ ! -z "$name" ] && [ "$previous_state" == "3" ]; then 
@@ -304,10 +322,11 @@ perform_scan () {
 				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
 			fi 
 
+			#IF WE HAVE NO MORE DEVICES TO SCAN, IMMEDIATELY RETURN
 			[ -z "$devices_next" ] && break
 
 			#TO PREVENT HARDWARE PROBLEMS
-			sleep 3
+			sleep "$PREF_INTERSCAN_DELAY"
 		done
 
 		#ARE WE DONE WITH ALL DEVICES? 
@@ -321,7 +340,7 @@ perform_scan () {
 	done
 
 	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed scan. **** ${NC}"
+	log "${GREEN}[CMD-SCAN]	${GREEN}**** Completed scan. **** ${NC}"
 
 	#SET DONE TO MAIN PIPE
 	echo "DONE" > main_pipe
@@ -431,16 +450,16 @@ while true; do
 			continue
 
 		elif [ "$cmd" == "MQTT" ]; then 
-			#IN RESPONSE TO MQTT SCAN 
-			log "${GREEN}[INSTRUCT]	${NC}MQTT Trigger $data${NC}"
-
 			#GET INSTRUCTION 
-			mqtt_instruction=$(basename $data)
+			mqtt_topic_branch=$(basename $data)
 
 			#NORMALIZE TO UPPERCASE
-			mqtt_instruction=${mqtt_instruction^^}
+			mqtt_topic_branch=${mqtt_topic_branch^^}
 
-			if [ "$mqtt_instruction" == "ARRIVE" ]; then 
+			#FOR DETAILED LOGGING
+			mqtt_response_required="${RED}[Rejected]${NC}"
+
+			if [ "$mqtt_topic_branch" == "ARRIVE" ]; then 
 				#SET SCAN TYPE
 			 	arrive_list=$(assemble_scan_list 0)
 
@@ -453,9 +472,10 @@ while true; do
 					perform_scan "$arrive_list" 2 & 
 					scan_pid=$!
 					scan_type=0
+					mqtt_response_required=""
 				fi 
 
-			elif [ "$mqtt_instruction" == "DEPART" ]; then 
+			elif [ "$mqtt_topic_branch" == "DEPART" ]; then 
 
 				#SET SCAN TYPE
 			 	depart_list=$(assemble_scan_list 1)
@@ -469,11 +489,12 @@ while true; do
 					perform_scan "$depart_list" 3 & 
 					scan_pid=$!
 					scan_type=1
+					mqtt_response_required=""
 				fi
-			else 
-				echo "Rejecting MQTT $mqtt_instruction"
-			fi 
+			fi
 
+			#IN RESPONSE TO MQTT SCAN 
+			log "${GREEN}[INSTRUCT]	$mqtt_response_required${NC}MQTT Trigger $mqtt_topic_branch${NC}"
 
 		elif [ "$cmd" == "TIME" ]; then 
 
@@ -647,7 +668,6 @@ while true; do
 			mac=$(echo "$data" | awk -F "|" '{print $6}')
 			pdu_header=$(echo "$data" | awk -F "|" '{print $7}')
 			manufacturer="$(determine_manufacturer $mac)"
-
 
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			data="$mac"

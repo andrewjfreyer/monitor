@@ -18,7 +18,7 @@
 # ----------------------------------------------------------------------------------------
 periodic_trigger (){
 	while : ; do 
-		sleep 5
+		sleep "$PREF_CLOCK_INTERVAL"
 		echo "TIME" > main_pipe
 	done
 }
@@ -28,7 +28,7 @@ periodic_trigger (){
 # ----------------------------------------------------------------------------------------
 refresh_databases (){
 	while : ; do 
-		sleep 15
+		sleep "$PREF_DATABASE_REFRESH_INTERVAL"
 		echo "REFR" > main_pipe
 	done
 }
