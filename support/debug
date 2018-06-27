@@ -18,14 +18,14 @@
 # ----------------------------------------------------------------------------------------
 
 #COLOR OUTPUT FOR RICH OUTPUT 
-ORANGE='\e[1;33m'
-RED='\e[1;31m'
-NC='\e[0m'
-GREEN='\e[1;32m'
-PURPLE='\e[1;35m'
-BLUE='\e[1;34m'
-CYAN='\e[1;36m'
-REPEAT='\e[1A'
+ORANGE=$'\e[1;33m'
+RED=$'\e[1;31m'
+NC=$'\e[0m'
+GREEN=$'\e[1;32m'
+PURPLE=$'\e[1;35m'
+BLUE=$'\e[1;34m'
+CYAN=$'\e[1;36m'
+REPEAT=$'\e[1A'
 
 #VARIABLES FOR LOGGING LOGSPAM PREVENTION
 last_log_line=""
