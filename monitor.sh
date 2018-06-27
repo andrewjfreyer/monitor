@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.318
+version=0.1.319
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -817,8 +817,6 @@ while true; do
 				perform_scan "$arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" & 
 				scan_pid=$!
 				scan_type=0
-			else 
-				echo "*** Rejecting Scan Request *** $scan_active" 
 			fi 
 		fi 
 
