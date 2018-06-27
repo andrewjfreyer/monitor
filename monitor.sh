@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.304
+version=0.1.305
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -305,13 +305,6 @@ perform_scan () {
 
 				#PUSH TO MAIN POPE
 				echo "NAME$known_addr|$name" > main_pipe
-
-				#DEVICE ARRIVED, RETURN IMMEDIATELY BY CLEAR THE DEVICES NEXT ARRAY
-				devices_next=""
-
-				#NEED TO SLEEP TO PREVENT HARDWARE COLLISIONS
-				sleep "$PREF_INTERSCAN_DELAY"
-				break
 
 			elif [ ! -z "$name" ] && [ "$previous_state" == "3" ]; then 
 				#HERE, WE HAVE FOUND A DEVICE FOR THE FIRST TIME
