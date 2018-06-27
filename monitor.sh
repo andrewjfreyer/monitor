@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.309
+version=0.1.310
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -735,7 +735,7 @@ while true; do
 			current_state="${known_static_device_log[$mac]}"
 
 			#IF NAME IS NOT PREVIOUSLY SEEN, THEN WE SET THE STATIC DEVICE DATABASE NAME
-			[ -z "$expected_name" ] && [ ! -z "$name" ] && known_static_device_name[$data]="$name"
+			[ -z "$expected_name" ] && [ ! -z "$name" ] && known_static_device_name[$data]="$name" && name="$expected_name"
 
 			#FOR LOGGING; MAKE SURE THAT AN UNKNOWN NAME IS ADDED
 			if [ -z "$debug_name" ]; then 
@@ -747,7 +747,7 @@ while true; do
 			fi 
 
 			#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT THE CHANGE
-			[ "$did_change" == true ] && publish_message "first floor" "$((current_state * 100))" "$name" "$manufacturer"
+			[ "$did_change" == true ] && publish_message "location" "$((current_state * 100))" "$name" "$manufacturer"
 			
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
