@@ -18,13 +18,13 @@
 # ----------------------------------------------------------------------------------------
 
 #COLOR OUTPUT FOR RICH OUTPUT 
-ORANGE='\033[0;33m'
-RED='\033[0;31m'
-NC='\033[0m'
-GREEN='\033[0;32m'
-PURPLE='\033[0;35m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
+ORANGE='\e[0;33m'
+RED='\e[0;31m'
+NC='\e[0m'
+GREEN='\e[0;32m'
+PURPLE='\e[0;35m'
+BLUE='\e[0;34m'
+CYAN='\e[0;36m'
 REPEAT='\e[1A'
 
 #VARIABLES FOR LOGGING LOGSPAM PREVENTION
@@ -52,7 +52,7 @@ log_listener () {
 				duplicate_log_count=1
 			fi   
 			#ECHO LAST LINE
-			echo -e "${should_repeat}$version $(date "+%I:%M:%S %p") $line$line_append"
+			printf "${should_repeat}$version $(date "+%I:%M:%S %p") $line$line_append\n"
 			last_log_line="$line"
 
 		done < log_pipe
