@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.307
+version=0.1.308
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -664,7 +664,7 @@ while true; do
 				[ "$previous_state" == "0" ] && did_change=true
 			else
 				known_static_device_log[$mac]=0
-				[ "$previous_state" == "1" ] && did_change=true
+				[ "$previous_state" != "0" ] && did_change=true
 			fi 
 
 			#MUST REFRESH GLOBAL STATES; DID WE HAVE A CHANGE
