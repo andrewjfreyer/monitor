@@ -448,7 +448,7 @@ while true; do
 			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
 					
 				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
-				if [ ! -z "$arrive_list" ] && [ "$scan_active" == false ] ; then 
+				if [ "$scan_active" == false ] ; then 
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 					perform_scan "$arrive_list" 2 & 
 					scan_pid=$!
@@ -489,7 +489,7 @@ while true; do
 			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
 					
 				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
-				if [ ! -z "$arrive_list" ] && [ "$scan_active" == false ] ; then 
+				if [ "$scan_active" == false ] ; then 
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 					perform_scan "$arrive_list" 2 & 
 					scan_pid=$!
@@ -765,7 +765,7 @@ while true; do
 		 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
 				
 			#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
-			if [ ! -z "$arrive_list" ] && [ "$scan_active" == false ] ; then 
+			if [ "$scan_active" == false ] ; then 
 				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 				perform_scan "$arrive_list" 2 & 
 				scan_pid=$!
