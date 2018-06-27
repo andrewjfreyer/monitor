@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.312
+version=0.1.314
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -737,6 +737,9 @@ while true; do
 			#IF NAME IS NOT PREVIOUSLY SEEN, THEN WE SET THE STATIC DEVICE DATABASE NAME
 			[ -z "$expected_name" ] && [ ! -z "$name" ] && known_static_device_name[$data]="$name" 
 			[ ! -z "$expected_name" ] && [ -z "$name" ] && name="$expected_name"
+
+			#OVERWRITE WITH EXPECTED NAME
+			[ ! -z "$expected_name" ] && [ ! -z "$name" ] && name="$expected_name"
 
 			#FOR LOGGING; MAKE SURE THAT AN UNKNOWN NAME IS ADDED
 			if [ -z "$debug_name" ]; then 
