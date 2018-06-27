@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.310
+version=0.1.311
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -63,7 +63,7 @@ source './support/time'
 # ----------------------------------------------------------------------------------------
 
 #DETERMINE WHETHER SHOULD PRIME A DEVICE BEFORE NAME-SCANNING
-PREF_SHOULD_PRIME=false
+PREF_SHOULD_PRIME=true
 
 #DETERMINE DELAY BETWEEN SCANS OF DEVICES 
 PREF_INTERSCAN_DELAY=3
