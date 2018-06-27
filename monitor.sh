@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.311
+version=0.1.312
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -471,7 +471,7 @@ while true; do
 			mqtt_topic_branch=${mqtt_topic_branch^^}
 
 			#FOR DETAILED LOGGING
-			mqtt_response_required="${RED}[Rejected]${NC}"
+			mqtt_response_required="${RED}[Rejected] ${NC}"
 
 			if [ "$mqtt_topic_branch" == "ARRIVE" ]; then 
 				#SET SCAN TYPE
@@ -735,7 +735,8 @@ while true; do
 			current_state="${known_static_device_log[$mac]}"
 
 			#IF NAME IS NOT PREVIOUSLY SEEN, THEN WE SET THE STATIC DEVICE DATABASE NAME
-			[ -z "$expected_name" ] && [ ! -z "$name" ] && known_static_device_name[$data]="$name" && name="$expected_name"
+			[ -z "$expected_name" ] && [ ! -z "$name" ] && known_static_device_name[$data]="$name" 
+			[ ! -z "$expected_name" ] && [ -z "$name" ] && name="$expected_name"
 
 			#FOR LOGGING; MAKE SURE THAT AN UNKNOWN NAME IS ADDED
 			if [ -z "$debug_name" ]; then 
