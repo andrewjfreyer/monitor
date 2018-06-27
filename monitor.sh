@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.299
+version=0.1.300
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -159,6 +159,7 @@ refresh_global_states() {
 assemble_scan_list () {
 	#DEFINE LOCAL VARS
 	local return_list=""
+	local timestamp=$(date +%s)
 
 	#IF WE ARE SCANNING FOR ARRIVALS, THIS VALUE SHOULD BE 
 	#0; IF WE ARE SCANNING FOR DEPARTURES, THIS VALUE SHOULD
