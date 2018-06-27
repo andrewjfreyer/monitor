@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.305
+version=0.1.306
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -378,7 +378,7 @@ while true; do
 		did_change=false
 
 		#DATA FOR PUBLICATION
-		manufacturer=""
+		manufacturer="Unknown"
 		name=""
 
 		#PROCEED BASED ON COMMAND TYPE
@@ -711,19 +711,22 @@ while true; do
 			#PRINTING FORMATING
 			debug_name="$name"
 			expected_name="${known_static_device_name[$data]}"
+			current_state="${known_static_device_log[$mac]}"
 
+			#IF NAME IS NOT PREVIOUSLY SEEN, THEN WE SET THE STATIC DEVICE DATABASE NAME
+			[ -z "$expected_name" ] && [ ! -z "$name" ] && known_static_device_name[$data]="$name"
+
+			#FOR LOGGING; MAKE SURE THAT AN UNKNOWN NAME IS ADDED
 			if [ -z "$debug_name" ]; then 
 				#SHOW ERROR
 				debug_name="${RED}[Error] Unknown Name ${NC}"
 				
 				#CHECK FOR KNOWN NAME
 				[ ! -z "$expected_name" ] && debug_name="${RED}[Error] $expected_name${NC}"
-			else
-				#FOR TESTING
-				publish_message "location" "100" "$name" "Apple"
 			fi 
 
-			[ -z "$expected_name" ] && [ ! -z "$debug_name" ] && known_static_device_name[$data]="$name"
+			#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT THE CHANGE
+			[ "$did_change" == true ] && publish_message "first floor" "$((current_state * 100))" "$name" "$manufacturer"
 			
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
