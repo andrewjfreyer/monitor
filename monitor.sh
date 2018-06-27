@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.297
+version=0.1.298
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -321,9 +321,6 @@ perform_scan () {
 
 	#GROUP SCAN FINISHED
 	log "${GREEN}[CMD-GROU]	${GREEN}**** Completed scan. **** ${NC}"
-
-	#SLEEP BETWEEN SCAN INTERVALS
-	sleep 3
 
 	#SET DONE TO MAIN PIPE
 	echo "DONE" > main_pipe
@@ -761,9 +758,9 @@ while true; do
 				perform_scan "$arrive_list" 2 & 
 				scan_pid=$!
 				scan_type=0
-			else
+			#else
 				#LETS WAIT FOR THE PROCESS TO COMPLETE
-				wait "$scan_pid"
+				#wait "$scan_pid"
 			fi 
 		fi 
 
