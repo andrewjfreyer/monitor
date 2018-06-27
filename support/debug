@@ -37,8 +37,8 @@ log_listener () {
 	while true; do 
 		#READ FROM THE MAIN PIPE
 		while read line; do 
-		#ECHO TO CONSOLE, REMOVING EXTRA SPACES
-			
+
+			#ECHO TO CONSOLE, REMOVING EXTRA SPACES	
 			should_repeat=""
 			line_append=""
 
@@ -47,11 +47,12 @@ log_listener () {
 				duplicate_log_count=$((duplicate_log_count + 1 ))
 				line_append=" (x$duplicate_log_count)"
 				should_repeat=$REPEAT
+
 			else 
 				duplicate_log_count=1
 			fi   
 			#ECHO LAST LINE
-			echo -e "${should_repeat}$version $(date "+%I:%M:%S %p") $line$line_append"
+			bash echo -e "${should_repeat}$version $(date "+%I:%M:%S %p") $line$line_append"
 			last_log_line="$line"
 
 		done < log_pipe
