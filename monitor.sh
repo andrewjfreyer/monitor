@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.300
+version=0.1.302
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -470,6 +470,8 @@ while true; do
 					scan_pid=$!
 					scan_type=1
 				fi
+			else 
+				echo "Rejecting MQTT $mqtt_instruction"
 			fi 
 
 
@@ -588,7 +590,7 @@ while true; do
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$(( 180 + beacon_bias ))" ]; then 
 					unset static_device_log[$key]
-					log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds BEAC_NUM: ${#static_device_log[@]}  ${NC}"
+					log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds PUBL_NUM: ${#static_device_log[@]}  ${NC}"
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
@@ -768,9 +770,8 @@ while true; do
 				perform_scan "$arrive_list" 2 & 
 				scan_pid=$!
 				scan_type=0
-			#else
-				#LETS WAIT FOR THE PROCESS TO COMPLETE
-				#wait "$scan_pid"
+			else 
+				echo "*** Rejecting Scan Request *** $scan_active" 
 			fi 
 		fi 
 
