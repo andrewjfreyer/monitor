@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.306
+version=0.1.307
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -255,6 +255,8 @@ perform_scan () {
 	#INTERATION VARIABLES
 	local devices="$1"
 	local devices_next="$devices"
+	local scan_start=""
+	local scan_duration=""
 	
 	#LOG START OF DEVICE SCAN 
 	log "${GREEN}[CMD-SCAN]	${GREEN}**** Started scan. [x$repetitions] **** ${NC}"
@@ -281,6 +283,9 @@ perform_scan () {
 			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
 			[ -z "$known_addr" ] && continue
 
+			#DETERMINE START OF SCAN
+			scan_start="$(date +%s)"
+
 			#GET NAME USING HCITOOL AND RAW COMMAND;
 			#THIS APPEARS TO HAVE THE EFFECT OF PRIMING THE DEVICE THAT WE ARE INQUIRING
 			#WHEN THE DEVICE IS PRESENT
@@ -296,6 +301,10 @@ perform_scan () {
 
 			local name_raw=$(hcitool name "$known_addr")
 			local name=$(echo "$name_raw" | grep -ivE 'input/output error|invalid device|invalid|error')
+
+			#COLLECT STATISTICS ABOUT THE SCAN 
+			local scan_end="$(date +%s)"
+			local scan_duration=$((scan_end - scan_start))
 
 			#MARK THE ADDRESS AS SCANNED SO THAT IT CAN BE LOGGED ON THE MAIN PIPE
 			echo "SCAN$known_addr" > main_pipe
@@ -319,7 +328,19 @@ perform_scan () {
 			[ -z "$devices_next" ] && break
 
 			#TO PREVENT HARDWARE PROBLEMS
-			sleep "$PREF_INTERSCAN_DELAY"
+			if [ "$scan_duration" -lt "$PREF_INTERSCAN_DELAY" ]; then 
+				local adjusted_delay="$((PREF_INTERSCAN_DELAY - scan_duration))"
+
+				if [ "$adjusted_delay" -gt "0" ]; then 
+					sleep "$adjusted_delay"
+				else
+					#DEFAULT MINIMUM SLEEP
+					sleep 2
+				fi 
+			else
+				#DEFAULT MINIMUM SLEEP
+				sleep 2
+			fi 
 		done
 
 		#ARE WE DONE WITH ALL DEVICES? 
