@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.316
+version=0.1.317
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -69,10 +69,10 @@ PREF_SHOULD_PRIME=true
 PREF_INTERSCAN_DELAY=3
 
 #DETERMINE HOW OFTEN TO CHECK FOR AN EXPIRED DEVICE OR FOR A DEPARTED OR ARRIVED DEVICE
-PREF_CLOCK_INTERVAL=5
+PREF_CLOCK_INTERVAL=30
 
 #DETERMINE NOW OFTEN TO REFRESH DATABASES TO REMOVE EXPIRED DEVICES
-PREF_DATABASE_REFRESH_INTERVAL=30
+PREF_DATABASE_REFRESH_INTERVAL=60
 
 # ----------------------------------------------------------------------------------------
 # DEFINE VALUES AND VARIABLES
