@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.308
+version=0.1.309
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -651,9 +651,9 @@ while true; do
 			name=$(echo "$data" | awk -F "|" '{print $2}')
 			data="$mac"
 
-			#PREVIOUS STATE
+			#PREVIOUS STATE; SET DEFAULT TO UNKNOWN
 			previous_state="${known_static_device_log[$mac]}"
-			[ -z "$previous_state" ] && previous_state=0
+			[ -z "$previous_state" ] && previous_state=-1
 
 			#GET MANUFACTURER INFORMATION
 			manufacturer="$(determine_manufacturer $data)"
