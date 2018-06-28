@@ -31,21 +31,18 @@ version=0.1.330
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
 # ----------------------------------------------------------------------------------------
-
 clean() {
-
-	#GET PROCESS LIST
-	proc_list=$(ps ax | grep monitor.sh | grep -v "$PID" | awk '{print $1}' | uniq)
-
 	#CLEANUP FOR TRAP
-	for line in $proc_list; do 
-		echo "killing: $PID - $line"
+	while read line; do 
 		`sudo kill $line` &>/dev/null
-	done
+	done < <(ps ax | grep monitor.sh | awk '{print $1}')
 
 	#REMOVE PIPES
 	sudo rm main_pipe &>/dev/null
 	sudo rm log_pipe &>/dev/null
+
+	#MESSAGE
+	echo 'Exited.'
 }
 
 trap "clean; echo 'Exited.'" EXIT
