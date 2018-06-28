@@ -38,13 +38,14 @@ echo "$PID"
 
 clean() {
 
-	ps ax | grep monitor.sh | grep -v "$PID" | awk '{print $1}' | uniq
+	#GET PROCESS LIST
+	proc_list=$(ps ax | grep monitor.sh | grep -v "$PID" | awk '{print $1}' | uniq)
 
 	#CLEANUP FOR TRAP
-	while read line; do 
+	for line in $proc_list; do 
 		echo "killing: $PID - $line"
 		`sudo kill $line` &>/dev/null
-	done < <(ps ax | grep monitor.sh | grep -v "$PID" | awk '{print $1}' | uniq )
+	done
 
 	#REMOVE PIPES
 	sudo rm main_pipe &>/dev/null
