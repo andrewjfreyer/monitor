@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.326
+version=0.1.327
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -37,11 +37,14 @@ PID="$$"
 echo "$PID"
 
 clean() {
+
+	ps ax | grep monitor.sh | grep -v "$PID" | awk '{print $1}' | uniq
+
 	#CLEANUP FOR TRAP
 	while read line; do 
 		echo "killing: $PID - $line"
 		`sudo kill $line` &>/dev/null
-	done < <(ps ax | grep monitor.sh | grep -v "$PID" | awk '{print $1}')
+	done < <(ps ax | grep monitor.sh | grep -v "$PID" | awk '{print $1}' | uniq )
 
 	#REMOVE PIPES
 	sudo rm main_pipe &>/dev/null
