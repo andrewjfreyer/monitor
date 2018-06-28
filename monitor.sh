@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.322
+version=0.1.323
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -36,7 +36,7 @@ clean() {
 	#CLEANUP FOR TRAP
 	while read line; do 
 		`sudo kill $line` &>/dev/null
-	done < <(ps ax | grep monitor.sh | awk '{print $1}')
+	done < <(ps ax | grep monitor.sh | grep -v "$$" | awk '{print $1}')
 
 	#REMOVE PIPES
 	sudo rm main_pipe &>/dev/null
