@@ -34,6 +34,8 @@ version=0.1.325
 
 PID="$$"
 
+echo "$PID"
+
 clean() {
 	#COUNT PROCESSES
 	$(ps ax | grep monitor.sh)
