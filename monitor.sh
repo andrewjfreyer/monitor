@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.329
+version=0.1.330
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -556,7 +556,7 @@ while true; do
 					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 					perform_scan "$depart_list" "$PREF_DEPART_SCAN_ATTEMPTS" & 
 					scan_pid=$!
-					scan_type=0
+					scan_type=1
 				fi 
 			fi  
 
