@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.325
+version=0.1.326
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -37,12 +37,9 @@ PID="$$"
 echo "$PID"
 
 clean() {
-	#COUNT PROCESSES
-	$(ps ax | grep monitor.sh)
-
 	#CLEANUP FOR TRAP
 	while read line; do 
-		echo "killing: $line"
+		echo "killing: $PID - $line"
 		`sudo kill $line` &>/dev/null
 	done < <(ps ax | grep monitor.sh | grep -v "$PID" | awk '{print $1}')
 
