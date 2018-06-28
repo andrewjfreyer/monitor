@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.320
+version=0.1.321
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -313,13 +313,16 @@ perform_scan () {
 			local scan_duration=$((scan_end - scan_start))
 
 			#MARK THE ADDRESS AS SCANNED SO THAT IT CAN BE LOGGED ON THE MAIN PIPE
-			echo "SCAN$known_addr" > main_pipe
+			echo "SCAN$known_addr" > main_pipe & 
 
 			#IF STATUS CHANGES TO PRESENT FROM NOT PRESENT, REMOVE FROM VERIFICATIONS
 			if [ ! -z "$name" ] && [ "$previous_state" == "0" ]; then 
 
 				#PUSH TO MAIN POPE
-				echo "NAME$known_addr|$name" > main_pipe
+				echo "NAME$known_addr|$name" > main_pipe & 
+
+				#REMOVE FROM SCAN
+				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
 
 			elif [ ! -z "$name" ] && [ "$previous_state" == "3" ]; then 
 				#HERE, WE HAVE FOUND A DEVICE FOR THE FIRST TIME
@@ -356,14 +359,14 @@ perform_scan () {
 	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
 	for device_data in $devices_next; do 
 		local known_addr="${device_data:1}"
-		echo "NAME$known_addr|" > main_pipe
+		echo "NAME$known_addr|" > main_pipe & 
 	done
 
 	#GROUP SCAN FINISHED
 	log "${GREEN}[CMD-SCAN]	${GREEN}**** Completed scan. **** ${NC}"
 
 	#SET DONE TO MAIN PIPE
-	echo "DONE" > main_pipe
+	echo "DONE" > main_pipe & 
 }
 
 # ----------------------------------------------------------------------------------------
