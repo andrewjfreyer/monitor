@@ -26,15 +26,18 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.323
+version=0.1.324
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
 # ----------------------------------------------------------------------------------------
 
+echo "pid: $$"
+
 clean() {
 	#CLEANUP FOR TRAP
 	while read line; do 
+		echo "killing: $line"
 		`sudo kill $line` &>/dev/null
 	done < <(ps ax | grep monitor.sh | grep -v "$$" | awk '{print $1}')
 
