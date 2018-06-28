@@ -26,11 +26,12 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.321
+version=0.1.322
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
 # ----------------------------------------------------------------------------------------
+
 clean() {
 	#CLEANUP FOR TRAP
 	while read line; do 
@@ -40,12 +41,12 @@ clean() {
 	#REMOVE PIPES
 	sudo rm main_pipe &>/dev/null
 	sudo rm log_pipe &>/dev/null
-
-	#MESSAGE
-	echo 'Exited.'
 }
 
-trap "clean" EXIT
+trap "clean; echo 'Exited.'" EXIT
+
+#START FROM A CLEAN SLATE
+clean 
 
 # ----------------------------------------------------------------------------------------
 # SOURCE FILES 
