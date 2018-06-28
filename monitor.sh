@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.328
+version=0.1.329
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -673,7 +673,7 @@ while true; do
 			#IF NAME IS DISCOVERED, PRESUME HOME
 			if [ ! -z "$name" ]; then 
 				known_static_device_log[$mac]=1
-				[ "$previous_state" == "0" ] && did_change=true
+				[ "$previous_state" != "1" ] && did_change=true
 			else
 				known_static_device_log[$mac]=0
 				[ "$previous_state" != "0" ] && did_change=true
@@ -766,7 +766,7 @@ while true; do
 			[ "$did_change" == true ] && publish_message "owner/$mqtt_publisher_identity/$data" "$((current_state * 100))" "$name" "$manufacturer"
 			
 			#PRINT RAW COMMAND; DEBUGGING
-			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
+			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer $did_change${NC}"
 		
 		elif [ "$cmd" == "BEAC" ] ; then 
 
