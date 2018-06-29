@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.330
+version=0.1.332
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -178,7 +178,7 @@ refresh_global_states() {
 # ASSEMBLE ARRIVAL SCAN LIST
 # ----------------------------------------------------------------------------------------
 
-assemble_scan_list_for_devices_with_state () {
+scannable_devices_with_state () {
 	#DEFINE LOCAL VARS
 	local return_list=""
 	local timestamp=$(date +%s)
@@ -370,10 +370,46 @@ perform_scan () {
 }
 
 # ----------------------------------------------------------------------------------------
+# SCAN TYPES
+# ----------------------------------------------------------------------------------------
+
+perform_departure_scan () {
+	#SET SCAN TYPE
+ 	depart_list=$(scannable_devices_with_state 1)
+
+ 	#SCAN ACTIVE?
+ 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
+		
+	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
+	if [ ! -z "$depart_list" ] && [ "$scan_active" == false ] ; then 
+		#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
+		perform_scan "$depart_list" "$PREF_DEPART_SCAN_ATTEMPTS" & 
+		scan_pid=$!
+		scan_type=1
+	fi
+}
+
+perform_arrival_scan () {
+	#SET SCAN TYPE
+ 	arrive_list=$(scannable_devices_with_state 0)
+
+ 	#SCAN ACTIVE?
+ 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
+		
+	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
+	if [ "$scan_active" == false ] ; then 
+		#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
+		perform_scan "$arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" & 
+		scan_pid=$!
+		scan_type=0
+	fi 
+}
+
+# ----------------------------------------------------------------------------------------
 # ADD AN ARRIVAL SCAN INTO THE QUEUE 
 # ----------------------------------------------------------------------------------------
 
-first_arrive_list=$(assemble_scan_list_for_devices_with_state 0)
+first_arrive_list=$(scannable_devices_with_state 0)
 perform_scan "$first_arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" & 
 scan_pid=$!
 scan_type=0
@@ -482,38 +518,16 @@ while true; do
 			#FOR DETAILED LOGGING
 			mqtt_response_required="${RED}[Rejected] ${NC}"
 
-			if [ "$mqtt_topic_branch" == "ARRIVE" ]; then 
-				#SET SCAN TYPE
-			 	arrive_list=$(assemble_scan_list_for_devices_with_state 0)
-
-			 	#SCAN ACTIVE?
-			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
-					
-				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
-				if [ "$scan_active" == false ] ; then 
-					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-					perform_scan "$arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" & 
-					scan_pid=$!
-					scan_type=0
-					mqtt_response_required=""
-				fi 
+			if [ "$mqtt_topic_branch" == "ARRIVE" ] || [ "$mqtt_topic_branch" == "SCAN" ]; then 
+				
+				perform_arrival_scan
+				mqtt_response_required=""
 
 			elif [ "$mqtt_topic_branch" == "DEPART" ]; then 
 
-				#SET SCAN TYPE
-			 	depart_list=$(assemble_scan_list_for_devices_with_state 1)
+				perform_departure_scan
+				mqtt_response_required=""
 
-			 	#SCAN ACTIVE?
-			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
-					
-				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
-				if [ ! -z "$depart_list" ] && [ "$scan_active" == false ] ; then 
-					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-					perform_scan "$depart_list" "$PREF_DEPART_SCAN_ATTEMPTS" & 
-					scan_pid=$!
-					scan_type=1
-					mqtt_response_required=""
-				fi
 			fi
 
 			#IN RESPONSE TO MQTT SCAN 
@@ -526,35 +540,13 @@ while true; do
 			duration_since_depart_scan=$((timestamp - last_depart_scan))
 
 			if [ "$duration_since_arrival_scan" -gt 30 ]; then 
-				#SET SCAN TYPE
-			 	arrive_list=$(assemble_scan_list_for_devices_with_state 0)
-
-			 	#SCAN ACTIVE?
-			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
-					
-				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
-				if [ "$scan_active" == false ] ; then 
-					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-					perform_scan "$arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" & 
-					scan_pid=$!
-					scan_type=0
-				fi 
+				
+				perform_arrival_scan
 
 			elif [ "$duration_since_depart_scan" -gt 60 ]; then 
-				#SET SCAN TYPE
-			 	depart_list=$(assemble_scan_list_for_devices_with_state 1)
+				
+				perform_departure_scan
 
-			 	#SCAN ACTIVE?
-			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
-					
-				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
-				if [ ! -z "$depart_list" ] && [ "$scan_active" == false ] ; then 
-					
-					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-					perform_scan "$depart_list" "$PREF_DEPART_SCAN_ATTEMPTS" & 
-					scan_pid=$!
-					scan_type=1
-				fi 
 			fi  
 
 
@@ -602,19 +594,9 @@ while true; do
 			done
 
 			if [ "$should_scan" == true ]; then 
-				#NEED TO SCAN FOR DEPARTED DEVICES
-			 	depart_list=$(assemble_scan_list_for_devices_with_state 1)
+				
+				perform_departure_scan
 
-			 	#SCAN ACTIVE? 
- 			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
-
-				#ONLY ASSEMBLE IF WE NEED TO SCAN FOR DEPARTURE
-				if [ ! -z "$depart_list" ] && [ "$scan_active" == false ] ; then 
-					#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-					perform_scan "$depart_list" 3 & 
-					scan_pid=$!
-					scan_type=1
-				fi 
 			fi  
 
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
@@ -808,19 +790,7 @@ while true; do
 			#PROVIDE USEFUL LOGGING
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 			
-		 	#SET GLOBAL SCAN STATE
-		 	arrive_list=$(assemble_scan_list_for_devices_with_state 0)
-
-		 	#SCAN FLAT
-		 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
-				
-			#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
-			if [ "$scan_active" == false ] ; then 
-				#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-				perform_scan "$arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" & 
-				scan_pid=$!
-				scan_type=0
-			fi 
+		 	perform_arrival_scan 
 		fi 
 
 	done < main_pipe
