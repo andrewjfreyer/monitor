@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.334
+version=0.1.336
 
 
 # ----------------------------------------------------------------------------------------
@@ -395,11 +395,13 @@ perform_departure_scan () {
  	kill -0 "$scan_pid" >/dev/null 2>&1 && local scan_active=true || local scan_active=false 
 		
 	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
-	if [ ! -z "$depart_list" ] && [ "$scan_active" == false ] ; then 
+	if [ "$scan_active" == false ] ; then 
 		#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 		perform_scan "$depart_list" "$PREF_DEPART_SCAN_ATTEMPTS" & 
 		scan_pid=$!
 		scan_type=1
+	else
+		log "${GREEN}[REJECT]	${NC}Departure scan denied."
 	fi
 }
 
@@ -418,6 +420,9 @@ perform_arrival_scan () {
 		perform_scan "$arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" & 
 		scan_pid=$!
 		scan_type=0
+	else
+		log "${GREEN}[REJECT]	${NC}Arrival scan denied."
+ 
 	fi 
 }
 
