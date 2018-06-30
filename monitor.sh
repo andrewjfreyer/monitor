@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.332
+version=0.1.334
 
 
 # ----------------------------------------------------------------------------------------
@@ -260,7 +260,7 @@ perform_scan () {
 		sleep 1
 
 		#LOG IMMEDIATE RETURN
-		log "${GREEN}[CMD-SCAN]	${GREEN}**** Rejected scan. No devices in desired state.  **** ${NC}"
+		log "${GREEN}[CMD-SCAN]	${GREEN}**** Rejected scan. No devices in requested state.  **** ${NC}"
 	 	return 0
 	fi
 
@@ -386,10 +386,10 @@ perform_scan () {
 
 perform_departure_scan () {
 	#SET SCAN TYPE
- 	depart_list=$(scannable_devices_with_state 1)
+ 	local depart_list=$(scannable_devices_with_state 1)
 
  	#SCAN ACTIVE?
- 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
+ 	kill -0 "$scan_pid" >/dev/null 2>&1 && local scan_active=true || local scan_active=false 
 		
 	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 	if [ ! -z "$depart_list" ] && [ "$scan_active" == false ] ; then 
@@ -402,10 +402,10 @@ perform_departure_scan () {
 
 perform_arrival_scan () {
 	#SET SCAN TYPE
- 	arrive_list=$(scannable_devices_with_state 0)
+ 	local arrive_list=$(scannable_devices_with_state 0)
 
  	#SCAN ACTIVE?
- 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
+ 	kill -0 "$scan_pid" >/dev/null 2>&1 && local scan_active=true || localscan_active=false 
 		
 	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 	if [ "$scan_active" == false ] ; then 
@@ -554,7 +554,9 @@ while true; do
 				
 				perform_arrival_scan
 
-			elif [ "$duration_since_depart_scan" -gt 60 ]; then 
+			fi 
+
+			if [ "$duration_since_depart_scan" -gt 60 ]; then 
 				
 				perform_departure_scan
 
