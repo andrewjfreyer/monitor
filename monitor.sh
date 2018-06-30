@@ -385,6 +385,9 @@ perform_scan () {
 # ----------------------------------------------------------------------------------------
 
 perform_departure_scan () {
+
+	log "${GREEN}[REQUEST]	${NC}Departure scan requested."
+
 	#SET SCAN TYPE
  	local depart_list=$(scannable_devices_with_state 1)
 
@@ -401,6 +404,8 @@ perform_departure_scan () {
 }
 
 perform_arrival_scan () {
+	log "${GREEN}[REQUEST]	${NC}Arrival scan requested."
+
 	#SET SCAN TYPE
  	local arrive_list=$(scannable_devices_with_state 0)
 
