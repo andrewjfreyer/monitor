@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.340
+version=0.1.342
 
 
 # ----------------------------------------------------------------------------------------
@@ -132,10 +132,6 @@ scan_type=""
 declare -A expired_device_log
 declare -A device_expiration_biases
 
-#GLOBAL STATE VARIABLES
-all_present=false
-all_absent=true
-
 #SCAN VARIABLES
 last_arrival_scan=$(date +%s)
 last_depart_scan=$(date +%s)
@@ -161,38 +157,6 @@ done
 device_count=${#known_static_addresses[@]}
 
 # ----------------------------------------------------------------------------------------
-# REFRESH KNOWN DEVICE STATES
-# ----------------------------------------------------------------------------------------
-refresh_global_states() {
-	
-	#PROCESS GLOBAL STATES
-	local state_sum=0
-
-	#ITERATE THROUGH ALL KNOWN ADDRESSES TO REFRESH GLOBAL STATE
-	for known_addr in "${known_static_addresses[@]}"; do 
-		local state="${known_static_device_log[$known_addr]}"
-		state_sum=$((state + state_sum))
-	done
-
-	#DETERMINE GLOBALS FROM STATE SUM
-	case $state_sum in
-		"0")
-			all_absent=true
-			all_present=false
-			;;
-		"$device_count")
-			all_absent=false
-			all_present=true
-			;;
-		*)
-			all_absent=false
-			all_present=false
-			;;
-	esac
-}
-
-
-# ----------------------------------------------------------------------------------------
 # ASSEMBLE ARRIVAL SCAN LIST
 # ----------------------------------------------------------------------------------------
 
@@ -209,48 +173,44 @@ scannable_devices_with_state () {
 	#SCAN ALL? SET THE SCAN STATE TO [X]
 	[ -z "$scan_state" ] && scan_state=2
 			 	
-	#DO NOT SCAN ANYTHING IF ALL DEVICES ARE PRESENT
-	if [ "$all_present" != true ]; then 
+	#ITERATE THROUGH THE KNOWN DEVICES 
+	for known_addr in "${known_static_addresses[@]}"; do 
+		
+		#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
+		local this_state="${known_static_device_log[$known_addr]}"
 
-		#ITERATE THROUGH THE KNOWN DEVICES 
-		for known_addr in "${known_static_addresses[@]}"; do 
-			
-			#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
-			local this_state="${known_static_device_log[$known_addr]}"
+		#IF WE HAVE NEVER SCANNED THIS DEVICE BEFORE, WE MARK AS 
+		#SCAN STATE [X]; THIS ALLOWS A FIRST SCAN TO PROGRESS TO 
+		#COMPLETION FOR ALL DEVICES
+		[ -z "$this_state" ] && this_state=3
 
-			#IF WE HAVE NEVER SCANNED THIS DEVICE BEFORE, WE MARK AS 
-			#SCAN STATE [X]; THIS ALLOWS A FIRST SCAN TO PROGRESS TO 
-			#COMPLETION FOR ALL DEVICES
-			[ -z "$this_state" ] && this_state=3
+		#FIND LAST TIME THIS DEVICE WAS SCANNED
+		local last_scan="${known_static_device_scan_log[$known_addr]}"
+		local time_diff=$((timestamp - last_scan))
 
-			#FIND LAST TIME THIS DEVICE WAS SCANNED
-			local last_scan="${known_static_device_scan_log[$known_addr]}"
-			local time_diff=$((timestamp - last_scan))
+		#SCAN IF DEVICE HAS NOT BEEN SCANNED 
+		#WITHIN LAST [X] SECONDS
+		if [ "$time_diff" -gt "5" ]; then 
 
-			#SCAN IF DEVICE IS NOT PRESENT AND HAS NOT BEEN SCANNED 
-			#WITHIN LAST [X] SECONDS
-			if [ "$time_diff" -gt "10" ]; then 
+			#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
+			if [ "$this_state" == "$scan_state" ]; then 
+				#ASSEMBLE LIST OF DEVICES TO SCAN
+				return_list=$(echo "$return_list $this_state$known_addr")
 
-				#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
-				if [ "$this_state" == "$scan_state" ]; then 
-					#ASSEMBLE LIST OF DEVICES TO SCAN
-					return_list=$(echo "$return_list $this_state$known_addr")
+			elif [ "$this_state" == "2" ] || [ "$this_state" == "3" ]; then
 
-				elif [ "$this_state" == "2" ] || [ "$this_state" == "3" ]; then
-
-					#SCAN FOR ALL DEVICES THAT HAVEN'T BEEN RECENTLY SCANNED; 
-					#PRESUME DEVICE IS ABSENT
-					return_list=$(echo "$return_list 0$known_addr")
-				fi 
+				#SCAN FOR ALL DEVICES THAT HAVEN'T BEEN RECENTLY SCANNED; 
+				#PRESUME DEVICE IS ABSENT
+				return_list=$(echo "$return_list 0$known_addr")
 			fi 
-		done
-	 
-		#RETURN LIST, CLEANING FOR EXCESS SPACES OR STARTING WITH SPACES
-		return_list=$(echo "$return_list" | sed 's/^ //g;s/ $//g;s/  */ /g')
+		fi 
+	done
+ 
+	#RETURN LIST, CLEANING FOR EXCESS SPACES OR STARTING WITH SPACES
+	return_list=$(echo "$return_list" | sed 's/^ //g;s/ $//g;s/  */ /g')
 
-		#RETURN THE LIST
-		echo "$return_list"
-	fi 
+	#RETURN THE LIST
+	echo "$return_list"
 }
 
 # ----------------------------------------------------------------------------------------
@@ -696,9 +656,6 @@ while true; do
 				known_static_device_log[$mac]=0
 				[ "$previous_state" != "0" ] && did_change=true
 			fi 
-
-			#MUST REFRESH GLOBAL STATES; DID WE HAVE A CHANGE
-			refresh_global_states
 
 		elif [ "$cmd" == "BEAC" ]; then 
 			#DATA IS DELIMITED BY VERTICAL PIPE
