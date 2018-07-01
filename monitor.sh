@@ -26,14 +26,21 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.336
+version=0.1.337
 
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
 # ----------------------------------------------------------------------------------------
-echo $(basename $0)
 for pid in $(pidof -x $(basename $0)); do
+    if [ $pid != $$ ]; then
+        kill -9 $pid
+    fi 
+done
+
+
+#FOR DEBUGGING, BE SURE THAT PRESENCE IS ALSO KILLED, IF RUNNING
+for pid in $(pidof -x "presence.sh"); do
     if [ $pid != $$ ]; then
         kill -9 $pid
     fi 
@@ -56,7 +63,7 @@ clean() {
 	echo 'Exited.'
 }
 
-trap "clean; echo 'Exited.'" EXIT
+trap "clean" EXIT
 
 # ----------------------------------------------------------------------------------------
 # SOURCE FILES 
@@ -74,7 +81,7 @@ source './support/time'
 # ----------------------------------------------------------------------------------------
 
 #DETERMINE WHETHER SHOULD PRIME A DEVICE BEFORE NAME-SCANNING
-PREF_SHOULD_PRIME=true
+PREF_SHOULD_PRIME=false
 
 #DETERMINE DELAY BETWEEN SCANS OF DEVICES 
 PREF_INTERSCAN_DELAY=3
