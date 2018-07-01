@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.337
+version=0.1.338
 
 
 # ----------------------------------------------------------------------------------------
@@ -398,8 +398,11 @@ perform_departure_scan () {
 	#SET SCAN TYPE
  	local depart_list=$(scannable_devices_with_state 1)
 
+ 	#LOCAL SCAN ACTIVE VARIABLE
+	local scan_active=true 
+
  	#SCAN ACTIVE?
- 	kill -0 "$scan_pid" >/dev/null 2>&1 && local scan_active=true || local scan_active=false 
+ 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
 		
 	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 	if [ "$scan_active" == false ] ; then 
@@ -415,11 +418,14 @@ perform_departure_scan () {
 perform_arrival_scan () {
 	log "${GREEN}[REQUEST]	${NC}Arrival scan requested."
 
+ 	#LOCAL SCAN ACTIVE VARIABLE
+	local scan_active=true 
+
 	#SET SCAN TYPE
  	local arrive_list=$(scannable_devices_with_state 0)
 
  	#SCAN ACTIVE?
- 	kill -0 "$scan_pid" >/dev/null 2>&1 && local scan_active=true || localscan_active=false 
+ 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
 		
 	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 	if [ "$scan_active" == false ] ; then 
