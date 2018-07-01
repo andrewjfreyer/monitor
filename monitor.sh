@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.342
+version=0.1.343
 
 
 # ----------------------------------------------------------------------------------------
@@ -536,18 +536,16 @@ while true; do
 			duration_since_arrival_scan=$((timestamp - last_arrival_scan))
 			duration_since_depart_scan=$((timestamp - last_depart_scan))
 
-			if [ "$duration_since_arrival_scan" -gt 30 ]; then 
-				
-				perform_arrival_scan
-
-			fi 
-
+			
 			if [ "$duration_since_depart_scan" -gt 60 ]; then 
 				
 				perform_departure_scan
 
-			fi  
+			elif [ "$duration_since_arrival_scan" -gt 30 ]; then 
+				
+				perform_arrival_scan
 
+			fi 
 
 		elif [ "$cmd" == "REFR" ]; then 
 
