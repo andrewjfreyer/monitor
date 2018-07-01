@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.338
+version=0.1.339
 
 
 # ----------------------------------------------------------------------------------------
@@ -383,8 +383,11 @@ perform_scan () {
 	#GROUP SCAN FINISHED
 	log "${GREEN}[CMD-SCAN]	${GREEN}**** Completed scan. **** ${NC}"
 
+	#DELAY BEFORE CLEARNING THE MAIN PIPE
+	sleep 3
+
 	#SET DONE TO MAIN PIPE
-	echo "DONE" > main_pipe & 
+	sleep echo "DONE" > main_pipe
 }
 
 # ----------------------------------------------------------------------------------------
