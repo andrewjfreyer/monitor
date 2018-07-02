@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.343
+version=0.1.345
 
 
 # ----------------------------------------------------------------------------------------
@@ -87,7 +87,7 @@ PREF_SHOULD_PRIME=false
 PREF_INTERSCAN_DELAY=3
 
 #DETERMINE HOW OFTEN TO CHECK FOR AN EXPIRED DEVICE OR FOR A DEPARTED OR ARRIVED DEVICE
-PREF_CLOCK_INTERVAL=120
+PREF_CLOCK_INTERVAL=240
 
 #DETERMINE NOW OFTEN TO REFRESH DATABASES TO REMOVE EXPIRED DEVICES
 PREF_DATABASE_REFRESH_INTERVAL=30
@@ -213,14 +213,51 @@ scannable_devices_with_state () {
 	echo "$return_list"
 }
 
+
 # ----------------------------------------------------------------------------------------
-# SCAN FOR ARRIVED DEVICE
-#
-# FOR AN ARRIVAL SCAN, WE DO NOT NECESSARILY NEED TO VERIFY A HIGH NUBMER OF TIMES
-# THAT A DEVICE HAS ACTUALLY ARRIVED. 
+# PRIME DEVICES
 # ----------------------------------------------------------------------------------------
 
-perform_scan () {
+perform_priming_scan () {
+	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
+	if [ -z "$1" ]; then 
+		#NEED TO WAIT SO THAT THE PID CAN ACTUALLY RETURN CORRECTLY
+		sleep 1
+
+		#LOG IMMEDIATE RETURN
+		log "${GREEN}[CMD-SCAN]	${GREEN}**** Rejected priming scan. No devices in requested state.  **** ${NC}"
+	 	return 0
+	fi
+
+	#VARIABLES
+	local devices="$1"
+	
+	#LOG START OF DEVICE SCAN 
+	log "${GREEN}[CMD-SCAN]	${GREEN}**** Started priming scan. **** ${NC}"
+
+	#ITERATE THROUGH THE KNOWN DEVICES 	
+	for device_data in $devices; do 
+		#SUBDIVIDE ADDR OBJECT
+		local known_addr="${device_data:1}"
+
+		#GET NAME USING HCITOOL AND RAW COMMAND;
+		if [ "$PREF_SHOULD_PRIME" == true ]; then 
+			hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
+
+			#DELAY BETWEN SCAN
+			sleep 1
+		fi 
+	done
+
+	#SET DONE TO MAIN PIPE
+	echo "DONE" > main_pipe
+}
+
+# ----------------------------------------------------------------------------------------
+# SCAN FOR DEVICES
+# ----------------------------------------------------------------------------------------
+
+perform_complete_scan () {
 	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
 	if [ -z "$1" ]; then 
 		#NEED TO WAIT SO THAT THE PID CAN ACTUALLY RETURN CORRECTLY
@@ -258,8 +295,6 @@ perform_scan () {
 			local known_addr="${device_data:1}"
 			local previous_state="${device_data:0:1}"
 
-			#IF THE PREVIOUS STATE IF 0 THEN WE WILL RETURN IMMEDIATELY IF A DEVICE IS FOUND
-
 			#SCAN TYPE
 			local transition_type="arrived"
 			[ "$previous_state" == "1" ] && transition_type="departed"
@@ -269,16 +304,6 @@ perform_scan () {
 
 			#DETERMINE START OF SCAN
 			scan_start="$(date +%s)"
-
-			#GET NAME USING HCITOOL AND RAW COMMAND;
-			#THIS APPEARS TO HAVE THE EFFECT OF PRIMING THE DEVICE THAT WE ARE INQUIRING
-			#WHEN THE DEVICE IS PRESENT
-			if [ "$PREF_SHOULD_PRIME" == true ]; then 
-				hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
-
-				#DELAY BETWEN SCAN
-				sleep 2
-			fi 
 
 			#DEBUG LOGGING
 			log "${GREEN}[CMD-SCAN]	${GREEN}(No. $repetition)${NC} $known_addr $transition_type? ${NC}"
@@ -351,12 +376,16 @@ perform_scan () {
 }
 
 # ----------------------------------------------------------------------------------------
-# SCAN TYPES
+# SCAN TYPE FUNCTIONS 
 # ----------------------------------------------------------------------------------------
 
 perform_departure_scan () {
 
 	log "${GREEN}[REQUEST]	${NC}Departure scan requested."
+
+	#PRIMING?
+	local should_prime=false
+	[ "$1" == true ] && should_prime=true
 
 	#SET SCAN TYPE
  	local depart_list=$(scannable_devices_with_state 1)
@@ -370,7 +399,9 @@ perform_departure_scan () {
 	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 	if [ "$scan_active" == false ] ; then 
 		#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-		perform_scan "$depart_list" "$PREF_DEPART_SCAN_ATTEMPTS" & 
+		[ "$should_prime" == false ] && perform_complete_scan "$depart_list" "$PREF_DEPART_SCAN_ATTEMPTS" & 
+		[ "$should_prime" == true ] && perform_priming_scan "$depart_list" & 
+
 		scan_pid=$!
 		scan_type=1
 	else
@@ -381,11 +412,15 @@ perform_departure_scan () {
 perform_arrival_scan () {
 	log "${GREEN}[REQUEST]	${NC}Arrival scan requested."
 
- 	#LOCAL SCAN ACTIVE VARIABLE
-	local scan_active=true 
+ 	#PRIMING?
+	local should_prime=false
+	[ "$1" == true ] && should_prime=true
 
 	#SET SCAN TYPE
  	local arrive_list=$(scannable_devices_with_state 0)
+
+	#LOCAL SCAN ACTIVE VARIABLE
+	local scan_active=true 
 
  	#SCAN ACTIVE?
  	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
@@ -393,7 +428,9 @@ perform_arrival_scan () {
 	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 	if [ "$scan_active" == false ] ; then 
 		#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-		perform_scan "$arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" & 
+		[ "$should_prime" == false ] && perform_complete_scan "$arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" & 
+		[ "$should_prime" == true ] && perform_priming_scan "$arrive_list" & 
+
 		scan_pid=$!
 		scan_type=0
 	else
@@ -407,7 +444,7 @@ perform_arrival_scan () {
 # ----------------------------------------------------------------------------------------
 
 first_arrive_list=$(scannable_devices_with_state 0)
-perform_scan "$first_arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" & 
+perform_complete_scan "$first_arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" & 
 scan_pid=$!
 scan_type=0
 
@@ -532,6 +569,16 @@ while true; do
 
 		elif [ "$cmd" == "TIME" ]; then 
 
+			#GET NAME USING HCITOOL AND RAW COMMAND;
+			#THIS APPEARS TO HAVE THE EFFECT OF PRIMING THE DEVICE THAT WE ARE INQUIRING
+			#WHEN THE DEVICE IS PRESENT
+			if [ "$PREF_SHOULD_PRIME" == true ]; then 
+				hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
+
+				#DELAY BETWEN SCAN
+				sleep 2
+			fi 
+
 			#SCANNED RECENTLY? 
 			duration_since_arrival_scan=$((timestamp - last_arrival_scan))
 			duration_since_depart_scan=$((timestamp - last_depart_scan))
@@ -632,6 +679,30 @@ while true; do
 
 			static_device_log[$data]="$timestamp"
 			manufacturer="$(determine_manufacturer $data)"
+
+		elif [ "$cmd" == "RNAM" ]; then 
+			#HERE WE HAVE A NAME REQUEST RESPONSE
+			mac=$(echo "$data" | awk -F "|" '{print $1}')
+			name=$(echo "$data" | awk -F "|" '{print $2}')
+			data="$mac"
+
+			#PREVIOUS STATE; SET DEFAULT TO UNKNOWN
+			previous_state="${known_static_device_log[$mac]}"
+			[ -z "$previous_state" ] && previous_state=-1
+
+			if [ ! -z "$name" ]; then 
+				known_static_device_log[$mac]=1
+				[ "$previous_state" != "1" ] && did_change=true
+			else
+				known_static_device_log[$mac]=0
+				[ "$previous_state" != "0" ] && did_change=true
+			fi
+
+			#REPORT WHETHER A CHANGE EXISTS
+			[ "$did_change" == true ] && log "${CYAN}[CMD-RNAM]	${NC}$data ${GREEN}$name ${NC}${NC}"
+
+			continue
+
 
 		elif [ "$cmd" == "NAME" ]; then 
 			#DATA IS DELIMITED BY VERTICAL PIPE
@@ -739,7 +810,7 @@ while true; do
 			[ "$did_change" == true ] && publish_message "owner/$mqtt_publisher_identity/$data" "$((current_state * 100))" "$name" "$manufacturer"
 			
 			#PRINT RAW COMMAND; DEBUGGING
-			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer $did_change${NC}"
+			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
 		
 		elif [ "$cmd" == "BEAC" ] ; then 
 
