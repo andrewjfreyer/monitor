@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.352
+version=0.1.353
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -103,9 +103,6 @@ PREF_ARRIVE_SCAN_INTERVAL=15
 # ----------------------------------------------------------------------------------------
 # DEFINE VALUES AND VARIABLES
 # ----------------------------------------------------------------------------------------
-
-#SET LOG LISTENER
-log_listener &
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
@@ -451,7 +448,7 @@ perform_arrival_scan () {
 # ----------------------------------------------------------------------------------------
 
 first_arrive_list=$(scannable_devices_with_state 0)
-perform_complete_scan "$first_arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS"
+perform_complete_scan "$first_arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" &
 scan_pid=$!
 scan_type=0
 
@@ -459,6 +456,7 @@ scan_type=0
 # LAUNCH BACKGROUND PROCESSES
 # ----------------------------------------------------------------------------------------
 
+log_listener &
 btle_scanner & 
 mqtt_listener &
 btle_listener &
