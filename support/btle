@@ -19,7 +19,7 @@
 btle_scanner () {
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
-		local error=$(sudo timeout --signal SIGINT 60 hcitool lescan 2>&1 | grep -iE 'input/output error|invalid device|invalid|error')
+		local error=$(sudo timeout --signal SIGINT 120 hcitool lescan 2>&1 | grep -iE 'input/output error|invalid device|invalid|error')
 		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe 
 		sleep 1
 	done
@@ -131,7 +131,7 @@ btle_listener () {
 		fi
 
 		#FIND ADVERTISEMENT PACKET OF NAME RESPONSE
-		if [[ $packet =~ ^04\ 07\ FF\ .*?\ 00\ 00\ 00\ 00\ 00\ 00\ 00\ 00\ 00\ 00 ]]; then
+		if [[ $packet =~ ^04\ 07\ FF\ .*?\ 00\ 00\ 00\ 00\ .*? ]]; then
 
 			#GET HARDWARE MAC ADDRESS FOR THIS REQUEST; REVERSE FOR BIG ENDIAN
 			local received_mac_address=$(echo "$packet" | awk '{print $10":"$9":"$8":"$7":"$6":"$5}' | tr -d "\0")
