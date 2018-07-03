@@ -26,8 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.347
-
+version=0.1.349
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -712,7 +711,6 @@ while true; do
 			[ "$did_change" == true ] && log "${CYAN}[CMD-RNAM]	${NC}$data ${GREEN}$name ${NC}${NC}"
 
 			continue
-
 
 		elif [ "$cmd" == "NAME" ]; then 
 			#DATA IS DELIMITED BY VERTICAL PIPE
