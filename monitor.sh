@@ -84,7 +84,7 @@ source './support/time'
 PREF_INTERSCAN_DELAY=3
 
 #DETERMINE HOW OFTEN TO CHECK FOR AN EXPIRED DEVICE OR FOR A DEPARTED OR ARRIVED DEVICE
-PREF_CLOCK_INTERVAL=240
+PREF_CLOCK_INTERVAL=30
 
 #DETERMINE NOW OFTEN TO REFRESH DATABASES TO REMOVE EXPIRED DEVICES
 PREF_DATABASE_REFRESH_INTERVAL=30
@@ -106,7 +106,7 @@ PREF_ARRIVE_SCAN_INTERVAL=30
 # ----------------------------------------------------------------------------------------
 
 #CYCLE BLUETOOTH INTERFACE 
-sudo hciconfig hci0 down && sudo hciconfig hci0 up
+sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
 
 #SETUP MAIN PIPE
 sudo rm main_pipe &>/dev/null
@@ -247,17 +247,14 @@ perform_priming_scan () {
 		hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
 		#LOG RESULT
-		log "${GREEN}[CMD-PRIM]	${GREEN}${NC} $known_addr ${NC}"
+		log "${GREEN}[CMD-PRIM]	$known_addr ${NC}"
 
 		#DELAY BETWEN SCAN
-		sleep 1
+		sleep 3
 	done
 
 	#DONE
 	log "${GREEN}[CMD-SCAN]	${GREEN}**** Completed priming scan. **** ${NC}"
-
-	#SET DONE TO MAIN PIPE
-	echo "DONE" > main_pipe
 }
 
 # ----------------------------------------------------------------------------------------
