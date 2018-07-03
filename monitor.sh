@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.349
+version=0.1.350
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -708,7 +708,7 @@ while true; do
 			fi
 
 			#REPORT WHETHER A CHANGE EXISTS
-			[ "$did_change" == true ] && log "${CYAN}[CMD-RNAM]	${NC}$data ${GREEN}$name ${NC}${NC}"
+			log "${CYAN}[CMD-RNAM]	${NC}$data ${GREEN}$name ${NC}${NC}"
 
 			continue
 
