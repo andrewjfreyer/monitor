@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.346
+version=0.1.347
 
 
 # ----------------------------------------------------------------------------------------
@@ -79,9 +79,6 @@ source './support/time'
 # ----------------------------------------------------------------------------------------
 # BEHAVIOR PREFERENCES
 # ----------------------------------------------------------------------------------------
-
-#DETERMINE WHETHER SHOULD PRIME A DEVICE BEFORE NAME-SCANNING
-PREF_SHOULD_PRIME=false
 
 #DETERMINE DELAY BETWEEN SCANS OF DEVICES 
 PREF_INTERSCAN_DELAY=3
@@ -247,13 +244,17 @@ perform_priming_scan () {
 		local known_addr="${device_data:1}"
 
 		#GET NAME USING HCITOOL AND RAW COMMAND;
-		if [ "$PREF_SHOULD_PRIME" == true ]; then 
-			hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
+		hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
 
-			#DELAY BETWEN SCAN
-			sleep 1
-		fi 
+		#LOG RESULT
+		log "${GREEN}[CMD-PRIM]	${GREEN}${NC} $known_addr ${NC}"
+
+		#DELAY BETWEN SCAN
+		sleep 1
 	done
+
+	#DONE
+	log "${GREEN}[CMD-SCAN]	${GREEN}**** Completed priming scan. **** ${NC}"
 
 	#SET DONE TO MAIN PIPE
 	echo "DONE" > main_pipe
@@ -375,10 +376,11 @@ perform_complete_scan () {
 	log "${GREEN}[CMD-SCAN]	${GREEN}**** Completed scan. **** ${NC}"
 
 	#DELAY BEFORE CLEARNING THE MAIN PIPE
-	sleep 1
+	sleep 5
 
 	#SET DONE TO MAIN PIPE
 	echo "DONE" > main_pipe
+
 }
 
 # ----------------------------------------------------------------------------------------
@@ -672,6 +674,11 @@ while true; do
 					expired_device_log[$key]=$timestamp
 				fi 
 			done
+
+		elif [ "$cmd" == "ERRO" ]; then 
+
+			log "${RED}[ERROR]	${NC}$data${NC}"
+
 
 		elif [ "$cmd" == "PUBL" ]; then 
 			#PARSE RECEIVED DATA
