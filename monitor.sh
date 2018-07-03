@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.345
+version=0.1.346
 
 
 # ----------------------------------------------------------------------------------------
@@ -97,6 +97,12 @@ PREF_ARRIVAL_SCAN_ATTEMPTS=2
 
 #MAX RETRY ATTEMPTS FOR DEPART
 PREF_DEPART_SCAN_ATTEMPTS=4
+
+#DEPART SCAN INTERVAL
+PREF_DEPART_SCAN_INTERVAL=45
+
+#ARRIVE SCAN INTERVAL
+PREF_ARRIVE_SCAN_INTERVAL=30
 
 # ----------------------------------------------------------------------------------------
 # DEFINE VALUES AND VARIABLES
@@ -584,13 +590,13 @@ while true; do
 			duration_since_depart_scan=$((timestamp - last_depart_scan))
 
 			
-			if [ "$duration_since_depart_scan" -gt 60 ]; then 
+			if [ "$duration_since_depart_scan" -gt "$PREF_DEPART_SCAN_INTERVAL" ]; then 
 				
-				perform_departure_scan
+				perform_departure_scan true
 
-			elif [ "$duration_since_arrival_scan" -gt 30 ]; then 
+			elif [ "$duration_since_arrival_scan" -gt "$PREF_ARRIVE_SCAN_INTERVAL" ]; then 
 				
-				perform_arrival_scan
+				perform_arrival_scan true 
 
 			fi 
 
