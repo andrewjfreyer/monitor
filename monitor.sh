@@ -192,7 +192,7 @@ scannable_devices_with_state () {
 
 		#SCAN IF DEVICE HAS NOT BEEN SCANNED 
 		#WITHIN LAST [X] SECONDS
-		if [ "$time_diff" -gt "5" ]; then 
+		if [ "$time_diff" -gt "15" ]; then 
 
 			#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
 			if [ "$this_state" == "$scan_state" ]; then 
@@ -249,7 +249,7 @@ perform_priming_scan () {
 		log "${GREEN}[CMD-PRIM]	$known_addr ${NC}"
 
 		#DELAY BETWEN SCAN
-		sleep 3
+		sleep 5
 	done
 
 	#DONE
@@ -448,7 +448,7 @@ perform_arrival_scan () {
 # ----------------------------------------------------------------------------------------
 
 first_arrive_list=$(scannable_devices_with_state 0)
-perform_complete_scan "$first_arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" & 
+perform_complete_scan "$first_arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS"
 scan_pid=$!
 scan_type=0
 
