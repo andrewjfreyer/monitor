@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.350
+version=0.1.351
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -95,10 +95,10 @@ PREF_ARRIVAL_SCAN_ATTEMPTS=2
 PREF_DEPART_SCAN_ATTEMPTS=4
 
 #DEPART SCAN INTERVAL
-PREF_DEPART_SCAN_INTERVAL=45
+PREF_DEPART_SCAN_INTERVAL=30
 
 #ARRIVE SCAN INTERVAL
-PREF_ARRIVE_SCAN_INTERVAL=30
+PREF_ARRIVE_SCAN_INTERVAL=15
 
 # ----------------------------------------------------------------------------------------
 # DEFINE VALUES AND VARIABLES
@@ -243,7 +243,7 @@ perform_priming_scan () {
 		local known_addr="${device_data:1}"
 
 		#GET NAME USING HCITOOL AND RAW COMMAND;
-		hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
+		hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x01 0x00 0x00 0x00 &>/dev/null
 
 		#LOG RESULT
 		log "${GREEN}[CMD-PRIM]	$known_addr ${NC}"
