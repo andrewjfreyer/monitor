@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.351
+version=0.1.352
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -103,6 +103,9 @@ PREF_ARRIVE_SCAN_INTERVAL=15
 # ----------------------------------------------------------------------------------------
 # DEFINE VALUES AND VARIABLES
 # ----------------------------------------------------------------------------------------
+
+#SET LOG LISTENER
+log_listener &
 
 #CYCLE BLUETOOTH INTERFACE 
 sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
@@ -456,7 +459,6 @@ scan_type=0
 # LAUNCH BACKGROUND PROCESSES
 # ----------------------------------------------------------------------------------------
 
-log_listener &
 btle_scanner & 
 mqtt_listener &
 btle_listener &
