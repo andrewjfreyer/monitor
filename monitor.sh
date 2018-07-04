@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.365
+version=0.1.366
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -750,7 +750,7 @@ while true; do
 			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
 
 			#PUBLISH PRESENCE OF BEACON
-			publish_message "owner/$mqtt_publisher_identity/$uuid-$major-$minor" "$((current_state * 100))" "$expected_name" "$manufacturer"
+			publish_message "owner/$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer"
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
 
