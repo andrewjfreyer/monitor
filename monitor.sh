@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.380
+version=0.1.382
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -519,28 +519,24 @@ while true; do
 
 		elif [ "$cmd" == "MQTT" ]; then 
 			#GET INSTRUCTION 
-			mqtt_topic_branch=$(basename "$data" | awk "{print $1}")
+			mqtt_topic_branch=$(basename "$data" | awk -F " " "{print $1}")
 
 			#NORMALIZE TO UPPERCASE
 			mqtt_topic_branch=${mqtt_topic_branch^^}
 
-			#FOR DETAILED LOGGING
-			mqtt_response_required="${RED}[Rejected] ${NC}"
-
-			if [ "$mqtt_topic_branch" == "ARRIVE" ] ; then 
-				
+			elif [[ $mqtt_topic_branch == *"ARRIVE"* ]; then 
+				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger $mqtt_topic_branch ${NC}"
 				perform_arrival_scan
-				mqtt_response_required=""
-
-			elif [ "$mqtt_topic_branch" == "DEPART" ]; then 
-
+				
+			elif [[ $mqtt_topic_branch == *"DEPART"* ]; then 
+				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger $mqtt_topic_branch ${NC}"
 				perform_departure_scan
-				mqtt_response_required=""
+				
+			else						#IN RESPONSE TO MQTT SCAN 
+				log "${GREEN}[INSTRUCT] ${RED}[Rejected] ${NC} ${NC}MQTT Trigger $mqtt_topic_branch ${NC}"
 
 			fi
 
-			#IN RESPONSE TO MQTT SCAN 
-			log "${GREEN}[INSTRUCT]	$mqtt_response_required${NC}MQTT Trigger $mqtt_topic_branch${NC}"
 
 		elif [ "$cmd" == "TIME" ]; then 
 			#SCANNED RECENTLY? 
