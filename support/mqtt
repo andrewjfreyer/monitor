@@ -55,7 +55,7 @@ publish_cooperative_scan_message () {
 		(>&2 log "${PURPLE}$mqtt_topicpath/scan/$1 {} ${NC}")
 
 		#POST TO MQTT
-		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/$1" -m ""
+		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/$1" -m "{}"
 
 	fi 
 }
