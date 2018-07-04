@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.378
+version=0.1.379
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -519,7 +519,7 @@ while true; do
 
 		elif [ "$cmd" == "MQTT" ]; then 
 			#GET INSTRUCTION 
-			mqtt_topic_branch=$(basename $data)
+			mqtt_topic_branch=$(basename "$data")
 
 			#NORMALIZE TO UPPERCASE
 			mqtt_topic_branch=${mqtt_topic_branch^^}
