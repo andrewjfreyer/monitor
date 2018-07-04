@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.353
+version=0.1.355
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -86,7 +86,7 @@ PREF_INTERSCAN_DELAY=3
 PREF_CLOCK_INTERVAL=30
 
 #DETERMINE NOW OFTEN TO REFRESH DATABASES TO REMOVE EXPIRED DEVICES
-PREF_DATABASE_REFRESH_INTERVAL=30
+PREF_DATABASE_REFRESH_INTERVAL=15
 
 #MAX RETRY ATTEMPTS FOR ARRIVAL
 PREF_ARRIVAL_SCAN_ATTEMPTS=2
@@ -126,7 +126,6 @@ declare -A known_static_device_scan_log
 declare -A known_static_device_name
 
 #LAST TIME THIS 
-random_device_last_update=$(date +%s)
 scan_pid=""
 scan_type=""
 
@@ -626,11 +625,7 @@ while true; do
 			should_scan=false
 
 			#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
-			random_bias=0
 			for key in "${!random_device_log[@]}"; do
-				#GET BIAS
-				random_bias=${device_expiration_biases[$key]}
-				[ -z "$random_bias" ] && random_bias=0 
 
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen=${random_device_log[$key]}
@@ -640,25 +635,18 @@ while true; do
 				[ -z "$last_seen" ] && continue 
 
 				#TIMEOUT AFTER 120 SECONDS
-				if [ "$difference" -gt "$((300 + random_bias))" ]; then 
+				if [ "$difference" -gt "20" ]; then 
 					unset random_device_log[$key]
 					log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
 
-					#UPDATE TIMESTAMP
-					random_device_last_update=$(date +%s)
-			
 					#AT LEAST ONE DEVICE EXPIRED
 					should_scan=true 
-
-					#ADD TO THE EXPIRED LOG
-					expired_device_log[$key]=$timestamp
 				fi 
 			done
 
+			#RANDOM DEVICE SHOULD TRIGGER DEPARTURE SCAN
 			if [ "$should_scan" == true ]; then 
-				
 				perform_departure_scan
-
 			fi  
 
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
@@ -676,7 +664,7 @@ while true; do
 				[ -z "$last_seen" ] && continue 
 
 				#TIMEOUT AFTER 120 SECONDS
-				if [ "$difference" -gt "$(( 180 + beacon_bias ))" ]; then 
+				if [ "$difference" -gt "$((180 + beacon_bias ))" ]; then 
 					unset static_device_log[$key]
 					log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds PUBL_NUM: ${#static_device_log[@]}  ${NC}"
 
