@@ -17,6 +17,7 @@
 # ----------------------------------------------------------------------------------------
 
 #FIND DEPENDENCY PATHS, ELSE MANUALLY SET
+service_path="/etc/systemd/system/monitor.service"
 mosquitto_pub_path=$(which mosquitto_pub)
 mosquitto_sub_path=$(which mosquitto_sub)
 hcidump_path=$(which hcidump)
@@ -30,6 +31,7 @@ should_exit=false
 [ -z "$hcidump_path" ] && echo "Error: Required package 'hcidump' not found. Please install 'bluez-hcidump'." && should_exit=true
 [ -z "$bc_path" ] && echo "Error: Required package 'bc' not found. Please install 'bc'." && should_exit=true
 [ -z "$git_path" ] && echo "Warning: Recommended package 'git' not found. Please consider installing."
+[ ! -z "$(which systemctl)" ] && [ ! -e "$service_path" ] && echo "Warning: monitor.service not installed. Install service? (y/n)" && read should_install
 
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
 base_directory=$(dirname "$(readlink -f "$0")")
@@ -99,3 +101,25 @@ fi
 
 #ARE REQUIREMENTS MET? 
 [ "$should_exit" == true ] && exit 1
+
+
+if [ "$should_install" == "y" ]; then 
+#CHECK FOR SYSTEMCTL FILE
+	echo "[Unit]" >> $service_path
+	echo "Description=Monitor Service" >> $service_path
+	echo "" >> $service_path
+	echo "[Service]" >> $service_path
+	echo "User=root" >> $service_path
+	echo "ExecStart=/bin/bash $0 &" >> $service_path
+	echo "WorkingDirectory=$(dir $0)" >> $service_path
+	echo "Restart=always" >> $service_path
+	echo "RestartSec=10" >> $service_path
+	echo "" >> $service_path
+	echo "[Install]" >> $service_path
+	echo "WantedBy=multi-user.target" >> $service_path
+
+	sleep 1
+	sudo systemctl enable monitor.service
+fi 
+
+
