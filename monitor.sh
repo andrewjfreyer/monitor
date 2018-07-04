@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.362
+version=0.1.365
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -252,7 +252,7 @@ perform_complete_scan () {
 	local scan_duration=""
 	
 	#LOG START OF DEVICE SCAN 
-	log "${GREEN}[CMD-SCAN]	${GREEN}**** Started scan. [x$repetitions] **** ${NC}"
+	log "${GREEN}[CMD-INFO]	${GREEN}**** Started scan. [x$repetitions] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
@@ -319,11 +319,11 @@ perform_complete_scan () {
 					sleep "$adjusted_delay"
 				else
 					#DEFAULT MINIMUM SLEEP
-					sleep 2
+					sleep 3
 				fi 
 			else
 				#DEFAULT MINIMUM SLEEP
-				sleep 2
+				sleep 3
 			fi 
 		done
 
@@ -338,7 +338,7 @@ perform_complete_scan () {
 	done
 
 	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-SCAN]	${GREEN}**** Completed scan. **** ${NC}"
+	log "${GREEN}[CMD-INFO]	${GREEN}**** Completed scan. **** ${NC}"
 
 	#DELAY BEFORE CLEARNING THE MAIN PIPE
 	sleep 5
@@ -370,8 +370,8 @@ perform_departure_scan () {
 
 		scan_pid=$!
 		scan_type=1
-	else
-		log "${GREEN}[REJECT]	${NC}Departure scan request denied."
+	#else
+		#log "${GREEN}[REJECT]	${NC}Departure scan request denied."
 	fi
 }
 
@@ -393,8 +393,8 @@ perform_arrival_scan () {
 
 		scan_pid=$!
 		scan_type=0
-	else
-		log "${GREEN}[REJECT]	${NC}Arrival scan request denied."
+	#else
+		#log "${GREEN}[REJECT]	${NC}Arrival scan request denied."
  
 	fi 
 }
@@ -744,10 +744,13 @@ while true; do
 			expected_name="${known_static_device_name[$data]}"
 
 			#PRINTING FORMATING
-			[ -z "$expected_name" ] && expected_name="${RED}[Error]${NC}"
+			[ -z "$expected_name" ] && expected_name="Unknown"
 		
 			#PROVIDE USEFUL LOGGING
 			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
+
+			#PUBLISH PRESENCE OF BEACON
+			publish_message "owner/$mqtt_publisher_identity/$uuid-$major-$minor" "$((current_state * 100))" "$expected_name" "$manufacturer"
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
 
