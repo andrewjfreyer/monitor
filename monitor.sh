@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.355
+version=0.1.356
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -585,17 +585,6 @@ while true; do
 			log "${GREEN}[INSTRUCT]	$mqtt_response_required${NC}MQTT Trigger $mqtt_topic_branch${NC}"
 
 		elif [ "$cmd" == "TIME" ]; then 
-
-			#GET NAME USING HCITOOL AND RAW COMMAND;
-			#THIS APPEARS TO HAVE THE EFFECT OF PRIMING THE DEVICE THAT WE ARE INQUIRING
-			#WHEN THE DEVICE IS PRESENT
-			if [ "$PREF_SHOULD_PRIME" == true ]; then 
-				hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x02 0x00 0x00 0x00 &>/dev/null
-
-				#DELAY BETWEN SCAN
-				sleep 2
-			fi 
-
 			#SCANNED RECENTLY? 
 			duration_since_arrival_scan=$((timestamp - last_arrival_scan))
 			duration_since_depart_scan=$((timestamp - last_depart_scan))
@@ -710,9 +699,7 @@ while true; do
 			fi
 
 			#REPORT WHETHER A CHANGE EXISTS
-			log "${CYAN}[CMD-RNAM]	${NC}$data ${GREEN}$name ${NC}${NC}"
-
-			continue
+			[ "$did_change" == true ] && cmd="NAME" && log "${CYAN}[CMD-RNAM]	${NC}$data ${GREEN}$name ${NC}${NC}"			
 
 		elif [ "$cmd" == "NAME" ]; then 
 			#DATA IS DELIMITED BY VERTICAL PIPE
