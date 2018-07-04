@@ -524,7 +524,7 @@ while true; do
 			#NORMALIZE TO UPPERCASE
 			mqtt_topic_branch=${mqtt_topic_branch^^}
 
-			elif [[ $mqtt_topic_branch =~ *ARRIVE* ]]; then 
+			if [[ $mqtt_topic_branch =~ *ARRIVE* ]]; then 
 
 				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger ARRIVE ${NC}"
 				perform_arrival_scan
