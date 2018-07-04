@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.360
+version=0.1.361
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -95,10 +95,10 @@ PREF_ARRIVAL_SCAN_ATTEMPTS=2
 PREF_DEPART_SCAN_ATTEMPTS=4
 
 #DEPART SCAN INTERVAL
-PREF_DEPART_SCAN_INTERVAL=30
+PREF_DEPART_SCAN_INTERVAL=60
 
 #ARRIVE SCAN INTERVAL
-PREF_ARRIVE_SCAN_INTERVAL=15
+PREF_ARRIVE_SCAN_INTERVAL=45
 
 # ----------------------------------------------------------------------------------------
 # DEFINE VALUES AND VARIABLES
@@ -183,7 +183,7 @@ scannable_devices_with_state () {
 	fi 
 
 	#REJECT IF WE SCANNED TO RECENTLY
-	[ "$scan_type_diff" -lt "10" ] && log "${RED}[REJECT]	${GREEN}**** Rejected repeat scan. **** ${NC}" && eturn 0
+	[ "$scan_type_diff" -lt "10" ] && log "${RED}[REJECT]	${GREEN}**** Rejected repeat scan. **** ${NC}" && return 0
 
 	#SCAN ALL? SET THE SCAN STATE TO [X]
 	[ -z "$scan_state" ] && scan_state=2
@@ -228,46 +228,6 @@ scannable_devices_with_state () {
 	echo "$return_list"
 }
 
-
-# ----------------------------------------------------------------------------------------
-# PRIME DEVICES
-# ----------------------------------------------------------------------------------------
-
-perform_priming_scan () {
-	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
-	if [ -z "$1" ]; then 
-		#NEED TO WAIT SO THAT THE PID CAN ACTUALLY RETURN CORRECTLY
-		sleep 1
-
-		#LOG IMMEDIATE RETURN
-		log "${GREEN}[CMD-SCAN]	${GREEN}**** Rejected priming scan. No devices in requested state.  **** ${NC}"
-	 	return 0
-	fi
-
-	#VARIABLES
-	local devices="$1"
-	
-	#LOG START OF DEVICE SCAN 
-	log "${GREEN}[CMD-SCAN]	${GREEN}**** Started priming scan. **** ${NC}"
-
-	#ITERATE THROUGH THE KNOWN DEVICES 	
-	for device_data in $devices; do 
-		#SUBDIVIDE ADDR OBJECT
-		local known_addr="${device_data:1}"
-
-		#GET NAME USING HCITOOL AND RAW COMMAND;
-		hcitool cmd 0x01 0x0019 $(echo "$known_addr" | awk -F ":" '{print "0x"$6" 0x"$5" 0x"$4" 0x"$3" 0x"$2" 0x"$1}') 0x01 0x00 0x00 0x00 &>/dev/null
-
-		#LOG RESULT
-		log "${GREEN}[CMD-PRIM]	$known_addr ${NC}"
-
-		#DELAY BETWEN SCAN
-		sleep 5
-	done
-
-	#DONE
-	log "${GREEN}[CMD-SCAN]	${GREEN}**** Completed priming scan. **** ${NC}"
-}
 
 # ----------------------------------------------------------------------------------------
 # SCAN FOR DEVICES
@@ -398,10 +358,6 @@ perform_complete_scan () {
 
 perform_departure_scan () {
 
-	#PRIMING?
-	local should_prime=false
-	[ "$1" == true ] && should_prime=true
-
 	#SET SCAN TYPE
  	local depart_list=$(scannable_devices_with_state 1)
 
@@ -414,8 +370,7 @@ perform_departure_scan () {
 	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 	if [ "$scan_active" == false ] ; then 
 		#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-		[ "$should_prime" == false ] && perform_complete_scan "$depart_list" "$PREF_DEPART_SCAN_ATTEMPTS" & 
-		[ "$should_prime" == true ] && perform_priming_scan "$depart_list" & 
+		perform_complete_scan "$depart_list" "$PREF_DEPART_SCAN_ATTEMPTS" & 
 
 		scan_pid=$!
 		scan_type=1
@@ -425,10 +380,6 @@ perform_departure_scan () {
 }
 
 perform_arrival_scan () {
-
- 	#PRIMING?
-	local should_prime=false
-	[ "$1" == true ] && should_prime=true
 
 	#SET SCAN TYPE
  	local arrive_list=$(scannable_devices_with_state 0)
@@ -442,8 +393,7 @@ perform_arrival_scan () {
 	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 	if [ "$scan_active" == false ] ; then 
 		#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-		[ "$should_prime" == false ] && perform_complete_scan "$arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" & 
-		[ "$should_prime" == true ] && perform_priming_scan "$arrive_list" & 
+		perform_complete_scan "$arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" & 
 
 		scan_pid=$!
 		scan_type=0
@@ -596,11 +546,11 @@ while true; do
 			
 			if [ "$duration_since_depart_scan" -gt "$PREF_DEPART_SCAN_INTERVAL" ]; then 
 				
-				perform_departure_scan true
+				perform_departure_scan
 
 			elif [ "$duration_since_arrival_scan" -gt "$PREF_ARRIVE_SCAN_INTERVAL" ]; then 
 				
-				perform_arrival_scan true 
+				perform_arrival_scan 
 
 			fi 
 
