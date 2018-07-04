@@ -26,24 +26,31 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.366
+version=0.1.367
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
 # ----------------------------------------------------------------------------------------
+echo "Starting '$(basename $0)' (v. $version)..."
+
+echo "> stopping other instances of 'monitor.sh'"
 for pid in $(pidof -x $(basename $0)); do
     if [ $pid != $$ ]; then
         kill -9 $pid
     fi 
 done
 
-
+echo "> stopping instances of 'presence.sh'"
 #FOR DEBUGGING, BE SURE THAT PRESENCE IS ALSO KILLED, IF RUNNING
 for pid in $(pidof -x "presence.sh"); do
     if [ $pid != $$ ]; then
         kill -9 $pid
     fi 
 done
+
+#DISABLE PRESENCE SERVICE
+echo "> stopping presence service"
+sudo systemctl stop presence >/dev/null 2>&1
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 

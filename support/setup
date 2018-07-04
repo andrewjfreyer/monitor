@@ -34,8 +34,6 @@ should_exit=false
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
 base_directory=$(dirname "$(readlink -f "$0")")
 
-echo "Started from: $base_directory"
-
 #MQTT PREFERENCES
 MQTT_CONFIG="$base_directory/mqtt_preferences"
 if [ -f $MQTT_CONFIG ]; then 
