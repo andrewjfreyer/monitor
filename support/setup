@@ -40,9 +40,9 @@ if [ -f $MQTT_CONFIG ]; then
 	source $MQTT_CONFIG
 
 	#DOUBLECHECKS 
-	[ "$mqtt_address" == "0.0.0.0" ] && echo "Error: Please customize mqtt broker address in: ${BLUE}mqtt_preferences" && should_exit=true
-	[ "$mqtt_user" == "username" ] && echo "Error: Please customize mqtt username in: ${BLUE}mqtt_preferences" && should_exit=true
-	[ "$mqtt_password" == "password" ] && echo "Error: Please customize mqtt password in: ${BLUE}mqtt_preferences" && should_exit=true
+	[ "$mqtt_address" == "0.0.0.0" ] && echo "Error: Please customize mqtt broker address in: mqtt_preferences" && should_exit=true
+	[ "$mqtt_user" == "username" ] && echo "Error: Please customize mqtt username in: mqtt_preferences" && should_exit=true
+	[ "$mqtt_password" == "password" ] && echo "Error: Please customize mqtt password in: mqtt_preferences" && should_exit=true
 else
 	echo "Mosquitto preferences file created. Please customize." 
 
@@ -81,7 +81,7 @@ fi
 PUB_CONFIG="$base_directory/known_static_addresses"
 if [ -f "$PUB_CONFIG" ]; then 
 	#DOUBLECHECKS 
-	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && echo "Error: Please customize public mac addresses in: ${BLUE}known_static_addresses" && should_exit=true
+	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && echo "Error: Please customize public mac addresses in: known_static_addresses" && should_exit=true
 else
 	echo "Public MAC address list file created. Please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
