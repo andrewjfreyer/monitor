@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.370
+version=0.1.372
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -78,9 +78,6 @@ trap "clean" EXIT
 #SETUP LOG
 source './support/debug'
 log_listener &
-
-#WAIT FOR THE LOG LISTENER TO SETUP
-sleep 1
 
 source './support/setup'
 source './support/data'

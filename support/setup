@@ -25,11 +25,11 @@ git_path=$(which git)
 
 #ERROR CHECKING FOR MOSQUITTO PUBLICATION 
 should_exit=false
-[ -z "$mosquitto_pub_path" ] && log "${RED}Error: ${NC}Required package 'mosquitto_pub' not found. Please install." && should_exit=true
-[ -z "$mosquitto_sub_path" ] && log "${RED}Error: ${NC}Required package 'mosquitto_sub' not found. Please install." && should_exit=true
-[ -z "$hcidump_path" ] && log "${RED}Error: ${NC}Required package 'hcidump' not found. Please install." && should_exit=true
-[ -z "$bc_path" ] && log "${RED}Error: ${NC}Required package 'bc' not found. Please install." && should_exit=true
-[ -z "$git_path" ] && log "${ORANGE}Warning: ${NC}Recommended package 'git' not found. Please consider installing."
+[ -z "$mosquitto_pub_path" ] && echo "Error: Required package 'mosquitto_pub' not found. Please install." && should_exit=true
+[ -z "$mosquitto_sub_path" ] && echo "Error: Required package 'mosquitto_sub' not found. Please install." && should_exit=true
+[ -z "$hcidump_path" ] && echo "Error: Required package 'hcidump' not found. Please install." && should_exit=true
+[ -z "$bc_path" ] && echo "Error: Required package 'bc' not found. Please install." && should_exit=true
+[ -z "$git_path" ] && echo "Warning: Recommended package 'git' not found. Please consider installing."
 
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
 base_directory=$(dirname "$(readlink -f "$0")")
@@ -40,9 +40,9 @@ if [ -f $MQTT_CONFIG ]; then
 	source $MQTT_CONFIG
 
 	#DOUBLECHECKS 
-	[ "$mqtt_address" == "0.0.0.0" ] && log "${RED}Error: ${NC}Please customize mqtt broker address in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
-	[ "$mqtt_user" == "username" ] && log "${RED}Error: ${NC}Please customize mqtt username in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
-	[ "$mqtt_password" == "password" ] && log "${RED}Error: ${NC}Please customize mqtt password in: ${BLUE}mqtt_preferences${NC}" && should_exit=true
+	[ "$mqtt_address" == "0.0.0.0" ] && echo "Error: Please customize mqtt broker address in: ${BLUE}mqtt_preferences" && should_exit=true
+	[ "$mqtt_user" == "username" ] && echo "Error: Please customize mqtt username in: ${BLUE}mqtt_preferences" && should_exit=true
+	[ "$mqtt_password" == "password" ] && echo "Error: Please customize mqtt password in: ${BLUE}mqtt_preferences" && should_exit=true
 else
 	echo "Mosquitto preferences file created. Please customize." 
 
@@ -81,7 +81,7 @@ fi
 PUB_CONFIG="$base_directory/known_static_addresses"
 if [ -f "$PUB_CONFIG" ]; then 
 	#DOUBLECHECKS 
-	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && log "${RED}Error: ${NC}Please customize public mac addresses in: ${BLUE}known_static_addresses${NC}" && should_exit=true
+	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && echo "Error: Please customize public mac addresses in: ${BLUE}known_static_addresses" && should_exit=true
 else
 	echo "Public MAC address list file created. Please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
