@@ -19,7 +19,7 @@
 btle_scanner () {
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
-		local error=$(sudo timeout --signal SIGINT 360 hcitool lescan --duplicates 2>&1 | grep -iE 'input/output error|invalid device|invalid|error')
+		local error=$(sudo timeout --signal SIGINT 30 hcitool lescan 2>&1 | grep -iE 'input/output error|invalid device|invalid|error')
 		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe 
 		sleep 5
 	done

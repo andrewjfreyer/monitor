@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.359
+version=0.1.360
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -537,7 +537,8 @@ while true; do
 					last_appearance=${random_device_log[$data]}
 					rand_interval=$((timestamp - last_appearance))
 
-					[ "$rand_interval" -gt "5" ] && log "[INTERV]	${GREEN}$mac	$rand_interval"
+					#HAS THIS BECAON NOT BEEN HEARD FROM FOR MOR THAN 25 SECONDS? 
+					[ "$rand_interval" -gt "5" ] && [ "$rand_interval" -gt "25" ] && is_new=true	
 
 					#ONLY ADD THIS TO THE DEVICE LOG 
 					random_device_log[$data]="$timestamp"
@@ -627,7 +628,7 @@ while true; do
 				[ -z "$last_seen" ] && continue 
 
 				#TIMEOUT AFTER 120 SECONDS
-				if [ "$difference" -gt "20" ]; then 
+				if [ "$difference" -gt "30" ]; then 
 					unset random_device_log[$key]
 					log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
 
