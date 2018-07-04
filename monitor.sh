@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.361
+version=0.1.362
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -633,27 +633,6 @@ while true; do
 
 			static_device_log[$data]="$timestamp"
 			manufacturer="$(determine_manufacturer $data)"
-
-		elif [ "$cmd" == "RNAM" ]; then 
-			#HERE WE HAVE A NAME REQUEST RESPONSE
-			mac=$(echo "$data" | awk -F "|" '{print $1}')
-			name=$(echo "$data" | awk -F "|" '{print $2}')
-			data="$mac"
-
-			#PREVIOUS STATE; SET DEFAULT TO UNKNOWN
-			previous_state="${known_static_device_log[$mac]}"
-			[ -z "$previous_state" ] && previous_state=-1
-
-			if [ ! -z "$name" ]; then 
-				known_static_device_log[$mac]=1
-				[ "$previous_state" != "1" ] && did_change=true
-			else
-				known_static_device_log[$mac]=0
-				[ "$previous_state" != "0" ] && did_change=true
-			fi
-
-			#REPORT WHETHER A CHANGE EXISTS
-			[ "$did_change" == true ] && cmd="NAME" && log "${CYAN}[CMD-RNAM]	${NC}$data ${GREEN}$name ${NC}${NC}"			
 
 		elif [ "$cmd" == "NAME" ]; then 
 			#DATA IS DELIMITED BY VERTICAL PIPE
