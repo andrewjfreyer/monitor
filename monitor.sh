@@ -235,12 +235,8 @@ scannable_devices_with_state () {
 
 perform_complete_scan () {
 	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
-	if [ -z "$1" ]; then 
-		#NEED TO WAIT SO THAT THE PID CAN ACTUALLY RETURN CORRECTLY
-		sleep 1
-
+	if [ -z "$1" ]; then
 		#LOG IMMEDIATE RETURN
-		log "${GREEN}[CMD-SCAN]	${GREEN}**** Rejected scan. No devices in requested state.  **** ${NC}"
 	 	return 0
 	fi
 
