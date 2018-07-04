@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.383
+version=0.1.384
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -524,11 +524,12 @@ while true; do
 			#NORMALIZE TO UPPERCASE
 			mqtt_topic_branch=${mqtt_topic_branch^^}
 
-			elif [[ $mqtt_topic_branch =~ *ARRIVE* ]; then 
+			elif [[ $mqtt_topic_branch =~ *ARRIVE* ]]; then 
+
 				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger ARRIVE ${NC}"
 				perform_arrival_scan
 				
-			elif [[ $mqtt_topic_branch =~ *DEPART* ]; then 
+			elif [[ $mqtt_topic_branch =~ *DEPART* ]]; then 
 				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger DEPART ${NC}"
 				perform_departure_scan
 				
