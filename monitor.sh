@@ -26,7 +26,11 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.368
+version=0.1.369
+
+#SETUP LOG
+source './support/debug'
+log_listener &
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -75,7 +79,6 @@ trap "clean" EXIT
 # SOURCE FILES 
 # ----------------------------------------------------------------------------------------
 
-source './support/debug'
 source './support/setup'
 source './support/data'
 source './support/btle'
@@ -419,7 +422,6 @@ scan_type=0
 # LAUNCH BACKGROUND PROCESSES
 # ----------------------------------------------------------------------------------------
 
-log_listener &
 btle_scanner & 
 mqtt_listener &
 btle_listener &
