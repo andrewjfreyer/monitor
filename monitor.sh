@@ -742,13 +742,9 @@ while true; do
 
 			#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT THE CHANGE
 			[ "$did_change" == true ] && publish_presence_message "owner/$mqtt_publisher_identity/$data" "$((current_state * 100))" "$name" "$manufacturer"
-			
-			#LET OTHER DEVICES KNOW THAT AN ARRIVAL SCAN SHOULD OCCUR
-			[ "$did_change" == true ] && [ "$current_state" == "1" ] && publish_cooperative_scan_message "arrive" 
 
-			#LET OTHER DEVICES KNOW THAT AN ARRIVAL SCAN SHOULD OCCUR
+			#LET OTHER DEVICES KNOW THAT A DEPARTURE SCAN SHOULD OCCUR
 			[ "$did_change" == true ] && [ "$current_state" == "0" ] && publish_cooperative_scan_message "depart" 
-
 
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
