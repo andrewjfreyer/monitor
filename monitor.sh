@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.384
+version=0.1.385
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -619,8 +619,14 @@ while true; do
 
 		elif [ "$cmd" == "ERRO" ]; then 
 
-			log "${RED}[ERROR]	${NC}$data${NC}"
+			log "${RED}[ERROR]	${NC}Attempting to correct HCI error: $data${NC}"
 
+			sudo hciconfig hci0 down && sleep 5 && sudo hciconfig hci0 up
+
+			#WAIT
+			sleep 3
+
+			continue
 
 		elif [ "$cmd" == "PUBL" ]; then 
 			#PARSE RECEIVED DATA
