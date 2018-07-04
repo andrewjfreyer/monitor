@@ -79,6 +79,9 @@ trap "clean" EXIT
 source './support/debug'
 log_listener &
 
+#WAIT FOR THE LOG LISTENER TO SETUP
+sleep 1
+
 source './support/setup'
 source './support/data'
 source './support/btle'
