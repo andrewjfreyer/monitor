@@ -104,14 +104,17 @@ fi
 
 
 if [ "$should_install" == "y" ]; then 
-#CHECK FOR SYSTEMCTL FILE
+	#CHECK FOR SYSTEMCTL FILE
+
+	base_directory=$(dirname "$(readlink -f "$0")")
+
 	echo "[Unit]" >> $service_path
 	echo "Description=Monitor Service" >> $service_path
 	echo "" >> $service_path
 	echo "[Service]" >> $service_path
 	echo "User=root" >> $service_path
-	echo "ExecStart=/bin/bash $0 &" >> $service_path
-	echo "WorkingDirectory=$(dir $0)" >> $service_path
+	echo "ExecStart=/bin/bash $base_directory/$(basename $0) &" >> $service_path
+	echo "WorkingDirectory=$base_directory" >> $service_path
 	echo "Restart=always" >> $service_path
 	echo "RestartSec=10" >> $service_path
 	echo "" >> $service_path
