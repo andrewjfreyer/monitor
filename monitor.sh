@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.376
+version=0.1.378
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -90,8 +90,7 @@ source './support/time'
 #DETERMINE DELAY BETWEEN SCANS OF DEVICES 
 PREF_INTERSCAN_DELAY=3
 
-#DETERMINE HOW OFTEN TO CHECK FOR AN EXPIRED DEVICE OR FOR A 
-ED OR ARRIVED DEVICE
+#DETERMINE HOW OFTEN TO CHECK FOR AN EXPIRED DEVICE OR OR ARRIVED DEVICE
 PREF_CLOCK_INTERVAL=30
 
 #DETERMINE NOW OFTEN TO REFRESH DATABASES TO REMOVE EXPIRED DEVICES

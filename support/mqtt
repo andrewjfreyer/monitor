@@ -52,10 +52,10 @@ publish_presence_message () {
 publish_cooperative_scan_message () {
 	if [ ! -z "$1" ]; then 
 		#DEBUGGING 
-		(>&2 log "${PURPLE}$mqtt_topicpath/$1 {} ${NC}")
+		(>&2 log "${PURPLE}$mqtt_topicpath/scan/$1 {} ${NC}")
 
 		#POST TO MQTT
-		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$1" -m "{}"
+		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/$1" -m "$mqtt_publisher_identity"
 
 	fi 
 }
