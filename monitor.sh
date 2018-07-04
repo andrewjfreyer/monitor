@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.356
+version=0.1.357
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -398,8 +398,6 @@ perform_complete_scan () {
 
 perform_departure_scan () {
 
-	log "${GREEN}[REQUEST]	${NC}Departure scan requested."
-
 	#PRIMING?
 	local should_prime=false
 	[ "$1" == true ] && should_prime=true
@@ -422,12 +420,11 @@ perform_departure_scan () {
 		scan_pid=$!
 		scan_type=1
 	else
-		log "${GREEN}[REJECT]	${NC}Departure scan denied."
+		log "${GREEN}[REJECT]	${NC}Departure scan request denied."
 	fi
 }
 
 perform_arrival_scan () {
-	log "${GREEN}[REQUEST]	${NC}Arrival scan requested."
 
  	#PRIMING?
 	local should_prime=false
@@ -451,7 +448,7 @@ perform_arrival_scan () {
 		scan_pid=$!
 		scan_type=0
 	else
-		log "${GREEN}[REJECT]	${NC}Arrival scan denied."
+		log "${GREEN}[REJECT]	${NC}Arrival scan request denied."
  
 	fi 
 }
@@ -535,6 +532,12 @@ while true; do
 
 					#DATA IS RANDOM MAC ADDRESS; ADD TO LOG
 					[ -z "${random_device_log[$data]}" ] && is_new=true
+
+					#CALCULATE INTERVAL
+					last_appearance=${random_device_log[$data]}
+					rand_interval=$((timestamp - last_appearance))
+
+					log "$mac	$rand_interval"
 
 					#ONLY ADD THIS TO THE DEVICE LOG 
 					random_device_log[$data]="$timestamp"
@@ -848,7 +851,8 @@ while true; do
 			#PROVIDE USEFUL LOGGING
 			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
 
-		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
+		elif [ "$cmd" == "RAND" ] ; then 
+
 			#PROVIDE USEFUL LOGGING
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 			
