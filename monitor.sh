@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.375
+version=0.1.376
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -90,7 +90,8 @@ source './support/time'
 #DETERMINE DELAY BETWEEN SCANS OF DEVICES 
 PREF_INTERSCAN_DELAY=3
 
-#DETERMINE HOW OFTEN TO CHECK FOR AN EXPIRED DEVICE OR FOR A DEPARTED OR ARRIVED DEVICE
+#DETERMINE HOW OFTEN TO CHECK FOR AN EXPIRED DEVICE OR FOR A 
+ED OR ARRIVED DEVICE
 PREF_CLOCK_INTERVAL=30
 
 #DETERMINE NOW OFTEN TO REFRESH DATABASES TO REMOVE EXPIRED DEVICES
@@ -527,7 +528,7 @@ while true; do
 			#FOR DETAILED LOGGING
 			mqtt_response_required="${RED}[Rejected] ${NC}"
 
-			if [ "$mqtt_topic_branch" == "ARRIVE" ] || [ "$mqtt_topic_branch" == "SCAN" ]; then 
+			if [ "$mqtt_topic_branch" == "ARRIVE" ] ; then 
 				
 				perform_arrival_scan
 				mqtt_response_required=""
@@ -741,8 +742,15 @@ while true; do
 			fi 
 
 			#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT THE CHANGE
-			[ "$did_change" == true ] && publish_message "owner/$mqtt_publisher_identity/$data" "$((current_state * 100))" "$name" "$manufacturer"
+			[ "$did_change" == true ] && publish_presence_message "owner/$mqtt_publisher_identity/$data" "$((current_state * 100))" "$name" "$manufacturer"
 			
+			#LET OTHER DEVICES KNOW THAT AN ARRIVAL SCAN SHOULD OCCUR
+			[ "$did_change" == true ] && [ "$current_state" == "1" ] && publish_cooperative_scan_message "arrive" 
+
+			#LET OTHER DEVICES KNOW THAT AN ARRIVAL SCAN SHOULD OCCUR
+			[ "$did_change" == true ] && [ "$current_state" == "0" ] && publish_cooperative_scan_message "depart" 
+
+
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
 		
@@ -758,7 +766,7 @@ while true; do
 			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
 
 			#PUBLISH PRESENCE OF BEACON
-			publish_message "owner/$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer"
+			publish_presence_message "owner/$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer"
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
 

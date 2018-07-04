@@ -25,7 +25,7 @@ mqtt_listener (){
 # PUBLISH MESSAGE
 # ----------------------------------------------------------------------------------------
 
-publish_message () {
+publish_presence_message () {
 	if [ ! -z "$1" ]; then 
 
 		#SET NAME FOR 'UNKONWN'
@@ -47,4 +47,15 @@ publish_message () {
 		#POST TO MQTT
 		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$1" -m "{\"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\"}"
 	fi
+}
+
+publish_cooperative_scan_message () {
+	if [ ! -z "$1" ]; then 
+		#DEBUGGING 
+		(>&2 log "${PURPLE}$mqtt_topicpath/$1 {} ${NC}")
+
+		#POST TO MQTT
+		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$1" -m "{}"
+
+	fi 
 }

@@ -58,7 +58,7 @@ log_listener () {
 		done < log_pipe
 
 		#PREVENT INFINITE LOOPING
-		sleep 1
+		sleep 3
 	done 
 }
 
