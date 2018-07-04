@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.358
+version=0.1.359
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -537,7 +537,7 @@ while true; do
 					last_appearance=${random_device_log[$data]}
 					rand_interval=$((timestamp - last_appearance))
 
-					log "$mac	$rand_interval"
+					[ "$rand_interval" -gt "5" ] && log "[INTERV]	${GREEN}$mac	$rand_interval"
 
 					#ONLY ADD THIS TO THE DEVICE LOG 
 					random_device_log[$data]="$timestamp"
@@ -851,7 +851,7 @@ while true; do
 			#PROVIDE USEFUL LOGGING
 			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
 
-		elif [ "$cmd" == "RAND" ] ; then 
+		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
 
 			#PROVIDE USEFUL LOGGING
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
