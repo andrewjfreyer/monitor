@@ -166,11 +166,25 @@ scannable_devices_with_state () {
 	#DEFINE LOCAL VARS
 	local return_list=""
 	local timestamp=$(date +%s)
-
+	
 	#IF WE ARE SCANNING FOR ARRIVALS, THIS VALUE SHOULD BE 
 	#0; IF WE ARE SCANNING FOR DEPARTURES, THIS VALUE SHOULD
 	#BE 1.
 	local scan_state="$1"
+	local scan_type_diff=99
+
+	#FIRST, TEST IF WE HAVE DONE THIS TYPE OF SCAN TOO RECENTLY
+	if [ "$scan_state" == "1" ]; then 
+		#SCAN FOR DEPARTED DEVICES
+		scan_type_diff=$((timestamp - last_depart_scan))
+
+	elif [ "$scan_state" == "0" ]; then 
+		#SCAN FOR ARRIVED DEVICES
+		scan_type_diff=$((timestamp - last_arrive_scan))
+	fi 
+
+	#REJECT IF WE SCANNED TO RECENTLY
+	[ "$scan_type_diff" -lt "10" ] && log "${RED}[REJECT]	${GREEN}**** Rejected repeat scan. **** ${NC}" && eturn 0
 
 	#SCAN ALL? SET THE SCAN STATE TO [X]
 	[ -z "$scan_state" ] && scan_state=2
