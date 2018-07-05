@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.394
+version=0.1.395
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -504,7 +504,7 @@ while true; do
 			fi 
 
 			#GET THE TOPIC 
-			mqtt_topic_branch=$(basname "$topic_path_of_instruction")
+			mqtt_topic_branch=$(basename "$topic_path_of_instruction")
 
 			#NORMALIZE TO UPPERCASE
 			mqtt_topic_branch=${mqtt_topic_branch^^}

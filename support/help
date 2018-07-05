@@ -52,7 +52,7 @@ show_help_text() {
 	echo "  monitor -p		periodically scan for arrival & departure of known devices"
 	echo "  monitor -b		scan for & report BTLE beacon advertisements"
 	echo "  monitor -P		scan for & report public address advertisements"
-	echo "  monitor -t		scan only on mqtt trigger messages"
+	echo "  monitor -t		scan only on mqtt trigger messages:"
 	echo "				$mqtt_topicpath/scan/ARRIVE"
 	echo "				$mqtt_topicpath/scan/DEPART"
 }
@@ -67,6 +67,7 @@ OPTIND=1
 PREF_PERIODIC_MODE=false
 PREF_BEACON_MODE=false
 PREF_TRIGGER_MODE=false
+PREF_PUBLIC_MODE=false
 
 while getopts "h?vpbtP:" opt; do
     case "$opt" in
