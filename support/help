@@ -53,8 +53,8 @@ show_help_text() {
 	echo "  monitor -b		scan for & report BTLE beacon advertisements"
 	echo "  monitor -P		scan for & report public address advertisements"
 	echo "  monitor -t		scan only on mqtt trigger messages"
-	echo "				$mqtt_topic_path/scan/ARRIVE"
-	echo "				$mqtt_topic_path/scan/DEPART"
+	echo "				$mqtt_topicpath/scan/ARRIVE"
+	echo "				$mqtt_topicpath/scan/DEPART"
 }
 
 # ----------------------------------------------------------------------------------------
