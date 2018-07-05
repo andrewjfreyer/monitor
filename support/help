@@ -1,0 +1,40 @@
+# ----------------------------------------------------------------------------------------
+# HELP TEXT
+# ----------------------------------------------------------------------------------------
+
+show_help_text() {
+	echo "Usage:"
+	echo "  monitor -h 		show usage information"
+	echo "  monitor -v		print version"
+	echo "  monitor -p		"
+}
+
+# ----------------------------------------------------------------------------------------
+# PROCESS OPTIONS (technique: https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash)
+# ----------------------------------------------------------------------------------------
+
+OPTIND=1
+
+#PREFERENCES
+PREF_PERIODIC_MODE=false
+
+while getopts "h?vp:" opt; do
+    case "$opt" in
+    h|\?)
+        show_help_text
+        exit 0
+        ;;
+    v)  
+		echo "$VERSION"
+		exit 0
+		;;
+    p)  PREF_PERIODIC_MODE=true
+		;;
+    esac
+done
+
+#RESET OPTION INDEX
+shift $((OPTIND-1))
+
+#SHIFT IF NECESSARY
+[ "$1" = "--" ] && shift

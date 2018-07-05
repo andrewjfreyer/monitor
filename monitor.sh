@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.387
+version=0.1.389
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -76,6 +76,7 @@ trap "clean" EXIT
 # ----------------------------------------------------------------------------------------
 
 #SETUP LOG
+source './support/help'
 source './support/debug'
 source './support/setup'
 source './support/data'
@@ -540,6 +541,10 @@ while true; do
 
 
 		elif [ "$cmd" == "TIME" ]; then 
+
+			#MODE TO SKIP
+			[ "$PREF_PERIODIC_MODE" == false ] && continue
+
 			#SCANNED RECENTLY? 
 			duration_since_arrival_scan=$((timestamp - last_arrival_scan))
 			duration_since_depart_scan=$((timestamp - last_depart_scan))
