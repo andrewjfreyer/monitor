@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.395
+version=0.1.396
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -386,10 +386,13 @@ perform_arrival_scan () {
 # ADD AN ARRIVAL SCAN INTO THE QUEUE 
 # ----------------------------------------------------------------------------------------
 
-first_arrive_list=$(scannable_devices_with_state 0)
-perform_complete_scan "$first_arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" &
-scan_pid=$!
-scan_type=0
+#ONLY SCAN IF NOT ON TRIGGER MODE
+if [ "$PREF_TRIGGER_MODE" == false ]; then 
+	first_arrive_list=$(scannable_devices_with_state 0)
+	perform_complete_scan "$first_arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" &
+	scan_pid=$!
+	scan_type=0
+fi 
 
 # ----------------------------------------------------------------------------------------
 # LAUNCH BACKGROUND PROCESSES
