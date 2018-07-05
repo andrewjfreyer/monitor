@@ -38,6 +38,11 @@ publish_presence_message () {
 			name="Unknown"
 		fi 
 
+		#APPEND INFORMATION FOR BTLE BEACONS
+		local append=""
+		[ ! -z "$5" ] && append=",\"rssi\":\"$5\""
+		[ ! -z "$6" ] && append="$append,\"power\":\"$6\""
+		
 		#TIMESTAMP
 		stamp=$(date "+%a %b %d %Y %H:%M:%S GMT%z (%Z)")
 
@@ -45,7 +50,7 @@ publish_presence_message () {
 		(>&2 log "${PURPLE}$mqtt_topicpath/$1 { confidence : $confidence, name : $name, timestamp : $stamp, manufacturer : $4} ${NC}")
 
 		#POST TO MQTT
-		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$1" -m "{\"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\"}"
+		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$1" -m "{\"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\"$append}"
 	fi
 }
 

@@ -59,6 +59,9 @@ btle_listener () {
 		#BEACON PACKET?
 		if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]] && [ ${#packet} -gt 132 ]; then
 
+			#IF WE DONT' RECEIVE BEACONS, IGNORE
+			[ "$PREF_BEACON_MODE" == false ] && packet="" && continue
+
 			#HARDARE MAC AND PDU HEADER
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 			local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
@@ -87,9 +90,6 @@ btle_listener () {
 			RSSI=$(echo "ibase=16; $RSSI" | bc)
 			RSSI=$[RSSI - 256]
 
-            #ADD BEACON 
-            key_identifier="$UUID-$MAJOR-$MINOR"
-
             #CLEAR PACKET
             packet=""
 
@@ -100,6 +100,9 @@ btle_listener () {
 		#FIND ADVERTISEMENT PACKET OF RANDOM ADDRESSES                                  __
 		if [[ $packet =~ ^04\ 3E\ [0-9a-fA-F]{2}\ 02\ [0-9a-fA-F]{2}\ [0-9a-fA-F]{2}\ 01\ .*? ]]; then
 			
+			#IF IN TRIGGER MODE, IGNORE
+			[ "$PREF_TRIGGER_MODE" == false ] && packet="" && continue
+
 			#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 			local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
@@ -132,6 +135,9 @@ btle_listener () {
 		#FIND ADVERTISEMENT PACKET OF PUBLIC ADDRESSES                                  __
 		if [[ $packet =~ ^04\ 3E\ [0-9a-fA-F]{2}\ 02\ [0-9a-fA-F]{2}\ [0-9a-fA-F]{2}\ 00\ .*? ]]; then
 			
+			#IF WE DONT' RECEIVE PUBLIC ADVS, IGNORE
+			[ "$PREF_PUBLIC_MODE" == false ] && packet="" && continue
+
 			#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 			local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))

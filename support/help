@@ -1,3 +1,46 @@
+#!/bin/bash
+
+# ----------------------------------------------------------------------------------------
+# GENERAL INFORMATION
+# ----------------------------------------------------------------------------------------
+#
+# Written by Andrew J Freyer
+# GNU General Public License
+# http://github.com/andrewjfreyer/monitor
+#
+# HELP FILE AND GENERAL PREFERENCES
+#
+# ----------------------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------------------
+# BEHAVIOR PREFERENCES
+# ----------------------------------------------------------------------------------------
+
+#DETERMINE DELAY BETWEEN SCANS OF DEVICES 
+PREF_INTERSCAN_DELAY=3
+
+#DETERMINE HOW OFTEN TO CHECK FOR AN EXPIRED DEVICE OR OR ARRIVED DEVICE
+PREF_CLOCK_INTERVAL=90
+
+#DETERMINE NOW OFTEN TO REFRESH DATABASES TO REMOVE EXPIRED DEVICES
+PREF_DATABASE_REFRESH_INTERVAL=25
+
+#MAX RETRY ATTEMPTS FOR ARRIVAL
+PREF_ARRIVAL_SCAN_ATTEMPTS=2
+
+#MAX RETRY ATTEMPTS FOR DEPART
+PREF_DEPART_SCAN_ATTEMPTS=4
+
+#DEPART SCAN INTERVAL
+PREF_DEPART_SCAN_INTERVAL=60
+
+#ARRIVE SCAN INTERVAL
+PREF_ARRIVE_SCAN_INTERVAL=45
+
+#PERIOD AFTER WHICH A RANDOM BTLE ADVERTISEMENT IS CONSIDERED EXPIRED
+PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL=40
+
+
 # ----------------------------------------------------------------------------------------
 # HELP TEXT
 # ----------------------------------------------------------------------------------------
@@ -5,8 +48,13 @@
 show_help_text() {
 	echo "Usage:"
 	echo "  monitor -h 		show usage information"
-	echo "  monitor -v		print version"
-	echo "  monitor -p		"
+	echo "  monitor -v		print version number"
+	echo "  monitor -p		periodically scan for arrival & departure of known devices"
+	echo "  monitor -b		scan for & report BTLE beacon advertisements"
+	echo "  monitor -P		scan for & report public address advertisements"
+	echo "  monitor -t		scan only on mqtt trigger messages"
+	echo "				$mqtt_topic_path/scan/ARRIVE"
+	echo "				$mqtt_topic_path/scan/DEPART"
 }
 
 # ----------------------------------------------------------------------------------------
@@ -17,8 +65,10 @@ OPTIND=1
 
 #PREFERENCES
 PREF_PERIODIC_MODE=false
+PREF_BEACON_MODE=false
+PREF_TRIGGER_MODE=false
 
-while getopts "h?vp:" opt; do
+while getopts "h?vpbtP:" opt; do
     case "$opt" in
     h|\?)
         show_help_text
@@ -29,6 +79,12 @@ while getopts "h?vp:" opt; do
 		exit 0
 		;;
     p)  PREF_PERIODIC_MODE=true
+		;;
+    b)  PREF_BEACON_MODE=true
+		;;
+    P)  PREF_PUBLIC_MODE=true
+		;;
+	t)  PREF_TRIGGER_MODE=true
 		;;
     esac
 done

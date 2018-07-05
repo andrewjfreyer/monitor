@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.391
+version=0.1.393
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -40,20 +40,16 @@ for pid in $(pidof -x $(basename $0)); do
     fi 
 done
 
-echo "> stopping instances of 'presence.sh'"
 #FOR DEBUGGING, BE SURE THAT PRESENCE IS ALSO KILLED, IF RUNNING
+echo "> stopping instances of 'presence.sh'"
 for pid in $(pidof -x "presence.sh"); do
     if [ $pid != $$ ]; then
         kill -9 $pid
     fi 
 done
 
-#DISABLE PRESENCE SERVICE
-#echo "> stopping monitor service"
-#sudo systemctl stop monitor >/dev/null 2>&1
-
 #echo "> stopping presence service"
-#sudo systemctl stop presence >/dev/null 2>&1
+sudo systemctl stop presence >/dev/null 2>&1
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -86,31 +82,6 @@ source './support/data'
 source './support/btle'
 source './support/mqtt'
 source './support/time'
-
-# ----------------------------------------------------------------------------------------
-# BEHAVIOR PREFERENCES
-# ----------------------------------------------------------------------------------------
-
-#DETERMINE DELAY BETWEEN SCANS OF DEVICES 
-PREF_INTERSCAN_DELAY=3
-
-#DETERMINE HOW OFTEN TO CHECK FOR AN EXPIRED DEVICE OR OR ARRIVED DEVICE
-PREF_CLOCK_INTERVAL=90
-
-#DETERMINE NOW OFTEN TO REFRESH DATABASES TO REMOVE EXPIRED DEVICES
-PREF_DATABASE_REFRESH_INTERVAL=15
-
-#MAX RETRY ATTEMPTS FOR ARRIVAL
-PREF_ARRIVAL_SCAN_ATTEMPTS=2
-
-#MAX RETRY ATTEMPTS FOR DEPART
-PREF_DEPART_SCAN_ATTEMPTS=4
-
-#DEPART SCAN INTERVAL
-PREF_DEPART_SCAN_INTERVAL=60
-
-#ARRIVE SCAN INTERVAL
-PREF_ARRIVE_SCAN_INTERVAL=45
 
 # ----------------------------------------------------------------------------------------
 # DEFINE VALUES AND VARIABLES
@@ -523,7 +494,17 @@ while true; do
 
 		elif [ "$cmd" == "MQTT" ]; then 
 			#GET INSTRUCTION 
-			mqtt_topic_branch=$(basename "$data" | awk -F " " "{print $1}")
+			topic_path_of_instruction=$(echo "$data"  | sed 's/ {.*//')
+			data_of_instruction=$(echo "$data" | sed 's/.* {//;s/^/{/g')
+
+			#IGNORE INSTRUCTION FROM SELF
+			if [[ $data_of_instruction =~ *$mqtt_publisher_identity* ]]; then 
+				log "${GREEN}[INSTRUCT] ${RED}[Rejected] ${NC} ${NC}MQTT Trigger (prevent self-triggering) ${NC}"
+				continue
+			fi 
+
+			#GET THE TOPIC 
+			mqtt_topic_branch=$(basname "$topic_path_of_instruction")
 
 			#NORMALIZE TO UPPERCASE
 			mqtt_topic_branch=${mqtt_topic_branch^^}
@@ -587,7 +568,7 @@ while true; do
 				[ -z "$last_seen" ] && continue 
 
 				#TIMEOUT AFTER 120 SECONDS
-				if [ "$difference" -gt "30" ]; then 
+				if [ "$difference" -gt "$PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" ]; then 
 					unset random_device_log[$key]
 					log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
 
@@ -596,8 +577,8 @@ while true; do
 				fi 
 			done
 
-			#RANDOM DEVICE SHOULD TRIGGER DEPARTURE SCAN
-			if [ "$should_scan" == true ]; then 
+			#RANDOM DEVICE EXPIRATION SHOULD TRIGGER DEPARTURE SCAN
+			if [ "$should_scan" == true ] && [ "$PREF_TRIGGER_MODE" == false ]; then 
 				perform_departure_scan
 			fi  
 
@@ -769,7 +750,7 @@ while true; do
 			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
 
 			#PUBLISH PRESENCE OF BEACON
-			publish_presence_message "owner/$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer"
+			publish_presence_message "owner/$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "$rssi" "$power"
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
 
