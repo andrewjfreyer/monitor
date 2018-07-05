@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.390
+version=0.1.391
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -49,11 +49,11 @@ for pid in $(pidof -x "presence.sh"); do
 done
 
 #DISABLE PRESENCE SERVICE
-echo "> stopping monitor service"
-sudo systemctl stop monitor >/dev/null 2>&1
+#echo "> stopping monitor service"
+#sudo systemctl stop monitor >/dev/null 2>&1
 
-echo "> stopping presence service"
-sudo systemctl stop presence >/dev/null 2>&1
+#echo "> stopping presence service"
+#sudo systemctl stop presence >/dev/null 2>&1
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
