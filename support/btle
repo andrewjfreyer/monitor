@@ -101,7 +101,7 @@ btle_listener () {
 		if [[ $packet =~ ^04\ 3E\ [0-9a-fA-F]{2}\ 02\ [0-9a-fA-F]{2}\ [0-9a-fA-F]{2}\ 01\ .*? ]]; then
 			
 			#IF IN TRIGGER MODE, IGNORE
-			[ "$PREF_TRIGGER_MODE" == false ] && packet="" && continue
+			[ "$PREF_TRIGGER_MODE" == true ] && packet="" && continue
 
 			#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
