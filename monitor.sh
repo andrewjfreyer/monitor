@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.393
+version=0.1.394
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -75,9 +75,9 @@ trap "clean" EXIT
 # ----------------------------------------------------------------------------------------
 
 #SETUP LOG
+source './support/setup'
 source './support/help'
 source './support/debug'
-source './support/setup'
 source './support/data'
 source './support/btle'
 source './support/mqtt'
