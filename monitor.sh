@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.397
+version=0.1.399
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -501,7 +501,7 @@ while true; do
 			data_of_instruction=$(echo "$data" | sed 's/.* {//;s/^/{/g')
 
 			#IGNORE INSTRUCTION FROM SELF
-			if [[ $data_of_instruction =~ *$mqtt_publisher_identity* ]]; then 
+			if [[ $data_of_instruction =~ .*$mqtt_publisher_identity.* ]]; then 
 				log "${GREEN}[INSTRUCT] ${RED}[Rejected] ${NC} ${NC}MQTT Trigger (prevent self-triggering) ${NC}"
 				continue
 			fi 
