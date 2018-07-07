@@ -134,7 +134,7 @@ if [ -f $PREF_CONFIG ]; then
 	echo "> preference: delay between scans = $PREF_INTERSCAN_DELAY" 
 	echo "> preference: periodic arrive/depart check interval = $PREF_CLOCK_INTERVAL" 
 	echo "> preference: periodic arrive interval = $PREF_ARRIVE_SCAN_INTERVAL" 
-	echo "> preference: periodic depart interval = $PREF_DEPART_SCAN_ATTEMPTS" 
+	echo "> preference: periodic depart interval = $PREF_DEPART_SCAN_INTERVAL" 
 
 	echo "> preference: database refresh interval = $PREF_DATABASE_REFRESH_INTERVAL" 
 	echo "> preference: max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS" 

@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.411
+version=0.1.412
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -235,7 +235,7 @@ perform_complete_scan () {
 	local devices_next="$devices"
 	local scan_start=""
 	local scan_duration=""
-	local should_report=false
+	local should_report=""
 	
 	#LOG START OF DEVICE SCAN 
 	log "${GREEN}[CMD-INFO]	${GREEN}**** Started scan. [x$repetitions] **** ${NC}"
@@ -294,7 +294,7 @@ perform_complete_scan () {
 				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
 
 				#NEED TO REPORT? 
-				if [ "$should_report" == true ]; then 
+				if [[ $should_report =~ .*$known_addr.* ]]; then 
 					local expected_name="${known_static_device_name[$known_addr]}"
 					[ -z "$expected_name" ] && "Unknown"
 
@@ -313,7 +313,7 @@ perform_complete_scan () {
 				publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "$(echo "100 / 2 ^ $repetition" | bc )" "$expected_name" "Unknown"
 
 				#IF WE DO FIND A NAME LATER, WE SHOULD REPORT OUT 
-				should_report=true
+				should_report="$should_report$known_addr"
 			fi 
 
 			#IF WE HAVE NO MORE DEVICES TO SCAN, IMMEDIATELY RETURN
@@ -819,7 +819,7 @@ while true; do
 			fi 
 
 			#REPORT PRESENCE OF DEVICE
-			publish_presence_message "owner/$mqtt_publisher_identity/$data" "100" "$name" "$manufacturer"
+			[ "$PREF_PUBLIC_MODE" == true ] && publish_presence_message "owner/$mqtt_publisher_identity/$data" "100" "$name" "$manufacturer"
 
 			#PROVIDE USEFUL LOGGING
 			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
