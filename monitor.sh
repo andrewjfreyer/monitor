@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.408
+version=0.1.409
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -220,6 +220,8 @@ perform_complete_scan () {
 	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
 	if [ -z "$1" ]; then
 		#LOG IMMEDIATE RETURN
+		sleep 1 
+
 	 	return 0
 	fi
 
@@ -233,6 +235,7 @@ perform_complete_scan () {
 	local devices_next="$devices"
 	local scan_start=""
 	local scan_duration=""
+	local should_report=false
 	
 	#LOG START OF DEVICE SCAN 
 	log "${GREEN}[CMD-INFO]	${GREEN}**** Started scan. [x$repetitions] **** ${NC}"
@@ -289,6 +292,28 @@ perform_complete_scan () {
 			elif [ ! -z "$name" ] && [ "$previous_state" == "1" ]; then 
 				#THIS DEVICE IS STILL PRESENT; REMOVE FROM VERIFICATIONS
 				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
+
+				#NEED TO REPORT? 
+				if [ "$should_report" == true ]; then 
+					local expected_name="${known_static_device_name[$known_addr]}"
+					[ -z "$expected_name" ] && "Unknown"
+
+					#REPORT RESTORED CONFIDENCE
+					publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "Unknown"
+				fi 
+			fi 
+
+			#SHOULD WE REPORT A DROP IN CONFIDENCE? 
+			if [ -z "$name" ] && [ "$previous_state" == "1" ]; then 
+
+				local expected_name="${known_static_device_name[$known_addr]}"
+				[ -z "$expected_name" ] && "Unknown"
+
+				#REPORT PRESENCE OF DEVICE
+				publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "$(( 100 - repetition * 100 / repetitions ))" "$expected_name" "Unknown"
+
+				#IF WE DO FIND A NAME LATER, WE SHOULD REPORT OUT 
+				should_report=true
 			fi 
 
 			#IF WE HAVE NO MORE DEVICES TO SCAN, IMMEDIATELY RETURN
@@ -792,6 +817,9 @@ while true; do
 					fi 
 				fi 
 			fi 
+
+			#REPORT PRESENCE OF DEVICE
+			publish_presence_message "owner/$mqtt_publisher_identity/$data" "100" "$name" "$manufacturer"
 
 			#PROVIDE USEFUL LOGGING
 			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
