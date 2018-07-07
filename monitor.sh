@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.410
+version=0.1.411
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -829,7 +829,8 @@ while true; do
 			#PROVIDE USEFUL LOGGING
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 			
-		 	perform_arrival_scan 
+			#SCAN ONLY IF WE ARE IN TRIGGER MODE
+		 	[ "$PREF_TRIGGER_MODE" == false ] && perform_arrival_scan 
 		fi 
 
 	done < main_pipe
