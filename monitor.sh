@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.406
+version=0.1.407
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -561,7 +561,6 @@ while true; do
 			should_scan=false
 			
 			#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
-			random_bias=0
 			for key in "${!random_device_log[@]}"; do
 				#GET BIAS
 				random_bias=${device_expiration_biases[$key]}
@@ -575,7 +574,7 @@ while true; do
 				[ -z "$last_seen" ] && continue 
 
 				#TIMEOUT AFTER 120 SECONDS
-				if [ "$difference" -gt "$(($PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL + random_bias))" ]; then 
+				if [ "$difference" -gt "$(( PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL + random_bias))" ]; then 
 					unset random_device_log[$key]
 					log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
 
