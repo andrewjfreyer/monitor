@@ -46,7 +46,7 @@ if [ -f $MQTT_CONFIG ]; then
 	[ "$mqtt_user" == "username" ] && echo "Error: Please customize mqtt username in: mqtt_preferences" && should_exit=true
 	[ "$mqtt_password" == "password" ] && echo "Error: Please customize mqtt password in: mqtt_preferences" && should_exit=true
 else
-	echo "Mosquitto preferences file created. Please customize." 
+	echo "> mosquitto preferences file created. Please customize." 
 
 	#LOAD A DEFULT PREFERENCES FILE
 	echo "# ---------------------------" >> $MQTT_CONFIG
@@ -85,7 +85,7 @@ if [ -f "$PUB_CONFIG" ]; then
 	#DOUBLECHECKS 
 	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && echo "Error: Please customize public mac addresses in: known_static_addresses" && should_exit=true
 else
-	echo "Public MAC address list file created. Please customize."
+	echo " > public MAC address list file created. Please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
 	echo "# ---------------------------" >> $PUB_CONFIG
 	echo "#" >> $PUB_CONFIG
@@ -131,7 +131,7 @@ PREF_CONFIG="$base_directory/behavior_preferences"
 if [ -f $PREF_CONFIG ]; then 
 	source $PREF_CONFIG
 else
-	echo "Behavior preferences file created. Please consider customizing." 
+	echo "> behavior preferences file created. Please consider customizing." 
 
 	#LOAD A DEFULT PREFERENCES FILE
 	echo "# ---------------------------" >> $PREF_CONFIG
@@ -170,7 +170,6 @@ else
 	echo "PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL=35" >> $PREF_CONFIG
 
 	#LOAD DEFAULT PREFERENCES
-	source $PREF_CONFIG
-
+	exit 0
 fi 
 
