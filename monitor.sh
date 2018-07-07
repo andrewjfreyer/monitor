@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.405
+version=0.1.406
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -559,9 +559,13 @@ while true; do
 			#**********************************************************************
 			#DID ANY DEVICE EXPIRE? 
 			should_scan=false
-
+			
 			#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
+			random_bias=0
 			for key in "${!random_device_log[@]}"; do
+				#GET BIAS
+				random_bias=${device_expiration_biases[$key]}
+				[ -z "$random_bias" ] && random_bias=0 
 
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen=${random_device_log[$key]}
@@ -571,12 +575,18 @@ while true; do
 				[ -z "$last_seen" ] && continue 
 
 				#TIMEOUT AFTER 120 SECONDS
-				if [ "$difference" -gt "$PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" ]; then 
+				if [ "$difference" -gt "$(($PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL + random_bias))" ]; then 
 					unset random_device_log[$key]
 					log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
 
+					#UPDATE TIMESTAMP
+					random_device_last_update=$(date +%s)
+			
 					#AT LEAST ONE DEVICE EXPIRED
 					should_scan=true 
+
+					#ADD TO THE EXPIRED LOG
+					expired_device_log[$key]=$timestamp
 				fi 
 			done
 
