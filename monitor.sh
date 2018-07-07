@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.412
+version=0.1.413
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -167,6 +167,8 @@ scannable_devices_with_state () {
 
 	#REJECT IF WE SCANNED TO RECENTLY
 	[ "$scan_type_diff" -lt "10" ] && log "${RED}[REJECT]	${GREEN}**** Rejected repeat scan. **** ${NC}" && return 0
+
+	log "last scan: $scan_type_diff"
 
 	#SCAN ALL? SET THE SCAN STATE TO [X]
 	[ -z "$scan_state" ] && scan_state=2
@@ -378,8 +380,8 @@ perform_departure_scan () {
 
 		scan_pid=$!
 		scan_type=1
-	#else
-		#log "${GREEN}[REJECT]	${NC}Departure scan request denied."
+	else
+		log "${GREEN}[REJECT]	${NC}Departure scan request denied. Hardware busy."
 	fi
 }
 
@@ -401,9 +403,8 @@ perform_arrival_scan () {
 
 		scan_pid=$!
 		scan_type=0
-	#else
-		#log "${GREEN}[REJECT]	${NC}Arrival scan request denied."
- 
+	else
+		log "${GREEN}[REJECT]	${NC}Arrival scan request denied. Hardware busy."
 	fi 
 }
 
@@ -615,9 +616,7 @@ while true; do
 			done
 
 			#RANDOM DEVICE EXPIRATION SHOULD TRIGGER DEPARTURE SCAN
-			if [ "$should_scan" == true ] && [ "$PREF_TRIGGER_MODE" == false ]; then 
-				perform_departure_scan
-			fi  
+			[ "$should_scan" == true ] && [ "$PREF_TRIGGER_MODE" == false ] && perform_departure_scan
 
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			beacon_bias=0
@@ -690,6 +689,10 @@ while true; do
 			fi 
 
 		elif [ "$cmd" == "BEAC" ]; then 
+
+			#TRIGGER MODE PREVENTS BEACONS
+			[ "$PREF_TRIGGER_MODE" == false ] && continue
+
 			#DATA IS DELIMITED BY VERTICAL PIPE
 			uuid=$(echo "$data" | awk -F "|" '{print $1}')
 			major=$(echo "$data" | awk -F "|" '{print $2}')
@@ -731,7 +734,7 @@ while true; do
 			difference=$((timestamp - last_expired))
 
 			#DO WE NEED TO ADD A LEANRED BIAS FOR EXPIRATION?
-			if [ "$difference" -lt "120" ]; then 
+			if [ "$difference" -lt "60" ]; then 
 				device_expiration_biases[$data]=$(( bias + 15 ))
 			fi  
 		fi 
@@ -781,6 +784,9 @@ while true; do
 		
 		elif [ "$cmd" == "BEAC" ] ; then 
 
+			#TRIGGER MODE PREVENTS THIS 
+			[ "$PREF_TRIGGER_MODE" == false ] && continue
+
 			#DOES AN EXPECTED NAME EXIST? 
 			expected_name="${known_static_device_name[$data]}"
 
@@ -793,7 +799,10 @@ while true; do
 			#PUBLISH PRESENCE OF BEACON
 			publish_presence_message "owner/$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "$rssi" "$power"
 		
-		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] ; then 
+		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] && [ "$PREF_PUBLIC_MODE" == true ] ; then 
+
+			#TRIGGER MODE PREVENTS THIS 
+			[ "$PREF_TRIGGER_MODE" == true ] && continue
 
 			#IF IS NEW AND IS PUBLIC, SHOULD CHECK FOR NAME
 			expected_name="${known_static_device_name[$data]}"
@@ -819,18 +828,18 @@ while true; do
 			fi 
 
 			#REPORT PRESENCE OF DEVICE
-			[ "$PREF_PUBLIC_MODE" == true ] && publish_presence_message "owner/$mqtt_publisher_identity/$data" "100" "$name" "$manufacturer"
+			publish_presence_message "owner/$mqtt_publisher_identity/$data" "100" "$name" "$manufacturer"
 
 			#PROVIDE USEFUL LOGGING
 			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
 
-		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] ; then 
+		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE" == false ]; then 
 
 			#PROVIDE USEFUL LOGGING
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
 			
 			#SCAN ONLY IF WE ARE IN TRIGGER MODE
-		 	[ "$PREF_TRIGGER_MODE" == false ] && perform_arrival_scan 
+		 	perform_arrival_scan 
 		fi 
 
 	done < main_pipe
