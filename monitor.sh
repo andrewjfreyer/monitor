@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.401
+version=0.1.402
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -740,6 +740,7 @@ while true; do
 
 			#IF WE HAVE DEPARTED, MERK EVERYONE
 			[ "$did_change" == true ] && [ "$current_state" == "0" ] && publish_cooperative_scan_message "depart"
+			[ "$did_change" == true ] && [ "$current_state" == "1" ] && publish_cooperative_scan_message "arrive"
 
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
