@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.413
+version=0.1.414
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -691,7 +691,7 @@ while true; do
 		elif [ "$cmd" == "BEAC" ]; then 
 
 			#TRIGGER MODE PREVENTS BEACONS
-			[ "$PREF_TRIGGER_MODE" == false ] && continue
+			[ "$PREF_TRIGGER_MODE" == true ] && continue
 
 			#DATA IS DELIMITED BY VERTICAL PIPE
 			uuid=$(echo "$data" | awk -F "|" '{print $1}')
@@ -785,7 +785,7 @@ while true; do
 		elif [ "$cmd" == "BEAC" ] ; then 
 
 			#TRIGGER MODE PREVENTS THIS 
-			[ "$PREF_TRIGGER_MODE" == false ] && continue
+			[ "$PREF_TRIGGER_MODE" == true ] && continue
 
 			#DOES AN EXPECTED NAME EXIST? 
 			expected_name="${known_static_device_name[$data]}"
