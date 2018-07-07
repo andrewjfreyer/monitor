@@ -13,35 +13,6 @@
 # ----------------------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------------------
-# BEHAVIOR PREFERENCES
-# ----------------------------------------------------------------------------------------
-
-#DETERMINE DELAY BETWEEN SCANS OF DEVICES 
-PREF_INTERSCAN_DELAY=3
-
-#DETERMINE HOW OFTEN TO CHECK FOR AN EXPIRED DEVICE OR OR ARRIVED DEVICE
-PREF_CLOCK_INTERVAL=90
-
-#DETERMINE NOW OFTEN TO REFRESH DATABASES TO REMOVE EXPIRED DEVICES
-PREF_DATABASE_REFRESH_INTERVAL=45
-
-#MAX RETRY ATTEMPTS FOR ARRIVAL
-PREF_ARRIVAL_SCAN_ATTEMPTS=2
-
-#MAX RETRY ATTEMPTS FOR DEPART
-PREF_DEPART_SCAN_ATTEMPTS=4
-
-#DEPART SCAN INTERVAL
-PREF_DEPART_SCAN_INTERVAL=60
-
-#ARRIVE SCAN INTERVAL
-PREF_ARRIVE_SCAN_INTERVAL=45
-
-#PERIOD AFTER WHICH A RANDOM BTLE ADVERTISEMENT IS CONSIDERED EXPIRED
-PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL=35
-
-
-# ----------------------------------------------------------------------------------------
 # HELP TEXT
 # ----------------------------------------------------------------------------------------
 

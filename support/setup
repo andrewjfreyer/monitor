@@ -102,7 +102,7 @@ fi
 #ARE REQUIREMENTS MET? 
 [ "$should_exit" == true ] && exit 1
 
-
+#CHECK FOR CORRECT SERVICE
 if [ "$should_install" == "y" ]; then 
 	#CHECK FOR SYSTEMCTL FILE
 
@@ -125,4 +125,48 @@ if [ "$should_install" == "y" ]; then
 	sudo systemctl enable monitor.service
 fi 
 
+
+#MQTT PREFERENCES
+PREF_CONFIG="$base_directory/behavior_preferences"
+if [ -f $PREF_CONFIG ]; then 
+	source $PREF_CONFIG
+else
+	echo "Behavior preferences file created. Please consider customizing." 
+
+	#LOAD A DEFULT PREFERENCES FILE
+	echo "# ---------------------------" >> $PREF_CONFIG
+	echo "#								" >> $PREF_CONFIG
+	echo "# BEHAVIOR PREFERENCES" >> $PREF_CONFIG
+	echo "#								" >> $PREF_CONFIG
+	echo "# ---------------------------" >> $PREF_CONFIG
+	echo "" >> $PREF_CONFIG
+
+	# ----------------------------------------------------------------------------------------
+	# BEHAVIOR PREFERENCES
+	# ----------------------------------------------------------------------------------------
+
+	echo "#DETERMINE DELAY BETWEEN SCANS OF DEVICES" >> $PREF_CONFIG
+	echo "PREF_INTERSCAN_DELAY=3" >> $PREF_CONFIG
+	echo "" >> $PREF_CONFIG
+	echo "#DETERMINE HOW OFTEN TO CHECK FOR AN EXPIRED DEVICE OR OR ARRIVED DEVICE" >> $PREF_CONFIG
+	echo "PREF_CLOCK_INTERVAL=90" >> $PREF_CONFIG
+	echo "" >> $PREF_CONFIG
+	echo "#DETERMINE NOW OFTEN TO REFRESH DATABASES TO REMOVE EXPIRED DEVICES" >> $PREF_CONFIG
+	echo "PREF_DATABASE_REFRESH_INTERVAL=45" >> $PREF_CONFIG
+	echo "" >> $PREF_CONFIG
+	echo "#MAX RETRY ATTEMPTS FOR ARRIVAL" >> $PREF_CONFIG
+	echo "PREF_ARRIVAL_SCAN_ATTEMPTS=2" >> $PREF_CONFIG
+	echo "" >> $PREF_CONFIG
+	echo "#MAX RETRY ATTEMPTS FOR DEPART" >> $PREF_CONFIG
+	echo "PREF_DEPART_SCAN_ATTEMPTS=4" >> $PREF_CONFIG
+	echo "" >> $PREF_CONFIG
+	echo "#DEPART SCAN INTERVAL" >> $PREF_CONFIG
+	echo "PREF_DEPART_SCAN_INTERVAL=60" >> $PREF_CONFIG
+	echo "" >> $PREF_CONFIG
+	echo "#ARRIVE SCAN INTERVAL" >> $PREF_CONFIG
+	echo "PREF_ARRIVE_SCAN_INTERVAL=45" >> $PREF_CONFIG
+	echo "" >> $PREF_CONFIG
+	echo "#PERIOD AFTER WHICH A RANDOM BTLE ADVERTISEMENT IS CONSIDERED EXPIRED" >> $PREF_CONFIG
+	echo "PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL=35" >> $PREF_CONFIG
+fi 
 
