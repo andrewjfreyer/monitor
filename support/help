@@ -79,13 +79,13 @@ while getopts "h?vpbtP:" opt; do
 		echo "$VERSION"
 		exit 0
 		;;
-    p)  PREF_PERIODIC_MODE=true
+    p)  PREF_PERIODIC_MODE=true && echo "> periodic scan mode enabled"
 		;;
-    b)  PREF_BEACON_MODE=true
+    b)  PREF_BEACON_MODE=true && echo "> beacon scan mode enabled"
 		;;
-    P)  PREF_PUBLIC_MODE=true
+    P)  PREF_PUBLIC_MODE=true && echo "> public node scan mode enabled"
 		;;
-	t)  PREF_TRIGGER_MODE=true
+	t)  PREF_TRIGGER_MODE=true && echo "> trigger only mode enabled"
 		;;
     esac
 done
