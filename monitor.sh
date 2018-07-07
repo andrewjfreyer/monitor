@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.416
+version=0.1.417
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -227,6 +227,8 @@ perform_complete_scan () {
 	 	return 0
 	fi
 
+	log "${GREEN}[CMD-INFO]	${GREEN} WORKIGN? ${NC}"
+
 	#REPEAT THROUGH ALL DEVICES THREE TIMES, THEN RETURN 
 	local repetitions=2
 	[ ! -z "$2" ] && repetitions="$2"
@@ -404,7 +406,7 @@ perform_arrival_scan () {
 		scan_pid=$!
 		scan_type=0
 	else
-		log "${GREEN}[REJECT]	${NC}Arrival scan request denied. Hardware busy."
+		log "${GREEN}[REJECT]	${NC}Arrive scan request denied. Hardware busy."
 	fi 
 }
 
@@ -439,8 +441,6 @@ refresh_databases &
 while true; do 
 	#READ FROM THE MAIN PIPE
 	while read event; do 
-
-		log "Event! $event"
 
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
