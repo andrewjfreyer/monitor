@@ -121,8 +121,10 @@ if [ "$should_install" == "y" ]; then
 	echo "[Install]" >> $service_path
 	echo "WantedBy=multi-user.target" >> $service_path
 
-	sleep 1
+	sleep 3
+
 	sudo systemctl enable monitor.service
+
 fi 
 
 
@@ -140,7 +142,6 @@ if [ -f $PREF_CONFIG ]; then
 	echo "> preference: max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS" 
 	echo "> preference: max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS" 
 	echo "> preference: random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" 
-
 
 else
 	echo "> behavior preferences file created. Please consider customizing." 

@@ -75,13 +75,13 @@ trap "clean" EXIT
 # ----------------------------------------------------------------------------------------
 
 #SETUP LOG
-source './support/setup'
-source './support/help'
-source './support/debug'
-source './support/data'
-source './support/btle'
-source './support/mqtt'
-source './support/time'
+source './support/setup' && echo "$LINENO"
+source './support/help' && echo "$LINENO"
+source './support/debug' && echo "$LINENO"
+source './support/data' && echo "$LINENO"
+source './support/btle' && echo "$LINENO"
+source './support/mqtt' && echo "$LINENO"
+source './support/time' && echo "$LINENO"
 
 # ----------------------------------------------------------------------------------------
 # DEFINE VALUES AND VARIABLES
