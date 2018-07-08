@@ -26,7 +26,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.417
+version=0.1.418
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -426,12 +426,14 @@ fi
 # LAUNCH BACKGROUND PROCESSES
 # ----------------------------------------------------------------------------------------
 
+echo "$LINENO"
 log_listener &
 btle_scanner & 
 mqtt_listener &
 btle_listener &
 periodic_trigger & 
 refresh_databases &
+echo "$LINENO"
 
 # ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
@@ -439,9 +441,11 @@ refresh_databases &
 
 #MAIN LOOP
 while true; do 
+	echo "$LINENO"
+
 	#READ FROM THE MAIN PIPE
 	while read event; do 
-
+		echo "$LINENO"
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
 		data="${event:4}"
