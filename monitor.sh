@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.423
+version=0.1.424
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -144,6 +144,9 @@ echo "$LINENO"
 # ----------------------------------------------------------------------------------------
 
 scannable_devices_with_state () {
+
+	echo "$LINENO"
+
 	#DEFINE LOCAL VARS
 	local return_list
 	local timestamp
@@ -167,6 +170,8 @@ scannable_devices_with_state () {
 		scan_type_diff=$((timestamp - last_arrival_scan))
 	fi 
 
+	echo "$LINENO"
+
 	#REJECT IF WE SCANNED TO RECENTLY
 	[ "$scan_type_diff" -lt "10" ] && log "${RED}[REJECT]	${GREEN}**** Rejected repeat scan. **** ${NC}" && return 0
 
@@ -174,9 +179,15 @@ scannable_devices_with_state () {
 
 	#SCAN ALL? SET THE SCAN STATE TO [X]
 	[ -z "$scan_state" ] && scan_state=2
+
+	echo "$LINENO"
+
 			 	
 	#ITERATE THROUGH THE KNOWN DEVICES 
 	for known_addr in "${known_static_addresses[@]}"; do 
+
+	echo "$LINENO"
+
 		
 		#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
 		this_state="${known_static_device_log[$known_addr]}"
@@ -207,6 +218,9 @@ scannable_devices_with_state () {
 			fi 
 		fi 
 	done
+
+	echo "$LINENO"
+
  
 	#RETURN LIST, CLEANING FOR EXCESS SPACES OR STARTING WITH SPACES
 	return_list=$(echo "$return_list" | sed 's/^ //g;s/ $//g;s/  */ /g')
