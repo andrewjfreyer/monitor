@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.427
+version=0.1.428
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -201,9 +201,6 @@ scannable_devices_with_state () {
 			fi 
 		fi 
 	done
-
-	
-
  
 	#RETURN LIST, CLEANING FOR EXCESS SPACES OR STARTING WITH SPACES
 	return_list=$(echo "$return_list" | sed 's/^ //g;s/ $//g;s/  */ /g')
@@ -224,8 +221,6 @@ perform_complete_scan () {
 
 	 	return 0
 	fi
-
-	log "${GREEN}[CMD-INFO]	${GREEN} WORKIGN? ${NC}"
 
 	#REPEAT THROUGH ALL DEVICES THREE TIMES, THEN RETURN 
 	local repetitions=2
@@ -414,14 +409,8 @@ perform_arrival_scan () {
 
 #ONLY SCAN IF NOT ON TRIGGER MODE
 if [ "$PREF_TRIGGER_MODE" == false ]; then 
-	
-
 	first_arrive_list=$(scannable_devices_with_state 0)
-	
-
 	perform_complete_scan "$first_arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" &
-	
-
 	scan_pid=$!
 	scan_type=0
 fi 
@@ -444,7 +433,6 @@ refresh_databases &
 #MAIN LOOP
 while true; do 
 	
-
 	#READ FROM THE MAIN PIPE
 	while read event; do 
 		
@@ -536,7 +524,6 @@ while true; do
 
 			#IGNORE INSTRUCTION FROM SELF
 			if [[ $data_of_instruction =~ .*$mqtt_publisher_identity.* ]]; then 
-				log "${GREEN}[INSTRUCT] ${RED}[Rejected] ${NC} ${NC}MQTT Trigger (prevent self-triggering) ${NC}"
 				continue
 			fi 
 
@@ -556,7 +543,7 @@ while true; do
 				perform_departure_scan
 				
 			else						#IN RESPONSE TO MQTT SCAN 
-				log "${GREEN}[INSTRUCT] ${RED}[Rejected] ${NC} ${NC}MQTT Trigger $mqtt_topic_branch ${NC}"
+				log "${GREEN}[INSTRUCT] ${RED}[Rejected] ${NC} ${NC}Bad MQTT scan command: $mqtt_topic_branch ${NC}"
 
 			fi
 
