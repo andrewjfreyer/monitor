@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # ----------------------------------------------------------------------------------------
@@ -26,27 +25,19 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.418
+version=0.1.419
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
 # ----------------------------------------------------------------------------------------
-echo "Starting '$(basename $0)' (v. $version)..."
+echo "Starting $(basename "$0") (v. $version)..."
 
 echo "> stopping other instances of 'monitor.sh'"
-for pid in $(pidof -x $(basename $0)); do
-    if [ $pid != $$ ]; then
-        kill -9 $pid
-    fi 
-done
+sudo pkill -f monitor.sh
 
 #FOR DEBUGGING, BE SURE THAT PRESENCE IS ALSO KILLED, IF RUNNING
 echo "> stopping instances of 'presence.sh'"
-for pid in $(pidof -x "presence.sh"); do
-    if [ $pid != $$ ]; then
-        kill -9 $pid
-    fi 
-done
+sudo pkill -f presence.sh
 
 #echo "> stopping presence service"
 sudo systemctl stop presence >/dev/null 2>&1
@@ -56,9 +47,7 @@ sudo systemctl stop presence >/dev/null 2>&1
 # ----------------------------------------------------------------------------------------
 clean() {
 	#CLEANUP FOR TRAP
-	while read line; do 
-		`sudo kill $line` &>/dev/null
-	done < <(ps ax | grep monitor.sh | awk '{print $1}')
+	sudo pkill -f monitor.sh
 
 	#REMOVE PIPES
 	sudo rm main_pipe &>/dev/null
@@ -75,13 +64,13 @@ trap "clean" EXIT
 # ----------------------------------------------------------------------------------------
 
 #SETUP LOG
-source './support/setup' && echo "$LINENO"
-source './support/help' && echo "$LINENO"
-source './support/debug' && echo "$LINENO"
-source './support/data' && echo "$LINENO"
-source './support/btle' && echo "$LINENO"
-source './support/mqtt' && echo "$LINENO"
-source './support/time' && echo "$LINENO"
+source './support/setup' && 
+source './support/help'
+source './support/debug'
+source './support/data'
+source './support/btle'
+source './support/mqtt'
+source './support/time'
 
 # ----------------------------------------------------------------------------------------
 # DEFINE VALUES AND VARIABLES
@@ -120,25 +109,24 @@ declare -A device_expiration_biases
 last_arrival_scan=$(date +%s)
 last_depart_scan=$(date +%s)
 
+echo "$LINENO"
+
 # ----------------------------------------------------------------------------------------
 # POPULATE THE ASSOCIATIVE ARRAYS THAT INCLUDE INFORMATION ABOUT THE STATIC DEVICES
 # WE WANT TO TRACK
 # ----------------------------------------------------------------------------------------
 
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY, IGNORING COMMENTS
-known_static_addresses=($(cat "$PUB_CONFIG" | sed 's/#.\{0,\}//g' | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
+known_static_addresses=($(sed 's/#.\{0,\}//g' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 
 #POPULATE KNOWN DEVICE ADDRESS
 for addr in ${known_static_addresses[@]}; do 
 	#WAS THERE A NAME HERE?
-	known_name=$(grep "$addr" "$PUB_CONFIG" | tr "\t" " " | sed 's/  */ /g;s/#.\{0,\}//g' | sed "s/$addr //g;s/  */ /g" )
+	known_name=$(grep "$addr" "$PUB_CONFIG" | tr "\\t" " " | sed 's/  */ /g;s/#.\{0,\}//g' | sed "s/$addr //g;s/  */ /g" )
 
 	#IF WE FOUND A NAME, RECORD IT
 	[ ! -z "$known_name" ] && known_static_device_name[$addr]="$known_name"
 done
-
-#LOOP SCAN VARIABLES
-device_count=${#known_static_addresses[@]}
 
 # ----------------------------------------------------------------------------------------
 # ASSEMBLE ARRIVAL SCAN LIST
@@ -146,14 +134,17 @@ device_count=${#known_static_addresses[@]}
 
 scannable_devices_with_state () {
 	#DEFINE LOCAL VARS
-	local return_list=""
-	local timestamp=$(date +%s)
-	
-	#IF WE ARE SCANNING FOR ARRIVALS, THIS VALUE SHOULD BE 
-	#0; IF WE ARE SCANNING FOR DEPARTURES, THIS VALUE SHOULD
-	#BE 1.
-	local scan_state="$1"
-	local scan_type_diff=99
+	local return_list
+	local timestamp
+	local scan_state
+	local scan_type_diff
+	local this_state
+	local last_scan
+	local time_diff
+
+	#SET VALUES AFTER DECLARATION
+	timestamp=$(date +%s)
+	scan_state="$1"
 
 	#FIRST, TEST IF WE HAVE DONE THIS TYPE OF SCAN TOO RECENTLY
 	if [ "$scan_state" == "1" ]; then 
@@ -162,7 +153,7 @@ scannable_devices_with_state () {
 
 	elif [ "$scan_state" == "0" ]; then 
 		#SCAN FOR ARRIVED DEVICES
-		scan_type_diff=$((timestamp - last_arrive_scan))
+		scan_type_diff=$((timestamp - last_arrival_scan))
 	fi 
 
 	#REJECT IF WE SCANNED TO RECENTLY
@@ -177,7 +168,7 @@ scannable_devices_with_state () {
 	for known_addr in "${known_static_addresses[@]}"; do 
 		
 		#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
-		local this_state="${known_static_device_log[$known_addr]}"
+		this_state="${known_static_device_log[$known_addr]}"
 
 		#IF WE HAVE NEVER SCANNED THIS DEVICE BEFORE, WE MARK AS 
 		#SCAN STATE [X]; THIS ALLOWS A FIRST SCAN TO PROGRESS TO 
@@ -185,8 +176,8 @@ scannable_devices_with_state () {
 		[ -z "$this_state" ] && this_state=3
 
 		#FIND LAST TIME THIS DEVICE WAS SCANNED
-		local last_scan="${known_static_device_scan_log[$known_addr]}"
-		local time_diff=$((timestamp - last_scan))
+		last_scan="${known_static_device_scan_log[$known_addr]}"
+		time_diff=$((timestamp - last_scan))
 
 		#SCAN IF DEVICE HAS NOT BEEN SCANNED 
 		#WITHIN LAST [X] SECONDS
@@ -195,13 +186,13 @@ scannable_devices_with_state () {
 			#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
 			if [ "$this_state" == "$scan_state" ]; then 
 				#ASSEMBLE LIST OF DEVICES TO SCAN
-				return_list=$(echo "$return_list $this_state$known_addr")
+				return_list="$return_list $this_state$known_addr"
 
 			elif [ "$this_state" == "2" ] || [ "$this_state" == "3" ]; then
 
 				#SCAN FOR ALL DEVICES THAT HAVEN'T BEEN RECENTLY SCANNED; 
 				#PRESUME DEVICE IS ABSENT
-				return_list=$(echo "$return_list 0$known_addr")
+				return_list="$return_list 0$known_addr"
 			fi 
 		fi 
 	done
@@ -609,9 +600,6 @@ while true; do
 				if [ "$difference" -gt "$(( PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL + random_bias))" ]; then 
 					unset random_device_log[$key]
 					log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
-
-					#UPDATE TIMESTAMP
-					random_device_last_update=$(date +%s)
 			
 					#AT LEAST ONE DEVICE EXPIRED
 					should_scan=true 
@@ -670,7 +658,7 @@ while true; do
 			[ -z "${static_device_log[$data]}" ] && is_new=true
 
 			static_device_log[$data]="$timestamp"
-			manufacturer="$(determine_manufacturer $data)"
+			manufacturer="$(determine_manufacturer "$data")"
 
 		elif [ "$cmd" == "NAME" ]; then 
 			#DATA IS DELIMITED BY VERTICAL PIPE
@@ -683,7 +671,7 @@ while true; do
 			[ -z "$previous_state" ] && previous_state=-1
 
 			#GET MANUFACTURER INFORMATION
-			manufacturer="$(determine_manufacturer $data)"
+			manufacturer="$(determine_manufacturer "$data")"
 
 			#IF NAME IS DISCOVERED, PRESUME HOME
 			if [ ! -z "$name" ]; then 

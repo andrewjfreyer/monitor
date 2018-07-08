@@ -83,12 +83,12 @@ btle_listener () {
 
 			#POWER CALCULATION
 			POWER=$(echo "ibase=16; $POWER" | bc)
-			POWER=$[POWER - 256]
+			POWER=$((POWER - 256))
 
 			#RSSI CALCULATION
 			RSSI=$(echo $packet | sed 's/^.\{132\}\(.\{2\}\).*$/\1/')
 			RSSI=$(echo "ibase=16; $RSSI" | bc)
-			RSSI=$[RSSI - 256]
+			RSSI=$((RSSI - 256))
 
             #CLEAR PACKET
             packet=""
