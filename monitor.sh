@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.426
+version=0.1.427
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -113,8 +113,6 @@ declare -A device_expiration_biases
 last_arrival_scan=$(date +%s)
 last_depart_scan=$(date +%s)
 
-echo "$LINENO" >&2
-
 # ----------------------------------------------------------------------------------------
 # POPULATE THE ASSOCIATIVE ARRAYS THAT INCLUDE INFORMATION ABOUT THE STATIC DEVICES
 # WE WANT TO TRACK
@@ -123,12 +121,8 @@ echo "$LINENO" >&2
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY, IGNORING COMMENTS
 known_static_addresses=($(sed 's/#.\{0,\}//g' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 
-echo "$LINENO" >&2
-
-
 #POPULATE KNOWN DEVICE ADDRESS
 for addr in ${known_static_addresses[@]}; do 
-echo "$LINENO" >&2
 
 	#WAS THERE A NAME HERE?
 	known_name=$(grep "$addr" "$PUB_CONFIG" | tr "\\t" " " | sed 's/  */ /g;s/#.\{0,\}//g' | sed "s/$addr //g;s/  */ /g" )
@@ -137,15 +131,13 @@ echo "$LINENO" >&2
 	[ ! -z "$known_name" ] && known_static_device_name[$addr]="$known_name"
 done
 
-echo "$LINENO" >&2
-
 # ----------------------------------------------------------------------------------------
 # ASSEMBLE ARRIVAL SCAN LIST
 # ----------------------------------------------------------------------------------------
 
 scannable_devices_with_state () {
 
-	echo "$LINENO" >&2
+	
 
 	#DEFINE LOCAL VARS
 	local return_list
@@ -170,22 +162,15 @@ scannable_devices_with_state () {
 		scan_type_diff=$((timestamp - last_arrival_scan))
 	fi 
 
-	echo "$LINENO" >&2
-
 	#REJECT IF WE SCANNED TO RECENTLY
 	[ "$scan_type_diff" -lt "10" ] && return 0
 
 	#SCAN ALL? SET THE SCAN STATE TO [X]
 	[ -z "$scan_state" ] && scan_state=2
 
-	echo "$LINENO" >&2
-
 			 	
 	#ITERATE THROUGH THE KNOWN DEVICES 
 	for known_addr in "${known_static_addresses[@]}"; do 
-
-	echo "$LINENO" >&2
-
 		
 		#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
 		this_state="${known_static_device_log[$known_addr]}"
@@ -217,7 +202,7 @@ scannable_devices_with_state () {
 		fi 
 	done
 
-	echo "$LINENO" >&2
+	
 
  
 	#RETURN LIST, CLEANING FOR EXCESS SPACES OR STARTING WITH SPACES
@@ -226,8 +211,6 @@ scannable_devices_with_state () {
 	#RETURN THE LIST
 	echo "$return_list"
 }
-
-echo "$LINENO" >&2
 
 # ----------------------------------------------------------------------------------------
 # SCAN FOR DEVICES
@@ -375,9 +358,6 @@ perform_complete_scan () {
 
 }
 
-echo "$LINENO" >&2
-
-
 # ----------------------------------------------------------------------------------------
 # SCAN TYPE FUNCTIONS 
 # ----------------------------------------------------------------------------------------
@@ -405,8 +385,6 @@ perform_departure_scan () {
 	fi
 }
 
-echo "$LINENO" >&2
-
 perform_arrival_scan () {
 
 	#SET SCAN TYPE
@@ -430,21 +408,19 @@ perform_arrival_scan () {
 	fi 
 }
 
-echo "$LINENO" >&2
-
 # ----------------------------------------------------------------------------------------
 # ADD AN ARRIVAL SCAN INTO THE QUEUE 
 # ----------------------------------------------------------------------------------------
 
 #ONLY SCAN IF NOT ON TRIGGER MODE
 if [ "$PREF_TRIGGER_MODE" == false ]; then 
-	echo "$LINENO" >&2
+	
 
 	first_arrive_list=$(scannable_devices_with_state 0)
-	echo "$LINENO" >&2
+	
 
 	perform_complete_scan "$first_arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" &
-	echo "$LINENO" >&2
+	
 
 	scan_pid=$!
 	scan_type=0
@@ -454,14 +430,12 @@ fi
 # LAUNCH BACKGROUND PROCESSES
 # ----------------------------------------------------------------------------------------
 
-echo "$LINENO" >&2
 log_listener &
 btle_scanner & 
 mqtt_listener &
 btle_listener &
 periodic_trigger & 
 refresh_databases &
-echo "$LINENO" >&2
 
 # ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
@@ -469,11 +443,11 @@ echo "$LINENO" >&2
 
 #MAIN LOOP
 while true; do 
-	echo "$LINENO" >&2
+	
 
 	#READ FROM THE MAIN PIPE
 	while read event; do 
-		echo "$LINENO" >&2
+		
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
 		data="${event:4}"
@@ -585,7 +559,6 @@ while true; do
 				log "${GREEN}[INSTRUCT] ${RED}[Rejected] ${NC} ${NC}MQTT Trigger $mqtt_topic_branch ${NC}"
 
 			fi
-
 
 		elif [ "$cmd" == "TIME" ]; then 
 
