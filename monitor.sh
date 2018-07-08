@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.419
+version=0.1.420
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -33,7 +33,11 @@ version=0.1.419
 echo "Starting $(basename "$0") (v. $version)..."
 
 echo "> stopping other instances of 'monitor.sh'"
-sudo pkill -f monitor.sh
+for pid in $(pidof -x $(basename "$0")); do
+    if [ "$pid" != $$ ]; then
+        kill -9 $pid
+    fi 
+done
 
 #FOR DEBUGGING, BE SURE THAT PRESENCE IS ALSO KILLED, IF RUNNING
 echo "> stopping instances of 'presence.sh'"
