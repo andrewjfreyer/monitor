@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.422
+version=0.1.423
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -215,6 +215,7 @@ scannable_devices_with_state () {
 	echo "$return_list"
 }
 
+echo "$LINENO"
 
 # ----------------------------------------------------------------------------------------
 # SCAN FOR DEVICES
@@ -362,6 +363,9 @@ perform_complete_scan () {
 
 }
 
+echo "$LINENO"
+
+
 # ----------------------------------------------------------------------------------------
 # SCAN TYPE FUNCTIONS 
 # ----------------------------------------------------------------------------------------
@@ -389,6 +393,8 @@ perform_departure_scan () {
 	fi
 }
 
+echo "$LINENO"
+
 perform_arrival_scan () {
 
 	#SET SCAN TYPE
@@ -412,14 +418,22 @@ perform_arrival_scan () {
 	fi 
 }
 
+echo "$LINENO"
+
 # ----------------------------------------------------------------------------------------
 # ADD AN ARRIVAL SCAN INTO THE QUEUE 
 # ----------------------------------------------------------------------------------------
 
 #ONLY SCAN IF NOT ON TRIGGER MODE
 if [ "$PREF_TRIGGER_MODE" == false ]; then 
+	echo "$LINENO"
+
 	first_arrive_list=$(scannable_devices_with_state 0)
+	echo "$LINENO"
+
 	perform_complete_scan "$first_arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" &
+	echo "$LINENO"
+
 	scan_pid=$!
 	scan_type=0
 fi 
