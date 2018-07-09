@@ -22,6 +22,7 @@ show_help_text() {
 	echo "  monitor -v		print version number"
 	echo "  monitor -p		periodically scan for arrival & departure of known devices"
 	echo "  monitor -b		scan for & report BTLE beacon advertisements"
+	echo "  monitor -a		report all scan results, not just presence changes"
 	echo "  monitor -P		scan for & report public address advertisements"
 	echo "  monitor -t		scan only on mqtt trigger messages:"
 	echo "				$mqtt_topicpath/scan/ARRIVE"
@@ -39,8 +40,9 @@ PREF_PERIODIC_MODE=false
 PREF_BEACON_MODE=false
 PREF_TRIGGER_MODE=false
 PREF_PUBLIC_MODE=false
+PREF_REPORT_ALL_MODE=false
 
-while getopts "h?vpbtP:" opt; do
+while getopts "h?vpbtPa:" opt; do
     case "$opt" in
     h|\?)
         show_help_text
@@ -57,6 +59,8 @@ while getopts "h?vpbtP:" opt; do
     P)  PREF_PUBLIC_MODE=true && echo "> public node scan mode enabled"
 		;;
 	t)  PREF_TRIGGER_MODE=true && echo "> trigger only mode enabled"
+		;;
+	a)  PREF_REPORT_ALL_MODE=true && echo "> report all scan results mode enabled"
 		;;
     esac
 done

@@ -132,12 +132,10 @@ for addr in ${known_static_addresses[@]}; do
 done
 
 # ----------------------------------------------------------------------------------------
-# ASSEMBLE ARRIVAL SCAN LIST
+# ASSEMBLE SCAN LISTS
 # ----------------------------------------------------------------------------------------
 
 scannable_devices_with_state () {
-
-	
 
 	#DEFINE LOCAL VARS
 	local return_list
@@ -216,10 +214,7 @@ scannable_devices_with_state () {
 perform_complete_scan () {
 	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
 	if [ -z "$1" ]; then
-		#LOG IMMEDIATE RETURN
-		sleep 1 
-
-	 	return 0
+		return 0
 	fi
 
 	#REPEAT THROUGH ALL DEVICES THREE TIMES, THEN RETURN 
@@ -233,9 +228,10 @@ perform_complete_scan () {
 	local scan_start=""
 	local scan_duration=""
 	local should_report=""
+	local manufacturer="Unknown"
 	
 	#LOG START OF DEVICE SCAN 
-	log "${GREEN}[CMD-INFO]	${GREEN}**** Started scan. [x$repetitions] **** ${NC}"
+	log "${GREEN}[CMD-INFO]	${GREEN}**** Started group scan. [x$repetitions max rep] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
@@ -263,6 +259,8 @@ perform_complete_scan () {
 			#DEBUG LOGGING
 			log "${GREEN}[CMD-SCAN]	${GREEN}(No. $repetition)${NC} $known_addr $transition_type? ${NC}"
 
+			#PERFORM NAME SCAN FROM HCI TOOL. THE HCITOOL CMD 0X1 0X0019 IS POSSIBLE, BUT HCITOOL NAME
+			#SCAN PERFORMS VERIFICATIONS THAT REDUCE FALSE NEGATIVES. 
 			local name_raw=$(hcitool name "$known_addr")
 			local name=$(echo "$name_raw" | grep -ivE 'input/output error|invalid device|invalid|error')
 
@@ -287,16 +285,23 @@ perform_complete_scan () {
 				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
 
 			elif [ ! -z "$name" ] && [ "$previous_state" == "1" ]; then 
+
 				#THIS DEVICE IS STILL PRESENT; REMOVE FROM VERIFICATIONS
 				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
 
 				#NEED TO REPORT? 
-				if [[ $should_report =~ .*$known_addr.* ]]; then 
+				if [[ $should_report =~ .*$known_addr.* ]] || [ "$PREF_REPORT_ALL_MODE" == true ] ; then 
+					
+					#GET LOCAL NAME
 					local expected_name="${known_static_device_name[$known_addr]}"
 					[ -z "$expected_name" ] && "Unknown"
 
-					#REPORT RESTORED CONFIDENCE
-					publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "Unknown"
+					#DETERMINE MANUFACTUERE
+					manufacturer="$(determine_manufacturer $known_addr)"
+					[ -z "$manufacturer" ] && manufacturer="Unknown" 			
+
+					#REPORT PRESENCE
+					publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer"				
 				fi 
 			fi 
 
@@ -769,6 +774,9 @@ while true; do
 			#IF WE HAVE DEPARTED, MERK EVERYONE
 			[ "$did_change" == true ] && [ "$current_state" == "0" ] && publish_cooperative_scan_message "depart"
 			[ "$did_change" == true ] && [ "$current_state" == "1" ] && publish_cooperative_scan_message "arrive"
+
+			#REPORT ALL?
+			[ "$did_change" == false ] && [ "$current_state" == "0" ] && [ "$PREF_REPORT_ALL_MODE" == true ] && publish_presence_message "owner/$mqtt_publisher_identity/$data" "0" "$name" "$manufacturer"
 
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
