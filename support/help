@@ -20,6 +20,7 @@ show_help_text() {
 	echo "Usage:"
 	echo "  monitor -h 		show usage information"
 	echo "  monitor -v		print version number"
+	echo "  monitor -d		restore to default settings"
 	echo "  monitor -p		periodically scan for arrival & departure of known devices"
 	echo "  monitor -b		scan for & report BTLE beacon advertisements"
 	echo "  monitor -a		report all scan results, not just presence changes"
@@ -41,8 +42,9 @@ PREF_BEACON_MODE=false
 PREF_TRIGGER_MODE=false
 PREF_PUBLIC_MODE=false
 PREF_REPORT_ALL_MODE=false
+PREF_RESTORE_DEFAULTS=false
 
-while getopts "h?vpbtPa:" opt; do
+while getopts "h?vpbtPad:" opt; do
     case "$opt" in
     h|\?)
         show_help_text
@@ -51,6 +53,8 @@ while getopts "h?vpbtPa:" opt; do
     v)  
 		echo "$VERSION"
 		exit 0
+		;;
+    d)  PREF_RESTORE_DEFAULTS=true && echo "> restoring default settings"
 		;;
     p)  PREF_PERIODIC_MODE=true && echo "> periodic scan mode enabled"
 		;;

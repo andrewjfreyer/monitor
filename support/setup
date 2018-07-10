@@ -26,11 +26,11 @@ git_path=$(which git)
 
 #ERROR CHECKING FOR MOSQUITTO PUBLICATION 
 should_exit=false
-[ -z "$mosquitto_pub_path" ] && echo "Error: Required package 'mosquitto_pub' not found. Please install." && should_exit=true
-[ -z "$mosquitto_sub_path" ] && echo "Error: Required package 'mosquitto_sub' not found. Please install." && should_exit=true
-[ -z "$hcidump_path" ] && echo "Error: Required package 'hcidump' not found. Please install 'bluez-hcidump'." && should_exit=true
-[ -z "$bc_path" ] && echo "Error: Required package 'bc' not found. Please install 'bc'." && should_exit=true
-[ -z "$git_path" ] && echo "Warning: Recommended package 'git' not found. Please consider installing."
+[ -z "$mosquitto_pub_path" ] && echo "Error: Required package 'mosquitto_pub' not found. Please install 'mosquitto'." && should_exit=true
+[ -z "$mosquitto_sub_path" ] && echo "Error: Required package 'mosquitto_sub' not found. Please install 'mosquitto'." && should_exit=true
+[ -z "$hcidump_path" ] && echo "Error: Required package 'hcidump' not found. Please install 'bluez-hcidump' (e.g., sudo apt-get install bluez-hcidump)." && should_exit=true
+[ -z "$bc_path" ] && echo "Error: Required package 'bc' not found. Please install 'bc' (e.g., sudo apt-get install bc)" && should_exit=true
+[ -z "$git_path" ] && echo "Warning: Recommended package 'git' not found. Please consider installing for regular updates."
 [ ! -z "$(which systemctl)" ] && [ ! -e "$service_path" ] && echo "Warning: monitor.service not installed. Install service? (y/n)" && read should_install
 
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
@@ -38,7 +38,8 @@ base_directory=$(dirname "$(readlink -f "$0")")
 
 #MQTT PREFERENCES
 MQTT_CONFIG="$base_directory/mqtt_preferences"
-if [ -f $MQTT_CONFIG ]; then 
+
+if [ -f $MQTT_CONFIG ] ; then 
 	source $MQTT_CONFIG
 
 	#DOUBLECHECKS 
@@ -75,12 +76,19 @@ else
 	echo "# PUBLISHER IDENTITY " >> "$MQTT_CONFIG"
 	echo "mqtt_publisher_identity=''" >> "$MQTT_CONFIG"
 
+	echo "" >> "$MQTT_CONFIG"
+	echo "# MQTT PORT " >> "$MQTT_CONFIG"
+	echo "mqtt_port='1883'" >> "$MQTT_CONFIG"
+
 	#SET SHOULD EXIT
 	should_exit=true
 fi 
 
 #MQTT PREFERENCES
 PUB_CONFIG="$base_directory/known_static_addresses"
+[ "$PREF_RESTORE_DEFAULTS" == true ] && rm "$PUB_CONFIG"
+
+
 if [ -f "$PUB_CONFIG" ]; then 
 	#DOUBLECHECKS 
 	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && echo "Error: Please customize public mac addresses in: known_static_addresses" && should_exit=true
@@ -98,9 +106,6 @@ else
 	#SET SHOULD EXIT
 	should_exit=true
 fi 
-
-#ARE REQUIREMENTS MET? 
-[ "$should_exit" == true ] && exit 1
 
 #CHECK FOR CORRECT SERVICE
 if [ "$should_install" == "y" ]; then 
@@ -124,14 +129,16 @@ if [ "$should_install" == "y" ]; then
 	sleep 3
 
 	sudo systemctl enable monitor.service
-
 fi 
 
 
 #MQTT PREFERENCES
 PREF_CONFIG="$base_directory/behavior_preferences"
-if [ -f $PREF_CONFIG ]; then 
-	source $PREF_CONFIG
+[ "$PREF_RESTORE_DEFAULTS" == true ] && rm "$PREF_CONFIG"
+
+
+if [ -f "$PREF_CONFIG" ]; then 
+	source "$PREF_CONFIG"
 
 	echo "> preference: delay between scans = $PREF_INTERSCAN_DELAY" 
 	echo "> preference: periodic arrive/depart check interval = $PREF_CLOCK_INTERVAL" 
@@ -144,7 +151,7 @@ if [ -f $PREF_CONFIG ]; then
 	echo "> preference: random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" 
 
 else
-	echo "> behavior preferences file created. Please consider customizing." 
+	echo "> default behavior preferences file created. Please customize to your needs." 
 
 	#LOAD A DEFULT PREFERENCES FILE
 	echo "# ---------------------------" >> "$PREF_CONFIG"
@@ -162,10 +169,10 @@ else
 	echo "PREF_INTERSCAN_DELAY=3" >> "$PREF_CONFIG"
 	echo "" >> "$PREF_CONFIG"
 	echo "#DETERMINE HOW OFTEN TO CHECK FOR AN EXPIRED DEVICE OR OR ARRIVED DEVICE" >> "$PREF_CONFIG"
-	echo "PREF_CLOCK_INTERVAL=15" >> "$PREF_CONFIG"
+	echo "PREF_CLOCK_INTERVAL=90" >> "$PREF_CONFIG"
 	echo "" >> "$PREF_CONFIG"
 	echo "#DETERMINE NOW OFTEN TO REFRESH DATABASES TO REMOVE EXPIRED DEVICES" >> "$PREF_CONFIG"
-	echo "PREF_DATABASE_REFRESH_INTERVAL=20" >> "$PREF_CONFIG"
+	echo "PREF_DATABASE_REFRESH_INTERVAL=120" >> "$PREF_CONFIG"
 	echo "" >> "$PREF_CONFIG"
 	echo "#MAX RETRY ATTEMPTS FOR ARRIVAL" >> "$PREF_CONFIG"
 	echo "PREF_ARRIVAL_SCAN_ATTEMPTS=2" >> "$PREF_CONFIG"
@@ -174,15 +181,19 @@ else
 	echo "PREF_DEPART_SCAN_ATTEMPTS=4" >> "$PREF_CONFIG"
 	echo "" >> "$PREF_CONFIG"
 	echo "#DEPART SCAN INTERVAL" >> "$PREF_CONFIG"
-	echo "PREF_DEPART_SCAN_INTERVAL=60" >> "$PREF_CONFIG"
+	echo "PREF_DEPART_SCAN_INTERVAL=120" >> "$PREF_CONFIG"
 	echo "" >> "$PREF_CONFIG"
 	echo "#ARRIVE SCAN INTERVAL" >> "$PREF_CONFIG"
-	echo "PREF_ARRIVE_SCAN_INTERVAL=45" >> "$PREF_CONFIG"
+	echo "PREF_ARRIVE_SCAN_INTERVAL=90" >> "$PREF_CONFIG"
 	echo "" >> "$PREF_CONFIG"
 	echo "#PERIOD AFTER WHICH A RANDOM BTLE ADVERTISEMENT IS CONSIDERED EXPIRED" >> "$PREF_CONFIG"
 	echo "PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL=35" >> "$PREF_CONFIG"
 
 	#LOAD DEFAULT PREFERENCES
-	exit 0
+	should_exit=true
 fi 
+
+
+#ARE REQUIREMENTS MET? 
+[ "$should_exit" == true ] && exit 1
 
