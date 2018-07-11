@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.431
+version=0.1.432
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -827,7 +827,7 @@ while true; do
 			fi 
 
 			#REPORT PRESENCE OF DEVICE
-			publish_presence_message "owner/$mqtt_publisher_identity/$data" "100" "$name" "$manufacturer"
+			publish_presence_message "owner/$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer"
 
 			#PROVIDE USEFUL LOGGING
 			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
