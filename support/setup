@@ -113,6 +113,7 @@ if [ "$should_install" == "y" ]; then
 
 	echo "[Unit]" >> "$service_path"
 	echo "Description=Monitor Service" >> "$service_path"
+	echo "After=network.target" >> "$service_path"
 	echo "" >> "$service_path"
 	echo "[Service]" >> "$service_path"
 	echo "User=root" >> "$service_path"
@@ -122,7 +123,7 @@ if [ "$should_install" == "y" ]; then
 	echo "RestartSec=10" >> "$service_path"
 	echo "" >> "$service_path"
 	echo "[Install]" >> "$service_path"
-	echo "WantedBy=multi-user.target" >> "$service_path"
+	echo "WantedBy=multi-user.target network.target" >> "$service_path"
 
 	sleep 3
 
