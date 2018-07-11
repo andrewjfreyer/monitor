@@ -20,6 +20,7 @@ show_help_text() {
 	echo "Usage:"
 	echo "  monitor -h 		show usage information"
 	echo "  monitor -v		print version number"
+	echo "  monitor -u		update monitor.service to current command line settings"
 	echo "  monitor -d		restore to default settings"
 	echo "  monitor -r		repeatedly scan for arrival & departure of known devices"
 	echo "  monitor -b		scan for & report BTLE beacon advertisements"
@@ -43,6 +44,7 @@ PREF_TRIGGER_MODE=false
 PREF_PUBLIC_MODE=false
 PREF_REPORT_ALL_MODE=false
 PREF_RESTORE_DEFAULTS=false
+PREF_UPDATE_SERVICE=false
 
 while getopts "h?vrbtPad" opt; do
     case "$opt" in
@@ -57,6 +59,8 @@ while getopts "h?vrbtPad" opt; do
     d)  PREF_RESTORE_DEFAULTS=true 	&& echo "> restoring default settings"
 		;;
     r)  PREF_PERIODIC_MODE=true 	&& echo "> repeated scan mode enabled"
+		;;
+	u)  PREF_UPDATE_SERVICE=true 	&& echo "> updating monitor.service"
 		;;
     b)  PREF_BEACON_MODE=true 		&& echo "> beacon scan mode enabled"
 		;;

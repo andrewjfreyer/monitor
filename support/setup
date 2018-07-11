@@ -119,12 +119,12 @@ fi
 #	CREDITS & CONTRIBUTIONS: x99percent 
 # ----------------------------------------------------------------------------------------
 
-FILTERED_ARGS=$(echo "$RUNTIME_ARGS" | sed 's/-d|-u//g;s/  */ /g')
+FILTERED_ARGS=$(echo "$RUNTIME_ARGS" | sed 's/ \?-d//g;s/ \?-u//g;s/  */ /g')
 
 echo "FILTERD = $FILTERED_ARGS"
 
 #CHECK FOR CORRECT SERVICE; 
-if [ "$should_install" == "y" ]; then 
+if [ "$should_install" == "y" ] || [ "$PREF_UPDATE_SERVICE" == true ] ; then 
 	#CHECK FOR SYSTEMCTL FILE
 	base_directory=$(dirname "$(readlink -f "$0")")
 
@@ -134,7 +134,7 @@ if [ "$should_install" == "y" ]; then
 	echo "" >> "$service_path"
 	echo "[Service]" >> "$service_path"
 	echo "User=root" >> "$service_path"
-	echo "ExecStart=/bin/bash $base_directory/$(basename $0) &" >> "$service_path"
+	echo "ExecStart=/bin/bash $base_directory/$(basename $0) $FILTERED_ARGS &" >> "$service_path"
 	echo "WorkingDirectory=$base_directory" >> "$service_path"
 	echo "Restart=always" >> "$service_path"
 	echo "RestartSec=10" >> "$service_path"
@@ -142,8 +142,13 @@ if [ "$should_install" == "y" ]; then
 	echo "[Install]" >> "$service_path"
 	echo "WantedBy=multi-user.target network.target" >> "$service_path"
 
+	#PRINT RESULTS
+	[ "$PREF_UPDATE_SERVICE" == true ]  && echo "> monitor.service updated with arguments: $FILTERED_ARGS" 
+
 	sleep 3
 
+	#RELOAD DAEMON AND ENABLE SERVICE
+	sudo systemctl daemon-reload
 	sudo systemctl enable monitor.service
 fi 
 
