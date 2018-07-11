@@ -125,7 +125,7 @@ FILTERED_ARGS=$(echo "$RUNTIME_ARGS" | sed 's/ \?-d//g;s/ \?-u//g;s/  */ /g')
 #CHECK FOR CORRECT SERVICE; 
 if [ "$should_install" == "y" ] || [ "$PREF_UPDATE_SERVICE" == true ] ; then
 	#REMOVE ALL INSTANCES
-	sudo rm "$service_path" 1>&2 >/dev/null
+	sudo rm "$service_path" 2>&1 >/dev/null
 
 	#CHECK FOR SYSTEMCTL FILE
 	base_directory=$(dirname "$(readlink -f "$0")")
