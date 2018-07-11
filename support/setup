@@ -86,14 +86,12 @@ fi
 
 #MQTT PREFERENCES
 PUB_CONFIG="$base_directory/known_static_addresses"
-[ "$PREF_RESTORE_DEFAULTS" == true ] && rm "$PUB_CONFIG"
-
 
 if [ -f "$PUB_CONFIG" ]; then 
 	#DOUBLECHECKS 
 	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && echo "Error: Please customize public mac addresses in: known_static_addresses" && should_exit=true
 else
-	echo " > public MAC address list file created. Please customize."
+	echo "> public MAC address list file created. Please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
 	echo "# ---------------------------" >> "$PUB_CONFIG"
 	echo "#" >> "$PUB_CONFIG"
