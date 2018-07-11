@@ -44,7 +44,7 @@ PREF_PUBLIC_MODE=false
 PREF_REPORT_ALL_MODE=false
 PREF_RESTORE_DEFAULTS=false
 
-while getopts "h?vpbtPad:" opt; do
+while getopts "h?vpbtPad" opt; do
     case "$opt" in
     h|\?)
         show_help_text
