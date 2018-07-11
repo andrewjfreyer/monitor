@@ -120,7 +120,7 @@ fi
 # ----------------------------------------------------------------------------------------
 
 #TESTING
-echo "$*"
+echo "$@"
 
 #CHECK FOR CORRECT SERVICE; 
 if [ "$should_install" == "y" ]; then 
