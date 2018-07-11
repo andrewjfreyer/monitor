@@ -119,7 +119,9 @@ fi
 #	CREDITS & CONTRIBUTIONS: x99percent 
 # ----------------------------------------------------------------------------------------
 
-echo "$RUNTIME_ARGS"
+FILTERED_ARGS=$(sed 's/-d|-u//g;s/  */ /g' < "$RUNTIME_ARGS")
+
+echo "$FILTERED_ARGS"
 
 #CHECK FOR CORRECT SERVICE; 
 if [ "$should_install" == "y" ]; then 
