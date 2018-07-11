@@ -46,7 +46,7 @@ PREF_REPORT_ALL_MODE=false
 PREF_RESTORE_DEFAULTS=false
 PREF_UPDATE_SERVICE=false
 
-while getopts "h?vrbtPad" opt; do
+while getopts "h?vrbutPad" opt; do
     case "$opt" in
     h|\?)
         show_help_text
