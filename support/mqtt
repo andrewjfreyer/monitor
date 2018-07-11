@@ -48,7 +48,7 @@ publish_presence_message () {
 		stamp=$(date "+%a %b %d %Y %H:%M:%S GMT%z (%Z)")
 
 		#DEBUGGING 
-		(>&2 log "${PURPLE}$mqtt_topicpath/$1 { confidence : $confidence, name : $name, timestamp : $stamp, manufacturer : $4 $append} ${NC}")
+		(>&2 log "${PURPLE}$mqtt_topicpath/$1 { confidence : $confidence, name : $name, timestamp : $stamp, manufacturer : $4 , type : $5 } ${NC}")
 
 		#POST TO MQTT
 		$mosquitto_pub_path -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$1" -m "{\"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\"$append}"

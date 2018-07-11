@@ -26,8 +26,8 @@ show_help_text() {
 	echo "  monitor -a		report all scan results, not just presence changes"
 	echo "  monitor -P		scan for & report public address advertisements"
 	echo "  monitor -t		scan only on mqtt trigger messages:"
-	echo "				$mqtt_topicpath/scan/ARRIVE"
-	echo "				$mqtt_topicpath/scan/DEPART"
+	echo "				[topic path]/scan/ARRIVE"
+	echo "				[topic path]/scan/DEPART"
 }
 
 # ----------------------------------------------------------------------------------------
