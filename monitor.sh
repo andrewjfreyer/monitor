@@ -27,7 +27,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.441
+version=0.1.442
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -767,10 +767,10 @@ while true; do
 			#FOR LOGGING; MAKE SURE THAT AN UNKNOWN NAME IS ADDED
 			if [ -z "$debug_name" ]; then 
 				#SHOW ERROR
-				debug_name="${RED}[Error] Unknown Name ${NC}"
+				debug_name="Unknown Name"
 				
 				#CHECK FOR KNOWN NAME
-				[ ! -z "$expected_name" ] && debug_name="${RED}[Error] $expected_name${NC}"
+				[ ! -z "$expected_name" ] && debug_name="$expected_name"
 			fi 
 
 			#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT THE CHANGE
@@ -824,7 +824,7 @@ while true; do
 
 					#IS THE EXPECTED NAME BLANK? 
 					if [ -z "$expected_name" ]; then 
-						expected_name="${RED}[Error]${NC}"
+						expected_name="Unknown Name"
 					else 
 						known_static_device_name[$data]="$expected_name"
 					fi 
