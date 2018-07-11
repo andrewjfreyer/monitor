@@ -119,9 +119,6 @@ fi
 #	CREDITS & CONTRIBUTIONS: x99percent 
 # ----------------------------------------------------------------------------------------
 
-#TESTING
-echo "$@"
-
 #CHECK FOR CORRECT SERVICE; 
 if [ "$should_install" == "y" ]; then 
 	#CHECK FOR SYSTEMCTL FILE
