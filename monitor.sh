@@ -27,11 +27,10 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.436
+version=0.1.437
 
-
-#TESTING
-echo "$@"
+#CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
+RUNTIME_ARGS="$@"
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING

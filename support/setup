@@ -119,6 +119,8 @@ fi
 #	CREDITS & CONTRIBUTIONS: x99percent 
 # ----------------------------------------------------------------------------------------
 
+echo "$RUNTIME_ARGS"
+
 #CHECK FOR CORRECT SERVICE; 
 if [ "$should_install" == "y" ]; then 
 	#CHECK FOR SYSTEMCTL FILE
