@@ -20,39 +20,51 @@ show_help_text() {
 	#SHOW HELPFULE
 	echo "
 
-	monitor.sh
-	$VERSION
-	
-	Andrew J Freyer, 2018
-	GNU General Public License
-	
-	This is a shell script and helper scripts that passively monitor
-	for specified bluetooth devices. By default, most BTLE devices
-	repeatedly advertise their presence with a random mac address at a
-	random interval. The randomness is to maintain privacy and to prevent
-	device tracking by bad actors or advertisers. However, by knowing the 
-	static bluetooth mac address of a specified bluetooth device before hand,
-	a random advertisement can be used as a trigger to affirmatively and 
-	securely scan for the presence of that known device. This construction
-	enables the script to rapidly detect the arrival of a specified bluetooth
-	device, while reducing the number of times an affirmative scan operation
-	is required (which may interfere with 2.4GHz Wi-Fi).
-	
-	
-	usage:
-	  monitor -h 		show usage information
-	  monitor -v		print version number
-	  monitor -d		restore to default settings
-	  monitor -u		update 'monitor.service' to current command line settings
-				(excluding -u and -d flags)
+monitor.sh
 
-	  monitor -r		repeatedly scan for arrival & departure of known devices
-	  monitor -b		scan for & report BTLE beacon advertisements
-	  monitor -a		report all scan results, not just presence changes
-	  monitor -P		scan for & report public address advertisements
-	  monitor -t		scan only on mqtt trigger messages:
-					[topic path]/scan/ARRIVE
-					[topic path]/scan/DEPART
+Andrew J Freyer, 2018
+GNU General Public License
+
+** Summary ** 
+
+This is a shell script and a set of helper scripts that passively 
+monitor for specified bluetooth devices, iBeacons, and bluetooth 
+devices that publicly advertise. Once a specified device, iBeacon, or 
+publicly device is found, a report is made via MQTT to a specified 
+MQTT broker. When a previously-found device expires or is not found, 
+a report is made via MQTT to the broker that the device has departed. 
+
+** Background ** 
+
+By default, most BTLE devices repeatedly advertise their presence with a 
+random mac address at a random interval. The randomness is to maintain 
+privacy and to prevent device tracking by bad actors or advertisers. 
+
+** Description ** 
+
+By knowing the static bluetooth mac address of a specified 
+bluetooth device before hand, a random advertisement can be used 
+as a trigger to scan for the presence of that known device. This 
+construction enables the script to rapidly detect the arrival of 
+a specified bluetooth device, while reducing the number of times 
+an affirmative scan operation is required (which may interfere 
+with 2.4GHz Wi-Fi).
+
+
+usage:
+  monitor -h 		show usage information
+  monitor -v		print version number
+  monitor -d		restore to default settings
+  monitor -u		update 'monitor.service' to current command line settings
+			(excluding -u and -d flags)
+
+  monitor -r		repeatedly scan for arrival & departure of known devices
+  monitor -b		scan for & report BTLE beacon advertisements
+  monitor -a		report all scan results, not just presence changes
+  monitor -P		scan for & report public address advertisements
+  monitor -t		scan only on mqtt trigger messages:
+				[topic path]/scan/ARRIVE
+				[topic path]/scan/DEPART
 
 
 	"
