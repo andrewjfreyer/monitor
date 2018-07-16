@@ -53,36 +53,29 @@ if [ -f $MQTT_CONFIG ] ; then
 else
 	echo "> mosquitto preferences file created. Please customize." 
 
-	#LOAD A DEFULT PREFERENCES FILE
-	echo "# ---------------------------" >> "$MQTT_CONFIG"
-	echo "#								" >> "$MQTT_CONFIG"
-	echo "# MOSQUITTO PREFERENCES" >> "$MQTT_CONFIG"
-	echo "#								" >> "$MQTT_CONFIG"
-	echo "# ---------------------------" >> "$MQTT_CONFIG"
-	echo "" >> "$MQTT_CONFIG"
+echo "# ---------------------------
+#								
+# MOSQUITTO PREFERENCES
+#								
+# ---------------------------
 
-	echo "# IP ADDRESS OF MQTT BROKER" >> "$MQTT_CONFIG"
-	echo "mqtt_address=0.0.0.0" >> "$MQTT_CONFIG"
+# IP ADDRESS OF MQTT BROKER
+mqtt_address=0.0.0.0
 
-	echo "" >> "$MQTT_CONFIG"
-	echo "# MQTT BROKER USERNAME (OR BLANK FOR NONE)" >> "$MQTT_CONFIG"
-	echo "mqtt_user=username" >> "$MQTT_CONFIG"
+# MQTT BROKER USERNAME (OR BLANK FOR NONE)
+mqtt_user=username
 
-	echo "" >> "$MQTT_CONFIG"
-	echo "# MQTT BROKER PASSWORD (OR BLANK FOR NONE)" >> "$MQTT_CONFIG"
-	echo "mqtt_password=password" >> "$MQTT_CONFIG"
+# MQTT BROKER PASSWORD (OR BLANK FOR NONE)
+mqtt_password=password
 
-	echo "" >> "$MQTT_CONFIG"
-	echo "# MQTT PUBLISH TOPIC ROOT " >> "$MQTT_CONFIG"
-	echo "mqtt_topicpath=location" >> "$MQTT_CONFIG"
+# MQTT PUBLISH TOPIC ROOT 
+mqtt_topicpath=location
 
-	echo "" >> "$MQTT_CONFIG"
-	echo "# PUBLISHER IDENTITY " >> "$MQTT_CONFIG"
-	echo "mqtt_publisher_identity=''" >> "$MQTT_CONFIG"
+# PUBLISHER IDENTITY 
+mqtt_publisher_identity=''
 
-	echo "" >> "$MQTT_CONFIG"
-	echo "# MQTT PORT " >> "$MQTT_CONFIG"
-	echo "mqtt_port='1883'" >> "$MQTT_CONFIG"
+# MQTT PORT 
+mqtt_port='1883'" > "$MQTT_CONFIG"
 
 	#SET SHOULD EXIT
 	should_exit=true
@@ -101,13 +94,14 @@ if [ -f "$PUB_CONFIG" ]; then
 else
 	echo "> public MAC address list file created. Please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
-	echo "# ---------------------------" >> "$PUB_CONFIG"
-	echo "#" >> "$PUB_CONFIG"
-	echo "# PUBLIC MAC ADDRESS LIST" >> "$PUB_CONFIG"
-	echo "#" >> "$PUB_CONFIG"
-	echo "# ---------------------------" >> "$PUB_CONFIG"
-	echo "" >> "$PUB_CONFIG"
-	echo "00:00:00:00:00:00 Nickname #comment" >> "$PUB_CONFIG"
+	echo "
+# ---------------------------
+#
+# PUBLIC MAC ADDRESS LIST
+#
+# ---------------------------
+
+00:00:00:00:00:00 Nickname #comment" > "$PUB_CONFIG"
 
 	#SET SHOULD EXIT
 	should_exit=true
@@ -130,19 +124,19 @@ if [ "$should_install" == "y" ] || [ "$PREF_UPDATE_SERVICE" == true ] ; then
 	#CHECK FOR SYSTEMCTL FILE
 	base_directory=$(dirname "$(readlink -f "$0")")
 
-	echo "[Unit]" > "$service_path"
-	echo "Description=Monitor Service" >> "$service_path"
-	echo "After=network.target" >> "$service_path"
-	echo "" >> "$service_path"
-	echo "[Service]" >> "$service_path"
-	echo "User=root" >> "$service_path"
-	echo "ExecStart=/bin/bash $base_directory/$(basename $0) $FILTERED_ARGS &" >> "$service_path"
-	echo "WorkingDirectory=$base_directory" >> "$service_path"
-	echo "Restart=always" >> "$service_path"
-	echo "RestartSec=10" >> "$service_path"
-	echo "" >> "$service_path"
-	echo "[Install]" >> "$service_path"
-	echo "WantedBy=multi-user.target network.target" >> "$service_path"
+echo "[Unit]
+Description=Monitor Service
+After=network.target
+
+[Service]
+User=root
+ExecStart=/bin/bash $base_directory/$(basename $0) $FILTERED_ARGS &
+WorkingDirectory=$base_directory
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target network.target" > "$service_path"
 
 	#PRINT RESULTS
 	[ "$PREF_UPDATE_SERVICE" == true ]  && echo "> monitor.service updated with arguments: $FILTERED_ARGS" 
@@ -167,54 +161,49 @@ PREF_CONFIG="$base_directory/behavior_preferences"
 if [ -f "$PREF_CONFIG" ]; then 
 	source "$PREF_CONFIG"
 
-	echo "> preference: delay between scans = $PREF_INTERSCAN_DELAY" 
-	echo "> preference: periodic arrive/depart check interval = $PREF_CLOCK_INTERVAL" 
-	echo "> preference: periodic arrive interval = $PREF_ARRIVE_SCAN_INTERVAL" 
-	echo "> preference: periodic depart interval = $PREF_DEPART_SCAN_INTERVAL" 
+	echo "> preference: delay between scans = $PREF_INTERSCAN_DELAY
+> preference: periodic arrive/depart check interval = $PREF_CLOCK_INTERVAL
+> preference: periodic arrive interval = $PREF_ARRIVE_SCAN_INTERVAL
+> preference: periodic depart interval = $PREF_DEPART_SCAN_INTERVAL 
 
-	echo "> preference: database refresh interval = $PREF_DATABASE_REFRESH_INTERVAL" 
-	echo "> preference: max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS" 
-	echo "> preference: max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS" 
-	echo "> preference: random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" 
+> preference: database refresh interval = $PREF_DATABASE_REFRESH_INTERVAL
+> preference: max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS
+> preference: max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
+> preference: random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" 
 
 else
 	echo "> default behavior preferences file created. Please customize to your needs." 
 
-	#LOAD A DEFULT PREFERENCES FILE
-	echo "# ---------------------------" >> "$PREF_CONFIG"
-	echo "#								" >> "$PREF_CONFIG"
-	echo "# BEHAVIOR PREFERENCES" >> "$PREF_CONFIG"
-	echo "#								" >> "$PREF_CONFIG"
-	echo "# ---------------------------" >> "$PREF_CONFIG"
-	echo "" >> "$PREF_CONFIG"
+	echo "# ---------------------------
+#								
+# BEHAVIOR PREFERENCES
+#								
+# ---------------------------
 
-	# ----------------------------------------------------------------------------------------
-	# BEHAVIOR PREFERENCES
-	# ----------------------------------------------------------------------------------------
+#DETERMINE DELAY BETWEEN SCANS OF DEVICES
+PREF_INTERSCAN_DELAY=3
 
-	echo "#DETERMINE DELAY BETWEEN SCANS OF DEVICES" >> "$PREF_CONFIG"
-	echo "PREF_INTERSCAN_DELAY=3" >> "$PREF_CONFIG"
-	echo "" >> "$PREF_CONFIG"
-	echo "#DETERMINE HOW OFTEN TO CHECK FOR AN EXPIRED DEVICE OR OR ARRIVED DEVICE" >> "$PREF_CONFIG"
-	echo "PREF_CLOCK_INTERVAL=90" >> "$PREF_CONFIG"
-	echo "" >> "$PREF_CONFIG"
-	echo "#DETERMINE NOW OFTEN TO REFRESH DATABASES TO REMOVE EXPIRED DEVICES" >> "$PREF_CONFIG"
-	echo "PREF_DATABASE_REFRESH_INTERVAL=120" >> "$PREF_CONFIG"
-	echo "" >> "$PREF_CONFIG"
-	echo "#MAX RETRY ATTEMPTS FOR ARRIVAL" >> "$PREF_CONFIG"
-	echo "PREF_ARRIVAL_SCAN_ATTEMPTS=2" >> "$PREF_CONFIG"
-	echo "" >> "$PREF_CONFIG"
-	echo "#MAX RETRY ATTEMPTS FOR DEPART" >> "$PREF_CONFIG"
-	echo "PREF_DEPART_SCAN_ATTEMPTS=4" >> "$PREF_CONFIG"
-	echo "" >> "$PREF_CONFIG"
-	echo "#DEPART SCAN INTERVAL" >> "$PREF_CONFIG"
-	echo "PREF_DEPART_SCAN_INTERVAL=120" >> "$PREF_CONFIG"
-	echo "" >> "$PREF_CONFIG"
-	echo "#ARRIVE SCAN INTERVAL" >> "$PREF_CONFIG"
-	echo "PREF_ARRIVE_SCAN_INTERVAL=90" >> "$PREF_CONFIG"
-	echo "" >> "$PREF_CONFIG"
-	echo "#PERIOD AFTER WHICH A RANDOM BTLE ADVERTISEMENT IS CONSIDERED EXPIRED" >> "$PREF_CONFIG"
-	echo "PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL=35" >> "$PREF_CONFIG"
+#DETERMINE HOW OFTEN TO CHECK FOR AN EXPIRED DEVICE OR OR ARRIVED DEVICE
+PREF_CLOCK_INTERVAL=90
+
+#DETERMINE NOW OFTEN TO REFRESH DATABASES TO REMOVE EXPIRED DEVICES
+PREF_DATABASE_REFRESH_INTERVAL=120
+
+#MAX RETRY ATTEMPTS FOR ARRIVAL
+PREF_ARRIVAL_SCAN_ATTEMPTS=2
+
+#MAX RETRY ATTEMPTS FOR DEPART
+PREF_DEPART_SCAN_ATTEMPTS=4
+
+#DEPART SCAN INTERVAL
+PREF_DEPART_SCAN_INTERVAL=120
+
+#ARRIVE SCAN INTERVAL
+PREF_ARRIVE_SCAN_INTERVAL=90
+
+#PERIOD AFTER WHICH A RANDOM BTLE ADVERTISEMENT IS CONSIDERED EXPIRED
+PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL=35
+" > "$PREF_CONFIG"
 
 	#LOAD DEFAULT PREFERENCES
 	should_exit=true
