@@ -40,7 +40,7 @@ show_help_text() {
 	echo "  monitor -v		print version number"
 	echo "  monitor -d		restore to default settings"
 	echo "  monitor -u		update 'monitor.service' to current command line settings"
-	echo "				(excluding -u and -d flags)"
+	echo "			(excluding -u and -d flags)"
 	echo "  monitor -r		repeatedly scan for arrival & departure of known devices"
 	echo "  monitor -b		scan for & report BTLE beacon advertisements"
 	echo "  monitor -a		report all scan results, not just presence changes"
