@@ -25,7 +25,7 @@ monitor.sh
 Andrew J Freyer, 2018
 GNU General Public License
 
-** Summary ** 
+----- Summary -----
 
 This is a shell script and a set of helper scripts that passively 
 monitor for specified bluetooth devices, iBeacons, and bluetooth 
@@ -34,13 +34,13 @@ publicly device is found, a report is made via MQTT to a specified
 MQTT broker. When a previously-found device expires or is not found, 
 a report is made via MQTT to the broker that the device has departed. 
 
-** Background ** 
+----- Background ----- 
 
 By default, most BTLE devices repeatedly advertise their presence with a 
 random mac address at a random interval. The randomness is to maintain 
 privacy and to prevent device tracking by bad actors or advertisers. 
 
-** Description ** 
+----- Description ----- 
 
 By knowing the static bluetooth mac address of a specified 
 bluetooth device before hand, a random advertisement can be used 
@@ -52,6 +52,7 @@ with 2.4GHz Wi-Fi).
 
 
 usage:
+
   monitor -h 		show usage information
   monitor -v		print version number
   monitor -d		restore to default settings
