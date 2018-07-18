@@ -27,7 +27,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.448
+version=0.1.449
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -166,7 +166,7 @@ scannable_devices_with_state () {
 	fi 
 
 	#REJECT IF WE SCANNED TO RECENTLY
-	[ "$scan_type_diff" -lt "10" ] && return 0
+	[ "$scan_type_diff" -lt "25" ] && return 0
 
 	#SCAN ALL? SET THE SCAN STATE TO [X]
 	[ -z "$scan_state" ] && scan_state=2
@@ -189,7 +189,7 @@ scannable_devices_with_state () {
 
 		#SCAN IF DEVICE HAS NOT BEEN SCANNED 
 		#WITHIN LAST [X] SECONDS
-		if [ "$time_diff" -gt "15" ]; then 
+		if [ "$time_diff" -gt "25" ]; then 
 
 			#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
 			if [ "$this_state" == "$scan_state" ]; then 

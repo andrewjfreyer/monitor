@@ -165,7 +165,6 @@ if [ -f "$PREF_CONFIG" ]; then
 > preference: periodic arrive/depart check interval = $PREF_CLOCK_INTERVAL
 > preference: periodic arrive interval = $PREF_ARRIVE_SCAN_INTERVAL
 > preference: periodic depart interval = $PREF_DEPART_SCAN_INTERVAL 
-
 > preference: database refresh interval = $PREF_DATABASE_REFRESH_INTERVAL
 > preference: max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS
 > preference: max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
