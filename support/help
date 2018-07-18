@@ -53,17 +53,18 @@ with 2.4GHz Wi-Fi).
 
 usage:
 
-  monitor -h 		show usage information
-  monitor -v		print version number
-  monitor -d		restore to default settings
-  monitor -u		update 'monitor.service' to current command line settings
+	monitor -h 		show usage information
+	monitor -R    redact private information from logs
+	monitor -v		print version number
+	monitor -d		restore to default settings
+	monitor -u		update 'monitor.service' to current command line settings
 			(excluding -u and -d flags)
 
-  monitor -r		repeatedly scan for arrival & departure of known devices
-  monitor -b		scan for & report BTLE beacon advertisements
-  monitor -a		report all scan results, not just presence changes
-  monitor -P		scan for & report public address advertisements
-  monitor -t		scan only on mqtt trigger messages:
+	monitor -r		repeatedly scan for arrival & departure of known devices
+	monitor -b		scan for & report BTLE beacon advertisements
+	monitor -a		report all scan results, not just presence changes
+	monitor -P		scan for & report public address advertisements
+	monitor -t		scan only on mqtt trigger messages:
 				[topic path]/scan/ARRIVE
 				[topic path]/scan/DEPART
 
@@ -85,32 +86,35 @@ PREF_PUBLIC_MODE=false
 PREF_REPORT_ALL_MODE=false
 PREF_RESTORE_DEFAULTS=false
 PREF_UPDATE_SERVICE=false
+PREF_REDACT=false
 
-while getopts "h?vrbutPad" opt; do
-    case "$opt" in
-    h|\?)
-        show_help_text
-        exit 0
-        ;;
-    v)  
-		echo "$VERSION"
-		exit 0
-		;;
-    d)  PREF_RESTORE_DEFAULTS=true 	&& echo "> restoring default settings"
-		;;
-    r)  PREF_PERIODIC_MODE=true 	&& echo "> repeated scan mode enabled"
-		;;
-	u)  PREF_UPDATE_SERVICE=true 	&& echo "> updating monitor.service"
-		;;
-    b)  PREF_BEACON_MODE=true 		&& echo "> beacon scan mode enabled"
-		;;
-    P)  PREF_PUBLIC_MODE=true 		&& echo "> public node scan mode enabled"
-		;;
-	t)  PREF_TRIGGER_MODE=true 		&& echo "> trigger only mode enabled"
-		;;
-	a)  PREF_REPORT_ALL_MODE=true 	&& echo "> report all scan results mode enabled"
-		;;
-    esac
+while getopts "h?vrbutPRad" opt; do
+	case "$opt" in
+		h|\?)
+			show_help_text
+			exit 0
+			;;
+		v)  
+			echo "$VERSION"
+			exit 0
+			;;
+		R)  PREF_REDACT=true  && echo "> redacting private information from logs"
+			;;
+		d)  PREF_RESTORE_DEFAULTS=true 	&& echo "> restoring default settings"
+			;;
+		r)  PREF_PERIODIC_MODE=true 	&& echo "> repeated scan mode enabled"
+			;;
+		u)  PREF_UPDATE_SERVICE=true 	&& echo "> updating monitor.service"
+			;;
+		b)  PREF_BEACON_MODE=true 		&& echo "> beacon scan mode enabled"
+			;;
+		P)  PREF_PUBLIC_MODE=true 		&& echo "> public node scan mode enabled"
+			;;
+		t)  PREF_TRIGGER_MODE=true 		&& echo "> trigger only mode enabled"
+			;;
+		a)  PREF_REPORT_ALL_MODE=true 	&& echo "> report all scan results mode enabled"
+			;;
+	esac
 done
 
 #RESET OPTION INDEX
