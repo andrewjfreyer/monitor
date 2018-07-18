@@ -27,7 +27,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.454
+version=0.1.455
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -550,6 +550,16 @@ while true; do
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
 				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger DEPART ${NC}"
 				perform_departure_scan
+
+			elif [[ $mqtt_topic_branch =~ .*UPDATE.* ]]; then 
+				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger UPDATE ${NC}"
+
+				#ATTEMPT AN UPDATE OF THE SCRIPT
+				git pull --force
+				sudo systemctl restart monitor.service
+
+				#EXITING
+				exit 0
 				
 			else						#IN RESPONSE TO MQTT SCAN 
 				log "${GREEN}[INSTRUCT] ${RED}[Rejected] ${NC} ${NC}Bad MQTT scan command: $mqtt_topic_branch ${NC}"
