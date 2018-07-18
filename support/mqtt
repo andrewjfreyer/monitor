@@ -13,13 +13,28 @@
 # ----------------------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------------------
+# CLEAR RETAINED 
+# ----------------------------------------------------------------------------------------
+mqtt_broker_clean (){
+	#MQTT LOOP
+	while read instruction; do 
+		#GET THE TOPIC PATH
+		local topic=$(echo "$instruction" | awk -F " {" '{print $1}')
+
+		#PUBLISH CLEARING MESSAGE
+		$mosquitto_pub_path -r -n -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$topic"
+
+	done < <($mosquitto_sub_path -v -W 10 -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/#" ) 
+}
+
+# ----------------------------------------------------------------------------------------
 # MQTT LISTENER
 # ----------------------------------------------------------------------------------------
 mqtt_listener (){
 	#MQTT LOOP
 	while read instruction; do 
 		echo "MQTT$instruction" > main_pipe 
-	done < <($(which mosquitto_sub) -v -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/#" --will-retain --will-topic "$mqtt_topicpath/owner/$mqtt_publisher_identity" --will-payload "{\"status\":\"offline\"}") 
+	done < <($mosquitto_sub_path -v -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/#" --will-retain --will-topic "$mqtt_topicpath/owner/$mqtt_publisher_identity" --will-payload "{\"status\":\"offline\"}") 
 }
 # ----------------------------------------------------------------------------------------
 # PUBLISH MESSAGE

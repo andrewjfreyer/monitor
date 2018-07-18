@@ -27,7 +27,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.452
+version=0.1.453
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -36,6 +36,15 @@ RUNTIME_ARGS="$@"
 # KILL OTHER SCRIPTS RUNNING
 # ----------------------------------------------------------------------------------------
 echo "Starting $(basename "$0") (v. $version)..."
+
+#SOURCE APPROPRIATE SUPPORT FILES
+source './support/mqtt'
+source './support/help'
+source './support/setup'
+source './support/log'
+source './support/data'
+source './support/btle'
+source './support/time'
 
 echo "> stopping other instances of 'monitor.sh'"
 for pid in $(pidof -x $(basename "$0")); do
@@ -67,19 +76,6 @@ clean() {
 }
 
 trap "clean" EXIT
-
-# ----------------------------------------------------------------------------------------
-# SOURCE FILES 
-# ----------------------------------------------------------------------------------------
-
-#SETUP LOG
-source './support/help'
-source './support/setup'
-source './support/log'
-source './support/data'
-source './support/btle'
-source './support/mqtt'
-source './support/time'
 
 # ----------------------------------------------------------------------------------------
 # DEFINE VALUES AND VARIABLES

@@ -54,7 +54,8 @@ with 2.4GHz Wi-Fi).
 usage:
 
 	monitor -h 		show usage information
-	monitor -R    redact private information from logs
+	monitor -R 		redact private information from logs
+	monitor -C 		clean retained messages from MQTT broker
 	monitor -v		print version number
 	monitor -d		restore to default settings
 	monitor -u		update 'monitor.service' to current command line settings
@@ -88,7 +89,7 @@ PREF_RESTORE_DEFAULTS=false
 PREF_UPDATE_SERVICE=false
 PREF_REDACT=false
 
-while getopts "h?vrbutPRad" opt; do
+while getopts "h?vrbutPRCad" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
@@ -96,6 +97,11 @@ while getopts "h?vrbutPRad" opt; do
 			;;
 		v)  
 			echo "$VERSION"
+			exit 0
+			;;
+		C)  
+			echo "> cleaning retained messages on broker"
+			mqtt_broker_clean
 			exit 0
 			;;
 		R)  PREF_REDACT=true  && echo "> redacting private information from logs"
