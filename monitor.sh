@@ -423,6 +423,9 @@ if [ "$PREF_TRIGGER_MODE" == false ]; then
 	perform_complete_scan "$first_arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS"
 	scan_pid=$!
 	scan_type=0
+
+	#DELAY SCAN INTERVAL FOR THIS
+	sleep 5
 fi 
 
 # ----------------------------------------------------------------------------------------
