@@ -24,7 +24,7 @@ mqtt_broker_clean (){
 		#PUBLISH CLEARING MESSAGE
 		$mosquitto_pub_path -r -n -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$topic"
 
-	done < <($mosquitto_sub_path -v -W 10 -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/#" ) 
+	done < <($mosquitto_sub_path -W 10 -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/#" ) 
 }
 
 # ----------------------------------------------------------------------------------------
