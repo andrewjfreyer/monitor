@@ -64,6 +64,7 @@ usage:
 	monitor -r		repeatedly scan for arrival & departure of known devices
 	monitor -b		scan for & report BTLE beacon advertisements
 	monitor -a		report all scan results, not just presence changes
+	monitor -x		retain mqtt status messages
 	monitor -P		scan for & report public address advertisements
 	monitor -t		scan only on mqtt trigger messages:
 				[topic path]/scan/ARRIVE
@@ -88,8 +89,9 @@ PREF_REPORT_ALL_MODE=false
 PREF_RESTORE_DEFAULTS=false
 PREF_UPDATE_SERVICE=false
 PREF_REDACT=false
+PREF_SHOULD_RETAIN=false
 
-while getopts "h?vrbutPRCad" opt; do
+while getopts "h?vrbutPRCadx" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
@@ -103,6 +105,8 @@ while getopts "h?vrbutPRCad" opt; do
 			echo "> cleaning retained messages on broker"
 			mqtt_broker_clean
 			exit 0
+			;;
+		x)  PREF_SHOULD_RETAIN=true  && echo "> retaining mqtt status reports"
 			;;
 		R)  PREF_REDACT=true  && echo "> redacting private information from logs"
 			;;
