@@ -47,6 +47,7 @@ publish_presence_message () {
 		local name="$3"
 		local confidence="$2"
 		local should_retain=""
+		local retain_flag="false"
 
 		[ -z "$confidence" ] && confidence=0
 
@@ -68,10 +69,15 @@ publish_presence_message () {
 		(>&2 log "${PURPLE}$mqtt_topicpath/$1 { version : $version, confidence : $confidence, name : $name, timestamp : $stamp, manufacturer : $4 , type : $5 $append } ${NC}")
 
 		#CLEAR PREVIOUS RETAINED MESSAGE
-		[ "$PREF_SHOULD_RETAIN" == true ] && $mosquitto_pub_path -r -n -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$1" && should_retain="-r "
-
+		if [ "$PREF_SHOULD_RETAIN" == true ]; then 
+			$mosquitto_pub_path -r -n -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$1"
+			should_retain="-r "
+			retain_flag="true"
+			sleep 1
+		fi 
+		
 		#POST TO MQTT
-		$mosquitto_pub_path $should_retain -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$1" -m "{\"version\":\"$version\", \"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\"$append}"
+		$mosquitto_pub_path $should_retain -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$1" -m "{\"retained\":\"$retain_flag\", \"version\":\"$version\", \"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\"$append}"
 	fi
 }
 
