@@ -27,7 +27,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.460
+version=0.1.461
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -785,9 +785,9 @@ while true; do
 			#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT THE CHANGE
 			[ "$did_change" == true ] && publish_presence_message "owner/$mqtt_publisher_identity/$data" "$((current_state * 100))" "$name" "$manufacturer" "Known Static MAC"
 
-			#IF WE HAVE DEPARTED, MERK EVERYONE
-			[ "$did_change" == true ] && [ "$current_state" == "0" ] && publish_cooperative_scan_message "depart"
-			[ "$did_change" == true ] && [ "$current_state" == "1" ] && publish_cooperative_scan_message "arrive"
+			#IF WE HAVE DEPARTED OR ARRIVED; MAKE A NOTE UNLESS WE ARE ALSO IN THE TRIGGER MODE
+			[ "$did_change" == true ] && [ "$current_state" == "0" ] && [ "$PREF_TRIGGER_MODE" == false ] && publish_cooperative_scan_message "depart"
+			[ "$did_change" == true ] && [ "$current_state" == "1" ] && [ "$PREF_TRIGGER_MODE" == false ] && publish_cooperative_scan_message "arrive"
 
 			#REPORT ALL?
 			[ "$did_change" == false ] && [ "$current_state" == "0" ] && [ "$PREF_REPORT_ALL_MODE" == true ] && publish_presence_message "owner/$mqtt_publisher_identity/$data" "0" "$name" "$manufacturer" "Known Static MAC"
