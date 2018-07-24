@@ -22,9 +22,13 @@ mqtt_broker_clean (){
 		local topic=$(echo "$instruction" | awk -F " {" '{print $1}')
 
 		#PUBLISH CLEARING MESSAGE
-		$mosquitto_pub_path -r -n -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$topic"
+                if [ "$mqtt_cafile" ]; then
+                   $mosquitto_pub_path -r -n -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$topic" --cafile "$mqtt_cafile" 
+                else
+                   $mosquitto_pub_path -r -n -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$topic"
+                fi
 
-	done < <($(which mosquitto_sub) -v -W 10 -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/#" ) 
+	done < <(if [ "$mqtt_cafile" ]; then $(which mosquitto_sub) -v -W 10 -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" --cafile "$mqtt_cafile" -t "$mqtt_topicpath/#"; else $(which mosquitto_sub) -v -W 10 -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/#"; fi ) 
 }
 
 # ----------------------------------------------------------------------------------------
@@ -34,7 +38,7 @@ mqtt_listener (){
 	#MQTT LOOP
 	while read instruction; do 
 		echo "MQTT$instruction" > main_pipe 
-	done < <($(which mosquitto_sub) -v -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/#" --will-topic "$mqtt_topicpath/owner/$mqtt_publisher_identity" --will-payload "{\"status\":\"offline\"}") 
+	done < <(if [ "$mqtt_cafile" ]; then $(which mosquitto_sub) -v -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/#" --cafile "$mqtt_cafile" --will-topic "$mqtt_topicpath/owner/$mqtt_publisher_identity" --will-payload "{\"status\":\"offline\"}"; else $(which mosquitto_sub) -v -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/#" --will-topic "$mqtt_topicpath/owner/$mqtt_publisher_identity" --will-payload "{\"status\":\"offline\"}"; fi ) 
 }
 # ----------------------------------------------------------------------------------------
 # PUBLISH MESSAGE
@@ -70,14 +74,23 @@ publish_presence_message () {
 
 		#CLEAR PREVIOUS RETAINED MESSAGE
 		if [ "$PREF_SHOULD_RETAIN" == true ]; then 
-			$mosquitto_pub_path -r -n -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$1"
+                        if [ "$mqtt_cafile" ]; then
+			   $mosquitto_pub_path -r -n -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" --cafile "$mqtt_cafile" -t "$mqtt_topicpath/$1"
+                        else
+                           $mosquitto_pub_path -r -n -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$1"
+                        fi
 			should_retain="-r "
 			retain_flag="true"
 			sleep 1
 		fi 
 		
 		#POST TO MQTT
-		$mosquitto_pub_path $should_retain -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$1" -m "{\"retained\":\"$retain_flag\", \"version\":\"$version\", \"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\"$append}"
+                if [ "$mqtt_cafile" ]; then
+		   $mosquitto_pub_path $should_retain -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$1" --cafile "$mqtt_cafile" -m "{\"retained\":\"$retain_flag\", \"version\":\"$version\", \"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\"$append}"
+                else
+                   $mosquitto_pub_path $should_retain -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$1" -m "{\"retained\":\"$retain_flag\", \"version\":\"$version\", \"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\"$append}"
+                fi
+
 	fi
 }
 
@@ -87,6 +100,10 @@ publish_cooperative_scan_message () {
 		(>&2 log "${PURPLE}$mqtt_topicpath/scan/$1${NC}")
 
 		#POST TO MQTT
-		$mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/$1" -m "{\"identity\":\"$mqtt_publisher_identity\"}"
+                if [ "$mqtt_cafile" ]; then
+		   $mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" --cafile "$mqtt_cafile" -t "$mqtt_topicpath/scan/$1" -m "{\"identity\":\"$mqtt_publisher_identity\"}"
+                else
+                   $mosquitto_pub_path -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/$1" -m "{\"identity\":\"$mqtt_publisher_identity\"}"
+                fi
 	fi 
 }
