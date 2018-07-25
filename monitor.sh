@@ -554,6 +554,9 @@ while true; do
 			elif [[ $mqtt_topic_branch =~ .*UPDATE.* ]]; then 
 				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger UPDATE ${NC}"
 
+				#PUBLISH UPDATE MESSAGE BEFORE UPDATING
+				publish_update_message
+
 				#ATTEMPT AN UPDATE OF THE SCRIPT
 				git pull --force
 				sudo systemctl restart monitor.service
