@@ -27,7 +27,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.461
+version=0.1.462
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -38,9 +38,9 @@ RUNTIME_ARGS="$@"
 echo "Starting $(basename "$0") (v. $version)..."
 
 #SOURCE APPROPRIATE SUPPORT FILES
+source './support/argv'
 source './support/setup'
 source './support/mqtt'
-source './support/help'
 source './support/log'
 source './support/data'
 source './support/btle'
