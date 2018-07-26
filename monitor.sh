@@ -27,7 +27,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.465
+version=0.1.466
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -52,10 +52,6 @@ for pid in $(pidof -x $(basename "$0")); do
         kill -9 $pid
     fi 
 done
-
-#FOR DEBUGGING, BE SURE THAT PRESENCE IS ALSO KILLED, IF RUNNING
-echo "> stopping instances of 'presence.sh'"
-sudo pkill -f presence.sh
 
 #echo "> stopping presence service"
 sudo systemctl stop presence >/dev/null 2>&1
