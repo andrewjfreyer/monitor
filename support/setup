@@ -57,9 +57,9 @@ if [ -f $MQTT_CONFIG ] ; then
 	[ -z "$mqtt_publisher_identity" ] && echo "Warning: Variable mqtt_publisher_identity does not appear in: mqtt_preferences. Using hostname: $(hostname)". && mqtt_publisher_identity="$(hostname)"
 
 	#DEFINE CA APPEND
-	if [ -z "$mqtt_publisher_identity" ]; then 
+	if [ -z "$mqtt_certificate_path" ]; then 
 		#DEFINE APPEND TO USE FOR MQTT
-		mqtt_ca_file_append="--cafile '$mqtt_certificate_path'"
+		mqtt_ca_file_append="--cafile \"$mqtt_certificate_path\""
 	fi 
 else
 	echo "> mosquitto preferences file created. Please customize." 
