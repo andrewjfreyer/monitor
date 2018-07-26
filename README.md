@@ -102,6 +102,12 @@ usage:
 
 ```
 
+Personally, I have three **raspberry pi**s throughout the house. We spend most of our time on the first floor, so our main 'sensor' is the first floor. Our 'sensors' on the second and third floor are set up to trigger only, with option ```-t```.
+
+So, here's how our system works. The first floor constantly monitors for **ADV_RAND** advertisements from BTLE devices (which include our phones). When a "new" device is seen, the first floor scans for our cell phones that are stored in the **known_static_devices** file. If one of those devices is seen, an MQTT message is sent to the second and third floor to trigger a scan there. 
+
+When we leave the house, we use either the the front door or the garage door to trigger an mqtt trigger of ```[topic_path]/scan/depart``` after a 10 second delay to trigger a departure scan of our devices. 
+
 ___
 
 <h1>An Example Use with Home Assistant</h1>
