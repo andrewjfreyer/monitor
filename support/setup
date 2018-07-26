@@ -46,6 +46,8 @@ MQTT_CONFIG="$base_directory/mqtt_preferences"
 if [ -f $MQTT_CONFIG ] ; then 
 	source $MQTT_CONFIG
 
+	echo "Testing: $mqtt_certificate_path"
+
 	#ERRORS
 	[ "$mqtt_address" == "0.0.0.0" ] && echo "Error: Please customize mqtt broker address in: mqtt_preferences" && should_exit=true
 	[ "$mqtt_user" == "username" ] && echo "Error: Please customize mqtt username in: mqtt_preferences" && should_exit=true
@@ -57,7 +59,7 @@ if [ -f $MQTT_CONFIG ] ; then
 	[ -z "$mqtt_publisher_identity" ] && echo "Warning: Variable mqtt_publisher_identity does not appear in: mqtt_preferences. Using hostname: $(hostname)". && mqtt_publisher_identity="$(hostname)"
 
 	#DEFINE CA APPEND
-	if [ -z "$mqtt_certificate_path" ]; then 
+	if [ -f "$mqtt_certificate_path" ]; then 
 		#DEFINE APPEND TO USE FOR MQTT
 		mqtt_ca_file_append="--cafile \"$mqtt_certificate_path\""
 	fi 
