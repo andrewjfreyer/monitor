@@ -1,11 +1,11 @@
 monitor
 =======
 
-***TL;DR***: *Bluetooth-based passive presence detection of beacons, cell phones, and any other bluetooth device. The system is useful for [mqtt-based](http://mqtt.org) home automation. 
+***TL;DR***: Bluetooth-based passive presence detection of beacons, cell phones, and any other bluetooth device. The system is useful for [mqtt-based](http://mqtt.org) home automation. 
 
 More granular, responsive, and reliable than device-reported GPS. Cheaper, more reliable, more configurable, and less spammy than Happy Bubbles. Does not require any app to be running or installed. Does not require device pairing. 
 
-Designed to run as service on a [Raspberry Pi Zero W](https://www.raspberrypi.org/products/raspberry-pi-zero-w/) on Raspbian Jessie Lite Stretch.*
+Designed to run as service on a [Raspberry Pi Zero W](https://www.raspberrypi.org/products/raspberry-pi-zero-w/) on Raspbian Jessie Lite Stretch.
 
 <h1>Summary</h1>
 
@@ -46,6 +46,61 @@ Knowing this, we can jump to the differences between [presence](http://github.co
 The [presence script](http://github.com/andrewjfreyer/presence), with default settings, requests a name from your owner devices at regular intervals. You can adjust those intervals, but your pi will be regularly ‘pinging’ for each owner device. The longer your intervals, the slower the system will be to respond. The shorter the intervals, the more quickly the system will respond, but the more 2.4GHz bandwidth is used. Now, as @eboon originally pointed out, the more often presence scans, the more likely it is that presence will interfere with 2.4GHz Wi-Fi. If you add two or more pi’s in your house, its clear that 2.4GHz spectrum being used very frequently to scan for presence of bluetooth devices. For many users, this meant that 2.4GHz Wi-Fi became unusable or unresponsive. Many users never noticed this (including myself) because we use 5GHz Wi-Fi or have a router/access point able to handle the extra bandwidth used by the [presence script](http://github.com/andrewjfreyer/presence).
 
 On the other hand, the monitor script, with default settings, will only request a name from your owner device after a new random advertisement is detected. If there are no devices that randomly advertise, monitor will never scan for new devices, clearing 2.4GHz spectrum. For example, if you live in a house with no other bluetooth devices and no nearby neighbors, when you come home, a random advertisement (that probably came from your phone) will be detected almost immediately by monitor. Thereafter, a name request is submitted to the phone.
+
+Here's the helpfile, as reference:
+
+```
+monitor.sh
+
+Andrew J Freyer, 2018
+GNU General Public License
+
+----- Summary -----
+
+This is a shell script and a set of helper scripts that passively 
+monitor for specified bluetooth devices, iBeacons, and bluetooth 
+devices that publicly advertise. Once a specified device, iBeacon, or 
+publicly device is found, a report is made via MQTT to a specified 
+MQTT broker. When a previously-found device expires or is not found, 
+a report is made via MQTT to the broker that the device has departed. 
+
+----- Background ----- 
+
+By default, most BTLE devices repeatedly advertise their presence with a 
+random mac address at a random interval. The randomness is to maintain 
+privacy and to prevent device tracking by bad actors or advertisers. 
+
+----- Description ----- 
+
+By knowing the static bluetooth mac address of a specified 
+bluetooth device before hand, a random advertisement can be used 
+as a trigger to scan for the presence of that known device. This 
+construction enables the script to rapidly detect the arrival of 
+a specified bluetooth device, while reducing the number of times 
+an affirmative scan operation is required (which may interfere 
+with 2.4GHz Wi-Fi).
+
+
+usage:
+
+	monitor -h 	show usage information
+	monitor -R 	redact private information from logs
+	monitor -C 	clean retained messages from MQTT broker
+	monitor -v	print version number
+	monitor -d	restore to default settings
+	monitor -u	update 'monitor.service' to current command line settings
+			(excluding -u and -d flags)
+
+	monitor -r	repeatedly scan for arrival & departure of known devices
+	monitor -b	scan for & report BTLE beacon advertisements
+	monitor -a	report all scan results, not just presence changes
+	monitor -x	retain mqtt status messages
+	monitor -P	scan for & report public address advertisements
+	monitor -t	scan only on mqtt trigger messages:
+				[topic path]/scan/ARRIVE
+				[topic path]/scan/DEPART
+
+```
 
 ___
 
