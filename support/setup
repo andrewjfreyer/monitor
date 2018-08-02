@@ -46,10 +46,21 @@ MQTT_CONFIG="$base_directory/mqtt_preferences"
 if [ -f $MQTT_CONFIG ] ; then 
 	source $MQTT_CONFIG
 
-	#DOUBLECHECKS 
+	#ERRORS
 	[ "$mqtt_address" == "0.0.0.0" ] && echo "Error: Please customize mqtt broker address in: mqtt_preferences" && should_exit=true
 	[ "$mqtt_user" == "username" ] && echo "Error: Please customize mqtt username in: mqtt_preferences" && should_exit=true
 	[ "$mqtt_password" == "password" ] && echo "Error: Please customize mqtt password in: mqtt_preferences" && should_exit=true
+	[ ! -f "$mqtt_certificate_path" ] && [ ! -z "$mqtt_certificate_path" ] && echo "Error: Please check mqtt certificate path in mqtt_preferences" && should_exit=true
+
+	#WARNINGS
+	[ -z "$mqtt_port" ] && echo "Warning: Variable mqtt_port does not appear in: mqtt_preferences. Using default port 1883". && mqtt_port="1883"
+	[ -z "$mqtt_publisher_identity" ] && echo "Warning: Variable mqtt_publisher_identity does not appear in: mqtt_preferences. Using hostname: $(hostname)". && mqtt_publisher_identity="$(hostname)"
+
+	#DEFINE CA APPEND
+	if [ -f "$mqtt_certificate_path" ]; then 
+		#DEFINE APPEND TO USE FOR MQTT
+		mqtt_ca_file_append="--cafile \"$mqtt_certificate_path\""
+	fi 
 else
 	echo "> mosquitto preferences file created. Please customize." 
 
@@ -75,7 +86,10 @@ mqtt_topicpath=location
 mqtt_publisher_identity=''
 
 # MQTT PORT 
-mqtt_port='1883'" > "$MQTT_CONFIG"
+mqtt_port='1883'
+
+# MQTT CERTIFICATE FILE 
+mqtt_certificate_path=''" > "$MQTT_CONFIG"
 
 	#SET SHOULD EXIT
 	should_exit=true
@@ -148,10 +162,16 @@ WantedBy=multi-user.target network.target" > "$service_path"
 	sudo systemctl enable monitor.service
 fi 
 
+#----------------------------------------------------------------------------------------
+# BEFORE WE ECHO PREFERENCES, EXIT IF WE NEED TO 
+# ----------------------------------------------------------------------------------------
+
+#ARE REQUIREMENTS MET? 
+[ "$should_exit" == true ] && exit 1
 
 #----------------------------------------------------------------------------------------
 # CHECK BEHAVIOR CONFIGURATION FILES
-# ----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
 
 #MQTT PREFERENCES
 PREF_CONFIG="$base_directory/behavior_preferences"

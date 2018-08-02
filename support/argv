@@ -53,20 +53,20 @@ with 2.4GHz Wi-Fi).
 
 usage:
 
-	monitor -h 		show usage information
-	monitor -R 		redact private information from logs
-	monitor -C 		clean retained messages from MQTT broker
-	monitor -v		print version number
-	monitor -d		restore to default settings
-	monitor -u		update 'monitor.service' to current command line settings
+	monitor -h 	show usage information
+	monitor -R 	redact private information from logs
+	monitor -C 	clean retained messages from MQTT broker
+	monitor -v	print version number
+	monitor -d	restore to default settings
+	monitor -u	update 'monitor.service' to current command line settings
 			(excluding -u and -d flags)
 
-	monitor -r		repeatedly scan for arrival & departure of known devices
-	monitor -b		scan for & report BTLE beacon advertisements
-	monitor -a		report all scan results, not just presence changes
-	monitor -x		retain mqtt status messages
-	monitor -P		scan for & report public address advertisements
-	monitor -t		scan only on mqtt trigger messages:
+	monitor -r	repeatedly scan for arrival & departure of known devices
+	monitor -b	scan for & report BTLE beacon advertisements
+	monitor -a	report all scan results, not just presence changes
+	monitor -x	retain mqtt status messages
+	monitor -P	scan for & report public address advertisements
+	monitor -t	scan only on mqtt trigger messages:
 				[topic path]/scan/ARRIVE
 				[topic path]/scan/DEPART
 
@@ -90,6 +90,7 @@ PREF_RESTORE_DEFAULTS=false
 PREF_UPDATE_SERVICE=false
 PREF_REDACT=false
 PREF_SHOULD_RETAIN=false
+PREF_CLEAN_MQTT=false
 
 while getopts "h?vrbutPRCadx" opt; do
 	case "$opt" in
@@ -102,9 +103,7 @@ while getopts "h?vrbutPRCadx" opt; do
 			exit 0
 			;;
 		C)  
-			echo "> cleaning retained messages on broker"
-			mqtt_broker_clean
-			exit 0
+			PREF_CLEAN_MQTT=true && echo "> cleaning retained messages on broker"
 			;;
 		x)  PREF_SHOULD_RETAIN=true  && echo "> retaining mqtt status reports"
 			;;

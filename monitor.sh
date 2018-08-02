@@ -27,7 +27,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.461
+version=0.1.466
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -38,9 +38,9 @@ RUNTIME_ARGS="$@"
 echo "Starting $(basename "$0") (v. $version)..."
 
 #SOURCE APPROPRIATE SUPPORT FILES
+source './support/argv'
 source './support/setup'
 source './support/mqtt'
-source './support/help'
 source './support/log'
 source './support/data'
 source './support/btle'
@@ -52,10 +52,6 @@ for pid in $(pidof -x $(basename "$0")); do
         kill -9 $pid
     fi 
 done
-
-#FOR DEBUGGING, BE SURE THAT PRESENCE IS ALSO KILLED, IF RUNNING
-echo "> stopping instances of 'presence.sh'"
-sudo pkill -f presence.sh
 
 #echo "> stopping presence service"
 sudo systemctl stop presence >/dev/null 2>&1
@@ -553,6 +549,9 @@ while true; do
 
 			elif [[ $mqtt_topic_branch =~ .*UPDATE.* ]]; then 
 				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger UPDATE ${NC}"
+
+				#PUBLISH UPDATE MESSAGE BEFORE UPDATING
+				publish_update_message
 
 				#ATTEMPT AN UPDATE OF THE SCRIPT
 				git pull --force
