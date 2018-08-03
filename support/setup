@@ -59,7 +59,7 @@ if [ -f $MQTT_CONFIG ] ; then
 	#DEFINE CA APPEND
 	if [ -f "$mqtt_certificate_path" ]; then 
 		#DEFINE APPEND TO USE FOR MQTT
-		mqtt_ca_file_append="--cafile \"$mqtt_certificate_path\""
+		mqtt_ca_file_append="--cafile $mqtt_certificate_path"
 	fi 
 else
 	echo "> mosquitto preferences file created. Please customize." 

@@ -17,7 +17,7 @@
 # ----------------------------------------------------------------------------------------
 publish_update_message (){
 	#PUBLISHE MQTT MESSAGE THAT AN UPDATE IS TRIGGERED
-	$mosquitto_pub_path $mqtt_ca_file_append -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/update" -m "{\"identity\":\"$mqtt_publisher_identity\", \"last_version\":\"$version\"}"
+	$mosquitto_pub_path $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/update" -m "{\"identity\":\"$mqtt_publisher_identity\", \"last_version\":\"$version\"}"
 }
 
 # ----------------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ mqtt_broker_clean (){
 		local topic=$(echo "$instruction" | awk -F " {" '{print $1}')
 
 		#PUBLISH CLEARING MESSAGE
-		$mosquitto_pub_path -r -n -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$topic"
+		$mosquitto_pub_path $mqtt_ca_file_append -r -n -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$topic"
 
 	done < <($(which mosquitto_sub) $mqtt_ca_file_append -v -W 10 -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/#" ) 
 }
@@ -94,7 +94,7 @@ publish_cooperative_scan_message () {
 		(>&2 log "${PURPLE}$mqtt_topicpath/scan/$1${NC}")
 
 		#POST TO MQTT
-		$mosquitto_pub_path $mqtt_ca_file_append -h "$mqtt_address" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/$1" -m "{\"identity\":\"$mqtt_publisher_identity\"}"
+		$mosquitto_pub_path $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/$1" -m "{\"identity\":\"$mqtt_publisher_identity\"}"
 	fi 
 }
 
