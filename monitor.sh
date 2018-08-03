@@ -15,8 +15,6 @@
 #		Reely Active advlib
 #			• https://github.com/reelyactive/advlib
 #
-# Contributors:
-#
 #                        _ _             
 #                       (_) |            
 #  _ __ ___   ___  _ __  _| |_ ___  _ __ 
@@ -27,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.470
+version=0.1.471
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -424,10 +422,14 @@ refresh_databases &
 
 #ONLY SCAN IF NOT ON TRIGGER MODE
 if [ "$PREF_TRIGGER_MODE" == false ]; then 
-	echo "> trigger mode disabled, establishing initial states of known devices"
 
 	#ASSEMBLE ARRIVAL LIST; ASSUME DEVICES ARE NOT PRESENT
 	first_arrive_list=$(scannable_devices_with_state 0)
+
+	#LOG THE SCAN 
+	echo "> trigger mode disabled, establishing initial states of known devices: $first_arrive_list"
+
+	#PERFORM THE SCAN
 	perform_complete_scan "$first_arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS"
 	scan_pid=$!
 	scan_type=0
