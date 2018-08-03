@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.478
+version=0.1.479
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -418,16 +418,6 @@ btle_listener &
 mqtt_listener &
 periodic_trigger & 
 refresh_databases &
-
-#ONLY SCAN IF NOT ON TRIGGER MODE
-if [ "$PREF_TRIGGER_MODE" == false ]; then 
-	#LOG THE SCAN 
-	echo "> trigger mode disabled, establishing initial states of known devices"
-
-	#ADD A RANDOM TO THE QUUEUE
-	echo "RAND00:00:00:00:00:00|ADV_RAND|" > main_pipe
-fi 
-
 
 # ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
@@ -853,6 +843,4 @@ while true; do
 		fi 
 
 	done < main_pipe
-
-	echo "No events." && sleep 1
 done
