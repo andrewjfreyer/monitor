@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.475
+version=0.1.476
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -412,6 +412,8 @@ perform_arrival_scan () {
 # ADD AN ARRIVAL SCAN INTO THE QUEUE 
 # ----------------------------------------------------------------------------------------
 
+log_listener &
+
 #ONLY SCAN IF NOT ON TRIGGER MODE
 if [ "$PREF_TRIGGER_MODE" == false ]; then 
 
@@ -430,7 +432,6 @@ fi
 # LAUNCH INITIAL BACKGROUND PROCESSES
 # ----------------------------------------------------------------------------------------
 
-log_listener &
 btle_scanner & 
 btle_listener &
 mqtt_listener &
