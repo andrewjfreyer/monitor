@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.474
+version=0.1.475
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -421,9 +421,8 @@ if [ "$PREF_TRIGGER_MODE" == false ]; then
 	#LOG THE SCAN 
 	echo "> trigger mode disabled, establishing initial states of known devices"
 
-	#PERFORM THE SCAN
-	perform_complete_scan "$first_arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS"
-	scan_pid=$!
+	#PERFORM THE SCAN; ONLY ONE SCAN THIS TIME
+	perform_complete_scan "$first_arrive_list" "1"
 	scan_type=0
 fi 
 
