@@ -63,6 +63,8 @@ log_listener () {
 
 		done < log_pipe
 
+		echo "loggging error"
+
 		#PREVENT INFINITE LOOPING
 		sleep 3
 	done 
