@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.473
+version=0.1.474
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -409,17 +409,6 @@ perform_arrival_scan () {
 }
 
 # ----------------------------------------------------------------------------------------
-# LAUNCH INITIAL BACKGROUND PROCESSES
-# ----------------------------------------------------------------------------------------
-
-log_listener &
-btle_scanner & 
-btle_listener &
-mqtt_listener &
-periodic_trigger & 
-refresh_databases &
-
-# ----------------------------------------------------------------------------------------
 # ADD AN ARRIVAL SCAN INTO THE QUEUE 
 # ----------------------------------------------------------------------------------------
 
@@ -430,16 +419,24 @@ if [ "$PREF_TRIGGER_MODE" == false ]; then
 	first_arrive_list=$(scannable_devices_with_state)
 
 	#LOG THE SCAN 
-	echo "> trigger mode disabled, establishing initial states of known devices: $first_arrive_list"
+	echo "> trigger mode disabled, establishing initial states of known devices"
 
 	#PERFORM THE SCAN
 	perform_complete_scan "$first_arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS"
 	scan_pid=$!
 	scan_type=0
-
-	#DELAY SCAN INTERVAL FOR THIS
-	sleep 5
 fi 
+
+# ----------------------------------------------------------------------------------------
+# LAUNCH INITIAL BACKGROUND PROCESSES
+# ----------------------------------------------------------------------------------------
+
+log_listener &
+btle_scanner & 
+btle_listener &
+mqtt_listener &
+periodic_trigger & 
+refresh_databases &
 
 # ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
