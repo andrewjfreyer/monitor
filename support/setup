@@ -24,6 +24,28 @@ hcidump_path=$(which hcidump)
 bc_path=$(which bc)
 git_path=$(which git)
 
+#----------------------------------------------------------------------------------------
+# REPORT CURRENT VERSION 
+# ----------------------------------------------------------------------------------------
+
+previous_version=$(cat ".previous_version")
+
+#DETERMINE IF UPDATED SINCE LAST RUN
+if [ "$previous_version" != "$version" ]; then 
+
+	#HAVE WE REPORTED AN UPDATE BEFORE?
+	[ -z "$previous_version" ] && previous_version="Unknown"
+	
+	#UPDATE REPORT
+	echo "Updated $(basename "$0") (v. $previous_version) -> (v. $version)..."
+
+	#RECORD UPDATED VERSION
+	echo "$version" > ".previous_version"
+else 
+	#STANDARD RUN
+	echo "Starting $(basename "$0") (v. $version)..."
+fi 
+
 #ERROR CHECKING FOR MOSQUITTO PUBLICATION 
 should_exit=false
 [ -z "$mosquitto_pub_path" ] && echo "Error: Required package 'mosquitto_pub' not found. Please install 'mosquitto'." && should_exit=true

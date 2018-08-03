@@ -27,7 +27,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.466
+version=0.1.467
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -35,17 +35,19 @@ RUNTIME_ARGS="$@"
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
 # ----------------------------------------------------------------------------------------
-echo "Starting $(basename "$0") (v. $version)..."
 
-#SOURCE APPROPRIATE SUPPORT FILES
+#SOURCE SETUP AND ARGV FILES
 source './support/argv'
 source './support/setup'
+
+#SOURCE FUNCTIONS
 source './support/mqtt'
 source './support/log'
 source './support/data'
 source './support/btle'
 source './support/time'
 
+#STOP OTHER INSTANCES OF MONITOR WITHOUT STOPPING THIS ONE
 echo "> stopping other instances of 'monitor.sh'"
 for pid in $(pidof -x $(basename "$0")); do
     if [ "$pid" != $$ ]; then
