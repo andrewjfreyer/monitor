@@ -27,7 +27,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.467
+version=0.1.469
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -413,6 +413,9 @@ perform_arrival_scan () {
 
 #ONLY SCAN IF NOT ON TRIGGER MODE
 if [ "$PREF_TRIGGER_MODE" == false ]; then 
+	echo "> trigger mode disabled, establishing initial states of known devices"
+
+	#ASSEMBLE ARRIVAL LIST; ASSUME DEVICES ARE NOT PRESENT
 	first_arrive_list=$(scannable_devices_with_state 0)
 	perform_complete_scan "$first_arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS"
 	scan_pid=$!

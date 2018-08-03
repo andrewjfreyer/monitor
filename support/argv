@@ -12,6 +12,28 @@
 #
 # ----------------------------------------------------------------------------------------
 
+#----------------------------------------------------------------------------------------
+# REPORT CURRENT VERSION 
+# ----------------------------------------------------------------------------------------
+
+previous_version=$(cat ".previous_version")
+
+#DETERMINE IF UPDATED SINCE LAST RUN
+if [ "$previous_version" != "$version" ]; then 
+
+	#HAVE WE REPORTED AN UPDATE BEFORE?
+	[ -z "$previous_version" ] && previous_version="Unknown"
+	
+	#UPDATE REPORT
+	echo "Updated $(basename "$0") (v. $previous_version) -> (v. $version)..."
+
+	#RECORD UPDATED VERSION
+	echo "$version" > ".previous_version"
+else 
+	#STANDARD RUN
+	echo "Starting $(basename "$0") (v. $version)..."
+fi 
+
 # ----------------------------------------------------------------------------------------
 # HELP TEXT
 # ----------------------------------------------------------------------------------------
