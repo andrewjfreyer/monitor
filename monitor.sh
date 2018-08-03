@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.472
+version=0.1.473
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -155,6 +155,9 @@ scannable_devices_with_state () {
 	elif [ "$scan_state" == "0" ]; then 
 		#SCAN FOR ARRIVED DEVICES
 		scan_type_diff=$((timestamp - last_arrival_scan))
+	else 
+		#SET THE SCAN DIFF AS HIGH IF NO TYPE RECOGNIZED
+		scan_type_diff=99
 	fi 
 
 	#REJECT IF WE SCANNED TO RECENTLY
