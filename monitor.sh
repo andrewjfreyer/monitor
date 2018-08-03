@@ -27,7 +27,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.469
+version=0.1.470
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -408,6 +408,17 @@ perform_arrival_scan () {
 }
 
 # ----------------------------------------------------------------------------------------
+# LAUNCH INITIAL BACKGROUND PROCESSES
+# ----------------------------------------------------------------------------------------
+
+log_listener &
+btle_scanner & 
+btle_listener &
+mqtt_listener &
+periodic_trigger & 
+refresh_databases &
+
+# ----------------------------------------------------------------------------------------
 # ADD AN ARRIVAL SCAN INTO THE QUEUE 
 # ----------------------------------------------------------------------------------------
 
@@ -424,17 +435,6 @@ if [ "$PREF_TRIGGER_MODE" == false ]; then
 	#DELAY SCAN INTERVAL FOR THIS
 	sleep 5
 fi 
-
-# ----------------------------------------------------------------------------------------
-# LAUNCH BACKGROUND PROCESSES
-# ----------------------------------------------------------------------------------------
-
-log_listener &
-btle_scanner & 
-mqtt_listener &
-btle_listener &
-periodic_trigger & 
-refresh_databases &
 
 # ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
