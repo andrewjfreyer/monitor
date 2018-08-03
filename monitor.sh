@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.471
+version=0.1.472
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -424,7 +424,7 @@ refresh_databases &
 if [ "$PREF_TRIGGER_MODE" == false ]; then 
 
 	#ASSEMBLE ARRIVAL LIST; ASSUME DEVICES ARE NOT PRESENT
-	first_arrive_list=$(scannable_devices_with_state 0)
+	first_arrive_list=$(scannable_devices_with_state)
 
 	#LOG THE SCAN 
 	echo "> trigger mode disabled, establishing initial states of known devices: $first_arrive_list"
