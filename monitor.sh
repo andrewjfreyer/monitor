@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.480
+version=0.1.481
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -107,8 +107,9 @@ declare -A expired_device_log
 declare -A device_expiration_biases
 
 #SCAN VARIABLES
-last_arrival_scan=$(date +%s)
-last_depart_scan=$(date +%s)
+now=$(date +%s)
+last_arrival_scan=$((now - 25))
+last_depart_scan=$((now - 25))
 
 # ----------------------------------------------------------------------------------------
 # POPULATE THE ASSOCIATIVE ARRAYS THAT INCLUDE INFORMATION ABOUT THE STATIC DEVICES
