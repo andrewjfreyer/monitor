@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.477
+version=0.1.478
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -853,4 +853,6 @@ while true; do
 		fi 
 
 	done < main_pipe
+
+	echo "No events." && sleep 1
 done
