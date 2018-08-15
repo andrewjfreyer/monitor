@@ -3,29 +3,47 @@ monitor
 
 ***TL;DR***: Bluetooth-based passive presence detection of beacons, cell phones, and any other bluetooth device. The system is useful for [mqtt-based](http://mqtt.org) home automation. 
 
-More granular, responsive, and reliable than device-reported GPS. Cheaper, more reliable, more configurable, and less spammy than Happy Bubbles. Does not require any app to be running or installed. Does not require device pairing. 
+<h1>Highlights</h1>
 
-Designed to run as service on a [Raspberry Pi Zero W](https://www.raspberrypi.org/products/raspberry-pi-zero-w/) on Raspbian Jessie Lite Stretch.
+* More granular, responsive, and reliable than device-reported GPS or arp/network-based presence detection 
+
+* Cheaper, more reliable, more configurable, and less spammy than [Happy Bubbles](https://www.happybubbles.tech) (which, unfortunately, is no longer operating as of 2018 because of [Trump's tarrifs](https://www.happybubbles.tech/blog/post/2018-hiatus/)) or [room-assistant](https://github.com/mKeRix/room-assistant) 
+
+* Does not require any app to be running or installed on any device 
+
+* This script does not require device pairing 
+
+* Designed to run as service on a [Raspberry Pi Zero W](https://www.raspberrypi.org/products/raspberry-pi-zero-w/) on Raspbian Jessie Lite Stretch.
 
 <h1>Summary</h1>
 
-A JSON-formatted MQTT message is reported to a specified broker whenever a specified bluetooth device responds to a **name** query. If the device responds, the JSON message includes lots of information, including the name of the device and a **confidence** of 100. 
-
-Optionally, a JSON-formatted MQTT message can be reported to the broker whenever a public device or an iBeacon advertises its presence. 
-
-A configuration file defines 'known_static_devices'. These should be devices that do not advertise public addresses, such as cell phones, tablets, and cars. 
+A JSON-formatted MQTT message is reported to a specified broker whenever a specified bluetooth device responds to a **name** query. Optionally, a JSON-formatted MQTT message is reported to the broker whenever a public device or an iBeacon advertises its presence. A configuration file defines 'known_static_devices'. These should be devices that do not advertise public addresses, such as cell phones, tablets, and cars. You do not need to add iBeacon mac addresses into this file, since iBeacons broadcast their own UUIDs consistently. 
 
 ___
 
-<h1>Background</h1>
+<h1>Background on BTLE</h1>
 
 The BTLE 4.0 spec was designed to make connecting bluetooth devices simpler for the user. No more pin codes, no more code verifications, no more “discovery mode” - for the most part. 
 
 It was also designed to be much more private than previous bluetooth specs. But it’s hard to maintain privacy when you want to be able to connect to an unknown device without substantive user intervention (think about pairing new AirPods to an iPhone), so a compromise was made. 
 
-BTLE devices advertise their availability to connect to other devices, but the “mac” address they use to refer to themselves will be random, and will periodically change. This prevents bad actors from tracking your phone via passive bluetooth monitoring. A bad actor could track the random mac that your phone broadcasts, but that mac will change every few moments to a completely different address, making the tracking data useless.
+The following is oversimplified, but should give the gist of how `monitor` determines presence. 
 
-Also part of the BTLE spec (and pre-LE spec) is a feature called a “name” request. A device can request a human-readable name of a device without connecting to that device *but only if the requesting device affirmatively knows the hardware mac address of the target device.* Again, think about connecting your iPhone to a new pair of AirPods. The name you see on the popup isn’t “00:11:22:33:44” or similar, it’s “Andrew’s AirPods” or “New AirPods.”
+<h2>Connectable Devices</h2>
+
+BTLE devices that can exchange information with other devices advertise their availability to connect to other devices, but the “mac” address they use to refer to themselves will be random, and will periodically change. This prevents bad actors from tracking your phone via passive bluetooth monitoring. A bad actor could track the random mac that your phone broadcasts, but that mac will change every few moments to a completely different address, making the tracking data useless.
+
+Also part of the BTLE spec (and pre-LE spec) is a feature called a `name` request. A device can request a human-readable name of a device without connecting to that device *but only if the requesting device affirmatively knows the hardware mac address of the target device.* To see an example of this, try to connect to a new bluetooth device using your Android Phone or iPhone - you'll see a human-readable name of devices around you, some of which are not under your control. All of these devices have responded to a `name` request sent by your phone (or, alternatively, they have included their name in an advertisement received by your phone).
+
+***TL;DR***: *Some bluetooth devices only advertise an ability to connect, but do not advertise who they are. These devices need to be affirmatively scanned by a host in order to know whether or not specific devices are present.*
+
+<h2>Beacon Devices</h2>
+
+The BTLE spec was used by Apple, Google, and others to create additional standards (e.g., iBeacon, Eddystone, and so on). These "beacon" standards didn't care that the MAC addresses that were periodically broadcast were random. Instead, these devices would encode additional information into the broadcast data. Importantly, most devices that conform to these protocols will consistenly broadcast a UUID that conforms to the 8-4-4-4-12 format defined by [IETC RFC4122](http://www.ietf.org/rfc/rfc4122.txt).
+
+***TL;DR***: *Some bluetooth devices advertise both an ability to connect and a unique identifier.*
+
+<h2>Using Advertisements to Trigger "Name" Scans</h2>
 
 So, we now know a little bit more about ‘name’ requests which need a previously-known hardware mac address and ‘random advertisements’ which include ostensibly useless mac addresses that change every few moments.
 
@@ -37,15 +55,17 @@ Of course, replace your hardware bluetooth mac address with the ```00:00…``` a
 
 To see your phone's random advertisements (along with other random advertisements), you will need to launch a bluetooth LE scan and, separately, monitor the output from your bluetooth radio using hcidump
 
-```sudo hcitool lescan & ; sudo hcidump --duplicates```
+```sudo hcitool lescan & ; sudo hcidump --raw```
 
-This command will output the BTLE data that is received by your bluetooth hardware. Included in this data are **ADV_RAND** responses.
+This command will output the faw BTLE data that is received by your bluetooth hardware while the `hcidump` process is operating. Included in this data are **ADV_RAND** responses.
 
-Knowing this, we can jump to the differences between [presence](http://github.com/andrewjfreyer/presence) and monitor.
+Knowing this, we can explain to the differences between [presence](http://github.com/andrewjfreyer/presence) and monitor.
 
-The [presence script](http://github.com/andrewjfreyer/presence), with default settings, requests a name from your owner devices at regular intervals. You can adjust those intervals, but your pi will be regularly ‘pinging’ for each owner device. The longer your intervals, the slower the system will be to respond. The shorter the intervals, the more quickly the system will respond, but the more 2.4GHz bandwidth is used. Now, as @eboon originally pointed out, the more often presence scans, the more likely it is that presence will interfere with 2.4GHz Wi-Fi. If you add two or more pi’s in your house, its clear that 2.4GHz spectrum being used very frequently to scan for presence of bluetooth devices. For many users, this meant that 2.4GHz Wi-Fi became unusable or unresponsive. Many users never noticed this (including myself) because we use 5GHz Wi-Fi or have a router/access point able to handle the extra bandwidth used by the [presence script](http://github.com/andrewjfreyer/presence).
+The [presence script](http://github.com/andrewjfreyer/presence), with default settings, requests a `name` from your owner devices at regular intervals. You can adjust those intervals, but your pi will be regularly ‘pinging’ for each owner device. The longer your intervals, the slower the system will be to respond. The shorter the intervals, the more quickly the system will respond, but the more 2.4GHz bandwidth is used. In other words, the more often `presence` scans, the more likely it is that presence will interfere with 2.4GHz Wi-Fi. The more devices running `presence`, the more interference. This is a huge bummer for home with 2.4GHz Wi-Fi.
 
-On the other hand, the monitor script, with default settings, will only request a name from your owner device after a new random advertisement is detected. If there are no devices that randomly advertise, monitor will never scan for new devices, clearing 2.4GHz spectrum. For example, if you live in a house with no other bluetooth devices and no nearby neighbors, when you come home, a random advertisement (that probably came from your phone) will be detected almost immediately by monitor. Thereafter, a name request is submitted to the phone.
+On the other hand, the `monitor` script, with default settings, will only request a name from your owner device *after a new random advertisement is detected.* If there are no devices that randomly advertise, monitor will never scan for new devices, clearing 2.4GHz spectrum for Wi-Fi use. 
+
+The `monitor` script will also detect and report the UUID of nearby iBeacons. 
 
 Here's the helpfile, as reference:
 
@@ -83,38 +103,36 @@ with 2.4GHz Wi-Fi).
 
 usage:
 
-	monitor -h 	show usage information
-	monitor -R 	redact private information from logs
-	monitor -C 	clean retained messages from MQTT broker
-	monitor -v	print version number
-	monitor -d	restore to default settings
-	monitor -u	update 'monitor.service' to current command line settings
-			(excluding -u and -d flags)
+  monitor -h  show usage information
+  monitor -R  redact private information from logs
+  monitor -C  clean retained messages from MQTT broker
+  monitor -v  print version number
+  monitor -d  restore to default settings
+  monitor -u  update 'monitor.service' to current command line settings
+      (excluding -u and -d flags)
 
-	monitor -r	repeatedly scan for arrival & departure of known devices
-	monitor -b	scan for & report BTLE beacon advertisements
-	monitor -a	report all scan results, not just presence changes
-	monitor -x	retain mqtt status messages
-	monitor -P	scan for & report public address advertisements
-	monitor -t	scan only on mqtt trigger messages:
-				[topic path]/scan/ARRIVE
-				[topic path]/scan/DEPART
+  monitor -r  repeatedly scan for arrival & departure of known devices
+  monitor -b  scan for & report BTLE beacon advertisements
+  monitor -a  report all scan results, not just presence changes
+  monitor -x  retain mqtt status messages
+  monitor -P  scan for & report public address advertisements
+  monitor -t  scan only on mqtt trigger messages:
+        [topic path]/scan/ARRIVE
+        [topic path]/scan/DEPART
+
 
 ```
-
-Personally, I have three **raspberry pi**s throughout the house. We spend most of our time on the first floor, so our main 'sensor' is the first floor. Our 'sensors' on the second and third floor are set up to trigger only, with option ```-t```.
-
-So, here's how our system works. The first floor constantly monitors for **ADV_RAND** advertisements from BTLE devices (which include our phones). When a "new" device is seen, the first floor scans for our cell phones that are stored in the **known_static_devices** file. If one of those devices is seen, an MQTT message is sent to the second and third floor to trigger a scan there. 
-
-When we leave the house, we use either the the front door or the garage door to trigger an mqtt trigger of ```[topic_path]/scan/depart``` after a 10 second delay to trigger a departure scan of our devices. 
-
 ___
 
 <h1>An Example Use with Home Assistant</h1>
 
-The monitor script can be used as an input to a number of [mqtt sensors](https://www.home-assistant.io/components/sensor.mqtt/) in [Home Assistant.](https://www.home-assistant.io). Output from these sensors can be averaged to give an accurate numerical occupancy confidence. 
+For my setup, I have three **raspberry pi zero W**s throughout the house. We spend most of our time on the first floor, so our main 'sensor' is the first floor. Our other 'sensors' on the second and third floor are set up to trigger only, with option ```-t```. 
 
-In order to detect presence in a home that has three floors and a garage, we might inclue one Raspberry Pi per floor. For average houses, a single well-placed sensor can probably work, but for more reliability at the edges of the house, more sensors are better. 
+The first floor constantly monitors for **ADV_RAND** advertisements from BTLE devices (which include our phones). When a "new" device is seen, the first floor scans for our cell phones that are stored in the **known_static_devices** file. If one of those devices is seen, an MQTT message is sent to the second and third floor to trigger a scan there. 
+
+When we leave the house, we use either the front door or the garage door to trigger an mqtt trigger of ```[topic_path]/scan/depart``` after a 10 second delay to trigger a departure scan of our devices. 
+
+The monitor script can be used as an input to a number of [mqtt sensors](https://www.home-assistant.io/components/sensor.mqtt/) in [Home Assistant.](https://www.home-assistant.io). Output from these sensors can be averaged to give an accurate numerical occupancy confidence.  For example:
 
 
 ```
