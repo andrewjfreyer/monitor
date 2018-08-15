@@ -65,9 +65,9 @@ The [presence script](http://github.com/andrewjfreyer/presence), with default se
 
 ![presence_flowchart](https://user-images.githubusercontent.com/6710151/44170325-3b949f80-a094-11e8-9485-4d911d606302.png)
 
-On the other hand, the `monitor` script, with default settings, will only request a name from your owner device *after a new random advertisement is detected.* If there are no devices that randomly advertise, monitor will never scan for new devices, clearing 2.4GHz spectrum for Wi-Fi use. 
+On the other hand, the `monitor` script, with default settings, will only request a name from your owner device *after a new random advertisement is detected.* If there are no devices that randomly advertise, monitor will never scan for new devices, clearing 2.4GHz spectrum for Wi-Fi use. The `monitor` script will also detect and report the UUID of nearby iBeacons. Below is a simplified flowchart showing the operation of `monitor`:
 
-The `monitor` script will also detect and report the UUID of nearby iBeacons. 
+![monitor-flowchart](https://user-images.githubusercontent.com/6710151/44170856-d9d53500-a095-11e8-9d21-7e5885397df5.png)
 
 Here's the helpfile, as reference:
 
