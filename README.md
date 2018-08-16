@@ -3,6 +3,8 @@ monitor
 
 ***TL;DR***: Bluetooth-based passive presence detection of beacons, cell phones, and any other bluetooth device. The system is useful for [mqtt-based](http://mqtt.org) home automation. 
 
+____
+
 <h1>Highlights</h1>
 
 * More granular, responsive, and reliable than device-reported GPS or arp/network-based presence detection 
@@ -61,15 +63,15 @@ This command will output the faw BTLE data that is received by your bluetooth ha
 
 Knowing this, we can explain to the differences between [presence](http://github.com/andrewjfreyer/presence) and monitor.
 
-The [presence script](http://github.com/andrewjfreyer/presence), with default settings, requests a `name` from your owner devices at regular intervals. You can adjust those intervals, but your pi will be regularly ‘pinging’ for each owner device. The longer your intervals, the slower the system will be to respond. The shorter the intervals, the more quickly the system will respond, but the more 2.4GHz bandwidth is used. In other words, the more often `presence` scans, the more likely it is that presence will interfere with 2.4GHz Wi-Fi. The more devices running `presence`, the more interference. This is a huge bummer for home with 2.4GHz Wi-Fi. Below is a simplified flowchart showing the operation of `presence`:
+The [presence script](http://github.com/andrewjfreyer/presence), with default settings, requests a `name` from your owner devices at regular intervals. You can adjust those intervals, but your pi will be regularly ‘pinging’ for each owner device. The longer your intervals, the slower the system will be to respond. The shorter the intervals, the more quickly the system will respond, but the more 2.4GHz bandwidth is used. In other words, the more often `presence` scans, the more likely it is that presence will interfere with 2.4GHz Wi-Fi. The more devices running `presence`, the more interference. This is a huge bummer for home with 2.4GHz Wi-Fi and other Bluetooth devices (especially older or cheaper devices). Below is a simplified flowchart showing the operation of `presence`:
 
 <img src="https://user-images.githubusercontent.com/6710151/44170325-3b949f80-a094-11e8-9485-4d911d606302.png" alt="presence_flowchart" width="350" align="middle">
 
-On the other hand, the `monitor` script, with default settings, will only request a name from your owner device *after a new random advertisement is detected.* If there are no devices that randomly advertise, monitor will never scan for new devices, clearing 2.4GHz spectrum for Wi-Fi use. The `monitor` script will also detect and report the UUID of nearby iBeacons. Below is a simplified flowchart showing the operation of `monitor`:
+On the other hand, the `monitor` script, with default settings, will only request a name from your owner device *after a new random advertisement is detected.* If there are no devices that randomly advertise, monitor will never scan for new devices, clearing 2.4GHz spectrum for Wi-Fi use. The `monitor` script will also detect and report the UUID of nearby iBeacons. Below is a simplified flowchart showing the operation of `monitor`, showing the flows for both detection of arrival and detection of departure:
 
 <img src="https://user-images.githubusercontent.com/6710151/44170856-d9d53500-a095-11e8-9d21-7e5885397df5.png" alt="monitor_flowchart" width="750" align="middle">
 
-Here's the helpfile, as reference:
+Here's the `monitor` helpfile, as reference:
 
 ```
 monitor.sh
