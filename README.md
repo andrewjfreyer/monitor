@@ -7,21 +7,21 @@ ____
 
 ### *Table Of Contents*
 
-  * [Highlights](#highlights)
+  * [**Highlights**](#highlights)
   
-  * [Summary](#summary)
+  * [**Summary**](#summary)
   
-  * [Background on BTLE](#background-on-btle) 
+  * [**Background on BTLE**](#background-on-btle) 
     
-    * [Connectable Devices](#connectable-devices) ***TL;DR***: *Some bluetooth devices only advertise an ability to connect, but do not advertise who they are. These devices need to be affirmatively scanned by a host in order to know whether or not specific devices are present.*
+    * [Connectable Devices](#connectable-devices) ***TL;DR***: Some bluetooth devices only advertise an ability to connect, but do not advertise who they are. These devices need to be affirmatively scanned by a host in order to know whether or not specific devices are present.
     
-    * [Beacon Devices](#beacon-devices) ***TL;DR***: *Some bluetooth devices advertise both an ability to connect and a unique identifier.*
+    * [Beacon Devices](#beacon-devices) ***TL;DR***: Some bluetooth devices advertise both an ability to connect and a unique identifier.
 
-    * [Using Advertisements to Trigger "Name" Scans](#using-advertisements-to-trigger-name-scans) ***TL;DR***: *We can use random advertisements as a trigger for scanning for the name of a known bluetooth device.*
+    * [Using Advertisements to Trigger "Name" Scans](#using-advertisements-to-trigger-name-scans) ***TL;DR***: We can use random advertisements as a trigger for scanning for the name of a known bluetooth device.
 
-  * [How to Use with Home Assistant](#an-example-use-with-home-assistant) 
+  * [**How to Use with Home Assistant**](#an-example-use-with-home-assistant) 
 
-  * [Installing on a Raspberry Pi Zero W](#) 
+  * [**Installing on a Raspberry Pi Zero W**](#installation-instructions-raspbian-jessie-lite-stretch) 
 
 ____
 
@@ -33,7 +33,7 @@ ____
 
 * Does not require any app to be running or installed on any device 
 
-* This script does not require device pairing 
+* Does not require device pairing 
 
 * Designed to run as service on a [Raspberry Pi Zero W](https://www.raspberrypi.org/products/raspberry-pi-zero-w/) on Raspbian Jessie Lite Stretch.
 
