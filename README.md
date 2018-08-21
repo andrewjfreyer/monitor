@@ -5,6 +5,26 @@ monitor
 
 ____
 
+### *Table Of Contents*
+
+  * [Highlights](#highlights)
+  
+  * [Summary](#summary)
+  
+  * [Background on BTLE](#background-on-btle) 
+    
+    * [Connectable Devices](#connectable-devices) ***TL;DR***: *Some bluetooth devices only advertise an ability to connect, but do not advertise who they are. These devices need to be affirmatively scanned by a host in order to know whether or not specific devices are present.*
+    
+    * [Beacon Devices](#beacon-devices) ***TL;DR***: *Some bluetooth devices advertise both an ability to connect and a unique identifier.*
+
+    * [Using Advertisements to Trigger "Name" Scans](#using-advertisements-to-trigger-name-scans) ***TL;DR***: *We can use random advertisements as a trigger for scanning for the name of a known bluetooth device.*
+
+  * [How to Use with Home Assistant](#an-example-use-with-home-assistant) 
+
+  * [Installing on a Raspberry Pi Zero W](#) 
+
+____
+
 <h1>Highlights</h1>
 
 * More granular, responsive, and reliable than device-reported GPS or arp/network-based presence detection 
@@ -37,13 +57,9 @@ BTLE devices that can exchange information with other devices advertise their av
 
 Also part of the BTLE spec (and pre-LE spec) is a feature called a `name` request. A device can request a human-readable name of a device without connecting to that device *but only if the requesting device affirmatively knows the hardware mac address of the target device.* To see an example of this, try to connect to a new bluetooth device using your Android Phone or iPhone - you'll see a human-readable name of devices around you, some of which are not under your control. All of these devices have responded to a `name` request sent by your phone (or, alternatively, they have included their name in an advertisement received by your phone).
 
-***TL;DR***: *Some bluetooth devices only advertise an ability to connect, but do not advertise who they are. These devices need to be affirmatively scanned by a host in order to know whether or not specific devices are present.*
-
 <h2>Beacon Devices</h2>
 
 The BTLE spec was used by Apple, Google, and others to create additional standards (e.g., iBeacon, Eddystone, and so on). These "beacon" standards didn't care that the MAC addresses that were periodically broadcast were random. Instead, these devices would encode additional information into the broadcast data. Importantly, most devices that conform to these protocols will consistenly broadcast a UUID that conforms to the 8-4-4-4-12 format defined by [IETC RFC4122](http://www.ietf.org/rfc/rfc4122.txt).
-
-***TL;DR***: *Some bluetooth devices advertise both an ability to connect and a unique identifier.*
 
 <h2>Using Advertisements to Trigger "Name" Scans</h2>
 
