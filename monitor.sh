@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.495
+version=0.1.497
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -742,9 +742,9 @@ while true; do
 		#**********************************************************************
 
 				#REPORT RSSI CHANGES
-		if [ "$cmd" == "RAND" ] && [ "$cmd" == "PUBL" ] && [ "$is_new" == false ] && [ "$rssi_updated" == true ] ; then 
+		if [ "$cmd" == "RAND" ] && [ "$cmd" == "PUBL" ]; then 
 			#IS RSSI THE SAME? 
-			log "${CYAN}[CMD-RSSI]	${NC}$data ${GREEN}$cmd ${NC} $rssi${NC}"
+			log "${CYAN}[CMD-RSSI]	${NC}$data ${GREEN}$cmd ${NC} $rssi $rssi_updated ${NC}"
 		fi
 
 		#**********************************************************************
@@ -842,12 +842,12 @@ while true; do
 			publish_presence_message "owner/$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "PUBLIC_MAC" "$rssi"
 
 			#PROVIDE USEFUL LOGGING
-			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
+			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi PUBL_NUM: ${#static_device_log[@]}"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE" == false ]; then 
 
 			#PROVIDE USEFUL LOGGING
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name RAND_NUM: ${#random_device_log[@]}"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name $rssi $RAND_NUM: ${#random_device_log[@]}"
 			
 			#SCAN ONLY IF WE ARE IN TRIGGER MODE
 		 	perform_arrival_scan 
