@@ -1,0 +1,14 @@
+home_presence_app:
+  module: home_presence_app
+  class: HomePresenceApp
+  plugin: HASS
+  hass_namespace: hass
+  presence_topic: presence
+  minimum_confidence: 100
+  not_home_timeout: 60
+  home_gateway_sensors:
+    - binary_sensor.main_door
+  scan_timeout: 20
+  users_sensors:
+    - binary_sensor.odianosens_iphone_home_state
+    - binary_sensor.nkirukas_iphone_home_state
