@@ -36,6 +36,8 @@ btle_packet_processor () {
 	#POPULATE PACKET 
 	local packet="$1"
 
+	log "Here - $packet"
+
 	#BEACON PACKET?
 	if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]] && [ ${#packet} -gt 132 ]; then
 
