@@ -26,132 +26,131 @@ btle_scanner () {
 }
 
 # ----------------------------------------------------------------------------------------
+# PROCESS BLUETOOTH PACKETS
+# ----------------------------------------------------------------------------------------
+
+btle_packet_processor () {
+	#BLANK PACKET RETURN
+	[ -z "$1" ] && return 0
+
+	#POPULATE PACKET 
+	local packet="$1"
+
+	#BEACON PACKET?
+	if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]] && [ ${#packet} -gt 132 ]; then
+
+		#IF WE DONT' RECEIVE BEACONS, IGNORE
+		[ "$PREF_BEACON_MODE" == false ] && packet="" && continue
+
+		#HARDARE MAC AND PDU HEADER
+		local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
+		local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
+
+		#RAW VALUES
+		local UUID=$(echo $packet | sed 's/^.\{69\}\(.\{47\}\).*$/\1/')
+		local MAJOR=$(echo $packet | sed 's/^.\{117\}\(.\{5\}\).*$/\1/')
+		local MINOR=$(echo $packet | sed 's/^.\{123\}\(.\{5\}\).*$/\1/')
+		local POWER=$(echo $packet | sed 's/^.\{129\}\(.\{2\}\).*$/\1/')
+		local UUID=$(echo $UUID | sed -e 's/\ //g' -e 's/^\(.\{8\}\)\(.\{4\}\)\(.\{4\}\)\(.\{4\}\)\(.\{12\}\)$/\1-\2-\3-\4-\5/')
+
+		#MAJOR CALCULATION
+		MAJOR=$(echo $MAJOR | sed 's/\ //g')
+		MAJOR=$(echo "ibase=16; $MAJOR" | bc)
+
+		#MINOR CALCULATION
+		MINOR=$(echo $MINOR | sed 's/\ //g')
+		MINOR=$(echo "ibase=16; $MINOR" | bc)
+
+		#POWER CALCULATION
+		POWER=$(echo "ibase=16; $POWER" | bc)
+		POWER=$((POWER - 256))
+
+		#RSSI CALCULATION
+		local RSSI=$(echo $packet | sed 's/^.\{132\}\(.\{2\}\).*$/\1/')
+		RSSI=$(echo "ibase=16; $RSSI" | bc)
+		RSSI=$((RSSI - 256))
+
+        #CLEAR PACKET
+        packet=""
+
+		#SEND TO MAIN LOOP
+		echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address|$pdu_header" > main_pipe 
+	fi
+
+	#FIND ADVERTISEMENT PACKET OF RANDOM ADDRESSES                                  __
+	if [[ $packet =~ ^04\ 3E\ .*? ]]; then
+		
+		#IF IN TRIGGER MODE, IGNORE
+		[ "$PREF_TRIGGER_MODE" == true ] && packet="" && continue
+
+		#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
+		local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
+		
+		#TWO BYTES ARE PDU HEADER
+		local pdu_header=$(echo $packet | awk '{print $7$6}' )
+		local pdu_header_bin=$(echo "ibase=16;obase=2;$pdu_header" | bc | xargs printf "%016d")
+
+		#TxADD
+		local tx_add=${pdu_header_bin:8:1}
+		[[ $tx_add == 0 ]] && tx_add="PUBL" || tx_add="RAND"
+
+		#BREAKOUT OF PDU HEADER INFORMATION 
+		local pdu_type=$(echo "ibase=2;${pdu_header_bin:12:4}" | bc )
+
+		#ADVERTISED DATA
+		local adv_data=${packet:45}
+
+		#RSSI VALUE
+		local rssi_value_raw="${packet: -3}"
+		local rssi_value=$(echo "ibase=16;$rssi_value_raw" | bc )
+		rssi_value=$((rssi_value - 256))
+
+		local gap_name_str=""
+
+
+		#IF THIS IS A SCAN RESPONSE, FIND WHETHER WE HAVE USABLE GAP NAME DATA 
+		if [ "$pdu_type" == 'SCAN_RSP' ]; then 
+			gap_name_str=$(gap_name "$packet")
+
+			#RECORD THE NAME IN THE DEVICE LOG
+			[ ! -z "$gap_name_str" ] && named_device_log[$received_mac_address]="$gap_name_str"
+        fi
+
+        #CLEAR PACKET
+		packet=""
+
+		#FILTER TO ADV_IND; EXPERIMENTALLY, THIS IS THE ADV PACKET MOST 
+		#COMMONLY SENT BY APPLE AND ANDROID PHONES TRYING TO ADVERTISE
+		#CONNECTION TO OTHER DEVICES
+		
+        if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] ; then 
+			#NAME TO RETURN
+			local name_str="${named_device_log[$received_mac_address]}"
+
+			#SEND TO MAIN LOOP
+			echo "$tx_add$received_mac_address|$pdu_type|$name_str|$rssi_value|$adv_data" > main_pipe
+		fi 
+	fi
+}
+
+# ----------------------------------------------------------------------------------------
 # BLUETOOTH LE RAW PACKET ANALYSIS
 # ----------------------------------------------------------------------------------------
 btle_listener () {	
 	#DEFINE VARAIBLES
-	local capturing=""
-	local next_packet=""
 	local packet=""
-
-	while read segment; do
-
-		#MATCH A SECOND OR LATER SEGMENT OF A PACKET
-		if [[ $segment =~ ^[0-9a-fA-F]{2}\ .{55}[0-9a-fA-F]$ ]]; then
-			#KEEP ADDING TO NEXT PACKET; WE HAVE A COMPLETE LINE
-			next_packet="$next_packet $segment"
-			continue
-
-		elif [[ $segment =~ ^[0-9a-fA-F]{2}\ [0-9a-fA-F] ]]; then
-			#INCOMPLETE LINE; PACKET LIKELY DONE
-			packet="$next_packet $segment"
-
-		elif [[ $segment =~ ^\> ]]; then
-			#NEW PACKET STARTS
-			packet=$next_packet
-			next_packet=$(echo $segment | sed 's/^>.\(.*$\)/\1/')
-
-			log "$packet"
-		elif [[ $segment =~ ^\< ]]; then
-			#INPUT COMMAND; SHOULD IGNORE LATER
-			packet=$next_packet
-			next_packet=$(echo $segment | sed 's/^>.\(.*$\)/\1/')
-		fi
-
-		#BEACON PACKET?
-		if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]] && [ ${#packet} -gt 132 ]; then
-
-			#IF WE DONT' RECEIVE BEACONS, IGNORE
-			[ "$PREF_BEACON_MODE" == false ] && packet="" && continue
-
-			#HARDARE MAC AND PDU HEADER
-			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
-			local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
-
-			#RAW VALUES
-			local UUID=$(echo $packet | sed 's/^.\{69\}\(.\{47\}\).*$/\1/')
-			local MAJOR=$(echo $packet | sed 's/^.\{117\}\(.\{5\}\).*$/\1/')
-			local MINOR=$(echo $packet | sed 's/^.\{123\}\(.\{5\}\).*$/\1/')
-			local POWER=$(echo $packet | sed 's/^.\{129\}\(.\{2\}\).*$/\1/')
-			local UUID=$(echo $UUID | sed -e 's/\ //g' -e 's/^\(.\{8\}\)\(.\{4\}\)\(.\{4\}\)\(.\{4\}\)\(.\{12\}\)$/\1-\2-\3-\4-\5/')
-
-			#MAJOR CALCULATION
-			MAJOR=$(echo $MAJOR | sed 's/\ //g')
-			MAJOR=$(echo "ibase=16; $MAJOR" | bc)
-
-			#MINOR CALCULATION
-			MINOR=$(echo $MINOR | sed 's/\ //g')
-			MINOR=$(echo "ibase=16; $MINOR" | bc)
-
-			#POWER CALCULATION
-			POWER=$(echo "ibase=16; $POWER" | bc)
-			POWER=$((POWER - 256))
-
-			#RSSI CALCULATION
-			local RSSI=$(echo $packet | sed 's/^.\{132\}\(.\{2\}\).*$/\1/')
-			RSSI=$(echo "ibase=16; $RSSI" | bc)
-			RSSI=$((RSSI - 256))
-
-            #CLEAR PACKET
-            packet=""
-
-			#SEND TO MAIN LOOP
-			echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address|$pdu_header" > main_pipe 
-		fi
-
-		#FIND ADVERTISEMENT PACKET OF RANDOM ADDRESSES                                  __
-		if [[ $packet =~ ^04\ 3E\ .*? ]] && [ ${#packet} -gt 111 ]; then
-			
-			#IF IN TRIGGER MODE, IGNORE
-			[ "$PREF_TRIGGER_MODE" == true ] && packet="" && continue
-
-			#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
-			local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
-			
-			#TWO BYTES ARE PDU HEADER
-			local pdu_header=$(echo $packet | awk '{print $7$6}' )
-			local pdu_header_bin=$(echo "ibase=16;obase=2;$pdu_header" | bc | xargs printf "%016d")
-
-			#TxADD
-			local tx_add=${pdu_header_bin:8:1}
-			[[ $tx_add == 0 ]] && tx_add="PUBL" || tx_add="RAND"
-
-			#BREAKOUT OF PDU HEADER INFORMATION 
-			local pdu_type=$(echo "ibase=2;${pdu_header_bin:12:4}" | bc )
-
-			#ADVERTISED DATA
-			local adv_data=${packet:45}
-
-			#RSSI VALUE
-			local rssi_value_raw="${packet: -3}"
-			local rssi_value=$(echo "ibase=16;$rssi_value_raw" | bc )
-			rssi_value=$((rssi_value - 256))
-
-			local gap_name_str=""
-
-
-			#IF THIS IS A SCAN RESPONSE, FIND WHETHER WE HAVE USABLE GAP NAME DATA 
-			if [ "$pdu_type" == 'SCAN_RSP' ]; then 
-				gap_name_str=$(gap_name "$packet")
-
-				#RECORD THE NAME IN THE DEVICE LOG
-				[ ! -z "$gap_name_str" ] && named_device_log[$received_mac_address]="$gap_name_str"
-	        fi
-
-            #CLEAR PACKET
-			packet=""
-
-			#FILTER TO ADV_IND; EXPERIMENTALLY, THIS IS THE ADV PACKET MOST 
-			#COMMONLY SENT BY APPLE AND ANDROID PHONES TRYING TO ADVERTISE
-			#CONNECTION TO OTHER DEVICES
-			
-            if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] ; then 
-				#NAME TO RETURN
-				local name_str="${named_device_log[$received_mac_address]}"
-
-				#SEND TO MAIN LOOP
-				echo "$tx_add$received_mac_address|$pdu_type|$name_str|$rssi_value|$adv_data" > main_pipe
-			fi 
+	while read line; do
+		# packets start with ">"
+		if [[ $line =~ ^\> ]]; then
+			# process the completed packet (unless this is the first time through)
+			if [ "$packet" ]; then
+				btle_packet_processor "$packet"
+			fi
+			# start the new packet
+			packet=$line
+		else
+			# continue building the packet
+			packet="$packet $line"
 		fi
 	done < <(sudo hcidump --raw)
 }
