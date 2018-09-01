@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.510
+version=0.1.511
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -282,28 +282,21 @@ perform_complete_scan () {
 
 				#NEED TO REPORT? 
 				if [[ $should_report =~ .*$known_addr.* ]] || [ "$PREF_REPORT_ALL_MODE" == true ] ; then 
-					
-					#GET LOCAL NAME
-					local expected_name="${known_static_device_name[$known_addr]}"
-					[ -z "$expected_name" ] && "Unknown"
 
 					#DETERMINE MANUFACTUERE
 					manufacturer="$(determine_manufacturer $known_addr)"
 					[ -z "$manufacturer" ] && manufacturer="Unknown" 			
 
 					#REPORT PRESENCE
-					publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "PUBLIC_MAC"			
+					publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "100" "$name" "$manufacturer" "PUBLIC_MAC"			
 				fi 
 			fi 
 
 			#SHOULD WE REPORT A DROP IN CONFIDENCE? 
 			if [ -z "$name" ] && [ "$previous_state" == "1" ]; then 
 
-				local expected_name="${known_static_device_name[$known_addr]}"
-				[ -z "$expected_name" ] && "Unknown"
-
 				#REPORT PRESENCE OF DEVICE
-				publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "$(echo "100 / 2 ^ $repetition" | bc )" "$expected_name" "Unknown" "PUBLIC_MAC"
+				publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "$(echo "100 / 2 ^ $repetition" | bc )" "$name" "Unknown" "PUBLIC_MAC"
 
 				#IF WE DO FIND A NAME LATER, WE SHOULD REPORT OUT 
 				should_report="$should_report$known_addr"
@@ -433,6 +426,7 @@ while true; do
 		#CLEAR DATA IN NONLOCAL VARS
 		manufacturer="Unknown"
 		name=""
+		expected_name=""
 		mac=""
 		rssi=""
 		adv_data=""
@@ -452,8 +446,6 @@ while true; do
 			adv_data=$(echo "$data" | awk -F "|" '{print $5}')
 			data="$mac"
 
-			log "RAND -- $mac $pdu_header [$name] $rssi $adv_data"
-
 			#GET LAST RSSI
 			[ "${rssi_log[$data]}" != "$rssi" ] && rssi_updated=true
 
@@ -470,6 +462,7 @@ while true; do
 
 				#SAVE THE NAME
 				known_static_device_name[$data]="$name"
+				expected_name="$name"
 				rssi_log[$data]="$rssi"
 
 				#IS THIS A NEW STATIC DEVICE?
@@ -664,7 +657,7 @@ while true; do
 			[ "${rssi_log[$data]}" != "$rssi" ] && rssi_updated=tru
 
 			#SET NAME TO LOCAL DATABASE 
-			[ ! -z "$name" ] && known_static_device_name[$data]="$name"
+			[ ! -z "$name" ] && known_static_device_name[$data]="$name" && expected_name="$name"
 
 			#STATIC DEVICE DATABASE AND RSSI DATABASE
 			static_device_log[$data]="$timestamp"
@@ -689,6 +682,7 @@ while true; do
 			#IF NAME IS DISCOVERED, PRESUME HOME
 			if [ ! -z "$name" ]; then 
 				known_static_device_log[$mac]=1
+				expected_name="$name"
 				[ "$previous_state" != "1" ] && did_change=true
 			else
 				known_static_device_log[$mac]=0
