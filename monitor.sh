@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.507
+version=0.1.508
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -430,9 +430,17 @@ while true; do
 		rssi_updated=false
 		did_change=false
 
-		#DATA FOR PUBLICATION
+		#CLEAR DATA IN NONLOCAL VARS
 		manufacturer="Unknown"
 		name=""
+		mac=""
+		rssi=""
+		adv_data=""
+		pdu_header=""
+		power=""
+		major=""
+		minor=""
+		uuid=""
 
 		#PROCEED BASED ON COMMAND TYPE
 		if [ "$cmd" == "RAND" ]; then 
@@ -749,7 +757,7 @@ while true; do
 				#REPORT RSSI CHANGES
 		if [ "$cmd" == "RAND" ] || [ "$cmd" == "PUBL" ]; then 
 			#IS RSSI THE SAME? 
-			log "${CYAN}[CMD-RSSI]	${NC}$data ${GREEN}$cmd ${NC} RSSI: $rssi dB${NC}"
+			log "${CYAN}[CMD-RSSI]	${NC}$data ${GREEN}$cmd ${NC}RSSI: $rssi dB${NC}"
 		fi
 
 		#**********************************************************************
