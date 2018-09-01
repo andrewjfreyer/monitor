@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.493
+version=0.1.494
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -445,7 +445,7 @@ while true; do
 			data="$mac"
 
 			#GET LAST RSSI
-			[ ${rssi_log[$data]} != $rssi ] && rssi_updated=true
+			[ "${rssi_log[$data]}" != "$rssi" ] && rssi_updated=true
 
 			#IF WE HAVE A NAME; UNSEAT FROM RANDOM AND ADD TO STATIC
 			#THIS IS A BIT OF A FUDGE, A RANDOM DEVICE WITH A LOCAL 
@@ -649,7 +649,7 @@ while true; do
 			[ -z "${static_device_log[$data]}" ] && is_new=true
 
 			#GET LAST RSSI
-			[ ${rssi_log[$data]} != $rssi ] && rssi_updated=true
+			[ "${rssi_log[$data]}" != "$rssi" ] && rssi_updated=tru
 
 			static_device_log[$data]="$timestamp"
 			rssi_log[$data]="$rssi"
@@ -696,7 +696,7 @@ while true; do
 			manufacturer="$(determine_manufacturer $mac)"
 
 			#GET LAST RSSI
-			[ ${rssi_log[$data]} != $rssi ] && rssi_updated=true
+			[ "${rssi_log[$data]}" != "$rssi" ] && rssi_updated=tru
 
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			data="$mac"
