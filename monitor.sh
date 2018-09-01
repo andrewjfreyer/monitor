@@ -430,7 +430,7 @@ while true; do
 	#READ FROM THE MAIN PIPE
 	while read event; do 
 
-		echo "event"
+		echo "$event"
 		
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
