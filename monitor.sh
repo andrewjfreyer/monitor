@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.484
+version=0.1.485
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -429,6 +429,8 @@ while true; do
 	
 	#READ FROM THE MAIN PIPE
 	while read event; do 
+
+		echo "event"
 		
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
@@ -538,19 +540,6 @@ while true; do
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
 				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger DEPART ${NC}"
 				perform_departure_scan
-
-			elif [[ $mqtt_topic_branch =~ .*UPDATE.* ]]; then 
-				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger UPDATE ${NC}"
-
-				#PUBLISH UPDATE MESSAGE BEFORE UPDATING
-				publish_update_message
-
-				#ATTEMPT AN UPDATE OF THE SCRIPT
-				git pull --force
-				sudo systemctl restart monitor.service
-
-				#EXITING
-				exit 0
 				
 			else						#IN RESPONSE TO MQTT SCAN 
 				log "${GREEN}[INSTRUCT] ${RED}[Rejected] ${NC} ${NC}Bad MQTT scan command: $mqtt_topic_branch ${NC}"
