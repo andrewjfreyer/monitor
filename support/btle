@@ -50,6 +50,8 @@ btle_listener () {
 			#NEW PACKET STARTS
 			packet=$next_packet
 			next_packet=$(echo $segment | sed 's/^>.\(.*$\)/\1/')
+
+			log "$packet"
 		elif [[ $segment =~ ^\< ]]; then
 			#INPUT COMMAND; SHOULD IGNORE LATER
 			packet=$next_packet
