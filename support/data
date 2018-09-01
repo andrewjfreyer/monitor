@@ -37,12 +37,7 @@ gap_name () {
 		local name_len_str=$((name_len_dec * 3))
 		
 		#EXTRACT LOCAL NAME
-		local name_as_string=$(echo "${packet:48:name_len_str}" | xxd -r -p )
-
-		log "NAME: ${packet:48:name_len_str} == $name_as_string"
-
-	else
-		log "NAME INVALID: $packet"
+		local name_as_string=$(echo "${packet:48:name_len_str}" | xxd -r -p | sed 's/[^0-9a-zA-Z ]//g;s/  */ /g;s/ $//g;s/^ //g')
 	fi
 
 	#RETURN NAME
@@ -113,8 +108,12 @@ determine_manufacturer () {
 		#IF CACHE DOES NOT EXIST, USE MACVENDORS.COM
 		if [ -z "$manufacturer" ]; then 
 			local remote_result=$(curl -sL https://api.macvendors.com/${address:0:8} | grep -vi "error")
-			[ ! -z "$remote_result" ] && echo "${address:0:8}	$remote_result" >> .manufacturer_cache
-			manufacturer="$remote_result"
+
+			#MAKE SURE WE DONT' SCREW UP THE MANUFACTUERE'S FILE
+			if [[ ! $remote_result =~ *"html"* ]]; then
+				[ ! -z "$remote_result" ] && echo "${address:0:8}	$remote_result" >> .manufacturer_cache
+				manufacturer="$remote_result"
+			fi 
 		fi
 
 		#SET DEFAULT MANUFACTURER 

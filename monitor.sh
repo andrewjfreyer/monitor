@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.501
+version=0.1.502
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -651,9 +651,14 @@ while true; do
 			#GET LAST RSSI
 			[ "${rssi_log[$data]}" != "$rssi" ] && rssi_updated=tru
 
+			#SET NAME TO LOCAL DATABASE 
+			[ ! -z "$name" ] && known_static_device_name[$data]="$name"
+
+			#STATIC DEVICE DATABASE AND RSSI DATABASE
 			static_device_log[$data]="$timestamp"
 			rssi_log[$data]="$rssi"
 
+			#MANUFACTURER
 			manufacturer="$(determine_manufacturer "$data")"
 
 		elif [ "$cmd" == "NAME" ]; then 
