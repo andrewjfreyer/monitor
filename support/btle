@@ -130,6 +130,7 @@ btle_packet_processor () {
 			local name_str="${named_device_log[$received_mac_address]}"
 
 			#SEND TO MAIN LOOP
+			log "$tx_add$received_mac_address|$pdu_type|$name_str|$rssi_value|$adv_data"
 			echo "$tx_add$received_mac_address|$pdu_type|$name_str|$rssi_value|$adv_data" > main_pipe
 		fi 
 	fi
