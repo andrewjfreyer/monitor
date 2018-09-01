@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.513
+version=0.1.514
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -753,7 +753,7 @@ while true; do
 				#REPORT RSSI CHANGES
 		if [ "$cmd" == "RAND" ] || [ "$cmd" == "PUBL" ]; then 
 			#IS RSSI THE SAME? 
-			log "${CYAN}[CMD-RSSI]	${NC}$data ${GREEN}$cmd ${NC}RSSI: $rssi dB${NC}"
+			[ "$rssi_updated" == true ] && log "${CYAN}[CMD-RSSI]	${NC}$data ${GREEN}$cmd ${NC}RSSI: $rssi dB${NC}"
 		fi
 
 		#**********************************************************************
