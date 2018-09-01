@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.504
+version=0.1.506
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -441,7 +441,7 @@ while true; do
 			pdu_header=$(echo "$data" | awk -F "|" '{print $2}')
 			name=$(echo "$data" | awk -F "|" '{print $3}')
 			rssi=$(echo "$data" | awk -F "|" '{print $4}')
-			adv_data=$(echo "$data" | awk -F "|" '{print $6}')
+			adv_data=$(echo "$data" | awk -F "|" '{print $5}')
 			data="$mac"
 
 			#GET LAST RSSI
@@ -641,9 +641,9 @@ while true; do
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			pdu_header=$(echo "$data" | awk -F "|" '{print $2}')
 			name=$(echo "$data" | awk -F "|" '{print $3}')
-			data="$mac"
 			rssi=$(echo "$data" | awk -F "|" '{print $4}')
-			adv_data=$(echo "$data" | awk -F "|" '{print $6}')
+			adv_data=$(echo "$data" | awk -F "|" '{print $5}')
+			data="$mac"
 
 			#DATA IS PUBLIC MAC Addr.; ADD TO LOG
 			[ -z "${static_device_log[$data]}" ] && is_new=true
@@ -748,10 +748,8 @@ while true; do
 
 				#REPORT RSSI CHANGES
 		if [ "$cmd" == "RAND" ] || [ "$cmd" == "PUBL" ]; then 
-			if [ "$is_new" == false ]; then 
-				#IS RSSI THE SAME? 
-				log "${CYAN}[CMD-RSSI]	${NC}$data ${GREEN}$cmd ${NC} ($rssi changed = $rssi_updated) ${NC}"
-			fi 
+			#IS RSSI THE SAME? 
+			log "${CYAN}[CMD-RSSI]	${NC}$data ${GREEN}$cmd ${NC} RSSI: $rssi dB${NC}"
 		fi
 
 		#**********************************************************************
@@ -854,7 +852,7 @@ while true; do
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE" == false ]; then 
 
 			#PROVIDE USEFUL LOGGING
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name $rssi $RAND_NUM: ${#random_device_log[@]}"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name $rssi dB $RAND_NUM ${#random_device_log[@]}"
 			
 			#SCAN ONLY IF WE ARE IN TRIGGER MODE
 		 	perform_arrival_scan 
