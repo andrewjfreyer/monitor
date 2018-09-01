@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.509
+version=0.1.510
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -452,7 +452,7 @@ while true; do
 			adv_data=$(echo "$data" | awk -F "|" '{print $5}')
 			data="$mac"
 
-			log "RAND -- $mac $pdu_header $name $rssi $adv_data"
+			log "RAND -- $mac $pdu_header [$name] $rssi $adv_data"
 
 			#GET LAST RSSI
 			[ "${rssi_log[$data]}" != "$rssi" ] && rssi_updated=true
@@ -655,7 +655,7 @@ while true; do
 			adv_data=$(echo "$data" | awk -F "|" '{print $5}')
 			data="$mac"
 
-			log "PUBL -- $mac $pdu_header $name $rssi $adv_data"
+			log "PUBL -- $mac $pdu_header [$name] $rssi $adv_data"
 
 			#DATA IS PUBLIC MAC Addr.; ADD TO LOG
 			[ -z "${static_device_log[$data]}" ] && is_new=true
