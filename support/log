@@ -72,5 +72,5 @@ log_listener () {
 #PRINT TO LOG UNLESS DUPLICATE LINE
 log() {
 	#SEND TO LOG PIPE
-	echo "$1" | sed 's/  */ /g' > log_pipe
+	echo "$1" | sed 's/  */ /g' #> log_pipe
 }

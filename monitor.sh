@@ -45,17 +45,6 @@ source './support/data'
 source './support/btle'
 source './support/time'
 
-#STOP OTHER INSTANCES OF MONITOR WITHOUT STOPPING THIS ONE
-echo "> stopping other instances of 'monitor.sh'"
-for pid in $(pidof -x $(basename "$0")); do
-    if [ "$pid" != $$ ]; then
-        kill -9 $pid
-    fi 
-done
-
-#echo "> stopping presence service"
-sudo systemctl stop presence >/dev/null 2>&1
-
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
 # ----------------------------------------------------------------------------------------
