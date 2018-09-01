@@ -90,9 +90,13 @@ btle_packet_processor () {
 		local pdu_header=$(echo $packet | awk '{print $7$6}' )
 		local pdu_header_bin=$(echo "ibase=16;obase=2;$pdu_header" | bc | xargs printf "%016d")
 
+
+
 		#TxADD
 		local tx_add=${pdu_header_bin:8:1}
 		[[ $tx_add == 0 ]] && tx_add="PUBL" || tx_add="RAND"
+
+		log "$pdu_header_bin --> $tx_add"
 
 		#BREAKOUT OF PDU HEADER INFORMATION 
 		local pdu_type=$(pdu_type $(echo "ibase=2;${pdu_header_bin:12:4}" | bc ))
@@ -130,8 +134,6 @@ btle_packet_processor () {
 			#SEND TO MAIN LOOP
 			log "$tx_add$received_mac_address|$pdu_type|$name_str|$rssi_value|$adv_data"
 			echo "$tx_add$received_mac_address|$pdu_type|$name_str|$rssi_value|$adv_data" > main_pipe
-		else
-			log "REJECTED = $tx_add$received_mac_address|$pdu_type|$name_str|$rssi_value|$adv_data"
 		fi 
 	fi
 }
