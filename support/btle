@@ -140,10 +140,10 @@ btle_listener () {
 	#DEFINE VARAIBLES
 	local packet=""
 	while read line; do
-		# packets start with ">"
-		if [[ $line =~ ^\> ]]; then
+		# packets start with ">" or "<"
+		if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
 			# process the completed packet (unless this is the first time through)
-			if [ "$packet" ]; then
+			if [ "$packet" ] && [[ $packet =~ ^\> ]]; then
 				btle_packet_processor "$packet"
 			fi
 			# start the new packet
