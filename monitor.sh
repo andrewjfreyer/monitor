@@ -619,7 +619,7 @@ while true; do
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$((180 + beacon_bias ))" ]; then 
 					unset static_device_log[$key]
-					log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds PUBL_NUM: ${#static_device_log[@]}  ${NC}"
+					log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds ${NC}"
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
@@ -831,6 +831,7 @@ while true; do
 			 	#ONLY SCAN IF WE ARE NOT OTHERWISE SCANNING; NAME FOR THIS DEVICE IS NOT IMPORTANT
 			 	if [ "$scan_active" == false ]; then 
 
+			 		log "*********** TRYING TO DISCOVER NEW NAME ****************"
 					#FIND NAME OF THIS DEVICE
 					expected_name=$(hcitool name "$data" | grep -ivE 'input/output error|invalid device|invalid|error')
 
@@ -847,12 +848,12 @@ while true; do
 			publish_presence_message "owner/$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "PUBLIC_MAC" "$rssi"
 
 			#PROVIDE USEFUL LOGGING
-			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi PUBL_NUM: ${#static_device_log[@]}"
+			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dB"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE" == false ]; then 
 
 			#PROVIDE USEFUL LOGGING
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name $rssi dB $RAND_NUM ${#random_device_log[@]}"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name $rssi dB"
 			
 			#SCAN ONLY IF WE ARE IN TRIGGER MODE
 		 	perform_arrival_scan 
