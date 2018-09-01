@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.506
+version=0.1.507
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -826,20 +826,34 @@ while true; do
 			#FIND PERMANENT DEVICE NAME OF PUBLIC DEVICE
 			if [ -z "$expected_name" ]; then 
 
-			 	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
+				#SET THE FILE IF IT DOESN'T EXIST
+				[ ! -f ".public_name_cache" ] && echo "" > ".public_name_cache"
 
-			 	#ONLY SCAN IF WE ARE NOT OTHERWISE SCANNING; NAME FOR THIS DEVICE IS NOT IMPORTANT
-			 	if [ "$scan_active" == false ]; then 
+				#CHECK CACHE
+				expected_name=$(grep "$data" < ".public_name_cache" | awk -F "\t" '{print $2}')
 
-			 		log "*********** TRYING TO DISCOVER NEW NAME ****************"
-					#FIND NAME OF THIS DEVICE
-					expected_name=$(hcitool name "$data" | grep -ivE 'input/output error|invalid device|invalid|error')
+				#IF CACHE DOES NOT EXIST, TRY TO SCAN
+				if [ -z "$expected_name" ]; then 
 
-					#IS THE EXPECTED NAME BLANK? 
-					if [ -z "$expected_name" ]; then 
-						expected_name="Unknown Name"
-					else 
-						known_static_device_name[$data]="$expected_name"
+					#DOES SCAN PROCESS CURRENTLY EXIST? 
+					kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
+
+				 	#ONLY SCAN IF WE ARE NOT OTHERWISE SCANNING; NAME FOR THIS DEVICE IS NOT IMPORTANT
+				 	if [ "$scan_active" == false ]; then 
+
+						#FIND NAME OF THIS DEVICE
+						expected_name=$(hcitool name "$data" | grep -ivE 'input/output error|invalid device|invalid|error')
+
+						#IS THE EXPECTED NAME BLANK? 
+						if [ -z "$expected_name" ]; then 
+							expected_name="Unknown Name"
+						else 
+							#ADD TO SESSION ARRAY
+							known_static_device_name[$data]="$expected_name"
+
+							#ADD TO CACHE
+							echo "$data	$expected_name" >> .public_name_cache
+						fi 
 					fi 
 				fi 
 			fi 
