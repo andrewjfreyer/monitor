@@ -66,14 +66,10 @@ publish_presence_message () {
 
 		#APPEND INFORMATION FOR BTLE BEACONS
 		local append=""
-		[ ! -z "$6" ] && append="$append, \"rssi\":\"$6\""
-		[ ! -z "$7" ] && append="$append, \"power\":\"$7\""
+		[ ! -z "$7" ] && append="$append,\"power\":\"$7\""
 		
 		#TIMESTAMP
 		stamp=$(date "+%a %b %d %Y %H:%M:%S GMT%z (%Z)")
-
-		#DEBUGGING 
-		(>&2 log "${PURPLE}$mqtt_topicpath/$1 { version : $version, confidence : $confidence, name : $name, timestamp : $stamp, manufacturer : $4 , type : $5 $append } ${NC}")
 
 		#CLEAR PREVIOUS RETAINED MESSAGE
 		if [ "$PREF_SHOULD_RETAIN" == true ]; then 
@@ -81,9 +77,12 @@ publish_presence_message () {
 			retain_flag="true"
 			sleep 1
 		fi 
+
+			#DEBUGGING 
+		(>&2 log "${PURPLE}$mqtt_topicpath/$1 { retain: $retain_flag, version : $version, confidence : $confidence, name : $name, timestamp : $stamp, manufacturer : $4 , type : $5, rssi : $6 } ${NC}")
 		
 		#POST TO MQTT
-		$mosquitto_pub_path $should_retain $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$1" -m "{\"retained\":\"$retain_flag\", \"version\":\"$version\", \"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\"$append}"
+		$mosquitto_pub_path $should_retain $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$1" -m "{\"retained\":\"$retain_flag\", \"version\":\"$version\", \"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\",\"type\":\"$5\",\"rssi\":\"$6\"$append}"
 	fi
 }
 

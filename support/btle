@@ -116,19 +116,13 @@ btle_packet_processor () {
 		#IF THIS IS A SCAN RESPONSE, FIND WHETHER WE HAVE USABLE GAP NAME DATA 
 		if [ "$pdu_type" == 'SCAN_RSP' ] || [ "$pdu_type" == "ADV_NONCONN_IND" ]; then 
 			gap_name_str=$(gap_name "$packet")
-
-			#RECORD THE NAME IN THE DEVICE LOG
-			[ ! -z "$gap_name_str" ] && named_device_log[$received_mac_address]="$gap_name_str"
         fi
 
 
 		#FILTER BASED ON RESPONSE/DATA TYPE		
         if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
-			#NAME TO RETURN
-			local name_str="${named_device_log[$received_mac_address]}"
-
 			#SEND TO MAIN LOOP
-			echo "$tx_add$received_mac_address|$pdu_type|$name_str|$rssi_value|$adv_data" > main_pipe
+			echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe
 		fi 
 	fi
 }

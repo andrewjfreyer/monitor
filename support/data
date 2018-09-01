@@ -38,6 +38,8 @@ gap_name () {
 		
 		#EXTRACT LOCAL NAME
 		local name_as_string=$(echo "${packet:48:name_len_str}" | xxd -r -p | sed 's/[^0-9a-zA-Z ]//g;s/  */ /g;s/ $//g;s/^ //g')
+
+		log "$name_as_string"
 	fi
 
 	#RETURN NAME
