@@ -38,6 +38,9 @@ gap_name () {
 		
 		#EXTRACT LOCAL NAME
 		local name_as_string=$(echo "${packet:48:name_len_str}" | xxd -r -p )
+
+		log "NAME: $name_as_string"
+
 	else
 		log "NAME INVALID: $packet"
 	fi
