@@ -129,7 +129,7 @@ btle_packet_processor () {
 		#COMMONLY SENT BY APPLE AND ANDROID PHONES TRYING TO ADVERTISE
 		#CONNECTION TO OTHER DEVICES
 		
-        if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] ; then 
+        if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
 			#NAME TO RETURN
 			local name_str="${named_device_log[$received_mac_address]}"
 
