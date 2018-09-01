@@ -94,6 +94,12 @@ btle_packet_processor () {
 		local tx_add=${pdu_header_bin:7:1}
 		[[ $tx_add == 0 ]] && tx_add="PUBL" || tx_add="RAND"
 
+		local rx_add=${pdu_header_bin:8:1}
+		[[ $rx_add == 0 ]] && rx_add="PUBL" || rx_add="RAND"
+
+
+		log "$received_mac_address tx: $tx_add rx: $rx_add"
+
 		#BREAKOUT OF PDU HEADER INFORMATION 
 		local pdu_type=$(pdu_type $(echo "ibase=2;${pdu_header_bin:12:4}" | bc ))
 
