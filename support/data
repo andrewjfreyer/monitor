@@ -55,25 +55,28 @@ pdu_type () {
 	if [ ! -z "$1" ]; then  
 		local pdu_type="$1"
 		case $pdu_type in
-			"00")
+			"00"|0 )
 				pdu_type_str="ADV_IND"
 				;;
-			"01")
+			"01"|1)
 				pdu_type_str="ADV_DIRECT_IND"
 				;;	
-			"02")
+			"02"|2)
 				pdu_type_str="ADV_NONCONN_IND"
 				;;	
-			"03")
-				pdu_type_str="SCAN_REQ"
+			"03"|3)
+				#THIS SHOULD BE 'SCAN_REQ' PER THE BLUETOOTH SPEC; 
+				#BUT HCIDUMP APPEARS TO REPORT THIS AS AN ADV
+				#THIS AS ADV_NON
+				pdu_type_str="ADV_NONCONN_IND"
 				;;	
-			"04")
+			"04"|4)
 				pdu_type_str="SCAN_RSP"
 				;;	
-			"05")
+			"05"|5)
 				pdu_type_str="CONNECT_REQ"
 				;;	
-			"06")
+			"06"|6)
 				pdu_type_str="ADV_SCAN_IND"
 				;;	
 			*)

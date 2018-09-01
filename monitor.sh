@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.482
+version=0.1.484
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -302,7 +302,7 @@ perform_complete_scan () {
 					[ -z "$manufacturer" ] && manufacturer="Unknown" 			
 
 					#REPORT PRESENCE
-					publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "Known Static MAC"			
+					publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "PUBLIC_MAC"			
 				fi 
 			fi 
 
@@ -313,7 +313,7 @@ perform_complete_scan () {
 				[ -z "$expected_name" ] && "Unknown"
 
 				#REPORT PRESENCE OF DEVICE
-				publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "$(echo "100 / 2 ^ $repetition" | bc )" "$expected_name" "Unknown" "Known Static MAC"
+				publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "$(echo "100 / 2 ^ $repetition" | bc )" "$expected_name" "Unknown" "PUBLIC_MAC"
 
 				#IF WE DO FIND A NAME LATER, WE SHOULD REPORT OUT 
 				should_report="$should_report$known_addr"
@@ -449,6 +449,9 @@ while true; do
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			pdu_header=$(echo "$data" | awk -F "|" '{print $2}')
 			name=$(echo "$data" | awk -F "|" '{print $3}')
+			rssi=$(echo "$data" | awk -F "|" '{print $4}')
+			adv_data=$(echo "$data" | awk -F "|" '{print $6}')
+
 			data="$mac"
 
 			#IF WE HAVE A NAME; UNSEAT FROM RANDOM AND ADD TO STATIC
@@ -657,6 +660,8 @@ while true; do
 			pdu_header=$(echo "$data" | awk -F "|" '{print $2}')
 			name=$(echo "$data" | awk -F "|" '{print $3}')
 			data="$mac"
+			rssi=$(echo "$data" | awk -F "|" '{print $4}')
+			adv_data=$(echo "$data" | awk -F "|" '{print $6}')
 
 			#DATA IS PUBLIC MAC Addr.; ADD TO LOG
 			[ -z "${static_device_log[$data]}" ] && is_new=true
@@ -771,14 +776,14 @@ while true; do
 			fi 
 
 			#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT THE CHANGE
-			[ "$did_change" == true ] && publish_presence_message "owner/$mqtt_publisher_identity/$data" "$((current_state * 100))" "$name" "$manufacturer" "Known Static MAC"
+			[ "$did_change" == true ] && publish_presence_message "owner/$mqtt_publisher_identity/$data" "$((current_state * 100))" "$name" "$manufacturer" "PUBLIC_MAC"
 
 			#IF WE HAVE DEPARTED OR ARRIVED; MAKE A NOTE UNLESS WE ARE ALSO IN THE TRIGGER MODE
 			[ "$did_change" == true ] && [ "$current_state" == "0" ] && [ "$PREF_TRIGGER_MODE" == false ] && publish_cooperative_scan_message "depart"
 			[ "$did_change" == true ] && [ "$current_state" == "1" ] && [ "$PREF_TRIGGER_MODE" == false ] && publish_cooperative_scan_message "arrive"
 
 			#REPORT ALL?
-			[ "$did_change" == false ] && [ "$current_state" == "0" ] && [ "$PREF_REPORT_ALL_MODE" == true ] && publish_presence_message "owner/$mqtt_publisher_identity/$data" "0" "$name" "$manufacturer" "Known Static MAC"
+			[ "$did_change" == false ] && [ "$current_state" == "0" ] && [ "$PREF_REPORT_ALL_MODE" == true ] && publish_presence_message "owner/$mqtt_publisher_identity/$data" "0" "$name" "$manufacturer" "PUBLIC_MAC"
 
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
@@ -798,7 +803,7 @@ while true; do
 			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
 
 			#PUBLISH PRESENCE OF BEACON
-			publish_presence_message "owner/$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "iBeacon" "$rssi" "$power"
+			publish_presence_message "owner/$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "IBEACON" "$rssi" "$power"
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] && [ "$PREF_PUBLIC_MODE" == true ] ; then 
 
@@ -829,7 +834,7 @@ while true; do
 			fi 
 
 			#REPORT PRESENCE OF DEVICE
-			publish_presence_message "owner/$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "Known Static MAC"
+			publish_presence_message "owner/$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "PUBLIC_MAC" "$rssi"
 
 			#PROVIDE USEFUL LOGGING
 			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} PUBL_NUM: ${#static_device_log[@]}"
