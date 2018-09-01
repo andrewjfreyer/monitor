@@ -114,7 +114,7 @@ btle_packet_processor () {
 		local gap_name_str=""
 
 		#IF THIS IS A SCAN RESPONSE, FIND WHETHER WE HAVE USABLE GAP NAME DATA 
-		if [ "$pdu_type" == 'SCAN_RSP' ]; then 
+		if [ "$pdu_type" == 'SCAN_RSP' ] || [ "$pdu_type" == "ADV_NONCONN_IND" ]; then 
 			gap_name_str=$(gap_name "$packet")
 
 			#RECORD THE NAME IN THE DEVICE LOG
