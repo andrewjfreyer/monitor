@@ -19,7 +19,7 @@
 btle_scanner () {
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
-		local error=$(sudo timeout --signal SIGINT 30 hcitool lescan 2>&1 | grep -iE 'input/output error|invalid device|invalid|error')
+		local error=$(sudo timeout --signal SIGINT 30 hcitool lescan --duplicates 2>&1 | grep -iE 'input/output error|invalid device|invalid|error')
 		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe 
 		sleep 5
 	done
@@ -123,7 +123,7 @@ btle_packet_processor () {
 		#COMMONLY SENT BY APPLE AND ANDROID PHONES TRYING TO ADVERTISE
 		#CONNECTION TO OTHER DEVICES
 		
-        if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] ; then 
+        if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ]; then 
 			#NAME TO RETURN
 			local name_str="${named_device_log[$received_mac_address]}"
 

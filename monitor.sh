@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.491
+version=0.1.493
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -81,6 +81,7 @@ mkfifo log_pipe
 declare -A static_device_log
 declare -A random_device_log
 declare -A named_device_log
+declare -A rssi_log
 
 #STATIC DEVICE ASSOCIATIVE ARRAYS
 declare -A known_static_device_log
@@ -426,6 +427,7 @@ while true; do
 
 		#FLAGS TO DETERMINE FRESHNESS OF DATA
 		is_new=false
+		rssi_updated=false
 		did_change=false
 
 		#DATA FOR PUBLICATION
@@ -440,8 +442,10 @@ while true; do
 			name=$(echo "$data" | awk -F "|" '{print $3}')
 			rssi=$(echo "$data" | awk -F "|" '{print $4}')
 			adv_data=$(echo "$data" | awk -F "|" '{print $6}')
-
 			data="$mac"
+
+			#GET LAST RSSI
+			[ ${rssi_log[$data]} != $rssi ] && rssi_updated=true
 
 			#IF WE HAVE A NAME; UNSEAT FROM RANDOM AND ADD TO STATIC
 			#THIS IS A BIT OF A FUDGE, A RANDOM DEVICE WITH A LOCAL 
@@ -456,6 +460,7 @@ while true; do
 
 				#SAVE THE NAME
 				known_static_device_name[$data]="$name"
+				rssi_log[$data]="$rssi"
 
 				#IS THIS A NEW STATIC DEVICE?
 				[ -z "${static_device_log[$data]}" ] && is_new=true
@@ -466,6 +471,7 @@ while true; do
 				if [ ! -z  "${static_device_log[$data]}" ]; then 
 					#IS THIS A NEW STATIC DEVICE?
 					static_device_log[$data]="$timestamp"
+					rssi_log[$data]="$rssi"
 					cmd="PUBL"
 
 				else 
@@ -482,6 +488,7 @@ while true; do
 
 					#ONLY ADD THIS TO THE DEVICE LOG 
 					random_device_log[$data]="$timestamp"
+					rssi_log[$data]="$rssi"
 				fi 
 			fi
 
@@ -621,11 +628,10 @@ while true; do
 
 		elif [ "$cmd" == "ERRO" ]; then 
 
-			log "${RED}[ERROR]	${NC}Attempting to correct HCI error: $data${NC}"
+			log "${RED}[ERROR]	${NC}Correcting HCI error: $data${NC}"
 
 			sudo hciconfig hci0 down && sleep 5 && sudo hciconfig hci0 up
 
-			#WAIT
 			sleep 3
 
 			continue
@@ -642,7 +648,12 @@ while true; do
 			#DATA IS PUBLIC MAC Addr.; ADD TO LOG
 			[ -z "${static_device_log[$data]}" ] && is_new=true
 
+			#GET LAST RSSI
+			[ ${rssi_log[$data]} != $rssi ] && rssi_updated=true
+
 			static_device_log[$data]="$timestamp"
+			rssi_log[$data]="$rssi"
+
 			manufacturer="$(determine_manufacturer "$data")"
 
 		elif [ "$cmd" == "NAME" ]; then 
@@ -684,10 +695,14 @@ while true; do
 			pdu_header=$(echo "$data" | awk -F "|" '{print $7}')
 			manufacturer="$(determine_manufacturer $mac)"
 
+			#GET LAST RSSI
+			[ ${rssi_log[$data]} != $rssi ] && rssi_updated=true
+
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			data="$mac"
 			[ -z "${static_device_log[$data]}" ] && is_new=true
 			static_device_log[$data]="$timestamp"	
+			rssi_log[$data]="$rssi"
 
 			#GET MANUFACTURER INFORMATION
 			manufacturer="$(determine_manufacturer $uuid)"			
@@ -717,6 +732,20 @@ while true; do
 				device_expiration_biases[$data]=$(( bias + 15 ))
 			fi  
 		fi 
+
+		#**********************************************************************
+		#
+		#
+		#	THE FOLLOWING REPORTS RSSI CHANGES FOR PUBLIC OR RANDOM DEVICES 
+		#	
+		#
+		#**********************************************************************
+
+				#REPORT RSSI CHANGES
+		if [ "$cmd" == "RAND" ] && [ "$cmd" == "PUBL" ] && [ "$is_new" == false ] && [ "$rssi_updated" == true ] ; then 
+			#IS RSSI THE SAME? 
+			log "${CYAN}[CMD-RSSI]	${NC}$data ${GREEN}$cmd ${NC} $rssi${NC}"
+		fi
 
 		#**********************************************************************
 		#

@@ -66,7 +66,6 @@ publish_presence_message () {
 
 		#APPEND INFORMATION FOR BTLE BEACONS
 		local append=""
-		[ ! -z "$5" ] && append=",\"type\":\"$5\""
 		[ ! -z "$6" ] && append="$append, \"rssi\":\"$6\""
 		[ ! -z "$7" ] && append="$append, \"power\":\"$7\""
 		
