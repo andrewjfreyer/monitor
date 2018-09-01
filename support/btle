@@ -80,7 +80,7 @@ btle_packet_processor () {
 	fi
 
 	#FIND ADVERTISEMENT PACKET OF RANDOM ADDRESSES                                  __
-	if [[ $packet == 04\ 3E* ]]; then
+	if [[ "$packet" =~ ^04\ 3E* ]]; then
 		
 		#IF IN TRIGGER MODE, IGNORE
 		[ "$PREF_TRIGGER_MODE" == true ] && packet="" && continue
