@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.490
+version=0.1.491
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -370,8 +370,8 @@ perform_departure_scan () {
 
 		scan_pid=$!
 		scan_type=1
-	else
-		log "${GREEN}[REJECT]	${NC}Departure scan request denied. Hardware busy."
+	#else
+		#log "${GREEN}[REJECT]	${NC}Departure scan request denied. Hardware busy."
 	fi
 }
 
@@ -393,8 +393,8 @@ perform_arrival_scan () {
 
 		scan_pid=$!
 		scan_type=0
-	else
-		log "${GREEN}[REJECT]	${NC}Arrive scan request denied. Hardware busy."
+	#else
+		#log "${GREEN}[REJECT]	${NC}Arrive scan request denied. Hardware busy."
 	fi 
 }
 
