@@ -40,7 +40,7 @@ btle_packet_processor () {
 	if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]]; then
 
 		#IF WE DONT' RECEIVE BEACONS, IGNORE
-		[ "$PREF_BEACON_MODE" == false ] && packet="" && continue
+		[ "$PREF_BEACON_MODE" == false ] && packet="" && return 0
 
 		#HARDARE MAC AND PDU HEADER
 		local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
@@ -74,7 +74,7 @@ btle_packet_processor () {
         packet=""
 
 		#SEND TO MAIN LOOP
-		echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address|$pdu_header" > main_pipe 
+		[ ! -z "$UUID" ] && echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address|$pdu_header" > main_pipe 
 	fi
 
 	#FIND ADVERTISEMENT PACKET OF RANDOM ADDRESSES                                  __
