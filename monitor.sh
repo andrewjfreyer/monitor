@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.516
+version=0.1.518
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -152,7 +152,7 @@ scannable_devices_with_state () {
 	fi 
 
 	#REJECT IF WE SCANNED TO RECENTLY
-	[ "$scan_type_diff" -lt "25" ] && return 0
+	[ "$scan_type_diff" -lt "15" ] && return 0
 
 	#SCAN ALL? SET THE SCAN STATE TO [X]
 	[ -z "$scan_state" ] && scan_state=2
@@ -175,7 +175,7 @@ scannable_devices_with_state () {
 
 		#SCAN IF DEVICE HAS NOT BEEN SCANNED 
 		#WITHIN LAST [X] SECONDS
-		if [ "$time_diff" -gt "25" ]; then 
+		if [ "$time_diff" -gt "15" ]; then 
 
 			#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
 			if [ "$this_state" == "$scan_state" ]; then 
@@ -313,11 +313,11 @@ perform_complete_scan () {
 					sleep "$adjusted_delay"
 				else
 					#DEFAULT MINIMUM SLEEP
-					sleep 3
+					sleep "$PREF_INTERSCAN_DELAY"
 				fi 
 			else
 				#DEFAULT MINIMUM SLEEP
-				sleep 3
+				sleep "$PREF_INTERSCAN_DELAY"
 			fi 
 		done
 
@@ -458,39 +458,39 @@ while true; do
 			if [ ! -z "$name" ]; then 
 				#RESET COMMAND
 				cmd="PUBL"
-				unset random_device_log[$data]
+				unset random_device_log[$mac]
 
 				#SAVE THE NAME
-				known_static_device_name[$data]="$name"
-				rssi_log[$data]="$rssi"
+				known_static_device_name[$mac]="$name"
+				rssi_log[$mac]="$rssi"
 
 				#IS THIS A NEW STATIC DEVICE?
-				[ -z "${static_device_log[$data]}" ] && is_new=true
-				static_device_log[$data]="$timestamp"
+				[ -z "${static_device_log[$mac]}" ] && is_new=true
+				static_device_log[$mac]="$timestamp"
 
 			else
 				#IS THIS ALREADY IN THE STATIC LOG? 
-				if [ ! -z  "${static_device_log[$data]}" ]; then 
+				if [ ! -z  "${static_device_log[$mac]}" ]; then 
 					#IS THIS A NEW STATIC DEVICE?
-					static_device_log[$data]="$timestamp"
-					rssi_log[$data]="$rssi"
+					static_device_log[$mac]="$timestamp"
+					rssi_log[$mac]="$rssi"
 					cmd="PUBL"
 
 				else 
 
 					#DATA IS RANDOM MAC Addr.; ADD TO LOG
-					[ -z "${random_device_log[$data]}" ] && is_new=true
+					[ -z "${random_device_log[$mac]}" ] && is_new=true
 
 					#CALCULATE INTERVAL
-					last_appearance=${random_device_log[$data]}
+					last_appearance=${random_device_log[$mac]}
 					rand_interval=$((timestamp - last_appearance))
 
 					#HAS THIS BECAON NOT BEEN HEARD FROM FOR MOR THAN 25 SECONDS? 
-					[ "$rand_interval" -gt "5" ] && [ "$rand_interval" -gt "25" ] && is_new=true	
+					[ "$rand_interval" -gt "45" ] && is_new=true	
 
 					#ONLY ADD THIS TO THE DEVICE LOG 
-					random_device_log[$data]="$timestamp"
-					rssi_log[$data]="$rssi"
+					random_device_log[$mac]="$timestamp"
+					rssi_log[$mac]="$rssi"
 				fi 
 			fi
 
@@ -572,6 +572,10 @@ while true; do
 			#	
 			#
 			#**********************************************************************
+
+			log "${BLUE}[CHECK]	${NC}Checking caches for expired devices.${NC}"
+
+
 			#DID ANY DEVICE EXPIRE? 
 			should_scan=false
 			
@@ -591,7 +595,7 @@ while true; do
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$(( PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL + random_bias))" ]; then 
 					unset random_device_log[$key]
-					log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
+					log "${BLUE}[CLEARED]	${NC}$key expired after $difference ($random_bias bias) seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
 			
 					#AT LEAST ONE DEVICE EXPIRED
 					should_scan=true 
@@ -621,7 +625,7 @@ while true; do
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$((180 + beacon_bias ))" ]; then 
 					unset static_device_log[$key]
-					log "${BLUE}[CLEARED]	${NC}$key expired after $difference seconds ${NC}"
+					log "${BLUE}[CLEARED]	${NC}$key expired after $difference ($random_bias bias) seconds ${NC}"
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
