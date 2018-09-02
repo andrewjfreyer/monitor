@@ -62,9 +62,6 @@ log_listener () {
 			last_log_line="$line"
 
 		done < log_pipe
-
-		#MITIGATE INFINITE LOOPING
-		sleep 3
 	done 
 }
 

@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.515
+version=0.1.516
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -335,7 +335,7 @@ perform_complete_scan () {
 	log "${GREEN}[CMD-INFO]	${GREEN}**** Completed scan. **** ${NC}"
 
 	#DELAY BEFORE CLEARNING THE MAIN PIPE
-	sleep 5
+	sleep 2
 
 	#SET DONE TO MAIN PIPE
 	echo "DONE" > main_pipe
@@ -632,9 +632,9 @@ while true; do
 
 			log "${RED}[ERROR]	${NC}Correcting HCI error: $data${NC}"
 
-			sudo hciconfig hci0 down && sleep 5 && sudo hciconfig hci0 up
+			sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
 
-			sleep 3
+			sleep 2
 
 			continue
 
