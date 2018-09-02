@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.514
+version=0.1.515
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -462,7 +462,6 @@ while true; do
 
 				#SAVE THE NAME
 				known_static_device_name[$data]="$name"
-				expected_name="$name"
 				rssi_log[$data]="$rssi"
 
 				#IS THIS A NEW STATIC DEVICE?
@@ -680,7 +679,6 @@ while true; do
 			#IF NAME IS DISCOVERED, PRESUME HOME
 			if [ ! -z "$name" ]; then 
 				known_static_device_log[$mac]=1
-				expected_name="$name"
 				[ "$previous_state" != "1" ] && did_change=true
 			else
 				known_static_device_log[$mac]=0
