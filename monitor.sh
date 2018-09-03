@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.521
+version=0.1.522
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -205,6 +205,7 @@ scannable_devices_with_state () {
 perform_complete_scan () {
 	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
 	if [ -z "$1" ]; then
+		log "${GREEN}[CMD-INFO]	${GREEN}**** Rejected group scan. No devices in desired state. **** ${NC}"
 		return 0
 	fi
 
@@ -447,7 +448,7 @@ while true; do
 			data="$mac"
 
 			#GET LAST RSSI
-			[ "${rssi_log[$data]}" != "$rssi" ] && rssi_updated=true
+			rssi_latest="${rssi_log[$data]}" && [ "$rssi_latest" != "$rssi" ] && rssi_updated=true
 
 			#IF WE HAVE A NAME; UNSEAT FROM RANDOM AND ADD TO STATIC
 			#THIS IS A BIT OF A FUDGE, A RANDOM DEVICE WITH A LOCAL 
@@ -485,7 +486,7 @@ while true; do
 					last_appearance=${random_device_log[$mac]}
 					rand_interval=$((timestamp - last_appearance))
 
-					#HAS THIS BECAON NOT BEEN HEARD FROM FOR MOR THAN 25 SECONDS? 
+					#HAS THIS BECAON NOT BEEN HEARD FROM FOR MOR THAN [X]] SECONDS? 
 					[ "$rand_interval" -gt "45" ] && is_new=true	
 
 					#ONLY ADD THIS TO THE DEVICE LOG 
@@ -660,7 +661,7 @@ while true; do
 			[ -z "${public_device_log[$data]}" ] && is_new=true
 
 			#GET LAST RSSI
-			[ "${rssi_log[$data]}" != "$rssi" ] && rssi_updated=true
+			rssi_latest="${rssi_log[$data]}" && [ "$rssi_latest" != "$rssi" ] && rssi_updated=true
 
 			#SET NAME TO LOCAL DATABASE 
 			[ ! -z "$name" ] && known_public_device_name[$data]="$name"
@@ -712,7 +713,7 @@ while true; do
 			manufacturer="$(determine_manufacturer $mac)"
 
 			#GET LAST RSSI
-			[ "${rssi_log[$data]}" != "$rssi" ] && rssi_updated=true
+			rssi_latest="${rssi_log[$data]}" && [ "$rssi_latest" != "$rssi" ] && rssi_updated=true
 
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			data="$mac"
@@ -760,7 +761,33 @@ while true; do
 				#REPORT RSSI CHANGES
 		if [ "$cmd" == "RAND" ] || [ "$cmd" == "PUBL" ]; then 
 			#IS RSSI THE SAME? 
-			[ "$rssi_updated" == true ] && log "${CYAN}[CMD-RSSI]	${NC}$data ${GREEN}$cmd ${NC}RSSI: $rssi dB${NC}"
+			rssi_change=$((rssi - rssi_latest))
+			abs_rssi_change=${rssi_change#-}
+
+			#DETERMINE MOTION DIRECTION
+			motion_direction="Departing"
+			[ "$rssi_change" == "$abs_rssi_change" ] && motion_direction="Approaching"
+
+			#IF POSITIVE, APPROACHING IF NEGATIVE DEPARTING
+			case 1 in
+				$(( abs_rssi_change >= 8)) )
+					change_type="Fast Motion"
+					;;
+				$(( abs_rssi_change >= 5)) )
+					change_type="Moderate Motion"
+					;;
+				$(( abs_rssi_change >= 1)) )
+					change_type="Slow/No Motion"
+					motion_direction=""
+					;;			
+				*)
+					change_type="No Motion"
+					motion_direction""
+					;;	
+			esac
+
+			#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
+			[ "$abs_rssi_change" -gt "2" ] && log "${CYAN}[CMD-RSSI]	${NC}$data ${GREEN}$cmd ${NC}RSSI: $rssi dBm ($change_type $motion_direction) ${NC}"
 		fi
 
 		#**********************************************************************
@@ -873,12 +900,12 @@ while true; do
 			publish_presence_message "owner/$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "PUBLIC_MAC" "$rssi"
 
 			#PROVIDE USEFUL LOGGING
-			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dB"
+			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE" == false ]; then 
 
 			#PROVIDE USEFUL LOGGING
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name $rssi dB"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name $rssi dBm"
 			
 			#SCAN ONLY IF WE ARE IN TRIGGER MODE
 		 	perform_arrival_scan 
