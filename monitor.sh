@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.530
+version=0.1.531
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -607,7 +607,7 @@ while true; do
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$(( PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL + random_bias))" ]; then 
 					unset random_device_log[$key]
-					log "${BLUE}[CLEARED]	${NC}$key expired after $difference ($random_bias bias) seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
+					log "${BLUE}[CHECK-${RED}DEL${BLUE}]	${NC}$key expired after $difference ($random_bias bias) seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
 			
 					#AT LEAST ONE DEVICE EXPIRED
 					should_scan=true 
@@ -615,7 +615,7 @@ while true; do
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
 				else 
-					log "${BLUE}[VALID]	${NC}$key valid still after $difference ($random_bias bias) seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
+					log "${BLUE}[CHECK-${GREEN}DEL${BLUE}]	${NC}$key valid still after $difference ($random_bias bias) seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
 		
 				fi 
 			done
