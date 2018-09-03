@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.531
+version=0.1.532
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -880,7 +880,7 @@ while true; do
 			#PUBLISH PRESENCE OF BEACON
 			publish_presence_message "owner/$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "IBEACON" "$rssi" "$power"
 		
-		elif [ "$cmd" == "PUBL" ] && [ "$is_new" == true ] && [ "$PREF_PUBLIC_MODE" == true ] ; then 
+		elif [ "$cmd" == "PUBL" ] && [ "$PREF_PUBLIC_MODE" == true ] ; then 
 
 			#TRIGGER MODE PREVENTS THIS 
 			[ "$PREF_TRIGGER_MODE" == true ] && continue
