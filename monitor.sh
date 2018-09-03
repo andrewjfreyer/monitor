@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.538
+version=0.1.539
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -611,8 +611,8 @@ while true; do
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
-				else 
-					log "${BLUE}[CHECK-${GREEN}OK${BLUE}]	${NC}$key last seen $difference ($random_bias bias) seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
+				#else 
+					#log "${BLUE}[CHECK-${GREEN}OK${BLUE}]	${NC}$key last seen $difference ($random_bias bias) seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
 		
 				fi 
 			done
@@ -641,8 +641,8 @@ while true; do
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
-				else 
-					log "${BLUE}[CHECK-${GREEN}OK${BLUE}]	${NC}$key last seen $difference ($random_bias bias) seconds PUBL_NUM: ${#public_device_log[@]}  ${NC}"
+				#else 
+					#log "${BLUE}[CHECK-${GREEN}OK${BLUE}]	${NC}$key last seen $difference ($random_bias bias) seconds PUBL_NUM: ${#public_device_log[@]}  ${NC}"
 				fi 
 			done
 
@@ -781,7 +781,7 @@ while true; do
 		if [ "$cmd" == "RAND" ] || [ "$cmd" == "PUBL" ]; then 
 
 			#SET RSSI LATEST IF NOT ALREADY SET 
-			[ -z "$rssi_latest" ] && rssi_latest="$rssi"
+			[ -z "$rssi_latest" ] && rssi_latest="$rssi" && rssi_updated=true
 
 			#IS RSSI THE SAME? 
 			rssi_change=$((rssi - rssi_latest))
