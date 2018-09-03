@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.519
+version=0.1.520
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -655,7 +655,7 @@ while true; do
 			[ -z "${static_device_log[$data]}" ] && is_new=true
 
 			#GET LAST RSSI
-			[ "${rssi_log[$data]}" != "$rssi" ] && rssi_updated=tru
+			[ "${rssi_log[$data]}" != "$rssi" ] && rssi_updated=true
 
 			#SET NAME TO LOCAL DATABASE 
 			[ ! -z "$name" ] && known_static_device_name[$data]="$name" && expected_name="$name"
@@ -707,7 +707,7 @@ while true; do
 			manufacturer="$(determine_manufacturer $mac)"
 
 			#GET LAST RSSI
-			[ "${rssi_log[$data]}" != "$rssi" ] && rssi_updated=tru
+			[ "${rssi_log[$data]}" != "$rssi" ] && rssi_updated=true
 
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			data="$mac"
