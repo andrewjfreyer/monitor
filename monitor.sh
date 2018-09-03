@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.522
+version=0.1.523
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -760,6 +760,10 @@ while true; do
 
 				#REPORT RSSI CHANGES
 		if [ "$cmd" == "RAND" ] || [ "$cmd" == "PUBL" ]; then 
+
+			#SET RSSI LATEST IF NOT ALREADY SET 
+			[ -z "$rssi_latest" ] && rssi_latest="$rssi"
+
 			#IS RSSI THE SAME? 
 			rssi_change=$((rssi - rssi_latest))
 			abs_rssi_change=${rssi_change#-}
@@ -771,23 +775,21 @@ while true; do
 			#IF POSITIVE, APPROACHING IF NEGATIVE DEPARTING
 			case 1 in
 				$(( abs_rssi_change >= 8)) )
-					change_type="Fast Motion"
+					change_type="Fast Motion $motion_direction"
 					;;
 				$(( abs_rssi_change >= 5)) )
-					change_type="Moderate Motion"
+					change_type="Moderate Motion $motion_direction"
 					;;
 				$(( abs_rssi_change >= 1)) )
 					change_type="Slow/No Motion"
-					motion_direction=""
 					;;			
 				*)
 					change_type="No Motion"
-					motion_direction""
 					;;	
 			esac
 
 			#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-			[ "$abs_rssi_change" -gt "2" ] && log "${CYAN}[CMD-RSSI]	${NC}$data ${GREEN}$cmd ${NC}RSSI: $rssi dBm ($change_type $motion_direction) ${NC}"
+			[ "$abs_rssi_change" -gt "2" ] && log "${CYAN}[CMD-RSSI]	${NC}$data ${GREEN}$cmd ${NC}RSSI: $rssi dBm ($change_type) ${NC}"
 		fi
 
 		#**********************************************************************
