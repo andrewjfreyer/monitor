@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.529
+version=0.1.530
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -100,6 +100,9 @@ declare -A device_expiration_biases
 now=$(date +%s)
 last_arrival_scan=$((now - 25))
 last_depart_scan=$((now - 25))
+
+#SET THE NAME CACHE IF IT DOESN'T EXIST
+[ ! -f ".public_name_cache" ] && echo "" > ".public_name_cache"
 
 # ----------------------------------------------------------------------------------------
 # POPULATE THE ASSOCIATIVE ARRAYS THAT INCLUDE INFORMATION ABOUT THE STATIC DEVICES
@@ -665,17 +668,25 @@ while true; do
 			adv_data=$(echo "$data" | awk -F "|" '{print $5}')
 			data="$mac"
 
+			#EXPECTED NAME
+			expected_name="${known_public_device_name[$data]}"
+
 			#DATA IS PUBLIC MAC Addr.; ADD TO LOG
 			[ -z "${public_device_log[$data]}" ] && is_new=true
 
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$data]}" && [ "$rssi_latest" != "$rssi" ] && rssi_updated=true
 
-			#SET NAME TO LOCAL DATABASE 
-			[ ! -z "$name" ] && known_public_device_name[$data]="$name"
+			#IF NOT IN DATABASE, BUT FOUND HERE
+			if [ ! -z "$name" ] && [ -z "$expected_name" ]; then 
+				known_public_device_name[$data]="$name"
 
-			#LOG A RECEIVED NAME
-			log "Adding: $name as name for $data"
+				#GET NAME FROM CACHE
+				cached_name=$(grep "$data" < ".public_name_cache" | awk -F "\t" '{print $2}')
+
+				#ECHO TO CACHE IF DOES NOT EXIST
+				[ -z "$cached_name" ] && echo "$data	$name" >> .public_name_cache
+			fi 
 
 			#STATIC DEVICE DATABASE AND RSSI DATABASE
 			public_device_log[$data]="$timestamp"
@@ -879,9 +890,6 @@ while true; do
 
 			#FIND PERMANENT DEVICE NAME OF PUBLIC DEVICE
 			if [ -z "$expected_name" ]; then 
-
-				#SET THE FILE IF IT DOESN'T EXIST
-				[ ! -f ".public_name_cache" ] && echo "" > ".public_name_cache"
 
 				#CHECK CACHE
 				expected_name=$(grep "$data" < ".public_name_cache" | awk -F "\t" '{print $2}')
