@@ -188,7 +188,8 @@ if [ -f "$PREF_CONFIG" ]; then
 > preference: database refresh interval = $PREF_DATABASE_REFRESH_INTERVAL
 > preference: max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS
 > preference: max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
-> preference: random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" 
+> preference: random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL
+> preference: beacon rssi change required for reporting = $PREF_RSSI_CHANGE_THRESHOLD" 
 
 else
 	echo "> default behavior preferences file created. Please customize to your needs." 
@@ -222,6 +223,9 @@ PREF_DATABASE_REFRESH_INTERVAL=35
 
 #PERIOD AFTER WHICH A RANDOM BTLE ADVERTISEMENT IS CONSIDERED EXPIRED
 PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL=45
+
+#AMOUNT AN RSSI MUST CHANGE (ABSOLUTE VALUE) TO REPORT BEACON AGAIN
+PREF_RSSI_CHANGE_THRESHOLD=5
 
 " > "$PREF_CONFIG"
 

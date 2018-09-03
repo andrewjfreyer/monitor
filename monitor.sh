@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.533
+version=0.1.535
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -459,7 +459,7 @@ while true; do
 			data="$mac"
 
 			#GET LAST RSSI
-			rssi_latest="${rssi_log[$data]}" && [ "$rssi_latest" != "$rssi" ] && rssi_updated=true
+			rssi_latest="${rssi_log[$data]}" 
 
 			#IF WE HAVE A NAME; UNSEAT FROM RANDOM AND ADD TO STATIC
 			#THIS IS A BIT OF A FUDGE, A RANDOM DEVICE WITH A LOCAL 
@@ -585,9 +585,6 @@ while true; do
 			#
 			#**********************************************************************
 
-			log "${BLUE}[CHECK]	${NC}Checking caches for expired devices.${NC}"
-
-
 			#DID ANY DEVICE EXPIRE? 
 			should_scan=false
 			
@@ -675,7 +672,7 @@ while true; do
 			[ -z "${public_device_log[$data]}" ] && is_new=true
 
 			#GET LAST RSSI
-			rssi_latest="${rssi_log[$data]}" && [ "$rssi_latest" != "$rssi" ] && rssi_updated=true
+			rssi_latest="${rssi_log[$data]}" 
 
 			#IF NOT IN DATABASE, BUT FOUND HERE
 			if [ ! -z "$name" ] && [ -z "$expected_name" ]; then 
@@ -735,7 +732,7 @@ while true; do
 			manufacturer="$(determine_manufacturer $mac)"
 
 			#GET LAST RSSI
-			rssi_latest="${rssi_log[$data]}" && [ "$rssi_latest" != "$rssi" ] && rssi_updated=true
+			rssi_latest="${rssi_log[$data]}" 
 
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			data="$mac"
@@ -814,7 +811,7 @@ while true; do
 			esac
 
 			#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-			[ "$abs_rssi_change" -gt "7" ] && log "${CYAN}[CMD-RSSI]	${NC}$data $expected_name ${GREEN}$cmd ${NC}RSSI: $rssi dBm ($change_type) ${NC}"
+			[ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$data $expected_name ${GREEN}$cmd ${NC}RSSI: $rssi dBm ($change_type) ${NC}" && rssi_updated=true
 		fi
 
 		#**********************************************************************
@@ -880,7 +877,7 @@ while true; do
 			#PUBLISH PRESENCE OF BEACON
 			publish_presence_message "owner/$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "IBEACON" "$rssi" "$power"
 		
-		elif [ "$cmd" == "PUBL" ] && [ "$PREF_PUBLIC_MODE" == true ] ; then 
+		elif [ "$cmd" == "PUBL" ] && [ "$rssi_updated" == true] && [ "$PREF_PUBLIC_MODE" == true ] ; then 
 
 			#TRIGGER MODE PREVENTS THIS 
 			[ "$PREF_TRIGGER_MODE" == true ] && continue
