@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.528
+version=0.1.529
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -223,8 +223,8 @@ perform_complete_scan () {
 	local manufacturer="Unknown"
 	
 	#LOG START OF DEVICE SCAN 
-	log "${GREEN}[CMD-INFO]	${GREEN}**** Started group scan. [x$repetitions max rep] **** ${NC}"
 	publish_cooperative_scan_message
+	log "${GREEN}[CMD-INFO]	${GREEN}**** Started group scan. [x$repetitions max rep] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	for repetition in $(seq 1 $repetitions); do
@@ -674,6 +674,9 @@ while true; do
 			#SET NAME TO LOCAL DATABASE 
 			[ ! -z "$name" ] && known_public_device_name[$data]="$name"
 
+			#LOG A RECEIVED NAME
+			log "Adding: $name as name for $data"
+
 			#STATIC DEVICE DATABASE AND RSSI DATABASE
 			public_device_log[$data]="$timestamp"
 			rssi_log[$data]="$rssi"
@@ -776,16 +779,19 @@ while true; do
 			rssi_change=$((rssi - rssi_latest))
 			abs_rssi_change=${rssi_change#-}
 
+			#DO WE HAVE A NAME?
+			expected_name="${known_public_device_name[$data]}"
+
 			#DETERMINE MOTION DIRECTION
 			motion_direction="Departing"
 			[ "$rssi_change" == "$abs_rssi_change" ] && motion_direction="Approaching"
 
 			#IF POSITIVE, APPROACHING IF NEGATIVE DEPARTING
 			case 1 in
-				$(( abs_rssi_change >= 8)) )
+				$(( abs_rssi_change >= 25)) )
 					change_type="Fast Motion $motion_direction"
 					;;
-				$(( abs_rssi_change >= 5)) )
+				$(( abs_rssi_change >= 10)) )
 					change_type="Moderate Motion $motion_direction"
 					;;
 				$(( abs_rssi_change >= 1)) )
@@ -797,7 +803,7 @@ while true; do
 			esac
 
 			#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-			[ "$abs_rssi_change" -gt "2" ] && log "${CYAN}[CMD-RSSI]	${NC}$data ${GREEN}$cmd ${NC}RSSI: $rssi dBm ($change_type) ${NC}"
+			[ "$abs_rssi_change" -gt "7" ] && log "${CYAN}[CMD-RSSI]	${NC}$data $expected_name ${GREEN}$cmd ${NC}RSSI: $rssi dBm ($change_type) ${NC}"
 		fi
 
 		#**********************************************************************
