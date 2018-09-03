@@ -181,7 +181,7 @@ PREF_CONFIG="$base_directory/behavior_preferences"
 if [ -f "$PREF_CONFIG" ]; then 
 	source "$PREF_CONFIG"
 
-	echo "> preference: delay between scans = $PREF_INTERSCAN_DELAY
+	preferences=$(echo "> preference: delay between scans = $PREF_INTERSCAN_DELAY
 > preference: periodic arrive/depart check interval = $PREF_CLOCK_INTERVAL
 > preference: periodic arrive interval = $PREF_ARRIVE_SCAN_INTERVAL
 > preference: periodic depart interval = $PREF_DEPART_SCAN_INTERVAL 
@@ -189,7 +189,12 @@ if [ -f "$PREF_CONFIG" ]; then
 > preference: max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS
 > preference: max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
 > preference: random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL
-> preference: beacon rssi change required for reporting = $PREF_RSSI_CHANGE_THRESHOLD" 
+> preference: beacon rssi change required for reporting = $PREF_RSSI_CHANGE_THRESHOLD" | sed 's/= $/= ERROR\!/g')
+
+	echo "$preferences"
+
+	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
+	[ "$(echo "$preferences" | grep -c "ERROR")" -gt "0" ] && exit 0
 
 else
 	echo "> default behavior preferences file created. Please customize to your needs." 
