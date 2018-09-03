@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.520
+version=0.1.521
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -78,15 +78,15 @@ sudo rm log_pipe &>/dev/null
 mkfifo log_pipe
 
 #DEFINE DEVICE TRACKING VARS
-declare -A static_device_log
+declare -A public_device_log
 declare -A random_device_log
 declare -A named_device_log
 declare -A rssi_log
 
 #STATIC DEVICE ASSOCIATIVE ARRAYS
-declare -A known_static_device_log
+declare -A known_public_device_log
 declare -A known_static_device_scan_log
-declare -A known_static_device_name
+declare -A known_public_device_name
 
 #LAST TIME THIS 
 scan_pid=""
@@ -116,7 +116,7 @@ for addr in ${known_static_addresses[@]}; do
 	known_name=$(grep "$addr" "$PUB_CONFIG" | tr "\\t" " " | sed 's/  */ /g;s/#.\{0,\}//g' | sed "s/$addr //g;s/  */ /g" )
 
 	#IF WE FOUND A NAME, RECORD IT
-	[ ! -z "$known_name" ] && known_static_device_name[$addr]="$known_name"
+	[ ! -z "$known_name" ] && known_public_device_name[$addr]="$known_name"
 done
 
 # ----------------------------------------------------------------------------------------
@@ -162,7 +162,7 @@ scannable_devices_with_state () {
 	for known_addr in "${known_static_addresses[@]}"; do 
 		
 		#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
-		this_state="${known_static_device_log[$known_addr]}"
+		this_state="${known_public_device_log[$known_addr]}"
 
 		#IF WE HAVE NEVER SCANNED THIS DEVICE BEFORE, WE MARK AS 
 		#SCAN STATE [X]; THIS ALLOWS A FIRST SCAN TO PROGRESS TO 
@@ -461,18 +461,18 @@ while true; do
 				unset random_device_log[$mac]
 
 				#SAVE THE NAME
-				known_static_device_name[$mac]="$name"
+				known_public_device_name[$mac]="$name"
 				rssi_log[$mac]="$rssi"
 
 				#IS THIS A NEW STATIC DEVICE?
-				[ -z "${static_device_log[$mac]}" ] && is_new=true
-				static_device_log[$mac]="$timestamp"
+				[ -z "${public_device_log[$mac]}" ] && is_new=true
+				public_device_log[$mac]="$timestamp"
 
 			else
 				#IS THIS ALREADY IN THE STATIC LOG? 
-				if [ ! -z  "${static_device_log[$mac]}" ]; then 
+				if [ ! -z  "${public_device_log[$mac]}" ]; then 
 					#IS THIS A NEW STATIC DEVICE?
-					static_device_log[$mac]="$timestamp"
+					public_device_log[$mac]="$timestamp"
 					rssi_log[$mac]="$rssi"
 					cmd="PUBL"
 
@@ -602,6 +602,9 @@ while true; do
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
+				else 
+					log "${BLUE}[VALID]	${NC}$key valid still after $difference ($random_bias bias) seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
+		
 				fi 
 			done
 
@@ -610,13 +613,13 @@ while true; do
 
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			beacon_bias=0
-			for key in "${!static_device_log[@]}"; do
+			for key in "${!public_device_log[@]}"; do
 				#GET BIAS
 				beacon_bias=${device_expiration_biases[$key]}
 				[ -z "$beacon_bias" ] && beacon_bias=0 
 
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-				last_seen=${static_device_log[$key]}
+				last_seen=${public_device_log[$key]}
 				difference=$((timestamp - last_seen))
 
 				#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
@@ -624,11 +627,13 @@ while true; do
 
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$((180 + beacon_bias ))" ]; then 
-					unset static_device_log[$key]
+					unset public_device_log[$key]
 					log "${BLUE}[CLEARED]	${NC}$key expired after $difference ($random_bias bias) seconds ${NC}"
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
+				else 
+					log "${BLUE}[VALID]	${NC}$key valid still after $difference ($random_bias bias) seconds PUBL_NUM: ${#public_device_log[@]}  ${NC}"
 				fi 
 			done
 
@@ -652,16 +657,16 @@ while true; do
 			data="$mac"
 
 			#DATA IS PUBLIC MAC Addr.; ADD TO LOG
-			[ -z "${static_device_log[$data]}" ] && is_new=true
+			[ -z "${public_device_log[$data]}" ] && is_new=true
 
 			#GET LAST RSSI
 			[ "${rssi_log[$data]}" != "$rssi" ] && rssi_updated=true
 
 			#SET NAME TO LOCAL DATABASE 
-			[ ! -z "$name" ] && known_static_device_name[$data]="$name" && expected_name="$name"
+			[ ! -z "$name" ] && known_public_device_name[$data]="$name"
 
 			#STATIC DEVICE DATABASE AND RSSI DATABASE
-			static_device_log[$data]="$timestamp"
+			public_device_log[$data]="$timestamp"
 			rssi_log[$data]="$rssi"
 
 			#MANUFACTURER
@@ -674,7 +679,7 @@ while true; do
 			data="$mac"
 
 			#PREVIOUS STATE; SET DEFAULT TO UNKNOWN
-			previous_state="${known_static_device_log[$mac]}"
+			previous_state="${known_public_device_log[$mac]}"
 			[ -z "$previous_state" ] && previous_state=-1
 
 			#GET MANUFACTURER INFORMATION
@@ -682,10 +687,10 @@ while true; do
 
 			#IF NAME IS DISCOVERED, PRESUME HOME
 			if [ ! -z "$name" ]; then 
-				known_static_device_log[$mac]=1
+				known_public_device_log[$mac]=1
 				[ "$previous_state" != "1" ] && did_change=true
 			else
-				known_static_device_log[$mac]=0
+				known_public_device_log[$mac]=0
 				[ "$previous_state" != "0" ] && did_change=true
 			fi 
 
@@ -711,8 +716,8 @@ while true; do
 
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			data="$mac"
-			[ -z "${static_device_log[$data]}" ] && is_new=true
-			static_device_log[$data]="$timestamp"	
+			[ -z "${public_device_log[$data]}" ] && is_new=true
+			public_device_log[$data]="$timestamp"	
 			rssi_log[$data]="$rssi"
 
 			#GET MANUFACTURER INFORMATION
@@ -772,11 +777,11 @@ while true; do
 			
 			#PRINTING FORMATING
 			debug_name="$name"
-			expected_name="${known_static_device_name[$data]}"
-			current_state="${known_static_device_log[$mac]}"
+			expected_name="${known_public_device_name[$data]}"
+			current_state="${known_public_device_log[$mac]}"
 
 			#IF NAME IS NOT PREVIOUSLY SEEN, THEN WE SET THE STATIC DEVICE DATABASE NAME
-			[ -z "$expected_name" ] && [ ! -z "$name" ] && known_static_device_name[$data]="$name" 
+			[ -z "$expected_name" ] && [ ! -z "$name" ] && known_public_device_name[$data]="$name" 
 			[ ! -z "$expected_name" ] && [ -z "$name" ] && name="$expected_name"
 
 			#OVERWRITE WITH EXPECTED NAME
@@ -810,7 +815,7 @@ while true; do
 			[ "$PREF_TRIGGER_MODE" == true ] && continue
 
 			#DOES AN EXPECTED NAME EXIST? 
-			expected_name="${known_static_device_name[$data]}"
+			expected_name="${known_public_device_name[$data]}"
 
 			#PRINTING FORMATING
 			[ -z "$expected_name" ] && expected_name="Unknown"
@@ -827,7 +832,7 @@ while true; do
 			[ "$PREF_TRIGGER_MODE" == true ] && continue
 
 			#IF IS NEW AND IS PUBLIC, SHOULD CHECK FOR NAME
-			expected_name="${known_static_device_name[$data]}"
+			expected_name="${known_public_device_name[$data]}"
 
 			#FIND PERMANENT DEVICE NAME OF PUBLIC DEVICE
 			if [ -z "$expected_name" ]; then 
@@ -855,7 +860,7 @@ while true; do
 							expected_name="Unknown Name"
 						else 
 							#ADD TO SESSION ARRAY
-							known_static_device_name[$data]="$expected_name"
+							known_public_device_name[$data]="$expected_name"
 
 							#ADD TO CACHE
 							echo "$data	$expected_name" >> .public_name_cache
