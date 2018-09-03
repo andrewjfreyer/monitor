@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.532
+version=0.1.533
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -615,7 +615,7 @@ while true; do
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
 				else 
-					log "${BLUE}[CHECK-${GREEN}DEL${BLUE}]	${NC}$key valid still after $difference ($random_bias bias) seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
+					log "${BLUE}[CHECK-${GREEN}OK${BLUE}]	${NC}$key last seen $difference ($random_bias bias) seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
 		
 				fi 
 			done
@@ -640,12 +640,12 @@ while true; do
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$((180 + beacon_bias ))" ]; then 
 					unset public_device_log[$key]
-					log "${BLUE}[CLEARED]	${NC}$key expired after $difference ($random_bias bias) seconds ${NC}"
+					log "${BLUE}[CHECK-${RED}DEL${BLUE}]	${NC}$key expired after $difference ($random_bias bias) seconds ${NC}"
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
 				else 
-					log "${BLUE}[VALID]	${NC}$key valid still after $difference ($random_bias bias) seconds PUBL_NUM: ${#public_device_log[@]}  ${NC}"
+					log "${BLUE}[CHECK-${GREEN}OK${BLUE}]	${NC}$key last seen $difference ($random_bias bias) seconds PUBL_NUM: ${#public_device_log[@]}  ${NC}"
 				fi 
 			done
 
