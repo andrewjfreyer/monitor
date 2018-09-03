@@ -86,6 +86,9 @@ btle_packet_processor () {
 		#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 		local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 		
+		#VERIFY ADDRESS DOES NOT START WITH 00
+		[[ "$received_mac_address" =~ ^00 ]] && return  0
+
 		#TWO BYTES ARE PDU HEADER
 		local pdu_header=$(echo $packet | awk '{print $7$6}' )
 		local pdu_header_bin=$(echo "ibase=16;obase=2;$pdu_header" | bc | xargs printf "%016d")

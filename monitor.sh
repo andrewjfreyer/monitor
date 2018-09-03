@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.527
+version=0.1.528
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -285,20 +285,27 @@ perform_complete_scan () {
 				#NEED TO REPORT? 
 				if [[ $should_report =~ .*$known_addr.* ]] || [ "$PREF_REPORT_ALL_MODE" == true ] ; then 
 
+					#GET LOCAL NAME
+					local expected_name="${known_static_device_name[$known_addr]}"
+					[ -z "$expected_name" ] && "Unknown"
+
 					#DETERMINE MANUFACTUERE
 					manufacturer="$(determine_manufacturer $known_addr)"
 					[ -z "$manufacturer" ] && manufacturer="Unknown" 			
 
 					#REPORT PRESENCE
-					publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "100" "$name" "$manufacturer" "PUBLIC_MAC"			
+					publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "PUBLIC_MAC"			
 				fi 
 			fi 
 
 			#SHOULD WE REPORT A DROP IN CONFIDENCE? 
 			if [ -z "$name" ] && [ "$previous_state" == "1" ]; then 
 
+				local expected_name="${known_static_device_name[$known_addr]}"
+				[ -z "$expected_name" ] && "Unknown"
+
 				#REPORT PRESENCE OF DEVICE
-				publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "$(echo "100 / 2 ^ $repetition" | bc )" "$name" "Unknown" "PUBLIC_MAC"
+				publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "$(echo "100 / 2 ^ $repetition" | bc )" "$expected_name" "Unknown" "PUBLIC_MAC"
 
 				#IF WE DO FIND A NAME LATER, WE SHOULD REPORT OUT 
 				should_report="$should_report$known_addr"
