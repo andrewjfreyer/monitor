@@ -39,7 +39,7 @@ ____
 
 <h1>Summary</h1>
 
-A JSON-formatted MQTT message is reported to a specified broker whenever a specified bluetooth device responds to a **name** query. Optionally, a JSON-formatted MQTT message is reported to the broker whenever a public device or an iBeacon advertises its presence. A configuration file defines 'known_static_devices'. These should be devices that do not advertise public addresses, such as cell phones, tablets, and cars. You do not need to add iBeacon mac addresses into this file, since iBeacons broadcast their own UUIDs consistently. 
+A JSON-formatted MQTT message is reported to a specified broker whenever a specified bluetooth device responds to a **name** query. Optionally, a JSON-formatted MQTT message is reported to the broker whenever a public device or an iBeacon advertises its presence. A configuration file defines 'known_static_addresses'. These should be devices that do not advertise public addresses, such as cell phones, tablets, and cars. You do not need to add iBeacon mac addresses into this file, since iBeacons broadcast their own UUIDs consistently. 
 
 ___
 
@@ -148,7 +148,7 @@ ___
 
 For my setup, I have three **raspberry pi zero W**s throughout the house. We spend most of our time on the first floor, so our main 'sensor' is the first floor. Our other 'sensors' on the second and third floor are set up to trigger only, with option ```-t```. 
 
-The first floor constantly monitors for **ADV_RAND** advertisements from BTLE devices (which include our phones). When a "new" device is seen, the first floor scans for our cell phones that are stored in the **known_static_devices** file. If one of those devices is seen, an MQTT message is sent to the second and third floor to trigger a scan there. 
+The first floor constantly monitors for **ADV_RAND** advertisements from BTLE devices (which include our phones). When a "new" device is seen, the first floor scans for our cell phones that are stored in the **known_static_addresses** file. If one of those devices is seen, an MQTT message is sent to the second and third floor to trigger a scan there. 
 
 When we leave the house, we use either the front door or the garage door to trigger an mqtt trigger of ```[topic_path]/scan/depart``` after a 10 second delay to trigger a departure scan of our devices. 
 
@@ -320,10 +320,10 @@ Configuration files will be created with default preferences. Any executables th
 sudo nano mqtt_preferences
 ```
 
-11. **[CONFIGURE MONITOR]** edit **known_static_devices**: 
+11. **[CONFIGURE MONITOR]** edit **known_static_addresses**: 
 
 ```
-nano known_static_devices
+nano known_static_addresses
 ```
 
 12. **[READ HELPFILE]**:

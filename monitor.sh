@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.545
+version=0.1.547
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -182,13 +182,13 @@ scannable_devices_with_state () {
 			#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
 			if [ "$this_state" == "$scan_state" ]; then 
 				#ASSEMBLE LIST OF DEVICES TO SCAN
-				return_list="$return_list $this_state$known_addr"
+				return_list="$return_list $known_addr"
 
 			elif [ "$this_state" == "2" ] || [ "$this_state" == "3" ]; then
 
 				#SCAN FOR ALL DEVICES THAT HAVEN'T BEEN RECENTLY SCANNED; 
 				#PRESUME DEVICE IS ABSENT
-				return_list="$return_list 0$known_addr"
+				return_list="$return_list $known_addr"
 			fi 
 		fi 
 	done
@@ -216,6 +216,14 @@ perform_complete_scan () {
 	[ ! -z "$2" ] && repetitions="$2"
 	[ "$repetitions" -lt "1" ] && repetitions=1
 
+	#PRE
+	local previous_state=0
+	[ ! -z "$3" ] && previous_state="0"
+
+	#SCAN TYPE
+	local transition_type="arrived"
+	[ "$previous_state" == "1" ] && transition_type="departed"
+
 	#INTERATION VARIABLES
 	local devices="$1"
 	local devices_next="$devices"
@@ -225,32 +233,19 @@ perform_complete_scan () {
 	local manufacturer="Unknown"
 	
 	#LOG START OF DEVICE SCAN 
-	publish_cooperative_scan_message "start"
+	publish_cooperative_scan_message "$transition_type/start"
 	log "${GREEN}[CMD-INFO]	${GREEN}**** Started group scan. [x$repetitions max rep] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
+	local repetition 
 	for repetition in $(seq 1 $repetitions); do
 
 		#SET DEVICES
 		devices="$devices_next"
 
 		#ITERATE THROUGH THESE 
-		for device_data in $devices; do 
-
-			#SUBDIVIDE ADDR OBJECT
-			local known_addr="${device_data:1}"
-			local previous_state="${device_data:0:1}"
-
-			#IF SCAN TYPE ISN'T PROERLY ADDED, NEED TO THROW AN ERROR
-			if [[ "$known_addr" =~ ^[0-9A-Z]: ]]; then 
-				known_addr="$device_data"
-				previous_state=0
-				log "${RED}[ERROR]	${NC}Error! Previous state for $device_data not known. Default state used.${NC}"
-			fi 
-
-			#SCAN TYPE
-			local transition_type="arrived"
-			[ "$previous_state" == "1" ] && transition_type="departed"
+		local known_addr
+		for known_addr in $devices; do 
 
 			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
 			[ -z "$known_addr" ] && continue
@@ -356,7 +351,7 @@ perform_complete_scan () {
 	sleep 2
 
 	#PUBLISH END OF COOPERATIVE SCAN
-	publish_cooperative_scan_message "end"
+	publish_cooperative_scan_message "$transition_type/end"
 
 	#SET DONE TO MAIN PIPE
 	echo "DONE" > main_pipe
@@ -381,7 +376,7 @@ perform_departure_scan () {
 	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 	if [ "$scan_active" == false ] ; then 
 		#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-		perform_complete_scan "$depart_list" "$PREF_DEPART_SCAN_ATTEMPTS" & 
+		perform_complete_scan "$depart_list" "$PREF_DEPART_SCAN_ATTEMPTS" "1" & 
 
 		scan_pid=$!
 		scan_type=1
@@ -404,7 +399,7 @@ perform_arrival_scan () {
 	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 	if [ "$scan_active" == false ] ; then 
 		#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-		perform_complete_scan "$arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" & 
+		perform_complete_scan "$arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" "0" & 
 
 		scan_pid=$!
 		scan_type=0
@@ -933,7 +928,7 @@ while true; do
 			#PROVIDE USEFUL LOGGING
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name $rssi dBm"
 			
-			#SCAN ONLY IF WE ARE IN TRIGGER MODE
+			#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 		 	perform_arrival_scan 
 		fi 
 
