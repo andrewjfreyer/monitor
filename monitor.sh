@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.559
+version=0.1.560
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -857,7 +857,7 @@ while true; do
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
 		
-		elif [ "$cmd" == "BEAC" ] ; then 
+		elif [ "$cmd" == "BEAC" ] && [ "$rssi_updated" == true ]; then 
 
 			#DOES AN EXPECTED NAME EXIST? 
 			expected_name="${known_public_device_name[$data]}"
