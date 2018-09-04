@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.548
+version=0.1.549
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -339,8 +339,8 @@ perform_complete_scan () {
 	done 
 
 	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
-	for device_data in $devices_next; do 
-		local known_addr=device_data
+	local known_addr
+	for known_addr in $devices_next; do 
 		echo "NAME$known_addr|" > main_pipe & 
 	done
 
