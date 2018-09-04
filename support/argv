@@ -85,10 +85,10 @@ usage:
 
 	monitor -r	repeatedly scan for arrival & departure of known devices
 	monitor -f	format MQTT topics with only letters and numbers
-	monitor -b	scan for & report BTLE beacon advertisements
+	monitor -b	report ibeacon advertisements
 	monitor -a	report all scan results, not just changes
 	monitor -x	retain mqtt status messages
-	monitor -P	scan for & report public address advertisements
+	monitor -g	report generic bluetooth advertisements
 	monitor -t	scan only on mqtt trigger messages:
 				[topic path]/scan/ARRIVE (defined in MQTT preferences file)
 				[topic path]/scan/DEPART (defined in MQTT preferences file)
@@ -116,7 +116,7 @@ PREF_SHOULD_RETAIN=false
 PREF_CLEAN_MQTT=false
 PREF_FORMAT_MQTT=false
 
-while getopts "h?vrfbutPRCadx" opt; do
+while getopts "h?vrfbutgRCadx" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
@@ -139,16 +139,17 @@ while getopts "h?vrfbutPRCadx" opt; do
 			;;
 		u)  PREF_UPDATE_SERVICE=true 	&& echo "> updating monitor.service"
 			;;
-		b)  PREF_BEACON_MODE=true 		&& echo "> beacon scan mode enabled"
+		b)  PREF_BEACON_MODE=true 		&& echo "> ibeacon reporting mode enabled"
 			;;
 		f)  PREF_FORMAT_MQTT=true 		&& echo "> only allow letters, numbers, and spaces in mqtt topic paths"
 			;;
-		P)  PREF_PUBLIC_MODE=true 		&& echo "> public node scan mode enabled"
+		g)  PREF_PUBLIC_MODE=true 		&& echo "> generic bluetooth beacon reporting mode enabled"
 			;;
 		t)  PREF_TRIGGER_MODE=true 		&& echo "> trigger only mode enabled"
 			;;
 		a)  PREF_REPORT_ALL_MODE=true 	&& echo "> report all scan results mode enabled"
 			;;
+		*)	echo "> unknown argument: $opt"
 	esac
 done
 

@@ -13,13 +13,13 @@ ____
   
   * [**Background on BTLE**](#background-on-btle) 
     
-    * [Connectable Devices](#connectable-devices) ***TL;DR***: Some bluetooth devices only advertise an ability to connect, but do not advertise who they are. These devices need to be affirmatively scanned by a host in order to know whether or not specific devices are present.
+    * [Connectable Devices](#connectable-devices) ***TL;DR***: Some bluetooth devices only advertise an ability to connect, but do not publicly advertise their identity. These devices need to be affirmatively scanned by a host to verify their identity. *Example: bluetooth-enabled phones*
     
-    * [Beacon Devices](#beacon-devices) ***TL;DR***: Some bluetooth devices advertise both an ability to connect and a unique identifier.
+    * [Beacon Devices](#beacon-devices) ***TL;DR***: Other bluetooth devices advertise both (1) an ability to connect and (2) a unique identifier that can be used to identify a specific device. *Example: BTLE beacons*
 
-    * [Using Advertisements to Trigger "Name" Scans](#using-advertisements-to-trigger-name-scans) ***TL;DR***: We can use random advertisements as a trigger for scanning for the name of a known bluetooth device.
+    * [Using Advertisements to Trigger "Name" Scans](#using-advertisements-to-trigger-name-scans) ***TL;DR***: We can use a random advertisement (from an unknown device) as a trigger for scanning for a known bluetooth device. Neat!
 
-  * [**How to Use with Home Assistant**](#an-example-use-with-home-assistant) 
+  * [**Example with Home Assistant**](#an-example-use-with-home-assistant) 
 
   * [**Installing on a Raspberry Pi Zero W**](#installation-instructions-raspbian-jessie-lite-stretch) 
 
@@ -29,7 +29,7 @@ ____
 
 * More granular, responsive, and reliable than device-reported GPS or arp/network-based presence detection 
 
-* Cheaper, more reliable, more configurable, and less spammy than [Happy Bubbles](https://www.happybubbles.tech) (which, unfortunately, is no longer operating as of 2018 because of [Trump's tarrifs](https://www.happybubbles.tech/blog/post/2018-hiatus/)) or [room-assistant](https://github.com/mKeRix/room-assistant) 
+* Cheaper, more reliable, more configurable, and less spammy than [Happy Bubbles](https://www.happybubbles.tech) (which, unfortunately, is no longer operating as of 2018 because of [tarrifs](https://www.happybubbles.tech/blog/post/2018-hiatus/)) or [room-assistant](https://github.com/mKeRix/room-assistant) 
 
 * Does not require any app to be running or installed on any device 
 
@@ -132,27 +132,29 @@ usage:
       (excluding -u and -d flags)
 
   monitor -r  repeatedly scan for arrival & departure of known devices
-  monitor -b  scan for & report BTLE beacon advertisements
-  monitor -a  report all scan results, not just presence changes
+  monitor -f  format MQTT topics with only letters and numbers
+  monitor -b  report ibeacon advertisements
+  monitor -a  report all scan results, not just changes
   monitor -x  retain mqtt status messages
-  monitor -P  scan for & report public address advertisements
+  monitor -g  report generic bluetooth advertisements
   monitor -t  scan only on mqtt trigger messages:
-        [topic path]/scan/ARRIVE
-        [topic path]/scan/DEPART
-
+        [topic path]/scan/ARRIVE (defined in MQTT preferences file)
+        [topic path]/scan/DEPART (defined in MQTT preferences file)
 
 ```
 ___
 
-<h1>An Example Use with Home Assistant</h1>
+<h1>Example with Home Assistant</h1>
 
-For my setup, I have three **raspberry pi zero W**s throughout the house. We spend most of our time on the first floor, so our main 'sensor' is the first floor. Our other 'sensors' on the second and third floor are set up to trigger only, with option ```-t```. 
+I have three **raspberry pi zero w**s throughout the house. We spend most of our time on the first floor, so our main 'sensor' is the first floor. Our other 'sensors' on the second and third floor are set up to trigger only, with option ```-t```. 
 
-The first floor constantly monitors for **ADV_RAND** advertisements from BTLE devices (which include our phones). When a "new" device is seen, the first floor scans for our cell phones that are stored in the **known_static_addresses** file. If one of those devices is seen, an MQTT message is sent to the second and third floor to trigger a scan there. 
+The first floor constantly monitors for advertisements from generic bluetooth devices and ibeacons. The first floor also monitors for random advertisements from other bluetooth devices, which include our phones. When a "new" random device is seen (*i.e.,* an advertisement is received), the first floor pi then scans for the fixed address of our cell phones. These addresses are are stored in the **known_static_addresses** file. If one of those devices is seen, an mqtt message is sent to Home Assistant reporting that the scanned phone is "home" with a confidence of 100%. In addition, an mqtt message is sent to the second and third floor to trigger a scan on those floors as well. 
 
-When we leave the house, we use either the front door or the garage door to trigger an mqtt trigger of ```[topic_path]/scan/depart``` after a 10 second delay to trigger a departure scan of our devices. 
+When we leave the house, we use either the front door or the garage door to trigger an mqtt trigger of ```[topic_path]/scan/depart``` after a ten second delay to trigger a departure scan of our devices. The ten second delay gives us a chance to get out of bluetooth range before a "departure" scan is triggered. Different houses/apartments will probably need different delays. 
 
-The monitor script can be used as an input to a number of [mqtt sensors](https://www.home-assistant.io/components/sensor.mqtt/) in [Home Assistant.](https://www.home-assistant.io). Output from these sensors can be averaged to give an accurate numerical occupancy confidence.  For example:
+[Home Assistant](https://www.home-assistant.io) receives mqtt messages and stores the values as input to a number of [mqtt sensors](https://www.home-assistant.io/components/sensor.mqtt/). Output from these sensors can be averaged to give an accurate numerical occupancy confidence.  
+
+For example (note that 00:00:00:00:00:00 is an example address - this should be your phone's address):
 
 
 ```
@@ -180,7 +182,7 @@ These sensors can be combined/averaged using a [min_max](https://www.home-assist
 
 ```
 - platform: min_max
-  name: "Home Occupancy Confidence"
+  name: "Home Occupancy Confidence of 00:00:00:00:00:00"
   type: mean
   round_digits: 0
   entity_ids:
@@ -189,7 +191,7 @@ These sensors can be combined/averaged using a [min_max](https://www.home-assist
     - sensor.first_floor
 ```
 
-As a result of this average, we use the entity **sensor.home_occupancy_confidence** in automations to control the state of an **input_boolean** that represents a very high confidence of a user being home or not. 
+Then I use the entity **sensor.home_occupancy_confidence** in automations to control the state of an **input_boolean** that represents a very high confidence of a user being home or not. 
 
 As an example:
 
