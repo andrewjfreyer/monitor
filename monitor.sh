@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.558
+version=0.1.559
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -716,9 +716,6 @@ while true; do
 
 		elif [ "$cmd" == "BEAC" ]; then 
 
-			#TRIGGER MODE PREVENTS BEACONS
-			[ "$PREF_TRIGGER_MODE" == true ] && continue
-
 			#DATA IS DELIMITED BY VERTICAL PIPE
 			uuid=$(echo "$data" | awk -F "|" '{print $1}')
 			major=$(echo "$data" | awk -F "|" '{print $2}')
@@ -862,9 +859,6 @@ while true; do
 		
 		elif [ "$cmd" == "BEAC" ] ; then 
 
-			#TRIGGER MODE PREVENTS THIS 
-			[ "$PREF_TRIGGER_MODE" == true ] && continue
-
 			#DOES AN EXPECTED NAME EXIST? 
 			expected_name="${known_public_device_name[$data]}"
 
@@ -878,9 +872,6 @@ while true; do
 			publish_presence_message "owner/$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "APPLE_IBEACON" "$rssi" "$power"
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$rssi_updated" == true ] && [ "$PREF_PUBLIC_MODE" == true ] ; then 
-
-			#TRIGGER MODE PREVENTS THIS 
-			[ "$PREF_TRIGGER_MODE" == true ] && continue
 
 			#IF IS NEW AND IS PUBLIC, SHOULD CHECK FOR NAME
 			expected_name="${known_public_device_name[$data]}"

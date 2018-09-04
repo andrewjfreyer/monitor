@@ -108,8 +108,8 @@ determine_manufacturer () {
 		#CHECK CACHE
 		local manufacturer=$(grep "${address:0:8}" < ".manufacturer_cache" | awk -F "\t" '{print $2}')
 
-		#EXCEPTION 
-		[[ "$address" =~ ^FF:FF ]] &&  manufacturer="SIG Unassigned/Non-compliant Manufacturer"
+		#EXCEPTION FOR SUSPECT PRODUCTS
+		[[ "$address" =~ ^FF:FF ]] && manufacturer="SIG Unassigned/Non-compliant Manufacturer"
 
 		#IF CACHE DOES NOT EXIST, USE MACVENDORS.COM
 		if [ -z "$manufacturer" ]; then 
