@@ -81,15 +81,15 @@ publish_presence_message () {
 			retain_flag="true"
 		fi 
 
-			#DEBUGGING 
-		(>&2 log "${PURPLE}$mqtt_topicpath/$1 { retain: $retain_flag, version : $version, confidence : $confidence, name : $name, timestamp : $stamp, manufacturer : $4 , type : $5$debug_append } ${NC}")
-		
 		#DEFINE THE TOPIC
 		local topic="$mqtt_topicpath/$1"
 
 		#SHOULD FORMAT AS LETTERS/NUMBERS
-		[ "$PREF_FORMAT_MQTT" == true ] && topic=$(echo "$topic" | sed 's/[^A-Z0-9a-z]//g')
+		[ "$PREF_FORMAT_MQTT" == true ] && topic=$(echo "$topic" | sed 's/[^A-Z0-9a-z/]//g')
 
+			#DEBUGGING 
+		(>&2 log "${PURPLE}$topic { retain: $retain_flag, version : $version, confidence : $confidence, name : $name, timestamp : $stamp, manufacturer : $4 , type : $5$debug_append } ${NC}")
+		
 		#POST TO MQTT
 		$mosquitto_pub_path $should_retain $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$topic" -m "{\"retained\":\"$retain_flag\", \"version\":\"$version\", \"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\",\"type\":\"$5\",\"rssi\":\"$6\"$append}"
 	fi
