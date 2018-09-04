@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.544
+version=0.1.545
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -557,10 +557,6 @@ while true; do
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
 				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger DEPART ${NC}"
 				perform_departure_scan
-				
-			else						#IN RESPONSE TO MQTT SCAN 
-				log "${GREEN}[INSTRUCT] ${RED}[Rejected] ${NC} ${NC}Bad MQTT scan command: $mqtt_topic_branch ${NC}"
-
 			fi
 
 		elif [ "$cmd" == "TIME" ]; then 
