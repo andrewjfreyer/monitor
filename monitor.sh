@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.543
+version=0.1.544
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -151,7 +151,7 @@ scannable_devices_with_state () {
 		scan_type_diff=$((timestamp - last_arrival_scan))
 	else 
 		#SET THE SCAN DIFF AS HIGH IF NO TYPE RECOGNIZED
-		scan_type_diff=99
+		scan_type_diff=90
 	fi 
 
 	#REJECT IF WE SCANNED TO RECENTLY
@@ -159,8 +159,7 @@ scannable_devices_with_state () {
 
 	#SCAN ALL? SET THE SCAN STATE TO [X]
 	[ -z "$scan_state" ] && scan_state=2
-
-			 	
+		 	
 	#ITERATE THROUGH THE KNOWN DEVICES 
 	for known_addr in "${known_static_addresses[@]}"; do 
 		
@@ -226,7 +225,7 @@ perform_complete_scan () {
 	local manufacturer="Unknown"
 	
 	#LOG START OF DEVICE SCAN 
-	publish_cooperative_scan_message
+	publish_cooperative_scan_message "start"
 	log "${GREEN}[CMD-INFO]	${GREEN}**** Started group scan. [x$repetitions max rep] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
@@ -241,6 +240,13 @@ perform_complete_scan () {
 			#SUBDIVIDE ADDR OBJECT
 			local known_addr="${device_data:1}"
 			local previous_state="${device_data:0:1}"
+
+			#IF SCAN TYPE ISN'T PROERLY ADDED, NEED TO THROW AN ERROR
+			if [[ "$known_addr" =~ ^[0-9A-Z]: ]]; then 
+				known_addr="$device_data"
+				previous_state=0
+				log "${RED}[ERROR]	${NC}Error! Previous state for $device_data not known. Default state used.${NC}"
+			fi 
 
 			#SCAN TYPE
 			local transition_type="arrived"
@@ -348,6 +354,9 @@ perform_complete_scan () {
 
 	#DELAY BEFORE CLEARNING THE MAIN PIPE
 	sleep 2
+
+	#PUBLISH END OF COOPERATIVE SCAN
+	publish_cooperative_scan_message "end"
 
 	#SET DONE TO MAIN PIPE
 	echo "DONE" > main_pipe

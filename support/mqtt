@@ -79,7 +79,6 @@ publish_presence_message () {
 		if [ "$PREF_SHOULD_RETAIN" == true ]; then 
 			should_retain="-r "
 			retain_flag="true"
-			sleep 1
 		fi 
 
 			#DEBUGGING 
