@@ -36,7 +36,11 @@ log_listener () {
 	#LOG PIPE
 	while true; do 
 		#READ FROM THE MAIN PIPE
+		local line 
 		while read line; do 
+
+			#REPLACE NEWLINE TAGS
+			line=$(echo "$line" | sed 's/<br>/\n/g;s/<p>/\t/g')
 
 			#ECHO TO CONSOLE, REMOVING EXTRA SPACES	
 			should_repeat=""
