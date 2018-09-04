@@ -84,13 +84,14 @@ usage:
 			(excluding -u and -d flags)
 
 	monitor -r	repeatedly scan for arrival & departure of known devices
+	monitor -f	format MQTT topics with only letters and numbers
 	monitor -b	scan for & report BTLE beacon advertisements
-	monitor -a	report all scan results, not just presence changes
+	monitor -a	report all scan results, not just changes
 	monitor -x	retain mqtt status messages
 	monitor -P	scan for & report public address advertisements
 	monitor -t	scan only on mqtt trigger messages:
-				[topic path]/scan/ARRIVE
-				[topic path]/scan/DEPART
+				[topic path]/scan/ARRIVE (defined in MQTT preferences file)
+				[topic path]/scan/DEPART (defined in MQTT preferences file)
 
 
 	"
@@ -113,8 +114,9 @@ PREF_UPDATE_SERVICE=false
 PREF_REDACT=false
 PREF_SHOULD_RETAIN=false
 PREF_CLEAN_MQTT=false
+PREF_FORMAT_MQTT=false
 
-while getopts "h?vrbutPRCadx" opt; do
+while getopts "h?vrfbutPRCadx" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
@@ -138,6 +140,8 @@ while getopts "h?vrbutPRCadx" opt; do
 		u)  PREF_UPDATE_SERVICE=true 	&& echo "> updating monitor.service"
 			;;
 		b)  PREF_BEACON_MODE=true 		&& echo "> beacon scan mode enabled"
+			;;
+		f)  PREF_FORMAT_MQTT=true 		&& echo "> only allow letters, numbers, and spaces in mqtt topic paths"
 			;;
 		P)  PREF_PUBLIC_MODE=true 		&& echo "> public node scan mode enabled"
 			;;
