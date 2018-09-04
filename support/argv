@@ -78,6 +78,7 @@ usage:
 	monitor -h 	show usage information
 	monitor -R 	redact private information from logs
 	monitor -C 	clean retained messages from MQTT broker
+	monitor -c 	clean manufacturer cache and generic beacon cache
 	monitor -v	print version number
 	monitor -d	restore to default settings
 	monitor -u	update 'monitor.service' to current command line settings
@@ -116,7 +117,7 @@ PREF_SHOULD_RETAIN=false
 PREF_CLEAN_MQTT=false
 PREF_FORMAT_MQTT=false
 
-while getopts "h?vrfbutgRCadx" opt; do
+while getopts "h?vrfbutgRcCadx" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
@@ -125,6 +126,9 @@ while getopts "h?vrfbutgRCadx" opt; do
 		v)  
 			echo "$VERSION"
 			exit 0
+			;;
+		c)  
+			rm ".manufacturer_cache" && rm ".public_name_cache" && echo "> cleaning caches"
 			;;
 		C)  
 			PREF_CLEAN_MQTT=true && echo "> cleaning retained messages on broker"

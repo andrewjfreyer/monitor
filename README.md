@@ -126,6 +126,7 @@ usage:
   monitor -h  show usage information
   monitor -R  redact private information from logs
   monitor -C  clean retained messages from MQTT broker
+  monitor -c  clean manufacturer cache and generic beacon cache
   monitor -v  print version number
   monitor -d  restore to default settings
   monitor -u  update 'monitor.service' to current command line settings

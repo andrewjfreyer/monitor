@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.552
+version=0.1.553
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -234,7 +234,7 @@ perform_complete_scan () {
 	
 	#LOG START OF DEVICE SCAN 
 	publish_cooperative_scan_message "$transition_type/start"
-	log "${GREEN}[CMD-INFO]	${GREEN}**** Started group scan. [x$repetitions max rep] **** ${NC}"
+	log "${GREEN}[CMD-INFO]	${GREEN}**** Started $transition_type scan. [x$repetitions max rep] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	local repetition 
@@ -298,7 +298,7 @@ perform_complete_scan () {
 					[ -z "$manufacturer" ] && manufacturer="Unknown" 			
 
 					#REPORT PRESENCE
-					publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "PUBLIC_MAC"			
+					publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "KNOWN_MAC"			
 				fi 
 			fi 
 
@@ -309,7 +309,7 @@ perform_complete_scan () {
 				[ -z "$expected_name" ] && "Unknown"
 
 				#REPORT PRESENCE OF DEVICE
-				publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "$(echo "100 / 2 ^ $repetition" | bc )" "$expected_name" "Unknown" "PUBLIC_MAC"
+				publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "$(echo "100 / 2 ^ $repetition" | bc )" "$expected_name" "Unknown" "KNOWN_MAC"
 
 				#IF WE DO FIND A NAME LATER, WE SHOULD REPORT OUT 
 				should_report="$should_report$known_addr"
@@ -345,7 +345,7 @@ perform_complete_scan () {
 	done
 
 	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-INFO]	${GREEN}**** Completed scan. **** ${NC}"
+	log "${GREEN}[CMD-INFO]	${GREEN}**** Completed $transition_type scan. **** ${NC}"
 
 	#DELAY BEFORE CLEARNING THE MAIN PIPE
 	sleep 2
@@ -875,7 +875,7 @@ while true; do
 			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
 
 			#PUBLISH PRESENCE OF BEACON
-			publish_presence_message "owner/$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "IBEACON" "$rssi" "$power"
+			publish_presence_message "owner/$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "APPLE_IBEACON" "$rssi" "$power"
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$rssi_updated" == true ] && [ "$PREF_PUBLIC_MODE" == true ] ; then 
 
@@ -918,7 +918,7 @@ while true; do
 			fi 
 
 			#REPORT PRESENCE OF DEVICE
-			publish_presence_message "owner/$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "PUBLIC_MAC" "$rssi"
+			publish_presence_message "owner/$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi"
 
 			#PROVIDE USEFUL LOGGING
 			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
