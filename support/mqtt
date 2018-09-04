@@ -70,7 +70,7 @@ publish_presence_message () {
 		[ ! -z "$7" ] && append="$append,\"power\":\"$7\""
 
 		#DEBUG PRINTING
-		debug_append=$(echo "$append" | sed 's/\"//g;s/:/ : /g;s/,/ , /g')
+		debug_append=$(echo "$append" | sed 's/\"//g;s/:/ : /g;s/,/ , /g;s/ , /<br><p>/g')
 		
 		#TIMESTAMP
 		stamp=$(date "+%a %b %d %Y %H:%M:%S GMT%z (%Z)")
@@ -88,7 +88,7 @@ publish_presence_message () {
 		[ "$PREF_FORMAT_MQTT" == true ] && topic=$(echo "$topic" | sed 's/[^A-Z0-9a-z/]//g')
 
 		#DEBUGGING WITH SIMPLE
-		log "${PURPLE}$topic <br>{ <br><p>retain: $retain_flag , version : $version , confidence : $confidence , name : $name , timestamp : $stamp , manufacturer : $4 , type : $5$debug_append }${NC}"
+		log "${PURPLE}$topic <br>{<br><p>retain: $retain_flag<br><p>version : $version<br><p>confidence : $confidence<br><p>name : $name<br><p>timestamp : $stamp<br><p>manufacturer : $4<br><p>type : $5$debug_append<br>}${NC}"
 		
 		#POST TO MQTT
 		$mosquitto_pub_path $should_retain $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$topic" -m "{\"retained\":\"$retain_flag\", \"version\":\"$version\", \"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\",\"type\":\"$5\",\"rssi\":\"$6\"$append}"
