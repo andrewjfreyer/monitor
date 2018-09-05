@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.581
+version=0.1.582
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -728,6 +728,9 @@ while true; do
 				#determine manufacturer
 				local_manufacturer="$(determine_manufacturer "$key")"
 
+				#RSSI
+				latest_rssi="${rssi_log[$key]}" 
+
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$((PREF_BEACON_EXPIRATION + beacon_bias ))" ]; then 
 					unset public_device_log[$key]
@@ -743,7 +746,7 @@ while true; do
 					percent_confidence=$(( 100 - difference * 100 / (PREF_BEACON_EXPIRATION + beacon_bias) )) 
 
 					#REPORT PRESENCE OF DEVICE
-					publish_presence_message "$mqtt_publisher_identity/$key" "$percent_confidence" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi"
+					publish_presence_message "$mqtt_publisher_identity/$key" "$percent_confidence" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$latest_rssi"
 
 				fi 
 			done
