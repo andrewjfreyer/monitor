@@ -40,7 +40,7 @@ log_listener () {
 		while read line; do 
 
 			#REPLACE NEWLINE TAGS
-			line=$(echo "$line" | sed 's/<br>/\n/g;s/<p>/\t/g')
+			#line=$(echo "$line" | sed 's/<br>/\n/g;s/<p>/\t/g')
 
 			#ECHO TO CONSOLE, REMOVING EXTRA SPACES	
 			should_repeat=""
