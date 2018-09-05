@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.570
+version=0.1.571
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -80,7 +80,6 @@ mkfifo log_pipe
 #DEFINE DEVICE TRACKING VARS
 declare -A public_device_log
 declare -A random_device_log
-declare -A named_device_log
 declare -A rssi_log
 
 #STATIC DEVICE ASSOCIATIVE ARRAYS
@@ -555,6 +554,87 @@ while true; do
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
 				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger DEPART ${NC}"
 				perform_departure_scan
+
+			elif [[ $mqtt_topic_branch =~ .*ENVIRONMENT.* ]]; then 
+				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger ENVIRONMENT ... preparing report ${NC}"
+
+				############################### PUBLIC DEVICES #########################################
+
+				publ_json_array=""
+				#GET NAMES AND STATUS OF EACH PUBLIC DEVICE
+				for key in "${!public_device_log[@]}"; do
+					#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
+					last_seen=${public_device_log[$key]}
+
+					#RSSI
+					latest_rssi="${rssi_log[$key]}" 
+
+					#EXPECTED NAME
+					expected_name="${known_public_device_name[$key]}"
+					[ -z "$expected_name" ] && expected_name="Unknown"
+
+					#JSON MESSAGE
+					publ_json_array="$publ_json_array,{\"addresss\":\"$key\", \"name\": \"$expected_name\", \"last seen\":\"$last_seen\", \"rssi\":\"$latest_rssi\"}"
+				done
+
+				#FIX LEADING COMMA IN JSON ARRAY
+				publ_json_array=$(echo "$publ_json_array" | sed 's/^,//g')
+
+				#ENCLOSE IN BRACKETS
+				publ_json_array="[$publ_json_array]"
+
+
+				############################### RANDOM DEVICES #########################################
+
+				rand_json_array=""
+				#GET NAMES AND STATUS OF EACH PUBLIC DEVICE
+				for key in "${!random_device_log[@]}"; do
+					#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
+					last_seen=${random_device_log[$key]}
+
+					#RSSI
+					latest_rssi="${rssi_log[$key]}" 
+
+					#JSON MESSAGE
+					rand_json_array="$rand_json_array,{\"addresss\":\"$key\", \"last seen\":\"$last_seen\", \"rssi\":\"$latest_rssi\"}"
+				done
+
+				#FIX LEADING COMMA IN JSON ARRAY
+				rand_json_array=$(echo "$rand_json_array" | sed 's/^,//g')
+
+				#ENCLOSE IN BRACKETS
+				rand_json_array="[$rand_json_array]"
+
+				############################### KNOWN DEVICES #########################################
+
+				known_json_array=""
+				#GET NAMES AND STATUS OF EACH PUBLIC DEVICE
+				for key in "${!known_public_device_log[@]}"; do
+					#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
+					last_state=${known_public_device_log[$key]}
+
+					#EXPECTED NAME
+					expected_name="${known_public_device_name[$key]}"
+					[ -z "$expected_name" ] && expected_name="Unknown"
+
+					#JSON MESSAGE
+					known_json_array="$known_json_array,{\"addresss\":\"$key\", \"state\":\"$((last_state * 100))\"}"
+				done
+
+				#FIX LEADING COMMA IN JSON ARRAY
+				known_json_array=$(echo "$known_json_array" | sed 's/^,//g')
+
+				#ENCLOSE IN BRACKETS
+				known_json_array="[$known_json_array]"
+
+			
+				############################### ASSEMBLE MESSAGE #########################################
+
+				#ASSEMBLE ENTIRE MESSAGE
+				env_message="{\"generic devices\": $publ_json_array, \"random devices\": $rand_json_array,\"known devices\": $known_json_array}"
+
+				#POST LOGGING MESSAGE
+				log $env_message
 			fi
 
 		elif [ "$cmd" == "TIME" ]; then 
@@ -616,7 +696,6 @@ while true; do
 					expired_device_log[$key]=$timestamp
 				#else 
 					#log "${BLUE}[CHECK-${GREEN}OK${BLUE}]	${NC}$key last seen $difference ($random_bias bias) seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
-		
 				fi 
 			done
 
@@ -641,6 +720,15 @@ while true; do
 				if [ "$difference" -gt "$((180 + beacon_bias ))" ]; then 
 					unset public_device_log[$key]
 					log "${BLUE}[CHECK-${RED}DEL${BLUE}]	${NC}$key expired after $difference ($random_bias bias) seconds ${NC}"
+
+					#GET EXPECTED NAME
+					expected_name="${known_public_device_name[$key]}"
+
+					#determine manufacturer
+					local_manufacturer="$(determine_manufacturer "$key")"
+
+					#REPORT PRESENCE OF DEVICE
+					publish_presence_message "owner/$mqtt_publisher_identity/$key" "0" "$expected_name" "$local_manufacturer" "GENERIC_BEACON"
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
@@ -854,7 +942,7 @@ while true; do
 			[ "$did_change" == true ] && [ "$current_state" == "0" ] && [ "$PREF_TRIGGER_MODE" == false ] && publish_cooperative_scan_message "depart"
 			[ "$did_change" == true ] && [ "$current_state" == "1" ] && [ "$PREF_TRIGGER_MODE" == false ] && publish_cooperative_scan_message "arrive"
 
-			#REPORT ALL?
+			#REPORT ALL CHANGES
 			[ "$did_change" == false ] && [ "$current_state" == "0" ] && [ "$PREF_REPORT_ALL_MODE" == true ] && publish_presence_message "owner/$mqtt_publisher_identity/$data" "0" "$name" "$manufacturer" "KNOWN_MAC"
 
 			#PRINT RAW COMMAND; DEBUGGING
