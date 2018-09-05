@@ -1,15 +1,15 @@
 import appdaemon.plugins.mqtt.mqttapi as mqtt
 import json
 import shelve
+import os, sys
+dirname, filename = os.path.split(os.path.abspath(sys.argv[0]))
 
-class HomePresenceApp(mqtt.Mqtt):
- 
+ class HomePresenceApp(mqtt.Mqtt):
     def initialize(self):
         self.set_namespace('mqtt')
         self.hass_namespace = self.args.get('hass_namespace', 'default')
-        self.allowed_users = self.app_config["snips_data"]["users"] 
         self.presence_topic = self.args.get('presence_topic', 'presence')
-        self.db_file = self.app_config['settings']['database']
+        self.db_file = os.path.join(os.path.dirname(__file__),'home_presence_database')
         self.listen_event(self.presence_message, 'MQTT')
         self.not_home_timers = dict()
         self.timeout = self.args.get('not_home_timeout', 120) #time interval before declaring not home
