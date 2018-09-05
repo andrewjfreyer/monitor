@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.568
+version=0.1.569
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -248,6 +248,8 @@ perform_complete_scan () {
 		local known_addr
 		for known_addr in $devices; do 
 
+			(>&2 log "SCANNING FOR $known_addr")
+
 			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
 			[ -z "$known_addr" ] && continue
 
@@ -291,7 +293,7 @@ perform_complete_scan () {
 				if [[ $should_report =~ .*$known_addr.* ]] || [ "$PREF_REPORT_ALL_MODE" == true ] ; then 
 
 					#GET LOCAL NAME
-					local expected_name="${known_static_device_name["$known_addr"]}"
+					local expected_name="${known_public_device_name[$known_addr]}"
 					[ -z "$expected_name" ] && "Unknown"
 
 					#DETERMINE MANUFACTUERE
@@ -306,7 +308,7 @@ perform_complete_scan () {
 			#SHOULD WE REPORT A DROP IN CONFIDENCE? 
 			if [ -z "$name" ] && [ "$previous_state" == "1" ]; then 
 
-				local expected_name="${known_static_device_name["$known_addr"]}"
+				local expected_name="${known_public_device_name[$known_addr]}"
 				[ -z "$expected_name" ] && "Unknown"
 
 				#REPORT PRESENCE OF DEVICE
