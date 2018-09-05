@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.564
+version=0.1.566
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -161,6 +161,7 @@ scannable_devices_with_state () {
 	[ -z "$scan_state" ] && scan_state=2
 		 	
 	#ITERATE THROUGH THE KNOWN DEVICES 
+	local known_addr
 	for known_addr in "${known_static_addresses[@]}"; do 
 		
 		#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
@@ -275,16 +276,16 @@ perform_complete_scan () {
 				echo "NAME$known_addr|$name" > main_pipe & 
 
 				#REMOVE FROM SCAN
-				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
+				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g;s/  */ /g")
 
 			elif [ ! -z "$name" ] && [ "$previous_state" == "3" ]; then 
 				#HERE, WE HAVE FOUND A DEVICE FOR THE FIRST TIME
-				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
+				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g;s/  */ /g")
 
 			elif [ ! -z "$name" ] && [ "$previous_state" == "1" ]; then 
 
 				#THIS DEVICE IS STILL PRESENT; REMOVE FROM VERIFICATIONS
-				devices_next=$(echo "$devices_next" | sed "s/$device_data//g;s/  */ /g")
+				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g;s/  */ /g")
 
 				#NEED TO REPORT? 
 				if [[ $should_report =~ .*$known_addr.* ]] || [ "$PREF_REPORT_ALL_MODE" == true ] ; then 
