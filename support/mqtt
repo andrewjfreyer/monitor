@@ -67,8 +67,8 @@ publish_presence_message () {
 		#APPEND INFORMATION FOR BTLE BEACONS
 		local append=""
 		local append_debug=""
-		[ ! -z "$6" ] && append="$append,\"rssi\":\"$6\"" && append_debug="$append, rssi : $6 " 
-		[ ! -z "$7" ] && append="$append,\"power\":\"$7\"" && append_debug="$append, power : $7 " 
+		[ ! -z "$6" ] && append="$append,\"rssi\":\"$6\"" && append_debug="$append_debug, rssi : $6 " 
+		[ ! -z "$7" ] && append="$append,\"power\":\"$7\"" && append_debug="$append_debug, power : $7 " 
 
 		#DEBUG PRINTING
 		debug_append=$(echo "$append_debug" | sed 's/ , /<br><p>/g')
