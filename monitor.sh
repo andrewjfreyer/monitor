@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.571
+version=0.1.573
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -246,8 +246,6 @@ perform_complete_scan () {
 		#ITERATE THROUGH THESE 
 		local known_addr
 		for known_addr in $devices; do 
-
-			(>&2 log "SCANNING FOR $known_addr")
 
 			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
 			[ -z "$known_addr" ] && continue
@@ -574,7 +572,7 @@ while true; do
 					[ -z "$expected_name" ] && expected_name="Unknown"
 
 					#JSON MESSAGE
-					publ_json_array="$publ_json_array,{\"addresss\":\"$key\", \"name\": \"$expected_name\", \"last seen\":\"$last_seen\", \"rssi\":\"$latest_rssi\"}"
+					publ_json_array="$publ_json_array,{addresss: $key, name: $expected_name, last seen: $last_seen, rssi: $latest_rssi}"
 				done
 
 				#FIX LEADING COMMA IN JSON ARRAY
@@ -596,7 +594,7 @@ while true; do
 					latest_rssi="${rssi_log[$key]}" 
 
 					#JSON MESSAGE
-					rand_json_array="$rand_json_array,{\"addresss\":\"$key\", \"last seen\":\"$last_seen\", \"rssi\":\"$latest_rssi\"}"
+					rand_json_array="$rand_json_array,{address : $key, last seen : $last_seen, rssi : $latest_rssi}"
 				done
 
 				#FIX LEADING COMMA IN JSON ARRAY
@@ -618,7 +616,7 @@ while true; do
 					[ -z "$expected_name" ] && expected_name="Unknown"
 
 					#JSON MESSAGE
-					known_json_array="$known_json_array,{\"addresss\":\"$key\", \"state\":\"$((last_state * 100))\"}"
+					known_json_array="$known_json_array,{ address : $key , state : $((last_state * 100)) }"
 				done
 
 				#FIX LEADING COMMA IN JSON ARRAY
@@ -631,7 +629,7 @@ while true; do
 				############################### ASSEMBLE MESSAGE #########################################
 
 				#ASSEMBLE ENTIRE MESSAGE
-				env_message="{\"generic devices\": $publ_json_array, \"random devices\": $rand_json_array,\"known devices\": $known_json_array}"
+				env_message="{ generic : $publ_json_array, random : $rand_json_array, known : $known_json_array}"
 
 				#POST LOGGING MESSAGE
 				log $env_message
