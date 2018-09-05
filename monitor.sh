@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.577
+version=0.1.578
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -743,7 +743,7 @@ while true; do
 					percent_confidence=$(( 100 - difference * 100 / (PREF_BEACON_EXPIRATION + beacon_bias) )) 
 
 					#REPORT PRESENCE OF DEVICE
-					publish_presence_message "$mqtt_publisher_identity/$data" "$percent_confidence" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi"
+					publish_presence_message "$mqtt_publisher_identity/$key" "$percent_confidence" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi"
 
 				fi 
 			done
