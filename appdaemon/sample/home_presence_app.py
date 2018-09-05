@@ -1,16 +1,15 @@
 import appdaemon.plugins.mqtt.mqttapi as mqtt
 import json
 import shelve
-import os, sys
-dirname, filename = os.path.split(os.path.abspath(sys.argv[0]))
 
 class HomePresenceApp(mqtt.Mqtt):
  
     def initialize(self):
         self.set_namespace('mqtt')
         self.hass_namespace = self.args.get('hass_namespace', 'default')
+        self.allowed_users = self.app_config["snips_data"]["users"] 
         self.presence_topic = self.args.get('presence_topic', 'presence')
-        self.db_file = os.path.join(os.path.dirname(__file__),'home_presence_database')
+        self.db_file = self.app_config['settings']['database']
         self.listen_event(self.presence_message, 'MQTT')
         self.not_home_timers = dict()
         self.timeout = self.args.get('not_home_timeout', 120) #time interval before declaring not home
@@ -73,22 +72,23 @@ class HomePresenceApp(mqtt.Mqtt):
 
         '''setup home gateway sensors'''
         for gateway_sensor in self.args['home_gateway_sensors']:
-            '''it is assumed when the sensor is "off" it is opened'''
-            self.listen_state(self.gateway_opened, gateway_sensor, new = 'off', namespace = self.hass_namespace)
+            '''it is assumed when the sensor is "on" it is opened'''
+            self.listen_state(self.gateway_opened, gateway_sensor, new = 'on', namespace = self.hass_namespace)
         
     def presence_message(self, event_name, data, kwargs):
         topic = data['topic']
         if topic.split('/')[0] != self.presence_topic: #only interested in the presence topics
             return 
 
-        if self.monitor_handlers[self.monitor_entity] != None: #meaning a timer is running
-            self.cancel_timer(self.monitor_handlers[self.monitor_entity])
+        if topic.split('/')[-1] == 'start': #meaning a scan is starting 
+            if self.get_state(self.monitor_entity) != 'scanning':
+                self.set_app_state(self.monitor_entity, state = 'scanning', attributes = {'scan_type' : topic.split('/')[2]}) #set the monitor state to scanning since messages being sent
+                self.log('Monitor System set to Scanning')
+        elif topic.split('/')[-1] == 'end': #meaning a scan just ended
+            if self.get_state(self.monitor_entity) != 'idle':
+                self.set_app_state(self.monitor_entity, state = 'idle', attributes = {'scan_type' : topic.split('/')[2]}) #set the monitor state to idle since no messages being sent
+                self.log('Monitor System set to Idle')
 
-        if self.get_state(self.monitor_entity) != 'scanning':
-            self.set_app_state(self.monitor_entity, state = 'scanning', attributes = {}) #set the monitor state to scanning since messages being sent
-
-        self.monitor_handlers[self.monitor_entity] = self.run_in(self.monitor_scanning, self.args.get('scan_timeout', 15)) #time to wait for no messages
-        
         if topic.split('/')[1] != 'owner':
             return
 
@@ -98,7 +98,7 @@ class HomePresenceApp(mqtt.Mqtt):
             location = topic.split('/')[2].replace('_',' ').title()
             self.log('The Presence System in the {} is {}'.format(location, payload.get('status').title()))
 
-        if payload.get('type', None) != 'Known Static MAC' or payload.get('name', None) == 'Unknown Name': #confirm its for a known MAC address
+        if payload.get('type', None) != 'KNOWN_MAC' or payload.get('name', None) == 'Unknown Name': #confirm its for a known MAC address
             return
 
         location = topic.split('/')[2].replace('_',' ').title()
@@ -271,12 +271,13 @@ class HomePresenceApp(mqtt.Mqtt):
             topic = '{}/scan/Arrive'.format(self.presence_topic)
             payload = ''
             '''used to listen for when the monitor is free, and then send the message'''
+
             if self.get_state(self.monitor_entity) == 'idle': #meaning its not busy
                 self.mqtt_send(topic, payload) #send to scan for arrival of anyone
             else:
                 '''meaning it is busy so wait for it to get idle before sending the message'''
                 if self.monitor_handlers.get('Arrive Scan', None) == None: #meaning its not listening already
-                    self.monitor_handlers['Arrive Scan'] = listen_state(self.monitor_changed_state, self.monitor_entity, 
+                    self.monitor_handlers['Arrive Scan'] = self.listen_state(self.monitor_changed_state, self.monitor_entity, 
                                 new = 'idle', scan = 'Arrive Scan', topic = topic, payload = payload)
 
         elif self.get_state(everyone_home_state, namespace = self.hass_namespace) == 'on': #meaning everyone at home
@@ -290,8 +291,8 @@ class HomePresenceApp(mqtt.Mqtt):
                 self.mqtt_send(topic, payload) #send to scan for arrival of anyone
             else:
                 '''used to listen for when the monitor is free, and then send the message'''
-                if self.monitor_handlers.get('Arrive Scan', None) != None: #meaning its not listening already
-                    self.monitor_handlers['Arrive Scan'] = listen_state(self.monitor_changed_state, self.monitor_entity, 
+                if self.monitor_handlers.get('Arrive Scan', None) == None: #meaning its not listening already
+                    self.monitor_handlers['Arrive Scan'] = self.listen_state(self.monitor_changed_state, self.monitor_entity, 
                                 new = 'idle', scan = 'Arrive Scan', topic = topic, payload = payload)
 
             topic ='{}/scan/Depart'.format(self.presence_topic)
@@ -326,15 +327,10 @@ class HomePresenceApp(mqtt.Mqtt):
                 self.mqtt_send(topic, payload) #send to homeassistant to update sensor that user home
                 self.set_app_state(appdaemon_entity, state = True) #not needed but one may as well for other apps
 
-    def monitor_scanning(self, kwargs):
-        '''if this is activated, it means its no more scanning and sending messages for the specifed time in scan_timeout.
-        This will no longer be needed, once the system can send scan completed over mqtt. Till then this works :)'''
-        self.set_app_state(self.monitor_entity, state = 'idle', attributes = {}) #set the monitor state to idle since no messages being sent
-        self.monitor_handlers[self.monitor_entity] = None
-
     def monitor_changed_state(self, entity, attribute, old, new, kwargs):
         topic = kwargs['topic']
         payload = kwargs['payload']
+        scan = kwargs['scan']
         self.mqtt_send(topic, payload) #send to broker
-        self.cancel_listen_state(self.monitor_handlers[kwargs['scan']])
-        self.monitor_handlers[kwargs['scan']] = None
+        self.cancel_listen_state(self.monitor_handlers[scan])
+        self.monitor_handlers[scan] = None
