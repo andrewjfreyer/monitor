@@ -80,7 +80,7 @@ mqtt_user=username
 mqtt_password=password
 
 # MQTT PUBLISH TOPIC ROOT 
-mqtt_topicpath=location
+mqtt_topicpath=monitor
 
 # PUBLISHER IDENTITY 
 mqtt_publisher_identity=''

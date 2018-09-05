@@ -137,7 +137,7 @@ while getopts "h?vrfbutgRcCeadx" opt; do
 		C)  
 			PREF_CLEAN_MQTT=true && echo "> cleaning retained messages on broker"
 			;;
-		x)  PREF_PUBLISH_ENVIRONMENT_MODE=true  && echo "> publishing bluetooth environment every $PREF_ENVIRONMENTAL_REPORT_INTERVAL seconds"
+		e)  PREF_PUBLISH_ENVIRONMENT_MODE=true  && echo "> publishing bluetooth environment every $PREF_ENVIRONMENTAL_REPORT_INTERVAL seconds"
 			;;
 		x)  PREF_SHOULD_RETAIN=true  && echo "> retaining mqtt status reports"
 			;;
