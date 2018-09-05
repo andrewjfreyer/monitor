@@ -70,7 +70,7 @@ publish_presence_message () {
 		[ ! -z "$7" ] && append="$append,\"power\":\"$7\""
 
 		#DEBUG PRINTING
-		#debug_append=$(echo "$append" | sed 's/\"//g;s/:/ : /g;s/,/ , /g;s/ , /<br><p>/g')
+		debug_append=$(echo "$append" | sed 's/"//g;s/:/ : /g;s/,/ , /g;s/ , /<br><p>/g')
 		
 		#TIMESTAMP
 		stamp=$(date "+%a %b %d %Y %H:%M:%S GMT%z (%Z)")

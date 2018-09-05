@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.563
+version=0.1.564
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -210,8 +210,6 @@ perform_complete_scan () {
 		log "${GREEN}[CMD-INFO]	${GREEN}**** Rejected group scan. No devices in desired state. **** ${NC}"
 		return 0
 	fi
-
-	log "Devices: [$1] [$2] [$3]"
 
 	#REPEAT THROUGH ALL DEVICES THREE TIMES, THEN RETURN 
 	local repetitions=2
