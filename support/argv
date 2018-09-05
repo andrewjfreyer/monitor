@@ -141,7 +141,7 @@ while getopts "h?vrfbutgRcCeadx" opt; do
 			;;
 		x)  PREF_SHOULD_RETAIN=true  && echo "> retaining mqtt status reports"
 			;;
-		R)  PREF_REDACT=true  && echo "> redacting private information from logs"
+		R)  PREF_REDACT=true  && echo "> private information redacted from logs"
 			;;
 		d)  PREF_RESTORE_DEFAULTS=true 	&& echo "> restoring default settings"
 			;;

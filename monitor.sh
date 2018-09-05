@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.579
+version=0.1.580
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -547,11 +547,11 @@ while true; do
 
 			if [[ $mqtt_topic_branch =~ .*ARRIVE.* ]]; then 
 
-				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger ARRIVE ${NC}"
+				log "${GREEN}[INSTRUCT] ${NC}mqtt trigger arrive ${NC}"
 				perform_arrival_scan
 				
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
-				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger DEPART ${NC}"
+				log "${GREEN}[INSTRUCT] ${NC}mqtt trigger depart ${NC}"
 				perform_departure_scan				 
 			fi
 
