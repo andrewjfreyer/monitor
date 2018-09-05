@@ -572,7 +572,7 @@ while true; do
 					[ -z "$expected_name" ] && expected_name="Unknown"
 
 					#JSON MESSAGE
-					publ_json_array="$publ_json_array,{addresss: $key, name: $expected_name, last seen: $last_seen, rssi: $latest_rssi}"
+					publ_json_array="$publ_json_array,{\"address\":\"$key\", \"name\": \"$expected_name\", \"last seen\":\"$last_seen\", \"rssi\":\"$latest_rssi\"}"
 				done
 
 				#FIX LEADING COMMA IN JSON ARRAY
@@ -594,7 +594,7 @@ while true; do
 					latest_rssi="${rssi_log[$key]}" 
 
 					#JSON MESSAGE
-					rand_json_array="$rand_json_array,{address : $key, last seen : $last_seen, rssi : $latest_rssi}"
+					rand_json_array="$rand_json_array,{\"address\":\"$key\", \"last seen\":\"$last_seen\", \"rssi\":\"$latest_rssi\"}"
 				done
 
 				#FIX LEADING COMMA IN JSON ARRAY
@@ -616,7 +616,7 @@ while true; do
 					[ -z "$expected_name" ] && expected_name="Unknown"
 
 					#JSON MESSAGE
-					known_json_array="$known_json_array,{ address : $key , state : $((last_state * 100)) }"
+					known_json_array="$known_json_array,{\"address\":\"$key\", \"state\":\"$((last_state * 100))\"}"
 				done
 
 				#FIX LEADING COMMA IN JSON ARRAY
@@ -632,7 +632,7 @@ while true; do
 				env_message="{ generic : $publ_json_array, random : $rand_json_array, known : $known_json_array}"
 
 				#POST LOGGING MESSAGE
-				log $env_message
+				(>&2 echo $env_message)
 			fi
 
 		elif [ "$cmd" == "TIME" ]; then 
