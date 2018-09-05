@@ -190,7 +190,8 @@ if [ -f "$PREF_CONFIG" ]; then
 > preference: max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
 > preference: random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL
 > preference: beacon rssi change required for reporting = $PREF_RSSI_CHANGE_THRESHOLD 
-> preference: bluetooth environmental report frequency = $PREF_ENVIRONMENTAL_REPORT_INTERVAL" | sed 's/= $/= ERROR\!/g')
+> preference: bluetooth environmental report frequency = $PREF_ENVIRONMENTAL_REPORT_INTERVAL
+> preference: interval until beacon is considered expired = $PREF_BEACON_EXPIRATION" | sed 's/= $/= ERROR\!/g')
 
 	echo "$preferences"
 
@@ -205,6 +206,7 @@ if [ -f "$PREF_CONFIG" ]; then
 	[ -z "$PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" ] && PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL=45
 	[ -z "$PREF_RSSI_CHANGE_THRESHOLD" ] && PREF_RSSI_CHANGE_THRESHOLD=10
 	[ -z "$PREF_ENVIRONMENTAL_REPORT_INTERVAL" ] && PREF_ENVIRONMENTAL_REPORT_INTERVAL=300
+	[ -Z "$PREF_BEACON_EXPIRATION" ] && PREF_BEACON_EXPIRATION=60
 
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
 	[ "$(echo "$preferences" | grep -c "ERROR")" -gt "0" ] && echo "> warning: preferences error, using defaults. consider reset to defaults with '-d' flag"
@@ -247,6 +249,9 @@ PREF_RSSI_CHANGE_THRESHOLD=10
 
 #BLUETOOTH ENVIRONMENTAL REPORT FREQUENCY
 PREF_ENVIRONMENTAL_REPORT_INTERVAL=300
+
+#SECONDS UNTIL A BEACON IS CONSIDERED EXPIRED
+PREF_BEACON_EXPIRATION=60
 
 " > "$PREF_CONFIG"
 

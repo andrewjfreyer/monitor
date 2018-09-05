@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.576
+version=0.1.577
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -722,24 +722,29 @@ while true; do
 				#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
 				[ -z "$last_seen" ] && continue 
 
+				#GET EXPECTED NAME
+				expected_name="${known_public_device_name[$key]}"
+
+				#determine manufacturer
+				local_manufacturer="$(determine_manufacturer "$key")"
+
 				#TIMEOUT AFTER 120 SECONDS
-				if [ "$difference" -gt "$((180 + beacon_bias ))" ]; then 
+				if [ "$difference" -gt "$((PREF_BEACON_EXPIRATION + beacon_bias ))" ]; then 
 					unset public_device_log[$key]
 					log "${BLUE}[CHECK-${RED}DEL${BLUE}]	${NC}$key expired after $difference ($random_bias bias) seconds ${NC}"
-
-					#GET EXPECTED NAME
-					expected_name="${known_public_device_name[$key]}"
-
-					#determine manufacturer
-					local_manufacturer="$(determine_manufacturer "$key")"
 
 					#REPORT PRESENCE OF DEVICE
 					publish_presence_message "$mqtt_publisher_identity/$key" "0" "$expected_name" "$local_manufacturer" "GENERIC_BEACON"
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
-				#else 
-					#log "${BLUE}[CHECK-${GREEN}OK${BLUE}]	${NC}$key last seen $difference ($random_bias bias) seconds PUBL_NUM: ${#public_device_log[@]}  ${NC}"
+				else 
+					#SHOULD REPORT A DROP IN CONFIDENCE? 
+					percent_confidence=$(( 100 - difference * 100 / (PREF_BEACON_EXPIRATION + beacon_bias) )) 
+
+					#REPORT PRESENCE OF DEVICE
+					publish_presence_message "$mqtt_publisher_identity/$data" "$percent_confidence" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi"
+
 				fi 
 			done
 

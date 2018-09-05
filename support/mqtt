@@ -42,7 +42,7 @@ mqtt_listener (){
 	#MQTT LOOP
 	while read instruction; do 
 		echo "MQTT$instruction" > main_pipe 
-	done < <($(which mosquitto_sub) $mqtt_ca_file_append -v -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/#" --will-topic "$mqtt_topicpath/owner/$mqtt_publisher_identity" --will-payload "{\"status\":\"offline\"}") 
+	done < <($(which mosquitto_sub) $mqtt_ca_file_append -v -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/#" --will-topic "$mqtt_topicpath/$mqtt_publisher_identity" --will-payload "{\"status\":\"offline\"}") 
 }
 # ----------------------------------------------------------------------------------------
 # PUBLISH MESSAGE
