@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.566
+version=0.1.567
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -222,8 +222,8 @@ perform_complete_scan () {
 	[ ! -z "$3" ] && previous_state="$3"
 
 	#SCAN TYPE
-	local transition_type="arrived"
-	[ "$previous_state" == "1" ] && transition_type="departed"
+	local transition_type="arrival"
+	[ "$previous_state" == "1" ] && transition_type="departure"
 
 	#INTERATION VARIABLES
 	local devices="$1"
@@ -247,6 +247,8 @@ perform_complete_scan () {
 		#ITERATE THROUGH THESE 
 		local known_addr
 		for known_addr in $devices; do 
+
+			(>&2 log "SCANNING FOR $known_addr")
 
 			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
 			[ -z "$known_addr" ] && continue
