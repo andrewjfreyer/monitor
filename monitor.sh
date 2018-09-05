@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.573
+version=0.1.575
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -99,6 +99,7 @@ declare -A device_expiration_biases
 now=$(date +%s)
 last_arrival_scan=$((now - 25))
 last_depart_scan=$((now - 25))
+last_environment_report=$((now - 25))
 
 #SET THE NAME CACHE IF IT DOESN'T EXIST
 [ ! -f ".public_name_cache" ] && echo "" > ".public_name_cache"
@@ -298,7 +299,7 @@ perform_complete_scan () {
 					[ -z "$manufacturer" ] && manufacturer="Unknown" 			
 
 					#REPORT PRESENCE
-					publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "KNOWN_MAC"			
+					publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "KNOWN_MAC"			
 				fi 
 			fi 
 
@@ -309,7 +310,7 @@ perform_complete_scan () {
 				[ -z "$expected_name" ] && "Unknown"
 
 				#REPORT PRESENCE OF DEVICE
-				publish_presence_message "owner/$mqtt_publisher_identity/$known_addr" "$(echo "100 / 2 ^ $repetition" | bc )" "$expected_name" "Unknown" "KNOWN_MAC"
+				publish_presence_message "$mqtt_publisher_identity/$known_addr" "$(echo "100 / 2 ^ $repetition" | bc )" "$expected_name" "Unknown" "KNOWN_MAC"
 
 				#IF WE DO FIND A NAME LATER, WE SHOULD REPORT OUT 
 				should_report="$should_report$known_addr"
@@ -551,108 +552,115 @@ while true; do
 				
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
 				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger DEPART ${NC}"
-				perform_departure_scan
-
-			elif [[ $mqtt_topic_branch =~ .*ENVIRONMENT.* ]]; then 
-				log "${GREEN}[INSTRUCT] ${NC}MQTT Trigger ENVIRONMENT ... preparing report ${NC}"
-
-				############################### PUBLIC DEVICES #########################################
-
-				publ_json_array=""
-				#GET NAMES AND STATUS OF EACH PUBLIC DEVICE
-				for key in "${!public_device_log[@]}"; do
-					#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-					last_seen=${public_device_log[$key]}
-
-					#RSSI
-					latest_rssi="${rssi_log[$key]}" 
-
-					#EXPECTED NAME
-					expected_name="${known_public_device_name[$key]}"
-					[ -z "$expected_name" ] && expected_name="Unknown"
-
-					#JSON MESSAGE
-					publ_json_array="$publ_json_array,{\"address\":\"$key\", \"name\": \"$expected_name\", \"last seen\":\"$last_seen\", \"rssi\":\"$latest_rssi\"}"
-				done
-
-				#FIX LEADING COMMA IN JSON ARRAY
-				publ_json_array=$(echo "$publ_json_array" | sed 's/^,//g')
-
-				#ENCLOSE IN BRACKETS
-				publ_json_array="[$publ_json_array]"
-
-
-				############################### RANDOM DEVICES #########################################
-
-				rand_json_array=""
-				#GET NAMES AND STATUS OF EACH PUBLIC DEVICE
-				for key in "${!random_device_log[@]}"; do
-					#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-					last_seen=${random_device_log[$key]}
-
-					#RSSI
-					latest_rssi="${rssi_log[$key]}" 
-
-					#JSON MESSAGE
-					rand_json_array="$rand_json_array,{\"address\":\"$key\", \"last seen\":\"$last_seen\", \"rssi\":\"$latest_rssi\"}"
-				done
-
-				#FIX LEADING COMMA IN JSON ARRAY
-				rand_json_array=$(echo "$rand_json_array" | sed 's/^,//g')
-
-				#ENCLOSE IN BRACKETS
-				rand_json_array="[$rand_json_array]"
-
-				############################### KNOWN DEVICES #########################################
-
-				known_json_array=""
-				#GET NAMES AND STATUS OF EACH PUBLIC DEVICE
-				for key in "${!known_public_device_log[@]}"; do
-					#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-					last_state=${known_public_device_log[$key]}
-
-					#EXPECTED NAME
-					expected_name="${known_public_device_name[$key]}"
-					[ -z "$expected_name" ] && expected_name="Unknown"
-
-					#JSON MESSAGE
-					known_json_array="$known_json_array,{\"address\":\"$key\", \"state\":\"$((last_state * 100))\"}"
-				done
-
-				#FIX LEADING COMMA IN JSON ARRAY
-				known_json_array=$(echo "$known_json_array" | sed 's/^,//g')
-
-				#ENCLOSE IN BRACKETS
-				known_json_array="[$known_json_array]"
-
-			
-				############################### ASSEMBLE MESSAGE #########################################
-
-				#ASSEMBLE ENTIRE MESSAGE
-				env_message="{ generic : $publ_json_array, random : $rand_json_array, known : $known_json_array}"
-
-				#POST LOGGING MESSAGE
-				(>&2 echo $env_message)
+				perform_departure_scan				 
 			fi
 
 		elif [ "$cmd" == "TIME" ]; then 
 
 			#MODE TO SKIP
-			[ "$PREF_PERIODIC_MODE" == false ] && continue
+			if [ "$PREF_PERIODIC_MODE" == true ]; then 
 
-			#SCANNED RECENTLY? 
-			duration_since_arrival_scan=$((timestamp - last_arrival_scan))
-			duration_since_depart_scan=$((timestamp - last_depart_scan))
+				#SCANNED RECENTLY? 
+				duration_since_arrival_scan=$((timestamp - last_arrival_scan))
+				duration_since_depart_scan=$((timestamp - last_depart_scan))
 
-			
-			if [ "$duration_since_depart_scan" -gt "$PREF_DEPART_SCAN_INTERVAL" ]; then 
 				
-				perform_departure_scan
+				if [ "$duration_since_depart_scan" -gt "$PREF_DEPART_SCAN_INTERVAL" ]; then 
+					
+					perform_departure_scan
 
-			elif [ "$duration_since_arrival_scan" -gt "$PREF_ARRIVE_SCAN_INTERVAL" ]; then 
-				
-				perform_arrival_scan 
+				elif [ "$duration_since_arrival_scan" -gt "$PREF_ARRIVE_SCAN_INTERVAL" ]; then 
+					
+					perform_arrival_scan 
+				fi 
+			fi 
 
+			############################## SHOULD PUBLISH ENVIRONMENT MESSAGE? #############################################
+			if [ "$PREF_PUBLISH_ENVIRONMENT_MODE" == true ]; then 
+
+				#WHEN WAS OUR LAST ENVIRONMENTAL REPORT? 
+				duration_since_last_report=$((timestamp - last_environment_report))
+
+				#GREATER THAN THE ENVIRONMENTAL REPORT INTERVAL? 
+				if [ "$duration_since_last_report" -gt "$PREF_ENVIRONMENTAL_REPORT_INTERVAL" ]; then 
+
+					publ_json_array=""
+					#GET NAMES AND STATUS OF EACH PUBLIC DEVICE
+					for key in "${!public_device_log[@]}"; do
+						#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
+						last_seen=${public_device_log[$key]}
+
+						#RSSI
+						latest_rssi="${rssi_log[$key]}" 
+
+						#EXPECTED NAME
+						expected_name="${known_public_device_name[$key]}"
+						[ -z "$expected_name" ] && expected_name="Unknown"
+
+						#JSON MESSAGE
+						publ_json_array="$publ_json_array,{\"address\":\"$key\", \"name\": \"$expected_name\", \"last seen\":\"$last_seen\", \"rssi\":\"$latest_rssi\"}"
+					done
+
+					#FIX LEADING COMMA IN JSON ARRAY
+					publ_json_array=$(echo "$publ_json_array" | sed 's/^,//g')
+
+					#ENCLOSE IN BRACKETS
+					publ_json_array="[$publ_json_array]"
+
+					############################### RANDOM DEVICES #########################################
+					rand_json_array=""
+					#GET NAMES AND STATUS OF EACH PUBLIC DEVICE
+					for key in "${!random_device_log[@]}"; do
+						#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
+						last_seen=${random_device_log[$key]}
+
+						#RSSI
+						latest_rssi="${rssi_log[$key]}" 
+
+						#JSON MESSAGE
+						rand_json_array="$rand_json_array,{\"address\":\"$key\", \"last seen\":\"$last_seen\", \"rssi\":\"$latest_rssi\"}"
+					done
+
+					#FIX LEADING COMMA IN JSON ARRAY
+					rand_json_array=$(echo "$rand_json_array" | sed 's/^,//g')
+
+					#ENCLOSE IN BRACKETS
+					rand_json_array="[$rand_json_array]"
+
+					############################### KNOWN DEVICES #########################################
+
+					known_json_array=""
+					#GET NAMES AND STATUS OF EACH PUBLIC DEVICE
+					for key in "${!known_public_device_log[@]}"; do
+						#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
+						last_state=${known_public_device_log[$key]}
+
+						#EXPECTED NAME
+						expected_name="${known_public_device_name[$key]}"
+						[ -z "$expected_name" ] && expected_name="Unknown"
+
+						#JSON MESSAGE
+						known_json_array="$known_json_array,{\"address\":\"$key\", \"state\":\"$((last_state * 100))\"}"
+					done
+
+					#FIX LEADING COMMA IN JSON ARRAY
+					known_json_array=$(echo "$known_json_array" | sed 's/^,//g')
+
+					#ENCLOSE IN BRACKETS
+					known_json_array="[$known_json_array]"
+
+					############################### ASSEMBLE MESSAGE #########################################
+
+					#ASSEMBLE ENTIRE MESSAGE
+					env_message="{ generic : $publ_json_array, random : $rand_json_array, known : $known_json_array}"
+
+					#POST LOGGING MESSAGE
+					(>&2 echo $env_message)
+					publish_environment_message $env_message
+
+					#SET THE VARIABLE THAT CONTROLS THE REPORT FREQUENCY
+					last_environment_report=$(date +%s)
+				fi 
 			fi 
 
 		elif [ "$cmd" == "REFR" ]; then 
@@ -726,7 +734,7 @@ while true; do
 					local_manufacturer="$(determine_manufacturer "$key")"
 
 					#REPORT PRESENCE OF DEVICE
-					publish_presence_message "owner/$mqtt_publisher_identity/$key" "0" "$expected_name" "$local_manufacturer" "GENERIC_BEACON"
+					publish_presence_message "$mqtt_publisher_identity/$key" "0" "$expected_name" "$local_manufacturer" "GENERIC_BEACON"
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
@@ -934,14 +942,14 @@ while true; do
 			fi 
 
 			#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT THE CHANGE
-			[ "$did_change" == true ] && publish_presence_message "owner/$mqtt_publisher_identity/$data" "$((current_state * 100))" "$name" "$manufacturer" "KNOWN_MAC"
+			[ "$did_change" == true ] && publish_presence_message "$mqtt_publisher_identity/$data" "$((current_state * 100))" "$name" "$manufacturer" "KNOWN_MAC"
 
 			#IF WE HAVE DEPARTED OR ARRIVED; MAKE A NOTE UNLESS WE ARE ALSO IN THE TRIGGER MODE
 			[ "$did_change" == true ] && [ "$current_state" == "0" ] && [ "$PREF_TRIGGER_MODE" == false ] && publish_cooperative_scan_message "depart"
 			[ "$did_change" == true ] && [ "$current_state" == "1" ] && [ "$PREF_TRIGGER_MODE" == false ] && publish_cooperative_scan_message "arrive"
 
 			#REPORT ALL CHANGES
-			[ "$did_change" == false ] && [ "$current_state" == "0" ] && [ "$PREF_REPORT_ALL_MODE" == true ] && publish_presence_message "owner/$mqtt_publisher_identity/$data" "0" "$name" "$manufacturer" "KNOWN_MAC"
+			[ "$did_change" == false ] && [ "$current_state" == "0" ] && [ "$PREF_REPORT_ALL_MODE" == true ] && publish_presence_message "$mqtt_publisher_identity/$data" "0" "$name" "$manufacturer" "KNOWN_MAC"
 
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
@@ -958,7 +966,7 @@ while true; do
 			log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
 
 			#PUBLISH PRESENCE OF BEACON
-			publish_presence_message "owner/$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "APPLE_IBEACON" "$rssi" "$power"
+			publish_presence_message "$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "APPLE_IBEACON" "$rssi" "$power"
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$rssi_updated" == true ] && [ "$PREF_PUBLIC_MODE" == true ] ; then 
 
@@ -998,7 +1006,7 @@ while true; do
 			fi 
 
 			#REPORT PRESENCE OF DEVICE
-			publish_presence_message "owner/$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi"
+			publish_presence_message "$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi"
 
 			#PROVIDE USEFUL LOGGING
 			log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"

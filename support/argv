@@ -78,6 +78,9 @@ usage:
 	monitor -h 	show usage information
 	monitor -R 	redact private information from logs
 	monitor -C 	clean retained messages from MQTT broker
+	monitor -e 	report bluetooth environment periodically via mqtt at topic:
+				[topic path]/environment 
+
 	monitor -c 	clean manufacturer cache and generic beacon cache
 	monitor -v	print version number
 	monitor -d	restore to default settings
@@ -116,8 +119,9 @@ PREF_REDACT=false
 PREF_SHOULD_RETAIN=false
 PREF_CLEAN_MQTT=false
 PREF_FORMAT_MQTT=false
+PREF_PUBLISH_ENVIRONMENT_MODE=false
 
-while getopts "h?vrfbutgRcCadx" opt; do
+while getopts "h?vrfbutgRcCeadx" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
@@ -132,6 +136,8 @@ while getopts "h?vrfbutgRcCadx" opt; do
 			;;
 		C)  
 			PREF_CLEAN_MQTT=true && echo "> cleaning retained messages on broker"
+			;;
+		x)  PREF_PUBLISH_ENVIRONMENT_MODE=true  && echo "> publishing bluetooth environment every $PREF_ENVIRONMENTAL_REPORT_INTERVAL seconds"
 			;;
 		x)  PREF_SHOULD_RETAIN=true  && echo "> retaining mqtt status reports"
 			;;

@@ -1,6 +1,8 @@
 monitor
 =======
 
+<h1> ***Note: BREAKING CHANGE AS OF ver. 0.1.574 - 'owner/' IS REMOVED FROM MQTT TOPIC PATH; UPDATES TO ENDPOINTS IS REQUIRED***</h1>
+
 ***TL;DR***: Bluetooth-based passive presence detection of beacons, cell phones, and any other bluetooth device. The system is useful for [mqtt-based](http://mqtt.org) home automation. Installation instructions [here.](#installation-instructions-raspbian-jessie-lite-stretch)
 
 ____
@@ -90,6 +92,7 @@ On the other hand, the `monitor` script, with default settings, will only reques
 Here's the `monitor` helpfile, as reference:
 
 ```
+
 monitor.sh
 
 Andrew J Freyer, 2018
@@ -126,6 +129,9 @@ usage:
   monitor -h  show usage information
   monitor -R  redact private information from logs
   monitor -C  clean retained messages from MQTT broker
+  monitor -e  report bluetooth environment periodically via mqtt at topic:
+        [topic path]/environment 
+
   monitor -c  clean manufacturer cache and generic beacon cache
   monitor -v  print version number
   monitor -d  restore to default settings
@@ -160,19 +166,19 @@ For example (note that 00:00:00:00:00:00 is an example address - this should be 
 
 ```
 - platform: mqtt
-  state_topic: 'location/owner/first floor/00:00:00:00:00:00'
+  state_topic: 'location/first floor/00:00:00:00:00:00'
   value_template: '{{ value_json.confidence }}'
   unit_of_measurement: '%'
   name: 'First Floor'
 
 - platform: mqtt
-  state_topic: 'location/owner/second floor/00:00:00:00:00:00'
+  state_topic: 'location/second floor/00:00:00:00:00:00'
   value_template: '{{ value_json.confidence }}'
   unit_of_measurement: '%'
   name: 'Second Floor'
 
 - platform: mqtt
-  state_topic: 'location/owner/third floor/00:00:00:00:00:00'
+  state_topic: 'location/third floor/00:00:00:00:00:00'
   value_template: '{{ value_json.confidence }}'
   unit_of_measurement: '%'
   name: 'Third Floor'

@@ -110,5 +110,16 @@ publish_cooperative_scan_message () {
 	fi 
 }
 
+
+publish_environment_message () {
+	if [ ! -z "$1" ]; then 
+		#DEBUGGING 
+		(>&2 log "${PURPLE}$mqtt_topicpath/environment ${NC}")
+
+		#POST TO MQTT
+		$mosquitto_pub_path $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/environment" -m "$1"
+	fi 
+}
+
 #SHOULD CLEAN? 
 [ "$PREF_CLEAN_MQTT" == true ]  && mqtt_broker_clean && exit 1
