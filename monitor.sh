@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.561
+version=0.1.562
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -211,6 +211,8 @@ perform_complete_scan () {
 		return 0
 	fi
 
+	log "Devices: [$1] [$2] [$3]"
+
 	#REPEAT THROUGH ALL DEVICES THREE TIMES, THEN RETURN 
 	local repetitions=2
 	[ ! -z "$2" ] && repetitions="$2"
@@ -376,7 +378,7 @@ perform_departure_scan () {
 	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 	if [ "$scan_active" == false ] ; then 
 		#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-		perform_complete_scan "$depart_list" "$PREF_DEPART_SCAN_ATTEMPTS" "0" & 
+		perform_complete_scan "$depart_list" "$PREF_DEPART_SCAN_ATTEMPTS" "1" & 
 
 		scan_pid=$!
 		scan_type=1
@@ -399,7 +401,7 @@ perform_arrival_scan () {
 	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 	if [ "$scan_active" == false ] ; then 
 		#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
-		perform_complete_scan "$arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" "1" & 
+		perform_complete_scan "$arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" "0" & 
 
 		scan_pid=$!
 		scan_type=0
