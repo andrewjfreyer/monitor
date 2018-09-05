@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.562
+version=0.1.563
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -220,7 +220,7 @@ perform_complete_scan () {
 
 	#PRE
 	local previous_state=0
-	[ ! -z "$3" ] && previous_state="0"
+	[ ! -z "$3" ] && previous_state="$3"
 
 	#SCAN TYPE
 	local transition_type="arrived"
