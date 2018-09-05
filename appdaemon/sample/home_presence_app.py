@@ -17,8 +17,11 @@ dirname, filename = os.path.split(os.path.abspath(sys.argv[0]))
         self.depart_check_time = self.args.get('depart_check_time', 30)
         self.home_state_entities = dict() #used to store or map different confidence sensors based on location to devices 
         self.all_users_sensors = self.args['users_sensors'] #used to determine if anyone at home or not
-        self.monitor_entity = '{}.monitor_state'.format(self.presence_topic) #used to check if the network monitor is busy
-        self.set_app_state(self.monitor_entity, state = 'idle', attributes = {}) #set it to idle initially
+
+        self.monitor_entity = '{}.monitor_state'.format(self.presence_topic) #used to check if the network monitor is busy 
+        if not self.entity_exists(self.monitor_entity):
+            self.set_app_state(self.monitor_entity, state = 'idle', attributes = {}) #set it to idle initially
+
         self.monitor_handlers = dict() #used to store different handlers
         self.monitor_handlers[self.monitor_entity] = None
 
@@ -42,7 +45,6 @@ dirname, filename = os.path.split(os.path.abspath(sys.argv[0]))
 
         with shelve.open(self.db_file) as db: #check sensors
             remove_sensors = []
-
             try:
                 sensors = db[self.presence_topic]
             except:
@@ -82,12 +84,28 @@ dirname, filename = os.path.split(os.path.abspath(sys.argv[0]))
 
         if topic.split('/')[-1] == 'start': #meaning a scan is starting 
             if self.get_state(self.monitor_entity) != 'scanning':
-                self.set_app_state(self.monitor_entity, state = 'scanning', attributes = {'scan_type' : topic.split('/')[2]}) #set the monitor state to scanning since messages being sent
-                self.log('Monitor System set to Scanning')
+                '''since it idle, just set it to scanning to the scan number to 1 being the first'''
+                self.set_app_state(self.monitor_entity, state = 'scanning', attributes = {'scan_type' : topic.split('/')[2], 'scan_num': 1})
+            else: #meaing it was already set to 'scanning' already, so just update the number
+                scan_num = self.get_state(self.monitor_entity, attribute = 'scan_num')
+                if scan_num == None: #happens if AppD was to restart
+                    scan_num = 0
+                scan_num = scan_num + 1
+                self.set_app_state(self.monitor_entity, attributes = {'scan_num': scan_num}) #update the scan number in the event of different scan systems in place
+
+            #self.log('__function__, __line__, Scan Number is {} and Monitor State is {}'.format(self.get_state(self.monitor_entity, attribute = 'scan_num'), self.get_state(self.monitor_entity)))
+                
         elif topic.split('/')[-1] == 'end': #meaning a scan just ended
-            if self.get_state(self.monitor_entity) != 'idle':
-                self.set_app_state(self.monitor_entity, state = 'idle', attributes = {'scan_type' : topic.split('/')[2]}) #set the monitor state to idle since no messages being sent
-                self.log('Monitor System set to Idle')
+            scan_num = self.get_state(self.monitor_entity, attribute = 'scan_num')
+            if scan_num == None: #happens if AppD was to restart
+                scan_num = 0
+            scan_num = scan_num - 1
+            if scan_num <= 0: # a <0 will happen if there is a restart and a message is missed in the process
+                self.set_app_state(self.monitor_entity, state = 'idle', attributes = {'scan_type' : topic.split('/')[2], 'scan_num': 0}) #set the monitor state to idle since no messages being sent
+            else:
+                self.set_app_state(self.monitor_entity, attributes = {'scan_num': scan_num}) #update the scan number in the event of different scan systems are in place
+
+            #self.log('__function__, __line__, Scan Number is {} and Monitor State is {}'.format(self.get_state(self.monitor_entity, attribute = 'scan_num'), self.get_state(self.monitor_entity)))
 
         if topic.split('/')[1] != 'owner':
             return
@@ -151,7 +169,7 @@ dirname, filename = os.path.split(os.path.abspath(sys.argv[0]))
             if conf_ha_sensor not in self.home_state_entities[user_state_entity]: #not really needed, but noting wrong in being extra careful
                 self.home_state_entities[user_state_entity].append(conf_ha_sensor)
 
-            self.run_in(self.send_mqtt_message, 3, topic = state_topic, payload = confidence) #use delay so HA has time to setup sensor first before updating
+            self.run_in(self.send_mqtt_message, 1, topic = state_topic, payload = confidence) #use delay so HA has time to setup sensor first before updating
 
             with shelve.open(self.db_file) as db: #store sensors
                 try:
