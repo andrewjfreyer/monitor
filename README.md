@@ -1,8 +1,5 @@
 monitor
 =======
-
-<h1> Note: BREAKING CHANGE AS OF ver. 0.1.575 - 'owner/' IS REMOVED FROM MQTT TOPIC PATH; UPDATES TO ENDPOINTS IS REQUIRED</h1>
-
 ***TL;DR***: Bluetooth-based passive presence detection of beacons, cell phones, and any other bluetooth device. The system is useful for [mqtt-based](http://mqtt.org) home automation. Installation instructions [here.](#installation-instructions-raspbian-jessie-lite-stretch)
 
 ____
