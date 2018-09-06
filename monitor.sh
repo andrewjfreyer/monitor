@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.584
+version=0.1.585
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -259,7 +259,7 @@ perform_complete_scan () {
 
 			#PERFORM NAME SCAN FROM HCI TOOL. THE HCITOOL CMD 0X1 0X0019 IS POSSIBLE, BUT HCITOOL NAME
 			#SCAN PERFORMS VERIFICATIONS THAT REDUCE FALSE NEGATIVES. 
-			local name_raw=$(hcitool name "$known_addr")
+			local name_raw=$(hcitool -i $PREF_HCI_DEVICE name "$known_addr")
 			local name=$(echo "$name_raw" | grep -ivE 'input/output error|invalid device|invalid|error')
 
 			#COLLECT STATISTICS ABOUT THE SCAN 
@@ -997,7 +997,7 @@ while true; do
 				 	if [ "$scan_active" == false ]; then 
 
 						#FIND NAME OF THIS DEVICE
-						expected_name=$(hcitool name "$data" | grep -ivE 'input/output error|invalid device|invalid|error')
+						expected_name=$(hcitool -i $PREF_HCI_DEVICE name "$data" | grep -ivE 'input/output error|invalid device|invalid|error')
 
 						#IS THE EXPECTED NAME BLANK? 
 						if [ -z "$expected_name" ]; then 
