@@ -22,7 +22,7 @@ class HomePresenceApp(mqtt.Mqtt):
 
         if known_beacons != {}:
             for k, v in known_beacons.items():
-                self.known_beacons[k.replace(':', '_')] = v
+                self.known_beacons[k.replace('_', ':')] = v
 
         self.report_only_known_beacons = self.args.get('report_only_know_beacons', True)
 
