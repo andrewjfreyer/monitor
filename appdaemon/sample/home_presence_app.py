@@ -24,7 +24,7 @@ class HomePresenceApp(mqtt.Mqtt):
             for k, v in known_beacons.items():
                 self.known_beacons[k.replace('_', ':')] = v
 
-        self.report_only_known_beacons = self.args.get('report_only_know_beacons', True)
+        self.report_only_known_beacons = self.args.get('report_only_known_beacons', True)
 
         self.monitor_entity = '{}.monitor_state'.format(self.presence_topic) #used to check if the network monitor is busy 
         if not self.entity_exists(self.monitor_entity):
