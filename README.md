@@ -46,9 +46,9 @@ ___
 
 The BTLE 4.0 spec was designed to make connecting bluetooth devices simpler for the user. No more pin codes, no more code verifications, no more “discovery mode” - for the most part. 
 
-It was also designed to be much more private than previous bluetooth specs. But it’s hard to maintain privacy when you want to be able to connect to an unknown device without substantive user intervention (think about pairing new AirPods to an iPhone), so a compromise was made. 
+It was also designed to be much more private than previous bluetooth specs. But it’s hard to maintain privacy when you want to be able to connect to an unknown device without substantive user intervention, so a compromise was made. 
 
-The following is oversimplified, but should give the gist of how `monitor` determines presence. 
+The following is oversimplified and not technically accurate in most cases, but should give the reader a gist of how `monitor` determines presence. 
 
 <h2>Connectable Devices</h2>
 

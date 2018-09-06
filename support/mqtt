@@ -78,7 +78,7 @@ publish_presence_message () {
 		local topic="$mqtt_topicpath/$1"
 
 		#SHOULD FORMAT AS LETTERS/NUMBERS
-		[ "$PREF_FORMAT_MQTT" == true ] && topic=$(echo "$topic" | sed 's/[^A-Z0-9a-z/]//g')
+		[ "$PREF_FORMAT_MQTT" == true ] && topic=$(echo "$topic" | sed 's/[^A-Z0-9a-z/]//g') 
 
 		#DEBUGGING WITH SIMPLE
 		log "${PURPLE}$topic <br>{<br><p>retain: $retain_flag<br><p>version : $version<br><p>confidence : $confidence<br><p>name : $name<br><p>timestamp : $stamp<br><p>manufacturer : $4<br><p>type : $5$debug_append<br>}${NC}"

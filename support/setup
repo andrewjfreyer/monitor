@@ -29,7 +29,7 @@ should_exit=false
 [ -z "$mosquitto_pub_path" ] && echo "Error: Required package 'mosquitto_pub' not found. Please install 'mosquitto'." && should_exit=true
 [ -z "$mosquitto_sub_path" ] && echo "Error: Required package 'mosquitto_sub' not found. Please install 'mosquitto'." && should_exit=true
 [ -z "$hcidump_path" ] && echo "Error: Required package 'hcidump' not found. Please install 'bluez-hcidump' (e.g., sudo apt-get install bluez-hcidump)." && should_exit=true
-[ -z "$bc_path" ] && echo "Error: Required package 'bc' not found. Please install 'bc' (e.g., sudo apt-get install bc)" && should_exit=true
+[ -z "$bc_path" ] && echo "Error: Required package 'bc' not found. Please install 'bc' (e.g., apt-get install bc)" && should_exit=true
 [ -z "$git_path" ] && echo "Warning: Recommended package 'git' not found. Please consider installing for regular updates."
 [ ! -z "$(which systemctl)" ] && [ ! -e "$service_path" ] && echo "Warning: monitor.service not installed. Install service? (y/n)" && read should_install
 
@@ -133,7 +133,7 @@ FILTERED_ARGS=$(echo "$RUNTIME_ARGS" | sed 's/ \?-d//g;s/ \?-u//g;s/  */ /g')
 #CHECK FOR CORRECT SERVICE; 
 if [ "$should_install" == "y" ] || [ "$PREF_UPDATE_SERVICE" == true ] ; then
 	#REMOVE ALL INSTANCES
-	sudo rm "$service_path" 2>&1 >/dev/null
+	rm "$service_path" 2>&1 >/dev/null
 
 	#CHECK FOR SYSTEMCTL FILE
 	base_directory=$(dirname "$(readlink -f "$0")")
@@ -158,8 +158,8 @@ WantedBy=multi-user.target network.target" > "$service_path"
 	sleep 3
 
 	#RELOAD DAEMON AND ENABLE SERVICE
-	sudo systemctl daemon-reload
-	sudo systemctl enable monitor.service
+	systemctl daemon-reload
+	systemctl enable monitor.service
 fi 
 
 #----------------------------------------------------------------------------------------

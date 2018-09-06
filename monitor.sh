@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.583
+version=0.1.584
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -50,11 +50,11 @@ source './support/time'
 # ----------------------------------------------------------------------------------------
 clean() {
 	#CLEANUP FOR TRAP
-	sudo pkill -f monitor.sh
+	pkill -f monitor.sh
 
 	#REMOVE PIPES
-	sudo rm main_pipe &>/dev/null
-	sudo rm log_pipe &>/dev/null
+	rm main_pipe &>/dev/null
+	rm log_pipe &>/dev/null
 
 	#MESSAGE
 	echo 'Exited.'
@@ -67,14 +67,14 @@ trap "clean" EXIT
 # ----------------------------------------------------------------------------------------
 
 #CYCLE BLUETOOTH INTERFACE 
-sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
+hciconfig hci0 down && sleep 2 && hciconfig hci0 up
 
 #SETUP MAIN PIPE
-sudo rm main_pipe &>/dev/null
+rm main_pipe &>/dev/null
 mkfifo main_pipe
 
 #SETUP LOG PIPE
-sudo rm log_pipe &>/dev/null
+rm log_pipe &>/dev/null
 mkfifo log_pipe
 
 #DEFINE DEVICE TRACKING VARS
@@ -755,7 +755,7 @@ while true; do
 
 			log "${RED}[ERROR]	${NC}Correcting HCI error: $data${NC}"
 
-			sudo hciconfig hci0 down && sleep 2 && sudo hciconfig hci0 up
+			hciconfig hci0 down && sleep 2 && hciconfig hci0 up
 
 			sleep 2
 
