@@ -28,7 +28,7 @@ class HomePresenceApp(mqtt.Mqtt):
 
         self.monitor_entity = '{}.monitor_state'.format(self.presence_topic) #used to check if the network monitor is busy 
         if not self.entity_exists(self.monitor_entity):
-            self.set_app_state(self.monitor_entity, state = 'idle', attributes = {}) #set it to idle initially
+            self.set_app_state(self.monitor_entity, state = 'idle', attributes = {'location': []}) #set it to idle initially
 
         self.monitor_handlers = dict() #used to store different handlers
         self.monitor_handlers[self.monitor_entity] = None
@@ -97,31 +97,29 @@ class HomePresenceApp(mqtt.Mqtt):
         if topic.split('/')[0] != self.presence_topic: #only interested in the presence topics
             return 
 
-        if topic.split('/')[-1] == 'start': #meaning a scan is starting 
-            if self.get_state(self.monitor_entity) != 'scanning':
-                '''since it idle, just set it to scanning and the scan number to 1 being the first'''
-                self.set_app_state(self.monitor_entity, state = 'scanning', attributes = {'scan_type' : topic.split('/')[2], 'scan_num': 1})
-            else: #meaing it was already set to 'scanning' already, so just update the number
-                scan_num = self.get_state(self.monitor_entity, attribute = 'scan_num')
-                if scan_num == None: #happens if AppD was to restart
-                    scan_num = 0
-                scan_num = scan_num + 1
-                self.set_app_state(self.monitor_entity, attributes = {'scan_num': scan_num}) #update the scan number in the event of different scan systems in place
-                
-        elif topic.split('/')[-1] == 'end': #meaning a scan just ended
-            scan_num = self.get_state(self.monitor_entity, attribute = 'scan_num')
-            if scan_num == None: #happens if AppD was to restart
-                scan_num = 0
-            scan_num = scan_num - 1
-            if scan_num <= 0: # a <0 will happen if there is a restart and a message is missed in the process
-                self.set_app_state(self.monitor_entity, state = 'idle', attributes = {'scan_type' : topic.split('/')[2], 'scan_num': 0}) #set the monitor state to idle since no messages being sent
-            else:
-                self.set_app_state(self.monitor_entity, attributes = {'scan_num': scan_num}) #update the scan number in the event of different scan systems are in place
-
-        if data['payload'] == "":  
-            return
-
         payload = json.loads(data['payload'])
+
+        if topic.split('/')[-1] == 'start': #meaning a scan is starting
+            location = payload['identity']
+            if self.get_state(self.monitor_entity) != 'scanning':
+                '''since it idle, just set it to scanning and put in the location of the scan'''
+                self.set_app_state(self.monitor_entity, state = 'scanning', attributes = {'scan_type' : topic.split('/')[2], 'location': [location]})
+            else: #meaing it was already set to 'scanning' already, so just update the location
+                location_attr = self.get_state(self.monitor_entity, attribute = 'location')
+                if location not in location_attr: #meaning it hadn't started the scan before
+                    location_attr.append(location)
+                    self.set_app_state(self.monitor_entity, attributes = {'location': location_attr}) #update the location in the event of different scan systems in place
+                
+        elif topic.split('/')[-1] == 'end': #meaning a scan in a location just ended
+            location = payload['identity']
+            location_attr = self.get_state(self.monitor_entity, attribute = 'location')
+            if location in location_attr: #meaning it had started the scan before
+                location_attr.remove(location)
+            
+                if location_attr == []: #meaning no more locations scanning
+                    self.set_app_state(self.monitor_entity, state = 'idle', attributes = {'scan_type' : topic.split('/')[2], 'location': []}) #set the monitor state to idle since no messages being sent
+                else:
+                    self.set_app_state(self.monitor_entity, attributes = {'location': location_attr}) #update the location in the event of different scan systems in place
 
         device_name = None
         location = topic.split('/')[1].replace('_',' ').title()
@@ -134,7 +132,6 @@ class HomePresenceApp(mqtt.Mqtt):
             device_name = payload['name']
 
         elif payload.get('type', None) == 'GENERIC_BEACON':
-            #return
             mac_address = topic.split('/')[2]
 
             if mac_address in self.known_beacons or (mac_address not in self.known_beacons and not self.report_only_known_beacons): 
@@ -351,7 +348,7 @@ class HomePresenceApp(mqtt.Mqtt):
                 '''meaning it is busy so wait for it to get idle before sending the message'''
                 if self.monitor_handlers.get('Arrive Scan', None) == None: #meaning its not listening already
                     self.monitor_handlers['Arrive Scan'] = self.listen_state(self.monitor_changed_state, self.monitor_entity, 
-                                new = 'idle', scan = 'Arrive Scan', topic = topic, payload = payload)
+                                new = 'idle', old = 'scanning', scan = 'Arrive Scan', topic = topic, payload = payload)
 
         elif self.get_state(everyone_home_state, namespace = self.hass_namespace) == 'on': #meaning everyone at home
             topic ='{}/scan/Depart'.format(self.presence_topic)
@@ -366,7 +363,7 @@ class HomePresenceApp(mqtt.Mqtt):
                 '''used to listen for when the monitor is free, and then send the message'''
                 if self.monitor_handlers.get('Arrive Scan', None) == None: #meaning its not listening already
                     self.monitor_handlers['Arrive Scan'] = self.listen_state(self.monitor_changed_state, self.monitor_entity, 
-                                new = 'idle', scan = 'Arrive Scan', topic = topic, payload = payload)
+                                new = 'idle', old = 'scanning', scan = 'Arrive Scan', topic = topic, payload = payload)
 
             topic ='{}/scan/Depart'.format(self.presence_topic)
             payload = ''
@@ -401,9 +398,9 @@ class HomePresenceApp(mqtt.Mqtt):
                 self.set_app_state(appdaemon_entity, state = True) #not needed but one may as well for other apps
 
     def monitor_changed_state(self, entity, attribute, old, new, kwargs):
+        scan = kwargs['scan']
         topic = kwargs['topic']
         payload = kwargs['payload']
-        scan = kwargs['scan']
         self.mqtt_send(topic, payload) #send to broker
         self.cancel_listen_state(self.monitor_handlers[scan])
         self.monitor_handlers[scan] = None
