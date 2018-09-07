@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.585
+version=0.1.586
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -67,7 +67,7 @@ trap "clean" EXIT
 # ----------------------------------------------------------------------------------------
 
 #CYCLE BLUETOOTH INTERFACE 
-hciconfig hci0 down && sleep 2 && hciconfig hci0 up
+hciconfig $PREF_HCI_DEVICE down && sleep 2 && hciconfig $PREF_HCI_DEVICE up
 
 #SETUP MAIN PIPE
 rm main_pipe &>/dev/null
@@ -755,7 +755,7 @@ while true; do
 
 			log "${RED}[ERROR]	${NC}Correcting HCI error: $data${NC}"
 
-			hciconfig hci0 down && sleep 2 && hciconfig hci0 up
+			hciconfig $PREF_HCI_DEVICE down && sleep 2 && hciconfig $PREF_HCI_DEVICE up
 
 			sleep 2
 
@@ -962,7 +962,7 @@ while true; do
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
 		
-		elif [ "$cmd" == "BEAC" ] && [ "$rssi_updated" == true ]; then 
+		elif [ "$cmd" == "BEAC" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$rssi_updated" == true ]; then 
 
 			#DOES AN EXPECTED NAME EXIST? 
 			expected_name="${known_public_device_name[$data]}"
@@ -976,7 +976,7 @@ while true; do
 			#PUBLISH PRESENCE OF BEACON
 			publish_presence_message "$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "APPLE_IBEACON" "$rssi" "$power"
 		
-		elif [ "$cmd" == "PUBL" ] && [ "$rssi_updated" == true ] && [ "$PREF_PUBLIC_MODE" == true ] ; then 
+		elif [ "$cmd" == "PUBL" ] && [ "$PREF_PUBLIC_MODE" == true ] ; then 
 
 			#IF IS NEW AND IS PUBLIC, SHOULD CHECK FOR NAME
 			expected_name="${known_public_device_name[$data]}"

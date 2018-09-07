@@ -19,9 +19,17 @@
 btle_scanner () {
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
-		local error=$(timeout --signal SIGINT 30 hcitool -i $PREF_HCI_DEVICE lescan 2>&1 | grep -iE 'input/output error|invalid device|invalid|error')
+		local hcitool_raw=$(timeout --signal SIGINT 30 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
+
+		#FIND ERROR VALUES 
+		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error')
+
+		#ALL OTHER BEACON DEVICES FILTERED
+		beacons_filtered=$(echo "$hcitool_raw" | grep -Ei "([0-9a-f]{2}:){5}[0-9a-f]{2}" | sort -u)
+
+
 		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe 
-		sleep 5
+		sleep 2
 	done
 }
 
@@ -37,10 +45,7 @@ btle_packet_processor () {
 	local packet=$(echo "$1" | sed 's/> *//g')
 
 	#BEACON PACKET?
-	if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]]; then
-
-		#IF WE DONT' RECEIVE BEACONS, IGNORE
-		[ "$PREF_BEACON_MODE" == false ] && packet="" && return 0
+	if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01 ]]; then
 
 		#HARDARE MAC AND PDU HEADER
 		local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
@@ -52,6 +57,13 @@ btle_packet_processor () {
 		local MINOR=$(echo $packet | sed 's/^.\{123\}\(.\{5\}\).*$/\1/')
 		local POWER=$(echo $packet | sed 's/^.\{129\}\(.\{2\}\).*$/\1/')
 		local UUID=$(echo $UUID | sed -e 's/\ //g' -e 's/^\(.\{8\}\)\(.\{4\}\)\(.\{4\}\)\(.\{4\}\)\(.\{12\}\)$/\1-\2-\3-\4-\5/')
+		local BATTERY=""
+
+		#BATTERY INFORMATION?
+		if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{17}\ (30|31) ]]; then
+			BATTERY=$(echo $1 | sed 's/^.\{63\}\(.\{2\}\).*$/\1/')
+			BATTERY=$(echo "ibase=16; $BATTERY" | bc)
+		fi
 
 		#MAJOR CALCULATION
 		MAJOR=$(echo $MAJOR | sed 's/\ //g')
@@ -74,11 +86,9 @@ btle_packet_processor () {
         packet=""
 
 		#SEND TO MAIN LOOP
-		[ ! -z "$UUID" ] && echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address|$pdu_header" > main_pipe 
-	fi
-
-	#FIND ADVERTISEMENT PACKET OF RANDOM ADDRESSES                                  __
-	if [[ "$packet" =~ ^04\ 3E* ]]; then
+		[ ! -z "$UUID" ] && echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address|$pdu_header|$BATTERY" > main_pipe 
+	
+	elif [[ "$packet" =~ ^04\ 3E* ]]; then
 		
 		#IF IN TRIGGER MODE, IGNORE
 		[ "$PREF_TRIGGER_MODE" == true ] && packet="" && return 0
@@ -117,7 +127,6 @@ btle_packet_processor () {
 		if [ "$pdu_type" == 'SCAN_RSP' ] || [ "$pdu_type" == "ADV_NONCONN_IND" ]; then 
 			gap_name_str=$(gap_name "$packet")
         fi
-
 
 		#FILTER BASED ON RESPONSE/DATA TYPE		
         if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
