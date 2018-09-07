@@ -170,9 +170,9 @@ class HomePresenceApp(mqtt.Mqtt):
                 else: #if after the above, just use the mac address of the device. This will repeat each time it is reported by the monitor system
                     if mac_address in self.reported_beacons: #check if the MAC address has been given a name before in case it didn't broadcast it again
                         device_name = self.reported_beacons[mac_address] #used previously declared name
-                    else:
-                        self.log("Using MAC Address of Beacon Device, try specfing a name in App Config under 'known_beacons'", level = 'WARNING')
-                        device_name = mac_address
+                    #else:
+                    #    self.log("Using MAC Address of Beacon Device, try specfing a name in App Config under 'known_beacons'", level = 'WARNING')
+                    #    device_name = mac_address
         else:
             return
 
