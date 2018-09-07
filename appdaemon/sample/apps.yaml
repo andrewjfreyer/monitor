@@ -12,7 +12,7 @@ home_presence_app:
   users_sensors:
     - binary_sensor.odianosens_iphone_home_state
     - binary_sensor.nkirukas_iphone_home_state
-  report_only_know_beacons: True
+  report_only_known_beacons: True
   known_beacons:
     xx_xx_xx_xx_xx_xx: odianosen's beacon
     xx_xx_xx_xx_xx_xx: nkiruka's beacon
