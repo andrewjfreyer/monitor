@@ -118,22 +118,23 @@ class HomePresenceApp(mqtt.Mqtt):
             else:
                 self.set_app_state(self.monitor_entity, attributes = {'scan_num': scan_num}) #update the scan number in the event of different scan systems are in place
 
-        if data['payload'] != "":  
-            payload = json.loads(data['payload'])
+        if data['payload'] == "":  
+            return
+
+        payload = json.loads(data['payload'])
 
         device_name = None
+        location = topic.split('/')[1].replace('_',' ').title()
         
         if payload.get('status', None) != None: #meaning its a message on the presence system
-            location = topic.split('/')[2].replace('_',' ').title()
             self.log('The Presence System in the {} is {}'.format(location, payload.get('status').title()))
         
-        elif topic.split('/')[1] == 'owner' and payload.get('type', None) == 'KNOWN_MAC':
-            location = topic.split('/')[2].replace('_',' ').title()
-            mac_address = topic.split('/')[3]
+        elif payload.get('type', None) == 'KNOWN_MAC':
+            mac_address = topic.split('/')[2]
             device_name = payload['name']
 
         elif payload.get('type', None) == 'GENERIC_BEACON':
-            location = topic.split('/')[1].replace('_',' ').title()
+            #return
             mac_address = topic.split('/')[2]
 
             if mac_address in self.known_beacons or (mac_address not in self.known_beacons and not self.report_only_known_beacons): 
@@ -167,8 +168,11 @@ class HomePresenceApp(mqtt.Mqtt):
                             db['known_beacons'] = self.reported_beacons
 
                 else: #if after the above, just use the mac address of the device. This will repeat each time it is reported by the monitor system
-                    self.log("Using MAC Address of Beacon Device, try specfing a name in App Config under 'known_beacons'", level = 'WARNING')
-                    device_name = mac_address
+                    if mac_address in self.reported_beacons: #check if the MAC address has been given a name before in case it didn't broadcast it again
+                        device_name = self.reported_beacons[mac_address] #used previously declared name
+                    else:
+                        self.log("Using MAC Address of Beacon Device, try specfing a name in App Config under 'known_beacons'", level = 'WARNING')
+                        device_name = mac_address
         else:
             return
 
