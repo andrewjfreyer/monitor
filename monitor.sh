@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.603
+version=0.1.604
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -418,6 +418,8 @@ perform_arrival_scan () {
 # ----------------------------------------------------------------------------------------
 
 determine_name () {
+
+	log "******* DETERMINING NAME OF $1"
 
 	#MOVE THIS TO A SEPARATE FUNCTION IN ORDER TO MAKE SURE THAT
 	#THE CACHE IS ACTUALLY USED
@@ -1047,7 +1049,7 @@ while true; do
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$PREF_PUBLIC_MODE" == true ] && [ "$rssi_updated" == true ]; then 
 
-			expected_name="$(determine_name $data)"
+			expected_name="$(determine_name $data true)"
 
 			#REPORT PRESENCE OF DEVICE
 			[ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi"
@@ -1058,7 +1060,7 @@ while true; do
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE" == false ]; then 
 
 			#PROVIDE USEFUL LOGGING
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $name $rssi dBm"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm"
 			
 			#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 		 	perform_arrival_scan 
