@@ -38,9 +38,6 @@ btle_scanner () {
 # ----------------------------------------------------------------------------------------
 
 btle_packet_processor () {
-	#BLANK PACKET RETURN
-	[ -z "$1" ] && return 0
-
 	#POPULATE PACKET 
 	local packet=$(echo "$1" | sed 's/> *//g')
 
@@ -156,7 +153,10 @@ btle_listener () {
 
 			if [[ "$packet" =~ ^04\ 3E* ]]; then
 				local packet_len=$(echo $packet | awk '{print "ibase=16;"$3}' | bc )
-				expected_str_len=$(((packet_len + 3) * 3))
+				expected_str_len=$((( packet_len + 3) * 3))
+
+				echo "PACKET: $expected_str_len" >> BTLE_LOG
+
 			fi 
 		else
 			# continue building the packet
