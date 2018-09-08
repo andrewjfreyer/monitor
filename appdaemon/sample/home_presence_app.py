@@ -94,7 +94,8 @@ class HomePresenceApp(mqtt.Mqtt):
         
     def presence_message(self, event_name, data, kwargs):
         topic = data['topic']
-        if topic.split('/')[0] != self.presence_topic: #only interested in the presence topics
+        payload = data['payload']  
+        if topic.split('/')[0] != self.presence_topic or payload == "": #only interested in the presence topics and payload with json data
             return 
 
         payload = json.loads(data['payload'])
