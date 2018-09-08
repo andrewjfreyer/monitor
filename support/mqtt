@@ -31,6 +31,9 @@ mqtt_broker_clean (){
 # MQTT LISTENER
 # ----------------------------------------------------------------------------------------
 mqtt_listener (){
+	#ANNOUCEE HEALTH 
+	$mosquitto_pub_path $should_retain $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$$mqtt_topicpath/$mqtt_publisher_identity" -m "{\"status\":\"online\"}"
+
 	#MQTT LOOP
 	while read instruction; do 
 		echo "MQTT$instruction" > main_pipe 
@@ -115,10 +118,10 @@ publish_cooperative_scan_message () {
 publish_environment_message () {
 	if [ ! -z "$1" ]; then 
 		#DEBUGGING 
-		(>&2 log "${PURPLE}$mqtt_topicpath/environment $1${NC}")
+		(>&2 log "${PURPLE}$mqtt_topicpath/$mqtt_publisher_identity/environment $1${NC}")
 
 		#POST TO MQTT
-		$mosquitto_pub_path $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/environment" -m "$1"
+		$mosquitto_pub_path $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$mqtt_publisher_identity/environment" -m "$1"
 	fi 
 }
 
