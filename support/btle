@@ -156,7 +156,8 @@ btle_listener () {
 				expected_str_len=$((( packet_len + 3) * 3))
 
 				echo "PACKET: $expected_str_len" >> BTLE_LOG
-
+			else
+				echo "$packet" >> BTLE_LOG
 			fi 
 		else
 			# continue building the packet
