@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.593
+version=0.1.595
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -980,10 +980,10 @@ while true; do
 			[ -z "$expected_name" ] && expected_name="Unknown"
 		
 			#PROVIDE USEFUL LOGGING
-			[ -z "${blacklisted_devices[$key]}" ] && log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
+			[ -z "${blacklisted_devices[$data]}" ] && log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
 
 			#PUBLISH PRESENCE OF BEACON
-			[ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "APPLE_IBEACON" "$rssi" "$power"
+			[ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "APPLE_IBEACON" "$rssi" "$power"
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$PREF_PUBLIC_MODE" == true ] && [ "$rssi_updated" == true ]; then 
 
@@ -1023,10 +1023,10 @@ while true; do
 			fi 
 
 			#REPORT PRESENCE OF DEVICE
-			[ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi"
+			[ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi"
 
 			#PROVIDE USEFUL LOGGING
-			[ -z "${blacklisted_devices[$key]}" ] && log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
+			[ -z "${blacklisted_devices[$data]}" ] && log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE" == false ]; then 
 
