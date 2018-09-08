@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.586
+version=0.1.587
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -557,14 +557,15 @@ while true; do
 
 		elif [ "$cmd" == "TIME" ]; then 
 
+			#CALCULATE DEPARTURE
+			duration_since_depart_scan=$((timestamp - last_depart_scan))
+
 			#MODE TO SKIP
 			if [ "$PREF_PERIODIC_MODE" == true ]; then 
 
 				#SCANNED RECENTLY? 
 				duration_since_arrival_scan=$((timestamp - last_arrival_scan))
-				duration_since_depart_scan=$((timestamp - last_depart_scan))
 
-				
 				if [ "$duration_since_depart_scan" -gt "$PREF_DEPART_SCAN_INTERVAL" ]; then 
 					
 					perform_departure_scan
@@ -573,6 +574,10 @@ while true; do
 					
 					perform_arrival_scan 
 				fi 
+			
+			elif [ "$duration_since_depart_scan" -gt "$PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL" ] ; then 
+
+				perform_departure_scan
 			fi 
 
 			############################## SHOULD PUBLISH ENVIRONMENT MESSAGE? #############################################

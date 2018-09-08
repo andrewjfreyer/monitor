@@ -191,6 +191,7 @@ if [ -f "$PREF_CONFIG" ]; then
 > preference: random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL
 > preference: beacon rssi change required for reporting = $PREF_RSSI_CHANGE_THRESHOLD 
 > preference: bluetooth environmental report frequency = $PREF_ENVIRONMENTAL_REPORT_INTERVAL
+> preference: forced departure check interval = $PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL
 > preference: interval until beacon is considered expired = $PREF_BEACON_EXPIRATION
 > preference: preferred HCI device = $PREF_HCI_DEVICE" | sed 's/= $/= ERROR\!/g')
 	echo "$preferences"
@@ -207,7 +208,10 @@ if [ -f "$PREF_CONFIG" ]; then
 	[ -z "$PREF_RSSI_CHANGE_THRESHOLD" ] && PREF_RSSI_CHANGE_THRESHOLD=20
 	[ -z "$PREF_ENVIRONMENTAL_REPORT_INTERVAL" ] && PREF_ENVIRONMENTAL_REPORT_INTERVAL=300
 	[ -z "$PREF_BEACON_EXPIRATION" ] && PREF_BEACON_EXPIRATION=145
+	[ -z "$PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL" ] && PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL=120
 	[ -z "$PREF_HCI_DEVICE" ] && PREF_HCI_DEVICE='hci0'
+
+
 
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
 	[ "$(echo "$preferences" | grep -c "ERROR")" -gt "0" ] && echo "> warning: preferences error, using defaults. consider reset to defaults with '-d' flag"
@@ -221,7 +225,7 @@ else
 #								
 # ---------------------------
 
-#DETERMINE DELAY BETWEEN SCANS OF DEVICES
+#DELAY BETWEEN SCANS OF DEVICES
 PREF_INTERSCAN_DELAY=3
 
 #DETERMINE HOW OFTEN TO CHECK FOR A DEPARTED DEVICE OR AN ARRIVED DEVICE
@@ -253,6 +257,9 @@ PREF_ENVIRONMENTAL_REPORT_INTERVAL=300
 
 #SECONDS UNTIL A BEACON IS CONSIDERED EXPIRED
 PREF_BEACON_EXPIRATION=145
+
+#SECONDS AFTER WHICH A DEPARTURE SCAN IS TRIGGERED
+PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL=120
 
 #PREFERRED HCI DEVICE
 PREF_HCI_DEVICE='hci0'

@@ -86,6 +86,19 @@ On the other hand, the `monitor` script, with default settings, will only reques
 
 <img src="https://user-images.githubusercontent.com/6710151/44170856-d9d53500-a095-11e8-9d21-7e5885397df5.png" alt="monitor_flowchart" width="750" align="middle">
 
+| Bluteooth Device Types | [`presence.sh`](www.github.com/andrewjfreyer/presence)  | [`monitor.sh`](www.github.com/andrewjfreyer/monitor) |
+| :--- | :--- | :--- |
+| Phones/watches/laptops | YES | YES |
+| Generic Beacon Detection | NO | YES, with `-g` option |
+| iBeacons | NO | YES, with `-b` option |
+
+
+| Triggers for Name Scanning | [`presence.sh`](www.github.com/andrewjfreyer/presence)  | [`monitor.sh`](www.github.com/andrewjfreyer/monitor) |
+| :--- | :--- | :--- |
+| Interval-triggered name scanning | YES | YES, with `-r` option |
+| Advertisement-triggered name scanning | NO | YES, default |
+| MQTT-triggered name scanning only | NO | `-t` option |
+
 Here's the `monitor` helpfile, as reference:
 
 ```
