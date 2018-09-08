@@ -110,7 +110,7 @@ last_environment_report=$((now - 25))
 known_static_addresses=($(sed 's/#.\{0,\}//g' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 address_blacklist=($(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 
-[ -z "${address_blacklist['00:00:00:00:00:00']}" ] && "Blacklist enabled" || "Blacklist disabled"
+[ -z "${address_blacklist[00:00:00:00:00:00]}" ] && "Blacklist enabled" || "Blacklist disabled"
 
 #POPULATE KNOWN DEVICE ADDRESS
 for addr in ${known_static_addresses[@]}; do 
