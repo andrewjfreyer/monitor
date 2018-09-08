@@ -152,14 +152,11 @@ btle_listener () {
 			fi
 			# start the new packet
 			packet=$line
+			expected_str_len=0
 
 			if [[ "$packet" =~ ^04\ 3E* ]]; then
-
-				#GET THE PACKET LENGTH OF THIS GUY
 				local packet_len=$(echo $packet | awk '{print "ibase=16;"$3}' | bc )
 				expected_str_len=$(((packet_len + 3) * 3))
-			else
-				packet_len=0
 			fi 
 		else
 			# continue building the packet
