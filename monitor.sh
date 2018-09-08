@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.596
+version=0.1.597
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -665,7 +665,7 @@ while true; do
 
 					#POST LOGGING MESSAGE
 					(>&2 echo $env_message)
-					publish_environment_message $env_message
+					publish_environment_message "$env_message"
 
 					#SET THE VARIABLE THAT CONTROLS THE REPORT FREQUENCY
 					last_environment_report=$(date +%s)

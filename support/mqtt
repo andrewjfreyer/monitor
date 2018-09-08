@@ -24,7 +24,7 @@ mqtt_broker_clean (){
 		#PUBLISH CLEARING MESSAGE
 		$mosquitto_pub_path $mqtt_ca_file_append -r -n -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$topic"
 
-	done < <($(which mosquitto_sub) $mqtt_ca_file_append -v -W 10 -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/#" ) 
+	done < <($(which mosquitto_sub) $mqtt_ca_file_append -v -W 1 -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/#" ) 
 }
 
 # ----------------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ publish_cooperative_scan_message () {
 publish_environment_message () {
 	if [ ! -z "$1" ]; then 
 		#DEBUGGING 
-		(>&2 log "${PURPLE}$mqtt_topicpath/environment ${NC}")
+		(>&2 log "${PURPLE}$mqtt_topicpath/environment $1${NC}")
 
 		#POST TO MQTT
 		$mosquitto_pub_path $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/environment" -m "$1"
