@@ -36,6 +36,14 @@ should_exit=false
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
 base_directory=$(dirname "$(readlink -f "$0")")
 
+#SET THE NAME CACHE IF IT DOESN'T EXIST
+[ ! -f "$base_directory/.public_name_cache" ] && echo "" > "$base_directory/.public_name_cache"
+[ ! -f "$base_directory/address_blacklist" ] && echo "#LIST MAC ADDRESSES TO IGNORE, ONE PER LINE:
+" > "address_blacklist"
+
+#BLACKLISTED ADDRESSES
+ADDRESS_BLACKLIST="$base_directory/address_blacklist"
+
 #----------------------------------------------------------------------------------------
 # CHECK MQTT CONFIGURATION FILES
 # ----------------------------------------------------------------------------------------
@@ -210,8 +218,6 @@ if [ -f "$PREF_CONFIG" ]; then
 	[ -z "$PREF_BEACON_EXPIRATION" ] && PREF_BEACON_EXPIRATION=145
 	[ -z "$PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL" ] && PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL=120
 	[ -z "$PREF_HCI_DEVICE" ] && PREF_HCI_DEVICE='hci0'
-
-
 
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
 	[ "$(echo "$preferences" | grep -c "ERROR")" -gt "0" ] && echo "> warning: preferences error, using defaults. consider reset to defaults with '-d' flag"

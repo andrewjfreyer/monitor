@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.587
+version=0.1.589
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -101,9 +101,6 @@ last_arrival_scan=$((now - 25))
 last_depart_scan=$((now - 25))
 last_environment_report=$((now - 25))
 
-#SET THE NAME CACHE IF IT DOESN'T EXIST
-[ ! -f ".public_name_cache" ] && echo "" > ".public_name_cache"
-
 # ----------------------------------------------------------------------------------------
 # POPULATE THE ASSOCIATIVE ARRAYS THAT INCLUDE INFORMATION ABOUT THE STATIC DEVICES
 # WE WANT TO TRACK
@@ -111,6 +108,7 @@ last_environment_report=$((now - 25))
 
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY, IGNORING COMMENTS
 known_static_addresses=($(sed 's/#.\{0,\}//g' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
+address_blacklist=($(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 
 #POPULATE KNOWN DEVICE ADDRESS
 for addr in ${known_static_addresses[@]}; do 
@@ -208,7 +206,7 @@ scannable_devices_with_state () {
 perform_complete_scan () {
 	#IF WE DO NOT RECEIVE A SCAN LIST, THEN RETURN 0
 	if [ -z "$1" ]; then
-		log "${GREEN}[CMD-INFO]	${GREEN}**** Rejected group scan. No devices in desired state. **** ${NC}"
+		#log "${GREEN}[CMD-INFO]	${GREEN}**** Rejected group scan. No devices in desired state. **** ${NC}"
 		return 0
 	fi
 
@@ -742,7 +740,7 @@ while true; do
 					log "${BLUE}[CHECK-${RED}DEL${BLUE}]	${NC}$key expired after $difference ($random_bias bias) seconds ${NC}"
 
 					#REPORT PRESENCE OF DEVICE
-					publish_presence_message "$mqtt_publisher_identity/$key" "0" "$expected_name" "$local_manufacturer" "GENERIC_BEACON"
+					publish_presence_message "$mqtt_publisher_identity/$key" "0" "$expected_name" "$local_manufacturer" "GENERIC_BEACON" 
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
@@ -885,7 +883,7 @@ while true; do
 		#**********************************************************************
 
 				#REPORT RSSI CHANGES
-		if [ "$cmd" == "RAND" ] || [ "$cmd" == "PUBL" ]; then 
+		if [ "$cmd" == "RAND" ] || [ "$cmd" == "PUBL" ] || [ "$cmd" == "BEAC" ]; then 
 
 			#SET RSSI LATEST IF NOT ALREADY SET 
 			[ -z "$rssi_latest" ] && rssi_latest="$rssi" && rssi_updated=true
@@ -981,7 +979,7 @@ while true; do
 			#PUBLISH PRESENCE OF BEACON
 			publish_presence_message "$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "APPLE_IBEACON" "$rssi" "$power"
 		
-		elif [ "$cmd" == "PUBL" ] && [ "$PREF_PUBLIC_MODE" == true ] ; then 
+		elif [ "$cmd" == "PUBL" ] && [ "$PREF_PUBLIC_MODE" == true ] && [ "$rssi_updated" == true ]; then 
 
 			#IF IS NEW AND IS PUBLIC, SHOULD CHECK FOR NAME
 			expected_name="${known_public_device_name[$data]}"

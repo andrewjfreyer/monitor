@@ -114,7 +114,7 @@ btle_packet_processor () {
 		local pdu_type=$(pdu_type $(echo "ibase=2;${pdu_header_bin:12:4}" | bc ))
 
 		#ADVERTISED DATA
-		local adv_data=${packet:45}
+		local adv_data=$(echo "${packet:45}" | sed 's/ //g')
 
 		#RSSI VALUE
 		local rssi_value_raw="${packet: -3}"
