@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.605
+version=0.1.606
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -421,7 +421,7 @@ determine_name () {
 	#MOVE THIS TO A SEPARATE FUNCTION IN ORDER TO MAKE SURE THAT
 	#THE CACHE IS ACTUALLY USED
 
-	[ -z "$1" ] && echo "Unknown" & return 0
+	[ -z "$1" ] && log "************* $1" && echo "Unknown" & return 0
 
 	#SET DATA 
 	local address="$1"
