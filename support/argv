@@ -124,7 +124,7 @@ PREF_PUBLISH_ENVIRONMENT_MODE=false
 PREF_HEARTBEAT=false
 
 
-while getopts "h?vrfbutgRcCeadx" opt; do
+while getopts "h?vrfbutgRcCmeadx" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
@@ -162,7 +162,7 @@ while getopts "h?vrfbutgRcCeadx" opt; do
 			;;
 		a)  PREF_REPORT_ALL_MODE=true 	&& echo "> report all scan results mode enabled"
 			;;
-		a)  PREF_HEARTBEAT=true 	&& echo "> send heartbeat signal"
+		m)  PREF_HEARTBEAT=true 	&& echo "> send heartbeat signal"
 			;;
 		*)	echo "> unknown argument: $opt"
 	esac
