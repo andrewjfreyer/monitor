@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.595
+version=0.1.596
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -892,7 +892,7 @@ while true; do
 		if [ "$cmd" == "RAND" ] || [ "$cmd" == "PUBL" ] || [ "$cmd" == "BEAC" ]; then 
 
 			#SET RSSI LATEST IF NOT ALREADY SET 
-			[ -z "$rssi_latest" ] && rssi_latest="$rssi" && rssi_updated=true
+			[ -z "$rssi_latest" ] && rssi_latest="$rssi"
 
 			#IS RSSI THE SAME? 
 			rssi_change=$((rssi - rssi_latest))
