@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.604
+version=0.1.605
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -418,9 +418,6 @@ perform_arrival_scan () {
 # ----------------------------------------------------------------------------------------
 
 determine_name () {
-
-	log "******* DETERMINING NAME OF $1"
-
 	#MOVE THIS TO A SEPARATE FUNCTION IN ORDER TO MAKE SURE THAT
 	#THE CACHE IS ACTUALLY USED
 
@@ -468,8 +465,12 @@ determine_name () {
 		else
 			#WE HAVE A CACHED NAME, ADD IT BACK TO THE PUBLIC DEVICE ARRAY 
 			known_public_device_name[$address]="$expected_name"
-		fi 
+		fi
+	else 
+		expected_name="Already Found - $expected_name"
 	fi 
+
+	log "*******  NAME OF $1 IS $expected_name"
 
 	echo "$expected_name"
 }
