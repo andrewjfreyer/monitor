@@ -162,10 +162,7 @@ btle_listener () {
 			# continue building the packet
 			packet="$packet $line"
 
-			#DETERMINE IF PACKET IS COMPLETE
-			#GET PACKET LENGTH
-
-			local str_length=${#packet} 
+			local str_length="${#packet}"
 
 			echo "PACKET: $expected_str_len == $str_length" >> BTLE_LOG
 		fi
