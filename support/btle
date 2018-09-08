@@ -163,7 +163,7 @@ btle_listener () {
 
 				local str_length=${#packet_len} 
 
-				log "PACKET: $packet_len == $str_length"
+				(2>&1 echo "PACKET: $packet_len == $str_length")
 			fi 
 		fi
 	done < <(hcidump -i $PREF_HCI_DEVICE --raw)
