@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.607
+version=0.1.608
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -421,23 +421,23 @@ determine_name () {
 	#MOVE THIS TO A SEPARATE FUNCTION IN ORDER TO MAKE SURE THAT
 	#THE CACHE IS ACTUALLY USED
 
-	log "Making it here $__LINENO__"
+	log "Making it here ${LINENO}"
 
 	[ -z "$1" ] && log "************* $1" && echo "Unknown" & return 0
 
 	#SET DATA 
 	local address="$1"
 
-	log "Making it here $__LINENO__"
+	log "Making it here ${LINENO}"
 	
 	#IF IS NEW AND IS PUBLIC, SHOULD CHECK FOR NAME
 	local expected_name="${known_public_device_name[$address]}"
 
-	log "Making it here $__LINENO__"
+	log "Making it here ${LINENO}"
 	
 	#FIND PERMANENT DEVICE NAME OF PUBLIC DEVICE
 	if [ -z "$expected_name" ]; then 
-		log "Making it here $__LINENO__"
+		log "Making it here ${LINENO}"
 
 		#CHECK CACHE
 		expected_name=$(grep "$address" < ".public_name_cache" | awk -F "\t" '{print $2}')
@@ -445,7 +445,7 @@ determine_name () {
 		#IF CACHE DOES NOT EXIST, TRY TO SCAN
 		if [ -z "$expected_name" ]; then 
 
-			log "Making it here $__LINENO__"
+			log "Making it here ${LINENO}"
 			#DOES SCAN PROCESS CURRENTLY EXIST? 
 			kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
 
