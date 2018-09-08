@@ -154,6 +154,17 @@ btle_listener () {
 		else
 			# continue building the packet
 			packet="$packet $line"
+
+			#DETERMINE IF PACKET IS COMPLETE
+			if [[ "$packet" =~ ^04\ 3E* ]]; then
+				#GET PACKET LENGTH
+				local packet_len=$(echo $packet | awk '{print "ibase=16;"$3}' | bc )
+				packet_len=$(((packet_len + 3) * 3))
+
+				local str_length=${#packet_len} 
+
+				log "PACKET: $packet_len == $str_length"
+			fi 
 		fi
 	done < <(hcidump -i $PREF_HCI_DEVICE --raw)
 }
