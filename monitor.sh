@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.608
+version=0.1.609
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -420,10 +420,6 @@ perform_arrival_scan () {
 determine_name () {
 	#MOVE THIS TO A SEPARATE FUNCTION IN ORDER TO MAKE SURE THAT
 	#THE CACHE IS ACTUALLY USED
-
-	log "Making it here ${LINENO}"
-
-	[ -z "$1" ] && log "************* $1" && echo "Unknown" & return 0
 
 	#SET DATA 
 	local address="$1"
