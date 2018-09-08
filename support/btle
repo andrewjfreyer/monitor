@@ -139,7 +139,7 @@ btle_packet_processor () {
 btle_listener () {	
 	#DEFINE VARAIBLES
 	local packet=""
-	local expected_str_len=0
+	local complete_packet_str_length=0
 	while read line; do
 		# packets start with ">" or "<"
 		if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
@@ -149,20 +149,21 @@ btle_listener () {
 			fi
 			# start the new packet
 			packet=$line
-			expected_str_len=0
+			complete_packet_str_length=0
 
 			if [[ "$packet" =~ ^\>\ 04\ 3E* ]]; then
 				local packet_len=$(echo $packet | awk '{print "ibase=16;"$4}' | bc )
-				expected_str_len=$((( packet_len + 3) * 3  + 1))
-				echo "PACKET: $packet $expected_str_len $packet_len" >> BTLE_LOG
+				complete_packet_str_length=$((( packet_len + 3) * 3  + 1))
 			fi 
 		else
 			# continue building the packet
 			packet="$packet $line"
 
-			local str_length="${#packet}"
-
-			echo "PACKET: $packet $expected_str_len == $str_length" >> BTLE_LOG
+			#PROCESS A PACKET WHEN IT IS COMPLETE
+			if [ "$complete_packet_str_length" == "${#packet}" ]; then 
+				btle_packet_processor "$packet"
+				packet=""
+			fi 
 		fi
 	done < <(hcidump -i $PREF_HCI_DEVICE --raw)
 }
