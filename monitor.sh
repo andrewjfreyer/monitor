@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.590
+version=0.1.591
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -110,8 +110,9 @@ last_environment_report=$((now - 25))
 known_static_addresses=($(sed 's/#.\{0,\}//g' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 address_blacklist=($(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 
-BLANK="00:00:00:00:00:00"
-[ -z "${address_blacklist["$BLANK"]}" ] && "Blacklist enabled" || "Blacklist disabled"
+for addr in ${address_blacklist[@]}; do 
+echo "$addr"
+done 
 
 #POPULATE KNOWN DEVICE ADDRESS
 for addr in ${known_static_addresses[@]}; do 
