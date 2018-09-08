@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.591
+version=0.1.592
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -86,6 +86,7 @@ declare -A rssi_log
 declare -A known_public_device_log
 declare -A known_static_device_scan_log
 declare -A known_public_device_name
+declare -A blacklisted_devices
 
 #LAST TIME THIS 
 scan_pid=""
@@ -110,9 +111,12 @@ last_environment_report=$((now - 25))
 known_static_addresses=($(sed 's/#.\{0,\}//g' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 address_blacklist=($(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 
+#ASSEMBLE COMMENT-CLEANED BLACKLIST INTO BLACKLIST ARRAY
 for addr in ${address_blacklist[@]}; do 
-echo "$addr"
+	blacklisted_devices["$addr"]=1
 done 
+
+[ -z "${blacklisted_devices["00:00:00:00:00:00"]}" ]  && echo "BLACKLISTED" || echo "clear"
 
 #POPULATE KNOWN DEVICE ADDRESS
 for addr in ${known_static_addresses[@]}; do 
