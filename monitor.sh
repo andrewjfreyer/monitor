@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.592
+version=0.1.593
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -116,7 +116,7 @@ for addr in ${address_blacklist[@]}; do
 	blacklisted_devices["$addr"]=1
 done 
 
-[ -z "${blacklisted_devices["00:00:00:00:00:00"]}" ]  && echo "BLACKLISTED" || echo "clear"
+[ ! -z "${blacklisted_devices["00:00:00:00:00:00"]}" ]  && echo "BLACKLISTED" || echo "clear"
 
 #POPULATE KNOWN DEVICE ADDRESS
 for addr in ${known_static_addresses[@]}; do 
