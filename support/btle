@@ -19,7 +19,7 @@
 btle_scanner () {
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
-		local hcitool_raw=$(timeout --signal SIGINT 30 hcitool -i $PREF_HCI_DEVICE lescan --duplicates 2>&1)
+		local hcitool_raw=$(timeout --signal SIGINT 30 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
 
 		#FIND ERROR VALUES 
 		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error')
@@ -142,6 +142,7 @@ btle_packet_processor () {
 btle_listener () {	
 	#DEFINE VARAIBLES
 	local packet=""
+	local packet_len=0
 	while read line; do
 		# packets start with ">" or "<"
 		if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
@@ -151,20 +152,23 @@ btle_listener () {
 			fi
 			# start the new packet
 			packet=$line
+
+			if [[ "$packet" =~ ^04\ 3E* ]]; then
+
+				#GET THE PACKET LENGTH OF THIS GUY
+				packet_len=$(echo $packet | awk '{print "ibase=16;"$3}' | bc )
+			fi 
 		else
 			# continue building the packet
 			packet="$packet $line"
 
 			#DETERMINE IF PACKET IS COMPLETE
-			if [[ "$packet" =~ ^04\ 3E* ]]; then
-				#GET PACKET LENGTH
-				local packet_len=$(echo $packet | awk '{print "ibase=16;"$3}' | bc )
-				packet_len=$(((packet_len + 3) * 3))
+			#GET PACKET LENGTH
+			packet_len=$(((packet_len + 3) * 3))
 
-				local str_length=${#packet_len} 
+			local str_length=${#packet} 
 
-				(2>&1 echo "PACKET: $packet_len == $str_length")
-			fi 
+			echo "PACKET: $packet_len == $str_length" >> BTLE_LOG
 		fi
 	done < <(hcidump -i $PREF_HCI_DEVICE --raw)
 }
