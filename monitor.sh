@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.600
+version=0.1.601
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -561,7 +561,7 @@ while true; do
 
 		elif [ "$cmd" == "TIME" ]; then 
 
-			[ "$PREF_HEARTBEAT" == true ] && publish_cooperative_scan_message "heartbeat"
+			[ "$PREF_HEARTBEAT" == true ] && publish_cooperative_scan_message "$mqtt_publisher_identity" "heartbeat"
 
 			#CALCULATE DEPARTURE
 			duration_since_depart_scan=$((timestamp - last_depart_scan))

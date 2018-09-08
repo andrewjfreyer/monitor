@@ -90,12 +90,17 @@ publish_presence_message () {
 }
 
 publish_cooperative_scan_message () {
-	if [ ! -z "$1" ]; then 
+	if [ ! -z "$1" ] && [ -z "$2" ]; then 
 		#DEBUGGING 
 		(>&2 log "${PURPLE}$mqtt_topicpath/scan/$1${NC}")
 
 		#POST TO MQTT
 		$mosquitto_pub_path $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/$1" -m "{\"identity\":\"$mqtt_publisher_identity\"}"
+
+	elif [ ! -z "$1" ] && [ ! -z "$2" ]; then 
+		#POST TO MQTT
+		$mosquitto_pub_path $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$2/$1" -m "{\"identity\":\"$mqtt_publisher_identity\"}"
+
 	else 
 		(>&2 log "${PURPLE}$mqtt_topicpath/scan${NC}")
 
