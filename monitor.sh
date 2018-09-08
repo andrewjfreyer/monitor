@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.598
+version=0.1.599
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -561,6 +561,8 @@ while true; do
 
 		elif [ "$cmd" == "TIME" ]; then 
 
+			[ "$PREF_HEARTBEAT" == true ] && publish_cooperative_scan_message "heartbeat"
+
 			#CALCULATE DEPARTURE
 			duration_since_depart_scan=$((timestamp - last_depart_scan))
 
@@ -664,7 +666,6 @@ while true; do
 					env_message="{ \"generic\" : $publ_json_array, \"random\" : $rand_json_array, \"known\" : $known_json_array}"
 
 					#POST LOGGING MESSAGE
-					(>&2 echo $env_message)
 					publish_environment_message "$env_message"
 
 					#SET THE VARIABLE THAT CONTROLS THE REPORT FREQUENCY

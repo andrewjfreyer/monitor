@@ -77,6 +77,7 @@ usage:
 
 	monitor -h 	show usage information
 	monitor -R 	redact private information from logs
+	monitor -m 	send heartbeat signal
 	monitor -C 	clean retained messages from MQTT broker
 	monitor -e 	report bluetooth environment periodically via mqtt at topic:
 				[topic path]/environment 
@@ -120,6 +121,8 @@ PREF_SHOULD_RETAIN=false
 PREF_CLEAN_MQTT=false
 PREF_FORMAT_MQTT=false
 PREF_PUBLISH_ENVIRONMENT_MODE=false
+PREF_HEARTBEAT=false
+
 
 while getopts "h?vrfbutgRcCeadx" opt; do
 	case "$opt" in
@@ -158,6 +161,8 @@ while getopts "h?vrfbutgRcCeadx" opt; do
 		t)  PREF_TRIGGER_MODE=true 		&& echo "> trigger only mode enabled"
 			;;
 		a)  PREF_REPORT_ALL_MODE=true 	&& echo "> report all scan results mode enabled"
+			;;
+		a)  PREF_HEARTBEAT=true 	&& echo "> send heartbeat signal"
 			;;
 		*)	echo "> unknown argument: $opt"
 	esac
