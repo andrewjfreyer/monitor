@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.601
+version=0.1.602
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -295,7 +295,7 @@ perform_complete_scan () {
 				if [[ $should_report =~ .*$known_addr.* ]] || [ "$PREF_REPORT_ALL_MODE" == true ] ; then 
 
 					#GET LOCAL NAME
-					local expected_name="${known_public_device_name[$known_addr]}"
+					local expected_name="$(determine_name $known_addr)"
 					[ -z "$expected_name" ] && "Unknown"
 
 					#DETERMINE MANUFACTUERE
@@ -310,7 +310,7 @@ perform_complete_scan () {
 			#SHOULD WE REPORT A DROP IN CONFIDENCE? 
 			if [ -z "$name" ] && [ "$previous_state" == "1" ]; then 
 
-				local expected_name="${known_public_device_name[$known_addr]}"
+				local expected_name="$(determine_name $known_addr)"
 				[ -z "$expected_name" ] && "Unknown"
 
 				#REPORT PRESENCE OF DEVICE
@@ -414,7 +414,66 @@ perform_arrival_scan () {
 }
 
 # ----------------------------------------------------------------------------------------
-# ADD AN ARRIVAL SCAN INTO THE QUEUE 
+# NAME DETERMINATIONS
+# ----------------------------------------------------------------------------------------
+
+determine_name () {
+
+	#MOVE THIS TO A SEPARATE FUNCTION IN ORDER TO MAKE SURE THAT
+	#THE CACHE IS ACTUALLY USED
+
+	[ -z "$1" ] && echo "Unknown" & return 0
+
+	#SET DATA 
+	local address="$1"
+
+	#IF IS NEW AND IS PUBLIC, SHOULD CHECK FOR NAME
+	local expected_name="${known_public_device_name[$address]}"
+
+	#FIND PERMANENT DEVICE NAME OF PUBLIC DEVICE
+	if [ -z "$expected_name" ]; then 
+
+		#CHECK CACHE
+		expected_name=$(grep "$address" < ".public_name_cache" | awk -F "\t" '{print $2}')
+
+		#IF CACHE DOES NOT EXIST, TRY TO SCAN
+		if [ -z "$expected_name" ]; then 
+
+			#DOES SCAN PROCESS CURRENTLY EXIST? 
+			kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
+
+		 	#ONLY SCAN IF WE ARE NOT OTHERWISE SCANNING; NAME FOR THIS DEVICE IS NOT IMPORTANT
+		 	if [ "$scan_active" == false ] && [ ! -z "$2" ] ; then 
+
+				#FIND NAME OF THIS DEVICE
+				expected_name=$(hcitool -i $PREF_HCI_DEVICE name "$address" | grep -ivE 'input/output error|invalid device|invalid|error')
+
+				#IS THE EXPECTED NAME BLANK? 
+				if [ -z "$expected_name" ]; then 
+
+					expected_name="Unresponse Device"
+				
+				else 
+					#ADD TO SESSION ARRAY
+					known_public_device_name[$address]="$expected_name"
+
+					#ADD TO CACHE
+					echo "$data	$expected_name" >> .public_name_cache
+				fi 
+			else 
+				expected_name="Undiscoverable Device Name"
+			fi 
+		else
+			#WE HAVE A CACHED NAME, ADD IT BACK TO THE PUBLIC DEVICE ARRAY 
+			known_public_device_name[$address]="$expected_name"
+		fi 
+	fi 
+
+	echo "$expected_name"
+}
+
+# ----------------------------------------------------------------------------------------
+# BACKGROUND PROCESSES
 # ----------------------------------------------------------------------------------------
 
 log_listener &
@@ -605,7 +664,7 @@ while true; do
 						latest_rssi="${rssi_log[$key]}" 
 
 						#EXPECTED NAME
-						expected_name="${known_public_device_name[$key]}"
+						expected_name="$(determine_name $key)"
 						[ -z "$expected_name" ] && expected_name="Unknown"
 
 						#JSON MESSAGE
@@ -647,7 +706,7 @@ while true; do
 						last_state=${known_public_device_log[$key]}
 
 						#EXPECTED NAME
-						expected_name="${known_public_device_name[$key]}"
+						expected_name="$(determine_name $key)"
 						[ -z "$expected_name" ] && expected_name="Unknown"
 
 						#JSON MESSAGE
@@ -733,7 +792,7 @@ while true; do
 				[ -z "$last_seen" ] && continue 
 
 				#GET EXPECTED NAME
-				expected_name="${known_public_device_name[$key]}"
+				expected_name="$(determine_name $key)"
 
 				#determine manufacturer
 				local_manufacturer="$(determine_manufacturer "$key")"
@@ -781,7 +840,7 @@ while true; do
 			data="$mac"
 
 			#EXPECTED NAME
-			expected_name="${known_public_device_name[$data]}"
+			expected_name="$(determine_name $data)"
 
 			#DATA IS PUBLIC MAC Addr.; ADD TO LOG
 			[ -z "${public_device_log[$data]}" ] && is_new=true
@@ -900,7 +959,7 @@ while true; do
 			abs_rssi_change=${rssi_change#-}
 
 			#DO WE HAVE A NAME?
-			expected_name="${known_public_device_name[$data]}"
+			expected_name="$(determine_name $mac)"
 
 			#DETERMINE MOTION DIRECTION
 			motion_direction="Departing"
@@ -940,7 +999,7 @@ while true; do
 			
 			#PRINTING FORMATING
 			debug_name="$name"
-			expected_name="${known_public_device_name[$data]}"
+			expected_name="$(determine_name $mac)"
 			current_state="${known_public_device_log[$mac]}"
 
 			#IF NAME IS NOT PREVIOUSLY SEEN, THEN WE SET THE STATIC DEVICE DATABASE NAME
@@ -975,7 +1034,7 @@ while true; do
 		elif [ "$cmd" == "BEAC" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$rssi_updated" == true ]; then 
 
 			#DOES AN EXPECTED NAME EXIST? 
-			expected_name="${known_public_device_name[$data]}"
+			expected_name="$(determine_name $data)"
 
 			#PRINTING FORMATING
 			[ -z "$expected_name" ] && expected_name="Unknown"
@@ -988,40 +1047,7 @@ while true; do
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$PREF_PUBLIC_MODE" == true ] && [ "$rssi_updated" == true ]; then 
 
-			#IF IS NEW AND IS PUBLIC, SHOULD CHECK FOR NAME
-			expected_name="${known_public_device_name[$data]}"
-
-			#FIND PERMANENT DEVICE NAME OF PUBLIC DEVICE
-			if [ -z "$expected_name" ]; then 
-
-				#CHECK CACHE
-				expected_name=$(grep "$data" < ".public_name_cache" | awk -F "\t" '{print $2}')
-
-				#IF CACHE DOES NOT EXIST, TRY TO SCAN
-				if [ -z "$expected_name" ]; then 
-
-					#DOES SCAN PROCESS CURRENTLY EXIST? 
-					kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
-
-				 	#ONLY SCAN IF WE ARE NOT OTHERWISE SCANNING; NAME FOR THIS DEVICE IS NOT IMPORTANT
-				 	if [ "$scan_active" == false ]; then 
-
-						#FIND NAME OF THIS DEVICE
-						expected_name=$(hcitool -i $PREF_HCI_DEVICE name "$data" | grep -ivE 'input/output error|invalid device|invalid|error')
-
-						#IS THE EXPECTED NAME BLANK? 
-						if [ -z "$expected_name" ]; then 
-							expected_name="Unknown Name"
-						else 
-							#ADD TO SESSION ARRAY
-							known_public_device_name[$data]="$expected_name"
-
-							#ADD TO CACHE
-							echo "$data	$expected_name" >> .public_name_cache
-						fi 
-					fi 
-				fi 
-			fi 
+			xxx
 
 			#REPORT PRESENCE OF DEVICE
 			[ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi"
