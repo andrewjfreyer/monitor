@@ -38,11 +38,11 @@ base_directory=$(dirname "$(readlink -f "$0")")
 
 #SET THE NAME CACHE IF IT DOESN'T EXIST
 [ ! -f "$base_directory/.public_name_cache" ] && echo "" > "$base_directory/.public_name_cache"
-[ ! -f "$base_directory/address_blacklist" ] && echo "#LIST MAC ADDRESSES TO IGNORE, ONE PER LINE:
+[ ! -f "address_blacklist" ] && echo "#LIST MAC ADDRESSES TO IGNORE, ONE PER LINE:
 " > "address_blacklist"
 
 #BLACKLISTED ADDRESSES
-ADDRESS_BLACKLIST="$base_directory/address_blacklist"
+ADDRESS_BLACKLIST="address_blacklist"
 
 #----------------------------------------------------------------------------------------
 # CHECK MQTT CONFIGURATION FILES
