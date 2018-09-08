@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.597
+version=0.1.598
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -661,7 +661,7 @@ while true; do
 					############################### ASSEMBLE MESSAGE #########################################
 
 					#ASSEMBLE ENTIRE MESSAGE
-					env_message="{ generic : $publ_json_array, random : $rand_json_array, known : $known_json_array}"
+					env_message="{ \"generic\" : $publ_json_array, \"random\" : $rand_json_array, \"known\" : $known_json_array}"
 
 					#POST LOGGING MESSAGE
 					(>&2 echo $env_message)
