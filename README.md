@@ -138,6 +138,7 @@ usage:
 
   monitor -h  show usage information
   monitor -R  redact private information from logs
+  monitor -m  send heartbeat signal
   monitor -C  clean retained messages from MQTT broker
   monitor -e  report bluetooth environment periodically via mqtt at topic:
         [topic path]/environment 
