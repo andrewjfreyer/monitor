@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.620
+version=0.1.621
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -239,7 +239,7 @@ perform_complete_scan () {
 	local has_requested_collaborative_depart_scan=false
 	
 	#LOG START OF DEVICE SCAN 
-	publish_cooperative_scan_message "$transition_type/start"
+	[ "$PREF_MQTT_REPORT_SCAN_MESSAGES" == true ] && publish_cooperative_scan_message "$transition_type/start"
 	log "${GREEN}[CMD-INFO]	${GREEN}**** Started $transition_type scan. [x$repetitions max rep] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
@@ -370,7 +370,7 @@ perform_complete_scan () {
 	sleep 2
 
 	#PUBLISH END OF COOPERATIVE SCAN
-	publish_cooperative_scan_message "$transition_type/end"
+	[ "$PREF_MQTT_REPORT_SCAN_MESSAGES" == true ] && publish_cooperative_scan_message "$transition_type/end"
 
 	#SET DONE TO MAIN PIPE
 	echo "DONE" > main_pipe
@@ -835,9 +835,9 @@ while true; do
 
 			log "${RED}[ERROR]	${NC}Correcting HCI error: $data${NC}"
 
-			hciconfig $PREF_HCI_DEVICE down && sleep 2 && hciconfig $PREF_HCI_DEVICE up
+			hciconfig $PREF_HCI_DEVICE down && sleep 5 && hciconfig $PREF_HCI_DEVICE up
 
-			sleep 2
+			sleep 5
 
 			continue
 
