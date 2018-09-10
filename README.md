@@ -1,6 +1,6 @@
 monitor
 =======
-***TL;DR***: Bluetooth-based passive presence detection of beacons, cell phones, and any other bluetooth device. The system is useful for [mqtt-based](http://mqtt.org) home automation. Installation instructions [here.](#installation-instructions-raspbian-jessie-lite-stretch)
+***TL;DR***: Bluetooth-based passive presence detection of beacons, cell phones, and any other bluetooth device. The system is useful for [mqtt-based](http://mqtt.org) home automation. Installation instructions [here.](#installation-instructions-raspbian-lite-stretch)
 
 ____
 
@@ -20,7 +20,7 @@ ____
 
   * [**Example with Home Assistant**](#an-example-use-with-home-assistant) 
 
-  * [**Installing on a Raspberry Pi Zero W**](#installation-instructions-raspbian-jessie-lite-stretch) 
+  * [**Installing on a Raspberry Pi Zero W**](#installation-instructions-raspbian-lite-stretch) 
 
 ____
 
@@ -34,7 +34,7 @@ ____
 
 * Does not require device pairing 
 
-* Designed to run as service on a [Raspberry Pi Zero W](https://www.raspberrypi.org/products/raspberry-pi-zero-w/) on Raspbian Jessie Lite Stretch.
+* Designed to run as service on a [Raspberry Pi Zero W](https://www.raspberrypi.org/products/raspberry-pi-zero-w/) on Raspbian  Lite Stretch.
 
 <h1>Summary</h1>
 
@@ -231,15 +231,15 @@ As an example:
 ___
 
 
-<h1>Installation Instructions (Raspbian Jessie Lite Stretch):</h1>
+<h1>Installation Instructions (Raspbian Lite Stretch):</h1>
 
 <h2>Setup of SD Card</h2>
 
-1. Download latest version of **jessie lite stretch** [here](https://downloads.raspberrypi.org/raspbian_lite_latest)
+1. Download latest version of **rasbpian lite stretch** [here](https://downloads.raspberrypi.org/raspbian_lite_latest)
 
 2. Download etcher from [etcher.io](https://etcher.io)
 
-3. Image **jessie lite stretch** to SD card. [Instructions here.](https://www.raspberrypi.org/magpi/pi-sd-etcher/)
+3. Image **raspbian lite stretch** to SD card. [Instructions here.](https://www.raspberrypi.org/magpi/pi-sd-etcher/)
 
 4. Mount **boot** partition of imaged SD card (unplug it and plug it back in)
 
@@ -282,6 +282,7 @@ sudo passwd pi
 sudo apt-get update
 sudo apt-get upgrade -y
 sudo apt-get dist-upgrade -y
+sudo apt-get install rpi-update/raspbian
 sudo rpi-update
 sudo reboot
 ```
