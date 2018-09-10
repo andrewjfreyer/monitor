@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.616
+version=0.1.618
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -236,6 +236,7 @@ perform_complete_scan () {
 	local scan_duration=""
 	local should_report=""
 	local manufacturer="Unknown"
+	local has_requested_collaborative_depart_scan=false
 	
 	#LOG START OF DEVICE SCAN 
 	publish_cooperative_scan_message "$transition_type/start"
@@ -313,8 +314,21 @@ perform_complete_scan () {
 				local expected_name="$(determine_name $known_addr)"
 				[ -z "$expected_name" ] && "Unknown"
 
+				#CALCULATE PERCENT CONFIDENCE
+				local percent_confidence=$(echo "100 / 2 ^ $repetition" | bc )
+
+				#ONLY PUBLISH COOPERATIVE SCAN MODE IF WE ARE NOT IN TRIGGER MODE
+				#TRIGGER ONLY MODE DOES NOT SEND COOPERATIVE MESSAGES
+				if [ "$has_requested_collaborative_depart_scan" == false ]; then 
+					#SEND THE MESSAGE IF APPROPRIATE
+					if [ "$percent_confidence" -lt "$PREF_COOPERATIVE_SCAN_THRESHOLD" ] && [ "$PREF_TRIGGER_MODE" == false ]; then 
+						has_requested_collaborative_depart_scan=true
+						publish_cooperative_scan_message "depart" 
+					fi 
+				fi 
+
 				#REPORT PRESENCE OF DEVICE
-				publish_presence_message "$mqtt_publisher_identity/$known_addr" "$(echo "100 / 2 ^ $repetition" | bc )" "$expected_name" "Unknown" "KNOWN_MAC"
+				publish_presence_message "$mqtt_publisher_identity/$known_addr" "$percent_confidence" "$expected_name" "Unknown" "KNOWN_MAC"
 
 				#IF WE DO FIND A NAME LATER, WE SHOULD REPORT OUT 
 				should_report="$should_report$known_addr"
@@ -1019,7 +1033,6 @@ while true; do
 			[ "$did_change" == true ] && publish_presence_message "$mqtt_publisher_identity/$data" "$((current_state * 100))" "$name" "$manufacturer" "KNOWN_MAC"
 
 			#IF WE HAVE DEPARTED OR ARRIVED; MAKE A NOTE UNLESS WE ARE ALSO IN THE TRIGGER MODE
-			[ "$did_change" == true ] && [ "$current_state" == "0" ] && [ "$PREF_TRIGGER_MODE" == false ] && publish_cooperative_scan_message "depart"
 			[ "$did_change" == true ] && [ "$current_state" == "1" ] && [ "$PREF_TRIGGER_MODE" == false ] && publish_cooperative_scan_message "arrive"
 
 			#REPORT ALL CHANGES
