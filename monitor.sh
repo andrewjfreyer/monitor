@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.621
+version=0.1.622
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -108,6 +108,7 @@ last_environment_report=$((now - 25))
 # ----------------------------------------------------------------------------------------
 
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY, IGNORING COMMENTS
+known_static_beacons=($(sed 's/#.\{0,\}//g' < "$BEAC_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 known_static_addresses=($(sed 's/#.\{0,\}//g' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 address_blacklist=($(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 
@@ -121,6 +122,16 @@ for addr in ${known_static_addresses[@]}; do
 
 	#WAS THERE A NAME HERE?
 	known_name=$(grep "$addr" "$PUB_CONFIG" | tr "\\t" " " | sed 's/  */ /g;s/#.\{0,\}//g' | sed "s/$addr //g;s/  */ /g" )
+
+	#IF WE FOUND A NAME, RECORD IT
+	[ ! -z "$known_name" ] && known_public_device_name[$addr]="$known_name"
+done
+
+#POPULATE KNOWN DEVICE ADDRESS
+for addr in ${known_static_beacons[@]}; do 
+
+	#WAS THERE A NAME HERE?
+	known_name=$(grep "$addr" "$BEAC_CONFIG" | tr "\\t" " " | sed 's/  */ /g;s/#.\{0,\}//g' | sed "s/$addr //g;s/  */ /g" )
 
 	#IF WE FOUND A NAME, RECORD IT
 	[ ! -z "$known_name" ] && known_public_device_name[$addr]="$known_name"
@@ -538,7 +549,8 @@ while true; do
 			data="$mac"
 
 			#GET LAST RSSI
-			rssi_latest="${rssi_log[$data]}" 
+			rssi_latest="${rssi_log[$data]}"
+			expected_name="${known_public_device_name[$mac]}"
 
 			#IF WE HAVE A NAME; UNSEAT FROM RANDOM AND ADD TO STATIC
 			#THIS IS A BIT OF A FUDGE, A RANDOM DEVICE WITH A LOCAL 
@@ -546,7 +558,10 @@ while true; do
 			#ELECTRONIC DEVICE OR CELL PHONE IS ASSOCIATED WITH THIS 
 			#ADDRESS. CONSIDER THE ADDRESS AS A STATIC ADDRESS
 
-			if [ ! -z "$name" ]; then 
+			#ALSO NEED TO CHECK WHETHER THE RANDOM BROADCAST
+			#IS INCLUDED IN THE KNOWN DEVICES LOG...
+
+			if [ ! -z "$name" ] || [ ! -z "$expected_name" ]; then 
 				#RESET COMMAND
 				cmd="PUBL"
 				unset random_device_log[$mac]

@@ -129,6 +129,33 @@ else
 	should_exit=true
 fi 
 
+
+#----------------------------------------------------------------------------------------
+# CHECK BEACON DEVICE CONFIGURATION FILES
+# ----------------------------------------------------------------------------------------
+
+#STATIC DEVICES PREFERENCES
+BEAC_CONFIG="$base_directory/known_beacon_addresses"
+
+if [ -f "$BEAC_CONFIG" ]; then 
+	#DOUBLECHECKS 
+	[ ! -z "$(cat "$BEAC_CONFIG" | grep "^00:00:00:00:00:00")" ] && echo " - Error: Please customize beacon mac addresses in: known_beacon_addresses" && should_exit=true
+else
+	echo "> beacon MAC address list file created. Please customize."
+	#IF NO PUBLIC ADDRESS FILE; LOAD 
+	echo "
+# ---------------------------
+#
+# BEACON MAC ADDRESS LIST
+#
+# ---------------------------
+
+00:00:00:00:00:00 Nickname #comment (optional)" > "$BEAC_CONFIG"
+
+	#SET SHOULD EXIT
+	should_exit=true
+fi 
+
 #----------------------------------------------------------------------------------------
 # CHECK MONITOR.SERVICE (IF APPLICABLE)
 #
