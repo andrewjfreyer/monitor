@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.622
+version=0.1.623
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -267,48 +267,64 @@ perform_complete_scan () {
 			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
 			[ -z "$known_addr" ] && continue
 
+			#DEFINE STATUS VARIABLE
+			local is_present=false
+
 			#DETERMINE START OF SCAN
 			scan_start="$(date +%s)"
 
 			#DEBUG LOGGING
-			log "${GREEN}[CMD-SCAN]	${GREEN}(No. $repetition)${NC} $known_addr $transition_type? ${NC}"
+			log "${GREEN}[CMD-SCAN]	${GREEN}(Scan No. $repetition)${NC} $known_addr $transition_type? ${NC}"
+
+			#GET LOCAL NAME
+			local expected_name="$(determine_name $known_addr)"
+
+			#PERFORM SCAN BY L2PING - NOT FASTER, REALLY, BUT AT LEAST 
+			#A BIT LESS INTERFERENCE
+			local ping_success=$(l2ping -t 1 -d 1 -s 2 -c 1 "$known_addr" | grep -ivE "can't connect")
+			[ ! -z "$ping_success" ] && is_present=true
 
 			#PERFORM NAME SCAN FROM HCI TOOL. THE HCITOOL CMD 0X1 0X0019 IS POSSIBLE, BUT HCITOOL NAME
 			#SCAN PERFORMS VERIFICATIONS THAT REDUCE FALSE NEGATIVES. 
-			local name_raw=$(hcitool -i $PREF_HCI_DEVICE name "$known_addr")
+			local name_raw
+			[ ! "$is_present" == true ] && name_raw=$(hcitool -i $PREF_HCI_DEVICE name "$known_addr") || name_raw="$expected_name"
+			
+			#FORMAT NAME AND EXCLUDE ERRORS
 			local name=$(echo "$name_raw" | grep -ivE 'input/output error|invalid device|invalid|error')
+			[ ! -z "$name" ] && is_present=true
 
 			#COLLECT STATISTICS ABOUT THE SCAN 
 			local scan_end="$(date +%s)"
 			local scan_duration=$((scan_end - scan_start))
 
+			#IF EXPECTED NAME IS UNKNOWN, FILL
+			[ -z "$expected_name" ] && "Unknown"
+
 			#MARK THE ADDRESS AS SCANNED SO THAT IT CAN BE LOGGED ON THE MAIN PIPE
 			echo "SCAN$known_addr" > main_pipe & 
 
 			#IF STATUS CHANGES TO PRESENT FROM NOT PRESENT, REMOVE FROM VERIFICATIONS
-			if [ ! -z "$name" ] && [ "$previous_state" == "0" ]; then 
+			if [ "$is_present" == true ] && [ "$previous_state" == "0" ]; then 
 
-				#PUSH TO MAIN POPE
+				#PUSH NAME REPORT TO MAIN PIPE
 				echo "NAME$known_addr|$name" > main_pipe & 
 
 				#REMOVE FROM SCAN
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g;s/  */ /g")
 
-			elif [ ! -z "$name" ] && [ "$previous_state" == "3" ]; then 
-				#HERE, WE HAVE FOUND A DEVICE FOR THE FIRST TIME
+			elif [ "$is_present" == true ] && [ "$previous_state" == "3" ]; then 
+				
+				#HERE, WE HAVE FOUND A DEVICE FOR THE FIRST TIME; REMOVE FROM KNOWN DEVICES FOR NEXT
+				#GO-AROUND
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g;s/  */ /g")
 
-			elif [ ! -z "$name" ] && [ "$previous_state" == "1" ]; then 
+			elif [ "$is_present" == true ] && [ "$previous_state" == "1" ]; then 
 
 				#THIS DEVICE IS STILL PRESENT; REMOVE FROM VERIFICATIONS
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g;s/  */ /g")
 
 				#NEED TO REPORT? 
 				if [[ $should_report =~ .*$known_addr.* ]] || [ "$PREF_REPORT_ALL_MODE" == true ] ; then 
-
-					#GET LOCAL NAME
-					local expected_name="$(determine_name $known_addr)"
-					[ -z "$expected_name" ] && "Unknown"
 
 					#DETERMINE MANUFACTUERE
 					manufacturer="$(determine_manufacturer $known_addr)"
@@ -321,9 +337,6 @@ perform_complete_scan () {
 
 			#SHOULD WE REPORT A DROP IN CONFIDENCE? 
 			if [ -z "$name" ] && [ "$previous_state" == "1" ]; then 
-
-				local expected_name="$(determine_name $known_addr)"
-				[ -z "$expected_name" ] && "Unknown"
 
 				#CALCULATE PERCENT CONFIDENCE
 				local percent_confidence=$(echo "100 / 2 ^ $repetition" | bc )
@@ -482,7 +495,8 @@ determine_name () {
 					#ADD TO CACHE
 					echo "$data	$expected_name" >> .public_name_cache
 				fi 
-			else 
+			
+			else
 				expected_name="Undiscoverable Device Name"
 			fi 
 		else
@@ -788,7 +802,7 @@ while true; do
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$(( PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL + random_bias))" ]; then 
 					unset random_device_log[$key]
-					log "${BLUE}[CHECK-${RED}DEL${BLUE}]	${NC}$key expired after $difference ($random_bias bias) seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
+					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-${RED}DEL${BLUE}]	${NC}$key expired after $difference ($random_bias bias) seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
 			
 					#AT LEAST ONE DEVICE EXPIRED
 					should_scan=true 
@@ -993,13 +1007,13 @@ while true; do
 
 			#IF POSITIVE, APPROACHING IF NEGATIVE DEPARTING
 			case 1 in
-				$(( abs_rssi_change >= 25)) )
+				$(( abs_rssi_change >= 50)) )
 					change_type="Fast Motion $motion_direction"
 					;;
-				$(( abs_rssi_change >= 10)) )
+				$(( abs_rssi_change >= 20)) )
 					change_type="Moderate Motion $motion_direction"
 					;;
-				$(( abs_rssi_change >= 1)) )
+				$(( abs_rssi_change >= 7)) )
 					change_type="Slow/No Motion"
 					;;			
 				*)
@@ -1008,7 +1022,7 @@ while true; do
 			esac
 
 			#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-			[ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$data $expected_name ${GREEN}$cmd ${NC}RSSI: $rssi dBm ($change_type) ${NC}" && rssi_updated=true
+			[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$data $expected_name ${GREEN}$cmd ${NC}RSSI: $rssi dBm ($change_type, changed $rssi_change) ${NC}" && rssi_updated=true
 		fi
 
 		#**********************************************************************
@@ -1068,14 +1082,14 @@ while true; do
 			[ -z "${blacklisted_devices[$data]}" ] && log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
 
 			#PUBLISH PRESENCE OF BEACON
-			[ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "APPLE_IBEACON" "$rssi" "$power"
+			[ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "APPLE_IBEACON" "$rssi" "$power" "$adv_data"
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$PREF_PUBLIC_MODE" == true ] && [ "$rssi_updated" == true ]; then 
 
 			expected_name="$(determine_name $data true)"
 
 			#REPORT PRESENCE OF DEVICE
-			[ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi"
+			[ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi" "" "$adv_data"
 
 			#PROVIDE USEFUL LOGGING
 			[ -z "${blacklisted_devices[$data]}" ] && log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"

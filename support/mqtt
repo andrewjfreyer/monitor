@@ -64,7 +64,7 @@ publish_presence_message () {
 		local append_debug=""
 		[ ! -z "$6" ] && append="$append,\"rssi\":\"$6\"" && append_debug="$append_debug , rssi : $6 " 
 		[ ! -z "$7" ] && append="$append,\"power\":\"$7\"" && append_debug="$append_debug , power : $7 " 
-		[ ! -z "$8" ] && append="$append,\"battery\":\"$8\"" && append_debug="$append_debug , battery : $8 " 
+		[ ! -z "$8" ] && append="$append,\"adv_data\":\"$8\"" && append_debug="$append_debug , adv_data : $8 " 
 
 		#DEBUG PRINTING
 		debug_append=$(echo "$append_debug" | sed 's/ , /<br><p>/g')
