@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.625
+version=0.1.626
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -842,7 +842,7 @@ while true; do
 					percent_confidence=$(( 100 - difference * 100 / (PREF_BEACON_EXPIRATION + beacon_bias) )) 
 
 					#REPORT PRESENCE OF DEVICE
-					[ "$PREF_PUBLIC_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "$mqtt_publisher_identity/$key" "$percent_confidence" "$expected_name" "$local_manufacturer" "GENERIC_BEACON" "$latest_rssi"
+					[ "$PREF_PUBLIC_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "$mqtt_publisher_identity/$key" "$percent_confidence" "$expected_name" "$local_manufacturer" "GENERIC_BEACON" "$latest_rssi" "" "$adv_data"
 
 				fi 
 			done
