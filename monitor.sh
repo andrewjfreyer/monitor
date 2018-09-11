@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.624
+version=0.1.625
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -267,59 +267,45 @@ perform_complete_scan () {
 			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
 			[ -z "$known_addr" ] && continue
 
-			#DEFINE STATUS VARIABLE
-			local is_present=false
-
 			#DETERMINE START OF SCAN
 			scan_start="$(date +%s)"
 
 			#DEBUG LOGGING
-			log "${GREEN}[CMD-SCAN]	${GREEN}(Scan No. $repetition)${NC} $known_addr $transition_type? ${NC}"
+			log "${GREEN}[CMD-SCAN]	${GREEN}(No. $repetition)${NC} $known_addr $transition_type? ${NC}"
 
 			#GET LOCAL NAME
 			local expected_name="$(determine_name $known_addr)"
-
-			#PERFORM SCAN BY L2PING ONLY IF WE ALREADY KNOW THE NAME WE EXPECT
-			#NOT FASTER, REALLY, BUT AT LEAST A BIT LESS INTERFERENCE
-			local ping_success
-			[ ! -z "$expected_name" ] && ping_success=$(l2ping -t 1 -d 1 -s 2 -c 1 "$known_addr" 2>&1 | grep -ivE "can't connect")
-			[ ! -z "$ping_success" ] && is_present=true
+			[ -z "$expected_name" ] && "Unknown"
 
 			#PERFORM NAME SCAN FROM HCI TOOL. THE HCITOOL CMD 0X1 0X0019 IS POSSIBLE, BUT HCITOOL NAME
 			#SCAN PERFORMS VERIFICATIONS THAT REDUCE FALSE NEGATIVES. 
-			local name_raw
-			[ "$is_present" == false ] && [ -z "$expected_name" ] && name_raw=$(hcitool -i $PREF_HCI_DEVICE name "$known_addr") || name_raw="$expected_name"
-			
-			#FORMAT NAME AND EXCLUDE ERRORS
+
+			#L2SCAN MAY INVOLVE LESS INTERFERENCE
+			local name_raw=$(hcitool -i $PREF_HCI_DEVICE name "$known_addr")
 			local name=$(echo "$name_raw" | grep -ivE 'input/output error|invalid device|invalid|error')
-			[ "$is_present" == false ] && [ ! -z "$name" ] && is_present=true
 
 			#COLLECT STATISTICS ABOUT THE SCAN 
 			local scan_end="$(date +%s)"
 			local scan_duration=$((scan_end - scan_start))
 
-			#IF EXPECTED NAME IS UNKNOWN, FILL
-			[ -z "$expected_name" ] && "Unknown"
 
 			#MARK THE ADDRESS AS SCANNED SO THAT IT CAN BE LOGGED ON THE MAIN PIPE
 			echo "SCAN$known_addr" > main_pipe & 
 
 			#IF STATUS CHANGES TO PRESENT FROM NOT PRESENT, REMOVE FROM VERIFICATIONS
-			if [ "$is_present" == true ] && [ "$previous_state" == "0" ]; then 
+			if [ ! -z "$name" ] && [ "$previous_state" == "0" ]; then 
 
-				#PUSH NAME REPORT TO MAIN PIPE
+				#PUSH TO MAIN POPE
 				echo "NAME$known_addr|$name" > main_pipe & 
 
 				#REMOVE FROM SCAN
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g;s/  */ /g")
 
-			elif [ "$is_present" == true ] && [ "$previous_state" == "3" ]; then 
-				
-				#HERE, WE HAVE FOUND A DEVICE FOR THE FIRST TIME; REMOVE FROM KNOWN DEVICES FOR NEXT
-				#GO-AROUND
+			elif [ ! -z "$name" ] && [ "$previous_state" == "3" ]; then 
+				#HERE, WE HAVE FOUND A DEVICE FOR THE FIRST TIME
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g;s/  */ /g")
 
-			elif [ "$is_present" == true ] && [ "$previous_state" == "1" ]; then 
+			elif [ ! -z "$name" ] && [ "$previous_state" == "1" ]; then 
 
 				#THIS DEVICE IS STILL PRESENT; REMOVE FROM VERIFICATIONS
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g;s/  */ /g")
