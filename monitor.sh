@@ -281,7 +281,7 @@ perform_complete_scan () {
 
 			#PERFORM SCAN BY L2PING - NOT FASTER, REALLY, BUT AT LEAST 
 			#A BIT LESS INTERFERENCE
-			local ping_success=$(l2ping -t 1 -d 1 -s 2 -c 1 "$known_addr" | grep -ivE "can't connect")
+			local ping_success=$(l2ping -t 1 -d 1 -s 2 -c 1 "$known_addr" 2>&1 | grep -ivE "can't connect")
 			[ ! -z "$ping_success" ] && is_present=true
 
 			#PERFORM NAME SCAN FROM HCI TOOL. THE HCITOOL CMD 0X1 0X0019 IS POSSIBLE, BUT HCITOOL NAME
