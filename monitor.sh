@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.623
+version=0.1.624
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -279,19 +279,20 @@ perform_complete_scan () {
 			#GET LOCAL NAME
 			local expected_name="$(determine_name $known_addr)"
 
-			#PERFORM SCAN BY L2PING - NOT FASTER, REALLY, BUT AT LEAST 
-			#A BIT LESS INTERFERENCE
-			local ping_success=$(l2ping -t 1 -d 1 -s 2 -c 1 "$known_addr" 2>&1 | grep -ivE "can't connect")
+			#PERFORM SCAN BY L2PING ONLY IF WE ALREADY KNOW THE NAME WE EXPECT
+			#NOT FASTER, REALLY, BUT AT LEAST A BIT LESS INTERFERENCE
+			local ping_success
+			[ ! -z "$expected_name" ] && ping_success=$(l2ping -t 1 -d 1 -s 2 -c 1 "$known_addr" 2>&1 | grep -ivE "can't connect")
 			[ ! -z "$ping_success" ] && is_present=true
 
 			#PERFORM NAME SCAN FROM HCI TOOL. THE HCITOOL CMD 0X1 0X0019 IS POSSIBLE, BUT HCITOOL NAME
 			#SCAN PERFORMS VERIFICATIONS THAT REDUCE FALSE NEGATIVES. 
 			local name_raw
-			[ ! "$is_present" == true ] && name_raw=$(hcitool -i $PREF_HCI_DEVICE name "$known_addr") || name_raw="$expected_name"
+			[ "$is_present" == false ] && [ -z "$expected_name" ] && name_raw=$(hcitool -i $PREF_HCI_DEVICE name "$known_addr") || name_raw="$expected_name"
 			
 			#FORMAT NAME AND EXCLUDE ERRORS
 			local name=$(echo "$name_raw" | grep -ivE 'input/output error|invalid device|invalid|error')
-			[ ! -z "$name" ] && is_present=true
+			[ "$is_present" == false ] && [ ! -z "$name" ] && is_present=true
 
 			#COLLECT STATISTICS ABOUT THE SCAN 
 			local scan_end="$(date +%s)"
