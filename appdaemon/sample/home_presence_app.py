@@ -91,8 +91,6 @@ class HomePresenceApp(mqtt.Mqtt):
         for gateway_sensor in self.args['home_gateway_sensors']:
             '''it is assumed when the sensor is "on" it is opened and "off" is closed'''
             self.listen_state(self.gateway_opened, gateway_sensor, namespace = self.hass_namespace) #when the door is either opened or closed
-
-        self.listen_event(self.ha_restarted, 'homeassistant_start') #in the event home assistant restarts
         
     def presence_message(self, event_name, data, kwargs):
         topic = data['topic']
@@ -408,7 +406,3 @@ class HomePresenceApp(mqtt.Mqtt):
         self.mqtt_send(topic, payload) #send to broker
         self.cancel_listen_state(self.monitor_handlers[scan])
         self.monitor_handlers[scan] = None
-
-    def ha_restarted(self, event_name, data, kwargs):
-        self.log('__function__, Got here')
-        self.gateway_opened(None, None, None, None, {})
