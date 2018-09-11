@@ -27,7 +27,7 @@ git_path=$(which git)
 
 #ERROR CHECKING FOR MOSQUITTO PUBLICATION 
 should_exit=false
-[ -z "$l2ping_path" ] && echo "Error: Package 'l2ping' not found. Please install 'l2ping'." && should_exit=true
+[ -z "$l2ping_path" ] && echo "Warning: Recommended package 'l2ping' not found. Please consider installing 'l2ping'."
 [ -z "$mosquitto_pub_path" ] && echo "Error: Required package 'mosquitto_pub' not found. Please install 'mosquitto'." && should_exit=true
 [ -z "$mosquitto_sub_path" ] && echo "Error: Required package 'mosquitto_sub' not found. Please install 'mosquitto'." && should_exit=true
 [ -z "$hcidump_path" ] && echo "Error: Required package 'hcidump' not found. Please install 'bluez-hcidump' (e.g., sudo apt-get install bluez-hcidump)." && should_exit=true

@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.626
+version=0.1.627
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -1079,7 +1079,7 @@ while true; do
 			[ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi" "" "$adv_data"
 
 			#PROVIDE USEFUL LOGGING
-			[ -z "${blacklisted_devices[$data]}" ] && log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
+			[ -z "${blacklisted_devices[$data]}" ] && log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm [$adv_data]"
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE" == false ]; then 
 
