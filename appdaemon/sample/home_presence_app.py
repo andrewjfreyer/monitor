@@ -91,6 +91,8 @@ class HomePresenceApp(mqtt.Mqtt):
         for gateway_sensor in self.args['home_gateway_sensors']:
             '''it is assumed when the sensor is "on" it is opened and "off" is closed'''
             self.listen_state(self.gateway_opened, gateway_sensor, namespace = self.hass_namespace) #when the door is either opened or closed
+
+        self.listen_event(self.ha_restarted, 'homeassistant_start') #in the event home assistant restarts
         
     def presence_message(self, event_name, data, kwargs):
         topic = data['topic']
@@ -98,7 +100,7 @@ class HomePresenceApp(mqtt.Mqtt):
         if topic.split('/')[0] != self.presence_topic or payload == "": #only interested in the presence topics and payload with json data
             return 
 
-        payload = json.loads(data['payload'])
+        payload = json.loads(payload)
 
         if topic.split('/')[-1] == 'start': #meaning a scan is starting
             location = payload['identity']
@@ -269,6 +271,7 @@ class HomePresenceApp(mqtt.Mqtt):
         if user_conf_sensors != None:
             sensor_res = list(map(lambda x: self.get_state(x, namespace = self.hass_namespace), user_conf_sensors))
             sensor_res = [i for i in sensor_res if i != 'unknown'] # remove unknown vales from list
+            sensor_res = [i for i in sensor_res if i != None] # remove None values from list
             if  sensor_res != [] and any(list(map(lambda x: int(x) >= self.minimum_conf, sensor_res))): #meaning at least one of them states is greater than the minimum so device definitely home
                 if self.not_home_timers[user_state_entity] != None: #cancel timer if running
                     self.cancel_timer(self.not_home_timers[user_state_entity])
@@ -405,3 +408,7 @@ class HomePresenceApp(mqtt.Mqtt):
         self.mqtt_send(topic, payload) #send to broker
         self.cancel_listen_state(self.monitor_handlers[scan])
         self.monitor_handlers[scan] = None
+
+    def ha_restarted(self, event_name, data, kwargs):
+        self.log('__function__, Got here')
+        self.gateway_opened(None, None, None, None, {})
