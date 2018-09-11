@@ -1084,7 +1084,7 @@ while true; do
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE" == false ]; then 
 
 			#PROVIDE USEFUL LOGGING
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm [$adv_data]"
 			
 			#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 		 	perform_arrival_scan 
