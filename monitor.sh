@@ -433,8 +433,7 @@ perform_arrival_scan () {
 
 		scan_pid=$!
 		scan_type=0
-	#else
-		#log "${GREEN}[REJECT]	${NC}Arrive scan request denied. Hardware busy."
+
 	fi 
 }
 

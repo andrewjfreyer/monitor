@@ -92,15 +92,13 @@ usage:
 
 	monitor -r	repeatedly scan for arrival & departure of known devices
 	monitor -f	format MQTT topics with only letters and numbers
-	monitor -b	report ibeacon advertisements
-	monitor -a	report all scan results, not just changes
+	monitor -b	report iBeacon advertisements and data
+	monitor -a	report all known device scan results, not just changes
 	monitor -x	retain mqtt status messages
 	monitor -g	report generic bluetooth advertisements
-	monitor -t	scan only on mqtt trigger messages:
+	monitor -t	scan for known devices only on mqtt trigger messages:
 				[topic path]/scan/ARRIVE (defined in MQTT preferences file)
 				[topic path]/scan/DEPART (defined in MQTT preferences file)
-
-
 	"
 }
 
