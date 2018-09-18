@@ -292,6 +292,7 @@ class HomePresenceApp(mqtt.Mqtt):
 
             else:
                 if self.not_home_timers[user_state_entity] == None and self.get_state(user_sensor, namespace = self.hass_namespace) != 'off': #run the timer
+                    self.run_arrive_scan() #run so it does another scan before declaring the user away as extra check within the timeout time
                     self.not_home_timers[user_state_entity] = self.run_in(self.not_home_func, self.timeout, user_state_entity = user_state_entity)
 
     def not_home_func(self, kwargs):
@@ -328,7 +329,7 @@ class HomePresenceApp(mqtt.Mqtt):
             if self.get_state(self.monitor_entity) == 'idle': #meaning its not busy
                 self.mqtt_send(topic, payload) #send to scan for departure of anyone
             else: #meaning it is busy so re-run timer for it to get idle before sending the message to start scan
-                self.gateway_timer = self.run_in(self.send_mqtt_message, self.depart_check_time, topic = topic, payload = payload, scan = True) 
+                self.gateway_timer = self.run_in(self.send_mqtt_message, 10, topic = topic, payload = payload, scan = True)
 
     def gateway_opened(self, entity, attribute, old, new, kwargs):
         '''one of the gateways was opened and so needs to check what happened'''
@@ -340,36 +341,14 @@ class HomePresenceApp(mqtt.Mqtt):
             self.gateway_timer = None
 
         if self.get_state(everyone_not_home_state, namespace = self.hass_namespace) == 'on': #meaning no one at home
-            topic = '{}/scan/Arrive'.format(self.presence_topic)
-            payload = ''
-            '''used to listen for when the monitor is free, and then send the message'''
-
-            if self.get_state(self.monitor_entity) == 'idle': #meaning its not busy
-                self.mqtt_send(topic, payload) #send to scan for arrival of anyone
-            else:
-                '''meaning it is busy so wait for it to get idle before sending the message'''
-                if self.monitor_handlers.get('Arrive Scan', None) == None: #meaning its not listening already
-                    self.monitor_handlers['Arrive Scan'] = self.listen_state(self.monitor_changed_state, self.monitor_entity, 
-                                new = 'idle', old = 'scanning', scan = 'Arrive Scan', topic = topic, payload = payload)
+            self.run_arrive_scan()
 
         elif self.get_state(everyone_home_state, namespace = self.hass_namespace) == 'on': #meaning everyone at home
-            topic ='{}/scan/Depart'.format(self.presence_topic)
-            payload = ''
-            self.gateway_timer = self.run_in(self.send_mqtt_message, self.depart_check_time, topic = topic, payload = payload, scan = True) #send to scan for departure of anyone
-        else:
-            topic = '{}/scan/Arrive'.format(self.presence_topic)
-            payload = ''
-            if self.get_state(self.monitor_entity) == 'idle': #meaning its not busy
-                self.mqtt_send(topic, payload) #send to scan for arrival of anyone
-            else:
-                '''used to listen for when the monitor is free, and then send the message'''
-                if self.monitor_handlers.get('Arrive Scan', None) == None: #meaning its not listening already
-                    self.monitor_handlers['Arrive Scan'] = self.listen_state(self.monitor_changed_state, self.monitor_entity, 
-                                new = 'idle', old = 'scanning', scan = 'Arrive Scan', topic = topic, payload = payload)
+            self.run_depart_scan()
 
-            topic ='{}/scan/Depart'.format(self.presence_topic)
-            payload = ''
-            self.gateway_timer = self.run_in(self.send_mqtt_message, self.depart_check_time, topic = topic, payload = payload, scan = True) #send to scan for departure of anyone
+        else:
+            self.run_arrive_scan()
+            self.run_depart_scan()
 
     def check_home_state(self, kwargs):
         check_state = kwargs['check_state']
@@ -406,3 +385,23 @@ class HomePresenceApp(mqtt.Mqtt):
         self.mqtt_send(topic, payload) #send to broker
         self.cancel_listen_state(self.monitor_handlers[scan])
         self.monitor_handlers[scan] = None
+
+    def run_arrive_scan(self):
+        topic = '{}/scan/Arrive'.format(self.presence_topic)
+        payload = ''
+
+        '''used to listen for when the monitor is free, and then send the message'''
+        if self.get_state(self.monitor_entity) == 'idle': #meaning its not busy
+            self.mqtt_send(topic, payload) #send to scan for arrival of anyone
+        else:
+            '''meaning it is busy so wait for it to get idle before sending the message'''
+            if self.monitor_handlers.get('Arrive Scan', None) == None: #meaning its not listening already
+                self.monitor_handlers['Arrive Scan'] = self.listen_state(self.monitor_changed_state, self.monitor_entity, 
+                            new = 'idle', old = 'scanning', scan = 'Arrive Scan', topic = topic, payload = payload)
+        return
+
+    def run_depart_scan(self):
+        topic ='{}/scan/Depart'.format(self.presence_topic)
+        payload = ''
+        self.gateway_timer = self.run_in(self.send_mqtt_message, self.depart_check_time, topic = topic, payload = payload, scan = True) #send to scan for departure of anyone
+        return
