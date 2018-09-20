@@ -123,12 +123,15 @@ btle_packet_processor () {
 			#SEND TO MAIN LOOP
 			echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe
 		fi 
+
+	#NAME REQUEST RESPONSES
+	elif [[ "$packet" =~ ^04\ 07* ]]; then
+
+		return 0
+		
 	else 
-		#GET ADDRESS; REVERSE FROM BIG ENDIAN
-		local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
-	
 		#SEND UNKNOWN PACKET
-		echo "UKNO$received_mac_address|$packet" > main_pipe		
+		echo "UKNO$packet" > main_pipe		
 	fi
 }
 
