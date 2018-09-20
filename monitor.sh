@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.631
+version=0.1.632
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -616,6 +616,13 @@ while true; do
 				fi 
 			fi
 
+		elif [ "$cmd" == "UKNO" ]; then 
+
+			#THIS IS FOR BLUETOOTH DEBUGGING
+			mac=$(echo "$data" | awk -F "|" '{print $1}')
+			adv_data=$(echo "$data" | awk -F "|" '{print $2}')
+
+
 		elif [ "$cmd" == "SCAN" ]; then 
 
 			#ADD TO THE SCAN LOG
@@ -1097,6 +1104,10 @@ while true; do
 			
 			#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 		 	perform_arrival_scan 
+		elif [ "$cmd" == "UKNO" ]; then 
+			#FOR DEBUGGING
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm [$adv_data]"
+	
 		fi 
 
 	done < main_pipe
