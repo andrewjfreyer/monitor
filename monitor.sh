@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.629
+version=0.1.631
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -298,6 +298,9 @@ perform_complete_scan () {
 				#PUSH TO MAIN POPE
 				echo "NAME$known_addr|$name" > main_pipe & 
 
+				#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT 
+				publish_presence_message "$mqtt_publisher_identity/$data" "100" "$name" "$manufacturer" "KNOWN_MAC"
+
 				#REMOVE FROM SCAN
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g;s/  */ /g")
 
@@ -332,7 +335,7 @@ perform_complete_scan () {
 				#TRIGGER ONLY MODE DOES NOT SEND COOPERATIVE MESSAGES
 				if [ "$has_requested_collaborative_depart_scan" == false ]; then 
 					#SEND THE MESSAGE IF APPROPRIATE
-					if [ "$percent_confidence" -lt "$PREF_COOPERATIVE_SCAN_THRESHOLD" ] && [ "$PREF_TRIGGER_MODE" == false ]; then 
+					if [ "$percent_confidence" -lt "$PREF_COOPERATIVE_SCAN_THRESHOLD" ] && [ "$PREF_TRIGGER_MODE_REPORT_OUT" == true ]; then 
 						has_requested_collaborative_depart_scan=true
 						publish_cooperative_scan_message "depart" 
 					fi 
@@ -371,6 +374,19 @@ perform_complete_scan () {
 	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
 	local known_addr
 	for known_addr in $devices_next; do 
+
+		#PUBLISH MESSAGE
+		if [ ! "$previous_state" == "0" ]; then 
+			local expected_name="$(determine_name "$known_addr")"
+			[ -z "$expected_name" ] && "Unknown"
+					#DETERMINE MANUFACTUERE
+			manufacturer="$(determine_manufacturer "$known_addr")"
+			[ -z "$manufacturer" ] && manufacturer="Unknown" 	
+
+			#PUBLISH PRESENCE METHOD
+			publish_presence_message "$mqtt_publisher_identity/$known_addr" "0" "$expected_name" "$manufacturer" "KNOWN_MAC"
+		fi 
+
 		echo "NAME$known_addr|" > main_pipe & 
 	done
 
@@ -801,7 +817,7 @@ while true; do
 			done
 
 			#RANDOM DEVICE EXPIRATION SHOULD TRIGGER DEPARTURE SCAN
-			[ "$should_scan" == true ] && [ "$PREF_TRIGGER_MODE" == false ] && perform_departure_scan
+			[ "$should_scan" == true ] && [ "$PREF_TRIGGER_MODE_DEPART" == false ] && perform_departure_scan
 
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			beacon_bias=0
@@ -1044,14 +1060,8 @@ while true; do
 				[ ! -z "$expected_name" ] && debug_name="$expected_name"
 			fi 
 
-			#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT THE CHANGE
-			[ "$did_change" == true ] && publish_presence_message "$mqtt_publisher_identity/$data" "$((current_state * 100))" "$name" "$manufacturer" "KNOWN_MAC"
-
 			#IF WE HAVE DEPARTED OR ARRIVED; MAKE A NOTE UNLESS WE ARE ALSO IN THE TRIGGER MODE
-			[ "$did_change" == true ] && [ "$current_state" == "1" ] && [ "$PREF_TRIGGER_MODE" == false ] && publish_cooperative_scan_message "arrive"
-
-			#REPORT ALL CHANGES
-			[ "$did_change" == false ] && [ "$current_state" == "0" ] && [ "$PREF_REPORT_ALL_MODE" == true ] && publish_presence_message "$mqtt_publisher_identity/$data" "0" "$name" "$manufacturer" "KNOWN_MAC"
+			[ "$did_change" == true ] && [ "$current_state" == "1" ] && [ "$PREF_TRIGGER_MODE_REPORT_OUT" == true ] && publish_cooperative_scan_message "arrive"
 
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
@@ -1080,7 +1090,7 @@ while true; do
 			#PROVIDE USEFUL LOGGING
 			[ -z "${blacklisted_devices[$data]}" ] && log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm [$adv_data]"
 
-		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE" == false ]; then 
+		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] ; then 
 
 			#PROVIDE USEFUL LOGGING
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm [$adv_data]"

@@ -76,33 +76,13 @@ To see your phone's random advertisements (along with other random advertisement
 
 This command will output the faw BTLE data that is received by your bluetooth hardware while the `hcidump` process is operating. Included in this data are **ADV_RAND** responses.
 
-Knowing this, we can explain to the differences between [presence](http://github.com/andrewjfreyer/presence) and monitor.
-
-The [presence script](http://github.com/andrewjfreyer/presence), with default settings, requests a `name` from your owner devices at regular intervals. You can adjust those intervals, but your pi will be regularly ‘pinging’ for each owner device. The longer your intervals, the slower the system will be to respond. The shorter the intervals, the more quickly the system will respond, but the more 2.4GHz bandwidth is used. In other words, the more often `presence` scans, the more likely it is that presence will interfere with 2.4GHz Wi-Fi. The more devices running `presence`, the more interference. This is a huge bummer for home with 2.4GHz Wi-Fi and other Bluetooth devices (especially older or cheaper devices). Below is a simplified flowchart showing the operation of `presence`:
-
-<img src="https://user-images.githubusercontent.com/6710151/44170325-3b949f80-a094-11e8-9485-4d911d606302.png" alt="presence_flowchart" width="350" align="middle">
-
-On the other hand, the `monitor` script, with default settings, will only request a name from your owner device *after a new random advertisement is detected.* If there are no devices that randomly advertise, monitor will never scan for new devices, clearing 2.4GHz spectrum for Wi-Fi use. The `monitor` script will also detect and report the UUID of nearby iBeacons. Below is a simplified flowchart showing the operation of `monitor`, showing the flows for both detection of arrival and detection of departure:
+The `monitor` script, with default settings, will request a name from your owner device *after a new random advertisement is detected.* If there are no devices that randomly advertise, monitor will never scan for new devices, clearing 2.4GHz spectrum for Wi-Fi use. The `monitor` script will also detect and report the UUID of nearby iBeacons. Below is a simplified flowchart showing the operation of `monitor`, showing the flows for both detection of arrival and detection of departure:
 
 <img src="https://user-images.githubusercontent.com/6710151/44170856-d9d53500-a095-11e8-9d21-7e5885397df5.png" alt="monitor_flowchart" width="750" align="middle">
-
-| Bluteooth Device Types | [`presence.sh`](www.github.com/andrewjfreyer/presence)  | [`monitor.sh`](www.github.com/andrewjfreyer/monitor) |
-| :--- | :--- | :--- |
-| Phones/watches/laptops | YES | YES |
-| Generic Beacon Detection | NO | YES, with `-g` option |
-| iBeacons | NO | YES, with `-b` option |
-
-
-| Triggers for Name Scanning | [`presence.sh`](www.github.com/andrewjfreyer/presence)  | [`monitor.sh`](www.github.com/andrewjfreyer/monitor) |
-| :--- | :--- | :--- |
-| Interval-triggered name scanning | YES | YES, with `-r` option |
-| Advertisement-triggered name scanning | NO | YES, default |
-| MQTT-triggered name scanning only | NO | `-t` option |
 
 Here's the `monitor` helpfile, as reference:
 
 ```
-
 monitor.sh
 
 Andrew J Freyer, 2018
@@ -153,13 +133,15 @@ usage:
 
   monitor -r  repeatedly scan for arrival & departure of known devices
   monitor -f  format MQTT topics with only letters and numbers
-  monitor -b  report ibeacon advertisements
-  monitor -a  report all scan results, not just changes
+  monitor -b  report iBeacon advertisements and data
+  monitor -a  report all known device scan results, not just changes
   monitor -x  retain mqtt status messages
   monitor -g  report generic bluetooth advertisements
-  monitor -t  scan only on mqtt trigger messages:
-        [topic path]/scan/ARRIVE (defined in MQTT preferences file)
-        [topic path]/scan/DEPART (defined in MQTT preferences file)
+  monitor -t[adr] scan for known devices only on mqtt trigger messages:
+        a \$mqtt_topicpath/scan/ARRIVE (defined in MQTT preferences file)
+        d \$mqtt_topicpath/scan/DEPART (defined in MQTT preferences file)
+        r send ARRIVE or DEPART messages to trigger other devices to scan 
+  
 
 ```
 ___

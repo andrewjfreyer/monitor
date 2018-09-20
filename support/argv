@@ -96,9 +96,10 @@ usage:
 	monitor -a	report all known device scan results, not just changes
 	monitor -x	retain mqtt status messages
 	monitor -g	report generic bluetooth advertisements
-	monitor -t	scan for known devices only on mqtt trigger messages:
-				[topic path]/scan/ARRIVE (defined in MQTT preferences file)
-				[topic path]/scan/DEPART (defined in MQTT preferences file)
+	monitor -t[adr]	scan for known devices only on mqtt trigger messages:
+				a \$mqtt_topicpath/scan/ARRIVE (defined in MQTT preferences file)
+				d \$mqtt_topicpath/scan/DEPART (defined in MQTT preferences file)
+				r send ARRIVE or DEPART messages to trigger other devices to scan 
 	"
 }
 
@@ -111,7 +112,9 @@ OPTIND=1
 #PREFERENCES
 PREF_PERIODIC_MODE=false
 PREF_BEACON_MODE=false
-PREF_TRIGGER_MODE=false
+PREF_TRIGGER_MODE_ARRIVE=false
+PREF_TRIGGER_MODE_DEPART=false
+PREF_TRIGGER_MODE_REPORT_OUT=false
 PREF_PUBLIC_MODE=false
 PREF_REPORT_ALL_MODE=false
 PREF_RESTORE_DEFAULTS=false
@@ -124,7 +127,7 @@ PREF_PUBLISH_ENVIRONMENT_MODE=false
 PREF_HEARTBEAT=false
 PREF_MQTT_REPORT_SCAN_MESSAGES=false
 
-while getopts "h?vrfbutEgRcCmeadx" opt; do
+while getopts "h?vrfbut:EgRcCmeadx" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
@@ -160,7 +163,19 @@ while getopts "h?vrfbutEgRcCmeadx" opt; do
 			;;
 		g)  PREF_PUBLIC_MODE=true 		&& echo "> generic bluetooth beacon reporting mode enabled"
 			;;
-		t)  PREF_TRIGGER_MODE=true 		&& echo "> trigger only mode enabled"
+		t)  #DO WE INCLUDE THE REPORTING TRIGGER?
+			[[ $OPTARG = *r* ]] && PREF_TRIGGER_MODE_REPORT_OUT=true && echo "> trigger mode: report out MQTT arrive/depart scan triggers to other devices" 
+			#SORT THROUGH REMAINING FILTERS
+			case "$OPTARG" in 
+				d|rd|dr)	PREF_TRIGGER_MODE_DEPART=true && echo "> trigger mode: depart scan only on MQTT trigger" 
+					;;
+				a|ra|ar)	PREF_TRIGGER_MODE_ARRIVE=true && echo "> trigger mode: arrive scan only on MQTT trigger" 
+					;;
+				da|ad|rda|rad|dra|ard|dar|adr) PREF_TRIGGER_MODE_ARRIVE=true && PREF_TRIGGER_MODE_DEPART==true && echo "> trigger mode: scan only (both on arrive and depart) on trigger" 
+					;;
+				*) echo "> warning: unknown trigger mode: $OPTARG"
+				;;
+			esac
 			;;
 		a)  PREF_REPORT_ALL_MODE=true 	&& echo "> report all scan results mode enabled"
 			;;
