@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.634
+version=0.1.635
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -950,11 +950,11 @@ while true; do
 			pdu_header=$(echo "$data" | awk -F "|" '{print $7}')
 			manufacturer="$(determine_manufacturer $mac)"
 
-			#GET LAST RSSI
-			rssi_latest="${rssi_log[$data]}" 
-
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			data="$mac"
+
+			#GET LAST RSSI
+			rssi_latest="${rssi_log[$data]}" 
 			[ -z "${public_device_log[$data]}" ] && is_new=true
 			public_device_log[$data]="$timestamp"	
 			rssi_log[$data]="$rssi"
@@ -1072,7 +1072,7 @@ while true; do
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
 		
-		elif [ "$cmd" == "BEAC" ] && [ "$PREF_BEACON_MODE" == true ] ; then 
+		elif [ "$cmd" == "BEAC" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$rssi_updated" == true ]; then 
 
 			#DOES AN EXPECTED NAME EXIST? 
 			expected_name="$(determine_name $data)"
