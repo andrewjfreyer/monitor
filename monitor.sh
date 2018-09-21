@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.636
+version=0.1.637
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -688,9 +688,10 @@ while true; do
 					perform_arrival_scan 
 				fi 
 			
-			elif [ "$duration_since_depart_scan" -gt "$PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL" ] ; then 
+			elif [ "$duration_since_depart_scan" -gt "$PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL" ] && [ "$PREF_TRIGGER_MODE_DEPART" == false ]; then 
 
 				perform_departure_scan
+
 			fi 
 
 			############################## SHOULD PUBLISH ENVIRONMENT MESSAGE? #############################################
