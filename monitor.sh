@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.633
+version=0.1.634
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -170,7 +170,7 @@ scannable_devices_with_state () {
 	fi 
 
 	#REJECT IF WE SCANNED TO RECENTLY
-	[ "$scan_type_diff" -lt "15" ] && return 0
+	[ "$scan_type_diff" -lt "$PREF_MINIMUM_TIME_BETWEEN_SCANS" ] && return 0
 
 	#SCAN ALL? SET THE SCAN STATE TO [X]
 	[ -z "$scan_state" ] && scan_state=2
@@ -488,7 +488,7 @@ determine_name () {
 				#IS THE EXPECTED NAME BLANK? 
 				if [ -z "$expected_name" ]; then 
 
-					expected_name="Unresponse Device"
+					expected_name="Unresponsive Device"
 				
 				else 
 					#ADD TO SESSION ARRAY
@@ -1072,7 +1072,7 @@ while true; do
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
 		
-		elif [ "$cmd" == "BEAC" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$rssi_updated" == true ]; then 
+		elif [ "$cmd" == "BEAC" ] && [ "$PREF_BEACON_MODE" == true ] ; then 
 
 			#DOES AN EXPECTED NAME EXIST? 
 			expected_name="$(determine_name $data)"

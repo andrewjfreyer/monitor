@@ -226,7 +226,8 @@ if [ -f "$PREF_CONFIG" ]; then
 > preference: forced departure check interval = $PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL
 > preference: interval until beacon is considered expired = $PREF_BEACON_EXPIRATION
 > preference: trigger a departure scan at other nodes below [x] confidence = $PREF_COOPERATIVE_SCAN_THRESHOLD
-> preference: preferred HCI device = $PREF_HCI_DEVICE" | sed 's/= $/= ERROR\!/g')
+> preference: preferred HCI device = $PREF_HCI_DEVICE
+> preference: minimum time between the same type of scan = $PREF_MINIMUM_TIME_BETWEEN_SCANS" | sed 's/= $/= ERROR\!/g')
 	echo "$preferences"
 
 	#DEFAULTS
@@ -244,6 +245,7 @@ if [ -f "$PREF_CONFIG" ]; then
 	[ -z "$PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL" ] && PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL=120
 	[ -z "$PREF_HCI_DEVICE" ] && PREF_HCI_DEVICE='hci0'
 	[ -z "$PREF_COOPERATIVE_SCAN_THRESHOLD" ] && PREF_COOPERATIVE_SCAN_THRESHOLD=25
+	[ -z "$PREF_MINIMUM_TIME_BETWEEN_SCANS" ] && PREF_MINIMUM_TIME_BETWEEN_SCANS=15
 
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
 	[ "$(echo "$preferences" | grep -c "ERROR")" -gt "0" ] && echo "> warning: preferences error, using defaults. consider reset to defaults with '-d' flag"
@@ -298,6 +300,9 @@ PREF_HCI_DEVICE='hci0'
 
 #COOPERATIVE DEPARTURE SCAN TRIGGER THRESHOLD
 PREF_COOPERATIVE_SCAN_THRESHOLD=25
+
+#MINIMUM TIME BEWTEEN THE SAME TYPE OF SCAN (ARRIVE SCAN, DEPART SCAN)
+PREF_MINIMUM_TIME_BETWEEN_SCANS=15
 
 " > "$PREF_CONFIG"
 
