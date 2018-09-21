@@ -658,11 +658,11 @@ while true; do
 
 			if [[ $mqtt_topic_branch =~ .*ARRIVE.* ]]; then 
 
-				log "${GREEN}[INSTRUCT] ${NC}mqtt trigger arrive ${NC}"
+				log "${GREEN}[INSTRUCT] ${NC}mqtt trigger arrive $data_of_instruction ${NC}"
 				perform_arrival_scan
 				
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
-				log "${GREEN}[INSTRUCT] ${NC}mqtt trigger depart ${NC}"
+				log "${GREEN}[INSTRUCT] ${NC}mqtt trigger depart $data_of_instruction ${NC}"
 				perform_departure_scan				 
 			fi
 
