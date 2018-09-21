@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.635
+version=0.1.636
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -299,7 +299,7 @@ perform_complete_scan () {
 				echo "NAME$known_addr|$name" > main_pipe & 
 
 				#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT 
-				publish_presence_message "$mqtt_publisher_identity/$data" "100" "$name" "$manufacturer" "KNOWN_MAC"
+				publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$name" "$manufacturer" "KNOWN_MAC"
 
 				#REMOVE FROM SCAN
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g;s/  */ /g")
