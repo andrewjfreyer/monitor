@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.637
+version=0.1.638
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -125,6 +125,10 @@ for addr in ${known_static_addresses[@]}; do
 
 	#IF WE FOUND A NAME, RECORD IT
 	[ ! -z "$known_name" ] && known_public_device_name[$addr]="$known_name"
+
+	#FOR DBUGGING
+	echo "known device: $addr $known_name"
+	echo "	mqtt topic: $mqtt_topicpath/$mqtt_publisher_identity/$addr"
 done
 
 #POPULATE KNOWN DEVICE ADDRESS
@@ -135,6 +139,10 @@ for addr in ${known_static_beacons[@]}; do
 
 	#IF WE FOUND A NAME, RECORD IT
 	[ ! -z "$known_name" ] && known_public_device_name[$addr]="$known_name"
+
+	#FOR DBUGGING
+	echo "known beacon: $addr $known_name"
+	echo "	mqtt topic: $mqtt_topicpath/$mqtt_publisher_identity/$addr"
 done
 
 # ----------------------------------------------------------------------------------------
