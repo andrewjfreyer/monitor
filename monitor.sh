@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.639
+version=0.1.640
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -127,7 +127,7 @@ for addr in ${known_static_addresses[@]}; do
 	[ ! -z "$known_name" ] && known_public_device_name[$addr]="$known_name"
 
 	#FOR DBUGGING
-	echo "> known device: $addr $known_name will publish to: $mqtt_topicpath/$mqtt_publisher_identity/$addr"
+	echo "> known device: $addr will publish to: $mqtt_topicpath/$mqtt_publisher_identity/$addr"
 done
 
 #POPULATE KNOWN DEVICE ADDRESS
@@ -140,7 +140,7 @@ for addr in ${known_static_beacons[@]}; do
 	[ ! -z "$known_name" ] && known_public_device_name[$addr]="$known_name"
 
 	#FOR DBUGGING
-	echo "> known beacon: $addr $known_name will publish to: $mqtt_topicpath/$mqtt_publisher_identity/$addr"
+	echo "> known beacon: $addr will publish to: $mqtt_topicpath/$mqtt_publisher_identity/$addr"
 done
 
 # ----------------------------------------------------------------------------------------
@@ -314,6 +314,9 @@ perform_complete_scan () {
 				#HERE, WE HAVE FOUND A DEVICE FOR THE FIRST TIME
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g;s/  */ /g")
 
+				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
+				publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$name" "$manufacturer" "KNOWN_MAC"
+
 			elif [ ! -z "$name" ] && [ "$previous_state" == "1" ]; then 
 
 				#THIS DEVICE IS STILL PRESENT; REMOVE FROM VERIFICATIONS
@@ -352,6 +355,13 @@ perform_complete_scan () {
 
 				#IF WE DO FIND A NAME LATER, WE SHOULD REPORT OUT 
 				should_report="$should_report$known_addr"
+
+			elif [ -z "$name" ] && [ "$previous_state" == "3" ]; then 
+
+				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
+				publish_presence_message "$mqtt_publisher_identity/$known_addr" "0" "$name" "$manufacturer" "KNOWN_MAC"
+
+				#NOTE WE SPECIFICALLY DO NOT INCLUDE A NAME REPORT TO THE MAIN BECAUSE THIS IS A BOOT UP 
 			fi 
 
 			#IF WE HAVE NO MORE DEVICES TO SCAN, IMMEDIATELY RETURN

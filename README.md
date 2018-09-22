@@ -120,11 +120,8 @@ usage:
   monitor -R  redact private information from logs
   monitor -m  send heartbeat signal
   monitor -C  clean retained messages from MQTT broker
-  monitor -e  report bluetooth environment periodically via mqtt at topic:
-        [topic path]/environment 
-  monitor -E  report scan status messages:
-        [topic path]/scan/[arrive|depart]/[start|end]
-
+  monitor -e  report bluetooth environment periodically via mqtt at topic: \$mqtt_topicpath/environment 
+  monitor -E  report scan status messages: \$mqtt_topicpath/scan/[arrive|depart]/[start|end]
   monitor -c  clean manufacturer cache and generic beacon cache
   monitor -v  print version number
   monitor -d  restore to default settings
