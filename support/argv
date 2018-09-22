@@ -167,6 +167,8 @@ while getopts "h?vrfbut:EgRcCmeadx" opt; do
 			[[ $OPTARG = *r* ]] && PREF_TRIGGER_MODE_REPORT_OUT=true && echo "> trigger mode: report out MQTT arrive/depart scan triggers to other devices" 
 			#SORT THROUGH REMAINING FILTERS
 			case "$OPTARG" in 
+				r)	PREF_TRIGGER_MODE_REPORT_OUT=true
+					;;
 				d|rd|dr)	PREF_TRIGGER_MODE_DEPART=true && echo "> trigger mode: depart scan only on MQTT trigger" 
 					;;
 				a|ra|ar)	PREF_TRIGGER_MODE_ARRIVE=true && echo "> trigger mode: arrive scan only on MQTT trigger" 
