@@ -175,7 +175,11 @@ class HomePresenceApp(mqtt.Mqtt):
             return
 
         if device_name != None: #process data
+            if device_name in self.args['maps']:
+                device_name = self.args['maps'][device_name]
+
             user_name = device_name.lower().replace('’', '').replace(' ', '_').replace("'", "").replace(':', '_')
+
             location_Id = location.replace(' ', '_').lower()
             confidence = int(payload['confidence'])
             user_conf_entity = '{}_{}'.format(user_name, location_Id)
@@ -291,7 +295,9 @@ class HomePresenceApp(mqtt.Mqtt):
                     self.run_in(self.check_home_state, 2, check_state = 'is_home')
 
             else:
-                if self.not_home_timers[user_state_entity] == None and self.get_state(user_sensor, namespace = self.hass_namespace) != 'off': #run the timer
+                if new == 'unknown':
+                    new = 0
+                if self.not_home_timers[user_state_entity] == None and self.get_state(user_sensor, namespace = self.hass_namespace) != 'off' and int(new) == 0: #run the timer
                     self.run_arrive_scan() #run so it does another scan before declaring the user away as extra check within the timeout time
                     self.not_home_timers[user_state_entity] = self.run_in(self.not_home_func, self.timeout, user_state_entity = user_state_entity)
 
