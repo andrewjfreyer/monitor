@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.650
+version=0.1.651
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -221,7 +221,7 @@ scannable_devices_with_state () {
 			#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
 			if [ "$this_state" == "$scan_state" ]; then 
 				#ASSEMBLE LIST OF DEVICES TO SCAN
-				return_list="$return_list $known_addr"
+				return_list="$return_list $this_state$known_addr"
 
 			elif [ "$this_state" == "2" ] || [ "$this_state" == "3" ]; then
 
@@ -298,7 +298,7 @@ perform_complete_scan () {
 			else
 				#THIS ELEMENT OF THE ARRAY DOES NOT CONTAIN A STATE PREFIX; GO WITH GLOBAL
 				#STATE SCAN TYPE
-				known_addr=known_addr_stated
+				known_addr=$known_addr_stated
 			fi 
 
 			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
