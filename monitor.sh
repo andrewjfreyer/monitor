@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.648
+version=0.1.649
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -246,7 +246,6 @@ perform_complete_scan () {
 	#PRE
 	local previous_state=0
 	[ ! -z "$3" ] && previous_state="$3"
-	[ "$previous_state" == "3" ] && repetitions=1
 
 	#SCAN TYPE
 	local transition_type="arrival"
@@ -381,7 +380,9 @@ perform_complete_scan () {
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
 				publish_presence_message "$mqtt_publisher_identity/$known_addr" "0" "$name" "$manufacturer" "KNOWN_MAC"
 
-				#NOTE WE SPECIFICALLY DO NOT INCLUDE A NAME REPORT TO THE MAIN BECAUSE THIS IS A BOOT UP 
+				#NOTE WE SPECIFICALLY DO NOT INCLUDE A NAME REPORT, BUT WE DO REMOVE FROM THE SCAN LIST
+				# TO THE MAIN BECAUSE THIS IS A BOOT UP 
+				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g;s/  */ /g")
 			fi 
 
 			#IF WE HAVE NO MORE DEVICES TO SCAN, IMMEDIATELY RETURN
