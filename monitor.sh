@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.646
+version=0.1.647
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -204,7 +204,7 @@ scannable_devices_with_state () {
 
 		#SCAN IF DEVICE HAS NOT BEEN SCANNED 
 		#WITHIN LAST [X] SECONDS
-		if [ "$time_diff" -gt "15" ]; then 
+		if [ "$time_diff" -gt "$PREF_MINIMUM_TIME_BETWEEN_SCANS" ]; then 
 
 			#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
 			if [ "$this_state" == "$scan_state" ]; then 
@@ -215,7 +215,7 @@ scannable_devices_with_state () {
 
 				#SCAN FOR ALL DEVICES THAT HAVEN'T BEEN RECENTLY SCANNED; 
 				#PRESUME DEVICE IS ABSENT
-				return_list="$return_list $known_addr"
+				return_list="$return_list $this_state$known_addr"
 			fi 
 		fi 
 	done
@@ -448,8 +448,6 @@ perform_departure_scan () {
 
 		scan_pid=$!
 		scan_type=1
-	#else
-		#log "${GREEN}[REJECT]	${NC}Departure scan request denied. Hardware busy."
 	fi
 }
 
