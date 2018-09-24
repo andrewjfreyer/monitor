@@ -126,6 +126,10 @@ for addr in ${known_static_addresses[@]}; do
 	#IF WE FOUND A NAME, RECORD IT
 	[ ! -z "$known_name" ] && known_public_device_name[$addr]="$known_name"
 
+	#PUBLICATION TOPIC 
+	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$addr"
+	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { name: $addr }"
+
 	#FOR DBUGGING
 	echo "> known device: $addr will publish to: $mqtt_topicpath/$mqtt_publisher_identity/$addr"
 done
@@ -138,6 +142,10 @@ for addr in ${known_static_beacons[@]}; do
 
 	#IF WE FOUND A NAME, RECORD IT
 	[ ! -z "$known_name" ] && known_public_device_name[$addr]="$known_name"
+
+	#PUBLICATION TOPIC 
+	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$addr"
+	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { name: $addr }"
 
 	#FOR DBUGGING
 	echo "> known beacon: $addr will publish to: $mqtt_topicpath/$mqtt_publisher_identity/$addr"
@@ -170,9 +178,6 @@ scannable_devices_with_state () {
 	elif [ "$scan_state" == "0" ]; then 
 		#SCAN FOR ARRIVED DEVICES
 		scan_type_diff=$((timestamp - last_arrival_scan))
-	else 
-		#SET THE SCAN DIFF AS HIGH IF NO TYPE RECOGNIZED
-		scan_type_diff=90
 	fi 
 
 	#REJECT IF WE SCANNED TO RECENTLY
@@ -241,6 +246,7 @@ perform_complete_scan () {
 	#PRE
 	local previous_state=0
 	[ ! -z "$3" ] && previous_state="$3"
+	[ "$previous_state" == "3" ] && repetitions=1
 
 	#SCAN TYPE
 	local transition_type="arrival"
