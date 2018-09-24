@@ -274,7 +274,7 @@ perform_complete_scan () {
 	
 	#LOG START OF DEVICE SCAN 
 	[ "$PREF_MQTT_REPORT_SCAN_MESSAGES" == true ] && publish_cooperative_scan_message "$transition_type/start"
-	log "${GREEN}[CMD-INFO]	${GREEN}**** Started $transition_type scan. [x$repetitions max rep] **** ${NC}"
+	log "${GREEN}[CMD-INFO]	${GREEN}**** Started $transition_type scan. [x$repetitions max rep] for: $devices **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	local repetition 
