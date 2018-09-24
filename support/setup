@@ -28,8 +28,8 @@ git_path=$(which git)
 #ERROR CHECKING FOR MOSQUITTO PUBLICATION 
 should_exit=false
 [ -z "$l2ping_path" ] && echo "Warning: Recommended package 'l2ping' not found. Please consider installing 'l2ping'."
-[ -z "$mosquitto_pub_path" ] && echo "Error: Required package 'mosquitto_pub' not found. Please install 'mosquitto'." && should_exit=true
-[ -z "$mosquitto_sub_path" ] && echo "Error: Required package 'mosquitto_sub' not found. Please install 'mosquitto'." && should_exit=true
+[ -z "$mosquitto_pub_path" ] && echo "Error: Required package 'mosquitto_pub' not found. Please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
+[ -z "$mosquitto_sub_path" ] && echo "Error: Required package 'mosquitto_sub' not found. Please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
 [ -z "$hcidump_path" ] && echo "Error: Required package 'hcidump' not found. Please install 'bluez-hcidump' (e.g., sudo apt-get install bluez-hcidump)." && should_exit=true
 [ -z "$bc_path" ] && echo "Error: Required package 'bc' not found. Please install 'bc' (e.g., apt-get install bc)" && should_exit=true
 [ -z "$git_path" ] && echo "Warning: Recommended package 'git' not found. Please consider installing for regular updates."
