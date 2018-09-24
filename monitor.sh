@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.656
+version=0.1.657
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -680,7 +680,6 @@ while true; do
 			#THIS IS FOR BLUETOOTH DEBUGGING
 			adv_data=$(echo "$data" | awk -F "|" '{print $1}')
 
-
 		elif [ "$cmd" == "SCAN" ]; then 
 
 			#ADD TO THE SCAN LOG
@@ -1148,14 +1147,16 @@ while true; do
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$PREF_PUBLIC_MODE" == true ] && [ "$rssi_updated" == true ]; then 
 
-			expected_name="$(determine_name $data true)"
+			expected_name="$(determine_name $mac true)"
 
 			#REPORT PRESENCE OF DEVICE
 			should_publish=true
-			[ "$PREF_ONLY_REPORT_KNOWN_BEACONS" == true ] && [ -z "${known_static_beacons[$data]}" ] && should_publish=false
+			[ "$PREF_ONLY_REPORT_KNOWN_BEACONS" == true ] && [ -z "${known_static_beacons[$mac]}" ] && should_publish=false
+
+			log "Publication of: $mac is $should_publish"
 			
 			#PUBLISH PRESENCE MESSAGE FOR BEACON
-			[ "$should_publish" == true ] && [ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi" "" "$adv_data"
+			[ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$mac" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi" "" "$adv_data"
 
 			#PROVIDE USEFUL LOGGING
 			[ -z "${blacklisted_devices[$data]}" ] && log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm "
