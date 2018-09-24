@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.658
+version=0.1.659
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -1151,7 +1151,7 @@ while true; do
 
 			#REPORT PRESENCE OF DEVICE
 			should_publish=true
-			[ "$PREF_ONLY_REPORT_KNOWN_BEACONS" == true ] && [ -z "${known_static_beacons[$mac]}" ] && should_publish=false
+			[ "$PREF_ONLY_REPORT_KNOWN_BEACONS" == true ] && [ -z "${known_static_beacons["$data"]}" ] && should_publish=false
 
 			log "Publication of: $mac is $should_publish"
 			
