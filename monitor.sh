@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.652
+version=0.1.653
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -132,7 +132,7 @@ for addr in ${known_static_addresses[@]}; do
 
 	#PUBLICATION TOPIC 
 	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$addr"
-	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { name: $addr }"
+	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { id: $addr ... }"
 
 	#FOR DBUGGING
 	echo "> known device: $addr will publish to: $pub_topic"
@@ -154,7 +154,7 @@ for addr in ${known_static_beacons[@]}; do
 
 	#PUBLICATION TOPIC 
 	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$addr"
-	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { name: $addr }"
+	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { id: $addr ... }"
 
 	#FOR DBUGGING
 	echo "> known beacon: $addr will publish to: $pub_topic"
@@ -307,12 +307,12 @@ perform_complete_scan () {
 			#DETERMINE START OF SCAN
 			scan_start="$(date +%s)"
 
-			#DEBUG LOGGING
-			log "${GREEN}[CMD-SCAN]	${GREEN}(No. $repetition)${NC} $known_addr $transition_type? ${NC}"
-
 			#GET LOCAL NAME
 			local expected_name="$(determine_name $known_addr)"
-			[ -z "$expected_name" ] && "Unknown"
+			[ -z "$expected_name" ] && "None"
+
+			#DEBUG LOGGING
+			log "${GREEN}[CMD-SCAN]	${GREEN}(No. $repetition)${NC} $known_addr $expected_name $transition_type? ${NC}"
 
 			#PERFORM NAME SCAN FROM HCI TOOL. THE HCITOOL CMD 0X1 0X0019 IS POSSIBLE, BUT HCITOOL NAME
 			#SCAN PERFORMS VERIFICATIONS THAT REDUCE FALSE NEGATIVES. 
@@ -324,7 +324,6 @@ perform_complete_scan () {
 			#COLLECT STATISTICS ABOUT THE SCAN 
 			local scan_end="$(date +%s)"
 			local scan_duration=$((scan_end - scan_start))
-
 
 			#MARK THE ADDRESS AS SCANNED SO THAT IT CAN BE LOGGED ON THE MAIN PIPE
 			echo "SCAN$known_addr" > main_pipe & 
