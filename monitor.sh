@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.645
+version=0.1.646
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -131,7 +131,7 @@ for addr in ${known_static_addresses[@]}; do
 	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { name: $addr }"
 
 	#FOR DBUGGING
-	echo "> known device: $addr will publish to: $mqtt_topicpath/$mqtt_publisher_identity/$addr"
+	echo "> known device: $addr will publish to: $pub_topic"
 done
 
 #POPULATE KNOWN DEVICE ADDRESS
@@ -148,7 +148,7 @@ for addr in ${known_static_beacons[@]}; do
 	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { name: $addr }"
 
 	#FOR DBUGGING
-	echo "> known beacon: $addr will publish to: $mqtt_topicpath/$mqtt_publisher_identity/$addr"
+	echo "> known beacon: $addr will publish to: $pub_topic"
 done
 
 # ----------------------------------------------------------------------------------------
