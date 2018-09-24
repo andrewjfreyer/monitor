@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.647
+version=0.1.648
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -274,7 +274,21 @@ perform_complete_scan () {
 
 		#ITERATE THROUGH THESE 
 		local known_addr
-		for known_addr in $devices; do 
+		local known_addr_stated
+		for known_addr_stated in $devices; do 
+
+			#EXTRACT KNOWN ADDRESS FROM STATE-PREFIXED KNOWN ADDRESS, IF PRESENT
+			if [[ "$known_addr_stated" =~ .*[0-9A-Z]{3}.* ]]; then 
+				#SET KNOWN ADDRESS
+				known_addr=${known_addr_stated:1}
+
+				#SET PREVIOUS STATE
+				previous_state=${known_addr_stated:0:1}
+			else
+				#THIS ELEMENT OF THE ARRAY DOES NOT CONTAIN A STATE PREFIX; GO WITH GLOBAL
+				#STATE SCAN TYPE
+				known_addr=known_addr_stated
+			fi 
 
 			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
 			[ -z "$known_addr" ] && continue
