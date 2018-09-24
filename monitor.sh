@@ -274,7 +274,7 @@ perform_complete_scan () {
 	
 	#LOG START OF DEVICE SCAN 
 	[ "$PREF_MQTT_REPORT_SCAN_MESSAGES" == true ] && publish_cooperative_scan_message "$transition_type/start"
-	log "${GREEN}[CMD-INFO]	${GREEN}**** Started $transition_type scan. [x$repetitions max rep] for: $devices **** ${NC}"
+	log "${GREEN}[CMD-INFO]	${GREEN}**** Started $transition_type scan. [x$repetitions max rep] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	local repetition 
@@ -300,6 +300,10 @@ perform_complete_scan () {
 				#STATE SCAN TYPE
 				known_addr=$known_addr_stated
 			fi 
+
+			#DETERMINE MANUFACTUERE
+			manufacturer="$(determine_manufacturer $known_addr)"
+			[ -z "$manufacturer" ] && manufacturer="Unknown" 
 
 			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
 			[ -z "$known_addr" ] && continue
@@ -356,12 +360,7 @@ perform_complete_scan () {
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
 
 				#NEED TO REPORT? 
-				if [[ $should_report =~ .*$known_addr.* ]] || [ "$PREF_REPORT_ALL_MODE" == true ] ; then 
-
-					#DETERMINE MANUFACTUERE
-					manufacturer="$(determine_manufacturer $known_addr)"
-					[ -z "$manufacturer" ] && manufacturer="Unknown" 			
-
+				if [[ $should_report =~ .*$known_addr.* ]] || [ "$PREF_REPORT_ALL_MODE" == true ] ; then 			
 					#REPORT PRESENCE
 					publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "KNOWN_MAC"			
 				fi 
