@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.649
+version=0.1.650
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -117,6 +117,10 @@ for addr in ${address_blacklist[@]}; do
 	blacklisted_devices["$addr"]=1
 done 
 
+# ----------------------------------------------------------------------------------------
+# POPULATE MAIN DEVICE ARRAY
+# ----------------------------------------------------------------------------------------
+
 #POPULATE KNOWN DEVICE ADDRESS
 for addr in ${known_static_addresses[@]}; do 
 
@@ -134,6 +138,11 @@ for addr in ${known_static_addresses[@]}; do
 	echo "> known device: $addr will publish to: $pub_topic"
 done
 
+# ----------------------------------------------------------------------------------------
+# POPULATE BEACON ADDRESS ARRAY
+# ----------------------------------------------------------------------------------------
+PREF_ONLY_REPORT_KNOWN_BEACONS=false
+
 #POPULATE KNOWN DEVICE ADDRESS
 for addr in ${known_static_beacons[@]}; do 
 
@@ -149,7 +158,10 @@ for addr in ${known_static_beacons[@]}; do
 
 	#FOR DBUGGING
 	echo "> known beacon: $addr will publish to: $pub_topic"
+	PREF_ONLY_REPORT_KNOWN_BEACONS=true
 done
+
+[ "$PREF_ONLY_REPORT_KNOWN_BEACONS" == true ] && echo "> preference: known_static_beacons file has content; only reporting known beacons"
 
 # ----------------------------------------------------------------------------------------
 # ASSEMBLE SCAN LISTS
@@ -1127,7 +1139,11 @@ while true; do
 			expected_name="$(determine_name $data true)"
 
 			#REPORT PRESENCE OF DEVICE
-			[ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi" "" "$adv_data"
+			should_publish=true
+			[ "$PREF_ONLY_REPORT_KNOWN_BEACONS" == true ] && [ -z "${known_static_beacons[$data]}" ] && should_publish=false
+			
+			#PUBLISH PRESENCE MESSAGE FOR BEACON
+			[ "$should_publish" == true ] && [ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$data" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi" "" "$adv_data"
 
 			#PROVIDE USEFUL LOGGING
 			[ -z "${blacklisted_devices[$data]}" ] && log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm "
