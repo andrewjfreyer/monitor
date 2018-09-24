@@ -98,7 +98,7 @@ mqtt_publisher_identity=''
 # MQTT PORT 
 mqtt_port='1883'
 
-# MQTT CERTIFICATE FILE 
+# MQTT CERTIFICATE FILE (LEAVE BLANK IF NONE)
 mqtt_certificate_path=''" > "$MQTT_CONFIG"
 
 	#SET SHOULD EXIT

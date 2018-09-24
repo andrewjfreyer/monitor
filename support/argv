@@ -90,6 +90,9 @@ usage:
 	monitor -u	update 'monitor.service' to current command line settings
 			(excluding -u and -d flags)
 
+	monitor -s  report all mqtt messages to a single topic with 
+				\$mqtt_topicpath/\$mqtt_publisher_identity  (defined in MQTT preferences file)
+
 	monitor -r	repeatedly scan for arrival & departure of known devices
 	monitor -f	format MQTT topics with only letters and numbers
 	monitor -b	report iBeacon advertisements and data
@@ -127,7 +130,7 @@ PREF_PUBLISH_ENVIRONMENT_MODE=false
 PREF_HEARTBEAT=false
 PREF_MQTT_REPORT_SCAN_MESSAGES=false
 
-while getopts "h?vrfbut:EgRcCmeadx" opt; do
+while getopts "h?vrfbut:EgRcCmesadx" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
@@ -144,6 +147,8 @@ while getopts "h?vrfbut:EgRcCmeadx" opt; do
 			PREF_CLEAN_MQTT=true && echo "> cleaning retained messages on broker"
 			;;
 		E)  PREF_MQTT_REPORT_SCAN_MESSAGES=true  && echo "> publishing MQTT .../scan/[arrival|depart]/[start|end]"
+			;;
+		s)  PREF_MQTT_SINGLE_TOPIC_MODE=true  && echo "> publishing all MQTT presence messages to \$mqtt_topicpath/\$mqtt_publisher_identity"
 			;;
 		e)  PREF_PUBLISH_ENVIRONMENT_MODE=true  && echo "> publishing bluetooth environment every $PREF_ENVIRONMENTAL_REPORT_INTERVAL seconds"
 			;;
