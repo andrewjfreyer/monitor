@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.653
+version=0.1.654
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -309,10 +309,10 @@ perform_complete_scan () {
 
 			#GET LOCAL NAME
 			local expected_name="$(determine_name $known_addr)"
-			[ -z "$expected_name" ] && "None"
+			[ -z "$expected_name" ] && "Unknown"
 
 			#DEBUG LOGGING
-			log "${GREEN}[CMD-SCAN]	${GREEN}(No. $repetition)${NC} $known_addr $expected_name $transition_type? ${NC}"
+			log "${GREEN}[CMD-SCAN]	${GREEN}(No. $repetition)${NC} $known_addr $transition_type? ${NC}"
 
 			#PERFORM NAME SCAN FROM HCI TOOL. THE HCITOOL CMD 0X1 0X0019 IS POSSIBLE, BUT HCITOOL NAME
 			#SCAN PERFORMS VERIFICATIONS THAT REDUCE FALSE NEGATIVES. 
@@ -335,7 +335,7 @@ perform_complete_scan () {
 				echo "NAME$known_addr|$name" > main_pipe & 
 
 				#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT 
-				publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$name" "$manufacturer" "KNOWN_MAC"
+				publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "KNOWN_MAC"
 
 				#REMOVE FROM SCAN
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
@@ -345,7 +345,7 @@ perform_complete_scan () {
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
 
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
-				publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$name" "$manufacturer" "KNOWN_MAC"
+				publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "KNOWN_MAC"
 
 			elif [ ! -z "$name" ] && [ "$previous_state" == "1" ]; then 
 
@@ -381,7 +381,7 @@ perform_complete_scan () {
 				fi 
 
 				#REPORT PRESENCE OF DEVICE
-				publish_presence_message "$mqtt_publisher_identity/$known_addr" "$percent_confidence" "$expected_name" "Unknown" "KNOWN_MAC"
+				publish_presence_message "$mqtt_publisher_identity/$known_addr" "$percent_confidence" "$expected_name" "$manufacturer" "KNOWN_MAC"
 
 				#IF WE DO FIND A NAME LATER, WE SHOULD REPORT OUT 
 				should_report="$should_report$known_addr"
@@ -389,7 +389,7 @@ perform_complete_scan () {
 			elif [ -z "$name" ] && [ "$previous_state" == "3" ]; then 
 
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
-				publish_presence_message "$mqtt_publisher_identity/$known_addr" "0" "$name" "$manufacturer" "KNOWN_MAC"
+				publish_presence_message "$mqtt_publisher_identity/$known_addr" "0" "$expected_name" "$manufacturer" "KNOWN_MAC"
 
 				#NOTE WE SPECIFICALLY DO NOT INCLUDE A NAME REPORT, BUT WE DO REMOVE FROM THE SCAN LIST
 				# TO THE MAIN BECAUSE THIS IS A BOOT UP 
@@ -420,8 +420,17 @@ perform_complete_scan () {
 	done 
 
 	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
+	local known_addr_stated
 	local known_addr
-	for known_addr in $devices_next; do 
+	for known_addr_stated in $devices_next; do 
+		#EXTRACT KNOWN ADDRESS FROM STATE-PREFIXED KNOWN ADDRESS, IF PRESENT
+		if [[ "$known_addr_stated" =~ .*[0-9A-Z]{3}.* ]]; then 
+			#SET KNOWN ADDRESS
+			known_addr=${known_addr_stated:1}
+		else
+			#THIS ELEMENT OF THE ARRAY DOES NOT CONTAIN A STATE PREFIX
+			known_addr=$known_addr_stated
+		fi
 
 		#PUBLISH MESSAGE
 		if [ ! "$previous_state" == "0" ]; then 
