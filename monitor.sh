@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.655
+version=0.1.656
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -344,6 +344,9 @@ perform_complete_scan () {
 				#HERE, WE HAVE FOUND A DEVICE FOR THE FIRST TIME
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
 
+				#NEED TO UPDATE STATE TO MAIN THREAD
+				echo "NAME$known_addr|$name" > main_pipe & 
+
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
 				publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "KNOWN_MAC"
 
@@ -391,9 +394,11 @@ perform_complete_scan () {
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
 				publish_presence_message "$mqtt_publisher_identity/$known_addr" "0" "$expected_name" "$manufacturer" "KNOWN_MAC"
 
-				#NOTE WE SPECIFICALLY DO NOT INCLUDE A NAME REPORT, BUT WE DO REMOVE FROM THE SCAN LIST
-				# TO THE MAIN BECAUSE THIS IS A BOOT UP 
+				#NREMOVE FROM THE SCAN LIST TO THE MAIN BECAUSE THIS IS A BOOT UP 
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
+
+				#PUBLISH A NOT PRESENT TO THE NAME PIPE
+				echo "NAME$known_addr|" > main_pipe & 
 			fi 
 
 			#IF WE HAVE NO MORE DEVICES TO SCAN, IMMEDIATELY RETURN
