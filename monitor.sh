@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.651
+version=0.1.652
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -339,11 +339,11 @@ perform_complete_scan () {
 				publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$name" "$manufacturer" "KNOWN_MAC"
 
 				#REMOVE FROM SCAN
-				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g;s/  */ /g")
+				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
 
 			elif [ ! -z "$name" ] && [ "$previous_state" == "3" ]; then 
 				#HERE, WE HAVE FOUND A DEVICE FOR THE FIRST TIME
-				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g;s/  */ /g")
+				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
 
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
 				publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$name" "$manufacturer" "KNOWN_MAC"
@@ -351,7 +351,7 @@ perform_complete_scan () {
 			elif [ ! -z "$name" ] && [ "$previous_state" == "1" ]; then 
 
 				#THIS DEVICE IS STILL PRESENT; REMOVE FROM VERIFICATIONS
-				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g;s/  */ /g")
+				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
 
 				#NEED TO REPORT? 
 				if [[ $should_report =~ .*$known_addr.* ]] || [ "$PREF_REPORT_ALL_MODE" == true ] ; then 
@@ -394,7 +394,7 @@ perform_complete_scan () {
 
 				#NOTE WE SPECIFICALLY DO NOT INCLUDE A NAME REPORT, BUT WE DO REMOVE FROM THE SCAN LIST
 				# TO THE MAIN BECAUSE THIS IS A BOOT UP 
-				devices_next=$(echo "$devices_next" | sed "s/$known_addr//g;s/  */ /g")
+				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
 			fi 
 
 			#IF WE HAVE NO MORE DEVICES TO SCAN, IMMEDIATELY RETURN
