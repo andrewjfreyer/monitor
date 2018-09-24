@@ -116,7 +116,7 @@ determine_manufacturer () {
 			local remote_result=$(curl -sL https://api.macvendors.com/${address:0:8} | grep -vi "error")
 
 			#MAKE SURE WE DONT' SCREW UP THE MANUFACTUERE'S FILE
-			if [[ ! $remote_result =~ *"html"* ]]; then
+			if [[ ! "$remote_result" = *html* ]]; then
 				[ ! -z "$remote_result" ] && echo "${address:0:8}	$remote_result" >> .manufacturer_cache
 				manufacturer="$remote_result"
 			fi 
