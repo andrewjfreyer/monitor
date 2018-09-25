@@ -289,7 +289,7 @@ perform_complete_scan () {
 		for known_addr_stated in $devices; do 
 
 			#EXTRACT KNOWN ADDRESS FROM STATE-PREFIXED KNOWN ADDRESS, IF PRESENT
-			if [[ "$known_addr_stated" =~ .*[0-9A-Za-z]{3}.* ]]; then 
+			if [[ "$known_addr_stated" =~ .*[0-9A-Fa-f]{3}.* ]]; then 
 				#SET KNOWN ADDRESS
 				known_addr=${known_addr_stated:1}
 
