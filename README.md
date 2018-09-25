@@ -182,7 +182,7 @@ These sensors can be combined/averaged using a [min_max](https://www.home-assist
 ```
 - platform: min_max
   name: "Home Occupancy Confidence of 00:00:00:00:00:00"
-  type: mean
+  type: max
   round_digits: 0
   entity_ids:
     - sensor.third_floor
