@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.665
+version=0.1.666
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -428,7 +428,7 @@ perform_complete_scan () {
 	local known_addr
 	for known_addr_stated in $devices_next; do 
 		#EXTRACT KNOWN ADDRESS FROM STATE-PREFIXED KNOWN ADDRESS, IF PRESENT
-		if [[ "$known_addr_stated" =~ .*[0-9A-Z]{3}.* ]]; then 
+		if [[ "$known_addr_stated" =~ .*[0-9A-Fa-f]{3}.* ]]; then 
 			#SET KNOWN ADDRESS
 			known_addr=${known_addr_stated:1}
 		else
@@ -869,7 +869,7 @@ while true; do
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$(( PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL + random_bias))" ]; then 
 					unset random_device_log[$key]
-					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-${RED}DEL${BLUE}]	${NC}$key expired after $difference ($random_bias bias) seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
+					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-${RED}DEL${BLUE}]	${NC}$key expired after $difference ($random_bias bias) seconds ${NC}"
 			
 					#AT LEAST ONE DEVICE EXPIRED
 					should_scan=true 
