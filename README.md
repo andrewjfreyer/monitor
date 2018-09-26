@@ -261,7 +261,7 @@ sudo passwd pi
 sudo apt-get update
 sudo apt-get upgrade -y
 sudo apt-get dist-upgrade -y
-sudo apt-get install rpi-update/raspbian
+sudo apt-get install rpi-update
 sudo rpi-update
 sudo reboot
 ```
