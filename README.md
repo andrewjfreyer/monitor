@@ -343,7 +343,7 @@ ____
 
   * [**Cell Phone Tracking**](#cell-phone-or-laptop)
 
-  * [**Smartwatch/Fitness Band**](#smart-watch--fitness-band--bluetooth-beacon-)
+  * [**Smartwatch/Fitness Band**](#smart-watch--fitness-band--bluetooth-beacon)
 
   * [**Advanced Configuration**](#advanced-configurations)
 
