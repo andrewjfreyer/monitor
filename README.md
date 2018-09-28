@@ -343,7 +343,7 @@ ____
 
   * [**Cell Phone Tracking**](#cell-phone-or-laptop)
 
-  * [**Smartwatch/Fitness Band**](#smart-watch--fitness-band--bluetooth-beacon)
+  * [**Smartwatch/Fitness Band**](#smart-watch--fitness-band--bluetooth-beacon-)
 
   * [**Advanced Configuration**](#advanced-configurations)
 
@@ -517,21 +517,21 @@ One of the benefits of `monitor` is the configurability. In addition to the runt
 PREF_INTERSCAN_DELAY=3
 ```
 
-⬆ This option is the delay in seconds between each affirmative name scan in a sequence of name scans. This applies only to scanning for cell phones/devices in the `known_static_addresses` file. The larger this number, the longer on average arrival detection will take but, also, the lower interference with 2.4GHz spectrum should be expected. 
+This option is the delay in seconds between each affirmative name scan in a sequence of name scans. This applies only to scanning for cell phones/devices in the `known_static_addresses` file. The larger this number, the longer on average arrival detection will take but, also, the lower interference with 2.4GHz spectrum should be expected. 
 
 
 ```
 #DETERMINE HOW OFTEN TO CHECK FOR A DEPARTED DEVICE OR AN ARRIVED DEVICE
 PREF_CLOCK_INTERVAL=15
 ```
-⬆ This is the interval, when scanning in periodic scanning mode, at which the script checks to see if an arrival scan or a deparature scan is necessary. 
+This is the interval, when scanning in periodic scanning mode, at which the script checks to see if an arrival scan or a deparature scan is necessary. 
 
 ```
 #DEPART SCAN INTERVAL
 PREF_DEPART_SCAN_INTERVAL=90
 ```
 
-⬆ This is the interval, when running in periodic scanning mode, at which departure scans should be performed. 
+This is the interval, when running in periodic scanning mode, at which departure scans should be performed. 
 
 
 ```
@@ -540,21 +540,21 @@ PREF_ARRIVE_SCAN_INTERVAL=45
 ```
 
 
-⬆ This is the interval, when running in periodic scanning mode, at which arrival scans should be performed. 
+This is the interval, when running in periodic scanning mode, at which arrival scans should be performed. 
 
 ```
 #MAX RETRY ATTEMPTS FOR ARRIVAL
 PREF_ARRIVAL_SCAN_ATTEMPTS=3
 ```
 
-⬆ This is the number of times a device should be scanned for an arrival each time an arrival scan operation is performed. This applies only to scanning for cell phones/devices in the `known_static_addresses` file. As soon as the device is detected, all other enqueued scans are discarded. 
+This is the number of times a device should be scanned for an arrival each time an arrival scan operation is performed. This applies only to scanning for cell phones/devices in the `known_static_addresses` file. As soon as the device is detected, all other enqueued scans are discarded. 
 
 ```
 #MAX RETRY ATTEMPTS FOR DEPART
 PREF_DEPART_SCAN_ATTEMPTS=3
 ```
 
-⬆ This is the number of times a device should be scanned for departure each time a departure scan operation is performed. This applies only to scanning for cell phones/devices in the `known_static_addresses` file. As soon as the device is detected as present, all other enqueued depart scans are discarded. 
+This is the number of times a device should be scanned for departure each time a departure scan operation is performed. This applies only to scanning for cell phones/devices in the `known_static_addresses` file. As soon as the device is detected as present, all other enqueued depart scans are discarded. 
 
 
 ```
@@ -562,21 +562,21 @@ PREF_DEPART_SCAN_ATTEMPTS=3
 PREF_DATABASE_REFRESH_INTERVAL=35
 ```
 
-⬆ This is the interval at which the database of beacons and random devices that have been marked as "seen" by the script is checked for and cleared of expired device (i.e., devices that have not been seen for an interval).
+This is the interval at which the database of beacons and random devices that have been marked as "seen" by the script is checked for and cleared of expired device (i.e., devices that have not been seen for an interval).
 
 
 ```
 #PERIOD AFTER WHICH A RANDOM BTLE ADVERTISEMENT IS CONSIDERED EXPIRED
 PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL=45
 ```
-⬆ This is the interval after which a randomly-advertising device will be marked as expired. 
+This is the interval after which a randomly-advertising device will be marked as expired. 
 
 ```
 #AMOUNT AN RSSI MUST CHANGE (ABSOLUTE VALUE) TO REPORT BEACON AGAIN
 PREF_RSSI_CHANGE_THRESHOLD=5
 ```
 
-⬆ This is the threshold for reporting an rssi change in the logs. 
+This is the threshold for reporting an rssi change in the logs. 
 
 
 ```
@@ -584,32 +584,32 @@ PREF_RSSI_CHANGE_THRESHOLD=5
 PREF_ENVIRONMENTAL_REPORT_INTERVAL=300
 ```
 
-⬆ This is the average interval at which a bluetooth environment report is sent to the MQTT broker. 
+This is the average interval at which a bluetooth environment report is sent to the MQTT broker. 
 
 ```
 #SECONDS UNTIL A BEACON IS CONSIDERED EXPIRED
 PREF_BEACON_EXPIRATION=145
 ```
 
-⬆ This is the interval after which a beacon device will be marked as expired. 
+This is the interval after which a beacon device will be marked as expired. 
 
 
 ```
 #SECONDS AFTER WHICH A DEPARTURE SCAN IS TRIGGERED
 PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL=360
 ```
-⬆ This is the interval at which a forced periodic departure scan is performed. 
+This is the interval at which a forced periodic departure scan is performed. 
 
 ```
 #PREFERRED HCI DEVICE
 PREF_HCI_DEVICE='hci0'
 ```
 
-⬆ This is the preferred bluetooth device. 
+This is the preferred bluetooth device. 
 
 ```
 #COOPERATIVE DEPARTURE SCAN TRIGGER THRESHOLD
 PREF_COOPERATIVE_SCAN_THRESHOLD=25
 ```
 
-⬆ This is the threshold at which a 'depart' message is sent to other `montior` instances. This applies only to scanning for cell phones/devices in the `known_static_addresses` file. For example, if a first node believes that a device has left (confidence is falling quickly to zero), then this device will trigger other `monitor` nodes by publishing to `$mqtt_topicpath/scan/depart` once confidence hits or falls below this level.  
+This is the threshold at which a 'depart' message is sent to other `montior` instances. This applies only to scanning for cell phones/devices in the `known_static_addresses` file. For example, if a first node believes that a device has left (confidence is falling quickly to zero), then this device will trigger other `monitor` nodes by publishing to `$mqtt_topicpath/scan/depart` once confidence hits or falls below this level.  
