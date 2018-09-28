@@ -1,6 +1,6 @@
 monitor
 =======
-***TL;DR***: Bluetooth-based passive presence detection of beacons, cell phones, and any other bluetooth device. The system is useful for [mqtt-based](http://mqtt.org) home automation. Installation instructions [here.](#installation-instructions-raspbian-lite-stretch)
+***TL;DR***: Bluetooth-based passive presence detection of beacons, cell phones, and any other bluetooth device. The system is useful for [mqtt-based](http://mqtt.org) home automation. Installation instructions [here.](#installation-instructions-raspbian-lite-stretch) Getting started instructions and description [here.](#getting-started)
 
 ____
 
@@ -22,6 +22,7 @@ ____
 
   * [**Installing on a Raspberry Pi Zero W**](#installation-instructions-raspbian-lite-stretch) 
 
+  * [**Getting Started**](#getting-started) 
 ____
 
 <h1>Highlights</h1>
@@ -334,5 +335,281 @@ nano known_static_addresses
 sudo bash monitor.sh -h
 ```
 
-That's it. Your broker should be receiving messages and the monitor service will restart each time the Raspberry Pi boots.  
+That's it. Your broker should be receiving messages and the monitor service will restart each time the Raspberry Pi boots. As currently configured, you should run `sudo bash monitor.sh` a few times from your command line to get a sense of how the script works. 
 
+____
+
+### *Getting Started*
+
+  * [**Cell Phone Tracking**](#cell-phone-or-laptop)
+
+  * [**Smartwatch/Fitness Band**](#smart-watch-fitness-band)
+
+  * [**Advanced Configuration**](#advanced-configurations)
+
+Ok, here we go! Please note that this documentation is a work in progress - more content will be added later!
+
+<h2>Cell Phone or Laptop</h2>
+
+Tracking presence of cell phones is the original purpose of `monitor` and `presence`. It's a particularly good choice because most of us always have our phones and we don't have to replace batteries periodically like we do with beacon devices. 
+
+First, we're going to need the Bluetooth Mac address from each phone that you want to track. This can be found in Settings on your phone. For example, on an iPhone look in Settings > General > About and scroll about halfway down. Make sure to copy the *Bluetooth* address and not the Wi-Fi address. 
+
+Now, `ssh` to the pi that's running the script. 
+
+```ssh username@ipaddress```
+
+Stop the script while we're working with preferences and options: 
+
+```
+sudo systemctl stop monitor.service
+```
+
+Change directory into `monitor`:
+
+`cd monitor`
+
+And make sure that you're running the most recent version: 
+
+`git pull`
+
+Now, add that address to your `known_static_addresses` file created when you ran `monitor` the first time. To do this from the command line, you can use your favorite text editor. I prefer `nano`:
+
+```
+nano known_static_addresses
+```
+
+Add the mac address that you copied for your phone at the end of the file. Next to the mac address, you can add a "nickname" or a hash-prepended comment if you like. For example: 
+
+```
+00:11:22:33:44:55 Andrew's iPhone #this is a comment and everything after the hashmark is ignored
+```
+
+Do this with all other cell phone/laptop devices that you'd like to track via mqtt messages posted/formatted like this:
+
+```
+topic:    location/first floor/00:11:22:33:44:55
+message:  {
+  retain: false
+  version : 0.1.666
+  address : 00:11:22:33:44:55
+  confidence : 0
+  name : Andrew's iPhone
+  timestamp : Fri Sep 28 2018 22:41:11 GMT+0000 (UTC)
+  manufacturer : Apple, Inc.
+  type : KNOWN_MAC
+}
+```
+
+In the above example, the confidence is 0, meaning that the device is not home. Phrased another way, the script is 0% confident that the device is home. When the phone arrives home, the message changes to: 
+
+
+```
+topic:    location/first floor/00:11:22:33:44:55
+message:  {
+  retain: false
+  version : 0.1.666
+  address : 00:11:22:33:44:55
+  confidence : 100
+  name : Andrew's iPhone
+  timestamp : Fri Sep 28 2018 22:42:18 GMT+0000 (UTC)
+  manufacturer : Apple, Inc.
+  type : KNOWN_MAC
+}
+```
+
+Got it? That's it. You're ready to scan for presence of those devices. With default settings, the script will affirmatively scan for the presence of these devices under three circumstances:
+
+* Arrival scan (i.e., current status of a device is 'away') upon receiving an advertisement from a previously-unseen device
+
+* Departure scan (i.e., current status of a device is 'home') after not hearing from a previously-seen device for a period of time 
+
+* In response to an MQTT message posted to either of: `$mqtt_topicpath/scan/arrive` or `$mqtt_topicpath/scan/depart`
+
+The MQTT messages can be sent from any other device connected to the MQTT broker you have set up. Lastly, be sure to check out [advanced configurations](#advanced-configurations) below. To finish everything up, restart the service, log-out, and forget that it's working for you!
+
+```
+sudo systemctl restart monitor.service
+exit
+```
+<h2>Smart Watch / Fitness Band / Bluetooth Beacon </h2>
+
+Generally, smartwatches, fitness bands, and bluetooth beacons advertise their presence without needing to know a mac address. However, unfortunately, all of these devices are a bit different and manufacturers change the way their devices advertise to promote their own proprietary hubs and applications. Some of these devices do not advertise publicly at all, which means that we'll need to to treat them like a cell phone, described above. Some of these devices ignore bluetooth LE advertising specifications and will be ignored as undetectable devices ... more on these devices later. 
+
+Brass tacks, we have to do a bit of playing to detect beacons. The best thing to do for beacon detection is to use both the `-b` flag to detect iBeacons and the `-g` flag when running the script manually so that we can see the output. From there, we can figure out how to detect a specific beacon. 
+
+First, stop the service: 
+
+```
+sudo systemctl stop monitor.service
+```
+
+Second, run the script manually with `-b -g` as options: 
+
+```
+sudo bash monitor.sh -b -g
+```
+
+Retreive your device that you want to track and bring it near. After a moment or two, you should see one of three things. First, you may see that your beacon is detected as an iBeacon with type APPLE_IBEACON. If this is the case, the `-b` flag is all you need to detect this beacon. Subscribe to the mqtt topic formatted as `$mqtt_topicpath/$mqtt_published/uuid-major-minor`. This will be printed in the logs, but may not in all cases be accompanied by a detected name:
+
+```
+topic:    location/first floor/00000000-0000-0000-0000-000000000000-4-12003 
+message:  {
+  retain: false
+  version : 0.1.666
+  address : 00000000-0000-0000-0000-000000000000-4-12003 
+  confidence : 100
+  name : Unresponsive Device
+  timestamp : Fri Sep 28 2018 22:44:25 GMT+0000 (UTC)
+  manufacturer : Unknown
+  type : APPLE_IEACON
+  rssi : -93 
+  power: [if available]
+  uuid: [if available]
+  major: [if available]
+  minor: [if available]
+  adv_data :  [if available]
+}
+```
+
+By subscribing to `location/first floor/00000000-0000-0000-0000-000000000000-4-12003`, presence of the iBeacon can be determined.
+
+
+A second thing you may see that your beacon is detected a GENERIC_BEACON. If this is the case, the `-g` flag is all you need to detect this beacon. For example, you may see:
+
+```
+topic:    location/first floor/04:FE:00:00:00 
+message:  {
+  retain: false
+  version : 0.1.666
+  address : 04:FE:00:00:00 
+  confidence : 100
+  name : Unresponsive Device
+  timestamp : Fri Sep 28 2018 22:44:25 GMT+0000 (UTC)
+  manufacturer : Fihonest communication co.,Ltd
+  type : GENERIC_BEACON
+  rssi : -93 
+  adv_data :  [if available]
+}
+```
+
+By subscribing to `location/first floor/04:FE:00:00:00`, presence of the generic beacon can be determined.
+
+If you cannot see your beacon in either of these, find the mac address of your beacon and add it to the `known_beacon_addresses` file. Then, use the `-g` flag. 
+
+To update the service with these options, you can use the `-u` flag:
+
+``` sudo bash monitor.sh -b -g -u```
+
+Got it? That's it. You're ready to listen for presence of your beacon. With either or both the `-b` or `-g` flag, the script will passively monitor for the presence of these devices and if the device is not heard from for a certain time period, confidence will drop, eventually to zero. Lastly, be sure to check out [advanced configurations](#advanced-configurations) below. To finish everything up, restart the service, log-out, and forget that it's working for you!
+
+```
+sudo systemctl restart monitor.service
+exit
+```
+
+<h2>Advanced Configurations</h2>
+
+One of the benefits of `monitor` is the configurability. In addition to the runtime options that are explained in the helpfile reproduced above, the `behavior_preferences` file is included to modify the behavior of `monitor`. What follows is a more detailed explaination of these options: 
+
+```
+#DELAY BETWEEN SCANS OF DEVICES
+PREF_INTERSCAN_DELAY=3
+```
+
+This option is the delay in seconds between each affirmative name scan in a sequence of name scans. This applies only to scanning for cell phones/devices in the `known_static_addresses` file. The larger this number, the longer on average arrival detection will take but, also, the lower interference with 2.4GHz spectrum should be expected. 
+
+
+```
+#DETERMINE HOW OFTEN TO CHECK FOR A DEPARTED DEVICE OR AN ARRIVED DEVICE
+PREF_CLOCK_INTERVAL=15
+```
+This is the interval, when scanning in periodic scanning mode, at which the script checks to see if an arrival scan or a deparature scan is necessary. 
+
+```
+#DEPART SCAN INTERVAL
+PREF_DEPART_SCAN_INTERVAL=90
+```
+
+This is the interval, when running in periodic scanning mode, at which departure scans should be performed. 
+
+
+```
+#ARRIVE SCAN INTERVAL
+PREF_ARRIVE_SCAN_INTERVAL=45
+```
+
+
+This is the interval, when running in periodic scanning mode, at which arrival scans should be performed. 
+
+```
+#MAX RETRY ATTEMPTS FOR ARRIVAL
+PREF_ARRIVAL_SCAN_ATTEMPTS=3
+```
+
+This is the number of times a device should be scanned for an arrival each time an arrival scan operation is performed. This applies only to scanning for cell phones/devices in the `known_static_addresses` file. As soon as the device is detected, all other enqueued scans are discarded. 
+
+```
+#MAX RETRY ATTEMPTS FOR DEPART
+PREF_DEPART_SCAN_ATTEMPTS=3
+```
+
+This is the number of times a device should be scanned for departure each time a departure scan operation is performed. This applies only to scanning for cell phones/devices in the `known_static_addresses` file. As soon as the device is detected as present, all other enqueued depart scans are discarded. 
+
+
+```
+#DETERMINE NOW OFTEN TO REFRESH DATABASES TO REMOVE EXPIRED DEVICES
+PREF_DATABASE_REFRESH_INTERVAL=35
+```
+
+This is the interval at which the database of beacons and random devices that have been marked as "seen" by the script is checked for and cleared of expired device (i.e., devices that have not been seen for an interval).
+
+
+```
+#PERIOD AFTER WHICH A RANDOM BTLE ADVERTISEMENT IS CONSIDERED EXPIRED
+PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL=45
+```
+This is the interval after which a randomly-advertising device will be marked as expired. 
+
+```
+#AMOUNT AN RSSI MUST CHANGE (ABSOLUTE VALUE) TO REPORT BEACON AGAIN
+PREF_RSSI_CHANGE_THRESHOLD=5
+```
+
+This is the threshold for reporting an rssi change in the logs. 
+
+
+```
+#BLUETOOTH ENVIRONMENTAL REPORT FREQUENCY
+PREF_ENVIRONMENTAL_REPORT_INTERVAL=300
+```
+
+This is the average interval at which a bluetooth environment report is sent to the MQTT broker. 
+
+```
+#SECONDS UNTIL A BEACON IS CONSIDERED EXPIRED
+PREF_BEACON_EXPIRATION=145
+```
+
+This is the interval after which a beacon device will be marked as expired. 
+
+
+```
+#SECONDS AFTER WHICH A DEPARTURE SCAN IS TRIGGERED
+PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL=360
+```
+This is the interval at which a forced periodic departure scan is performed. 
+
+```
+#PREFERRED HCI DEVICE
+PREF_HCI_DEVICE='hci0'
+```
+
+This is the preferred bluetooth device. 
+
+```
+#COOPERATIVE DEPARTURE SCAN TRIGGER THRESHOLD
+PREF_COOPERATIVE_SCAN_THRESHOLD=25
+```
+
+This is the threshold at which a 'depart' message is sent to other `montior` instances. This applies only to scanning for cell phones/devices in the `known_static_addresses` file. For example, if a first node believes that a device has left (confidence is falling quickly to zero), then this device will trigger other `monitor` nodes by publishing to `$mqtt_topicpath/scan/depart` once confidence hits or falls below this level.  
