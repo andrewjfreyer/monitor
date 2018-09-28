@@ -510,7 +510,7 @@ exit
 
 <h2>Advanced Configurations</h2>
 
-One of the benefits of `monitor` is the configurability. In addition to the runtime options that are explained in the helpfile reproduced above, the `behavior_preferences` file is included to modify the behavior of `monitor`. What follows is a more detailed explaination of these options: 
+One of the benefits of `monitor` is configurability. In addition to the runtime options that are explained in the helpfile reproduced above, the `behavior_preferences` file is included to modify the behavior of `monitor`. What follows is a more detailed explaination of these options: 
 
 ```
 #DELAY BETWEEN SCANS OF DEVICES
