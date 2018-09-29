@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.668
+version=0.1.669
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -91,10 +91,6 @@ declare -A blacklisted_devices
 #LAST TIME THIS 
 scan_pid=""
 scan_type=""
-
-#DEFINE PERFORMANCE TRACKING/IMRROVEMENT VARS
-declare -A expired_device_log
-declare -A device_expiration_biases
 
 #SCAN VARIABLES
 now=$(date +%s)
@@ -855,10 +851,7 @@ while true; do
 			
 			#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
 			for key in "${!random_device_log[@]}"; do
-				#GET BIAS
-				random_bias=${device_expiration_biases[$key]}
-				[ -z "$random_bias" ] && random_bias=0 
-
+			
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen=${random_device_log[$key]}
 				difference=$((timestamp - last_seen))
@@ -867,17 +860,15 @@ while true; do
 				[ -z "$last_seen" ] && continue 
 
 				#TIMEOUT AFTER 120 SECONDS
-				if [ "$difference" -gt "$(( PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL + random_bias))" ]; then 
+				if [ "$difference" -gt "$PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" ]; then 
 					unset random_device_log[$key]
-					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-${RED}DEL${BLUE}]	${NC}$key expired after $difference ($random_bias bias) seconds ${NC}"
+					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-${RED}DEL${BLUE}]	${NC}$key expired after $difference seconds ${NC}"
 			
 					#AT LEAST ONE DEVICE EXPIRED
 					should_scan=true 
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
-				#else 
-					#log "${BLUE}[CHECK-${GREEN}OK${BLUE}]	${NC}$key last seen $difference ($random_bias bias) seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
 				fi 
 			done
 
@@ -885,11 +876,7 @@ while true; do
 			[ "$should_scan" == true ] && [ "$PREF_TRIGGER_MODE_DEPART" == false ] && perform_departure_scan
 
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
-			beacon_bias=0
 			for key in "${!public_device_log[@]}"; do
-				#GET BIAS
-				beacon_bias=${device_expiration_biases[$key]}
-				[ -z "$beacon_bias" ] && beacon_bias=0 
 
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen=${public_device_log[$key]}
@@ -908,9 +895,9 @@ while true; do
 				latest_rssi="${rssi_log[$key]}" 
 
 				#TIMEOUT AFTER 120 SECONDS
-				if [ "$difference" -gt "$((PREF_BEACON_EXPIRATION + beacon_bias ))" ]; then 
+				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
 					unset public_device_log[$key]
-					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-${RED}DEL${BLUE}]	${NC}$key expired after $difference ($random_bias bias) seconds ${NC}"
+					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-${RED}DEL${BLUE}]	${NC}$key expired after $difference seconds ${NC}"
 
 					#REPORT PRESENCE OF DEVICE
 					[ "$PREF_PUBLIC_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "$mqtt_publisher_identity/$key" "0" "$expected_name" "$local_manufacturer" "GENERIC_BEACON" 
@@ -919,7 +906,7 @@ while true; do
 					expired_device_log[$key]=$timestamp
 				else 
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
-					percent_confidence=$(( 100 - difference * 100 / (PREF_BEACON_EXPIRATION + beacon_bias) )) 
+					percent_confidence=$(( 100 - difference * 100 / PREF_BEACON_EXPIRATION )) 
 
 					#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
 					[ "$PREF_PUBLIC_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "50" ] && publish_presence_message "$mqtt_publisher_identity/$key" "$percent_confidence" "$expected_name" "$local_manufacturer" "GENERIC_BEACON" "$latest_rssi" "" "$adv_data"
@@ -1021,31 +1008,6 @@ while true; do
 			#GET MANUFACTURER INFORMATION
 			manufacturer="$(determine_manufacturer $uuid)"			
 		fi
-
-		#**********************************************************************
-		#
-		#
-		#	THE FOLLOWING INCREASES DEVICE BAISES IF A DEVICE RE-
-		#	APPEARS AFTER A SHORT AMOUNT OF TIME (2 MINUTES)
-		#	
-		#
-		#**********************************************************************
-
-		if [ "$is_new" == true ]; then 
-
-			#GET CURRENT BIAS
-			bias=${device_expiration_biases[$data]}
-			[ -z "$bias" ] && bias=0
-
-			#WHEN DID THIS LAST EXPIRE?
-			last_expired=${expired_device_log[$data]}
-			difference=$((timestamp - last_expired))
-
-			#DO WE NEED TO ADD A LEANRED BIAS FOR EXPIRATION?
-			if [ "$difference" -lt "60" ]; then 
-				device_expiration_biases[$data]=$(( bias + 15 ))
-			fi  
-		fi 
 
 		#**********************************************************************
 		#
