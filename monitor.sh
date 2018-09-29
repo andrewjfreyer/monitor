@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.667
+version=0.1.668
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -370,7 +370,7 @@ perform_complete_scan () {
 			if [ -z "$name" ] && [ "$previous_state" == "1" ]; then 
 
 				#CALCULATE PERCENT CONFIDENCE
-				local percent_confidence=$(echo "100 / 2 ^ $repetition" | bc )
+				local percent_confidence=$(echo "100 / ( $repetitions ^ ( 1 /( $repetitions - $repetition )))" | bc )
 
 				#ONLY PUBLISH COOPERATIVE SCAN MODE IF WE ARE NOT IN TRIGGER MODE
 				#TRIGGER ONLY MODE DOES NOT SEND COOPERATIVE MESSAGES
