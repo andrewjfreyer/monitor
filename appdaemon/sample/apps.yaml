@@ -5,7 +5,7 @@ home_presence_app:
   hass_namespace: hass
   presence_topic: presence
   minimum_confidence: 100
-  not_home_timeout: 10
+  not_home_timeout: 15
   home_gateway_sensors:
     - binary_sensor.main_door
   scan_timeout: 20
