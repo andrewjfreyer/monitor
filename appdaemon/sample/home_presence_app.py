@@ -98,37 +98,39 @@ class HomePresenceApp(mqtt.Mqtt):
         if topic.split('/')[0] != self.presence_topic or payload == "": #only interested in the presence topics and payload with json data
             return 
 
+        if topic.split('/')[-1] == 'status': #meaning its a message on the presence system
+            location = topic.split('/')[1].replace('_',' ').title()
+            self.log('The Presence System in the {} is {}'.format(location, payload.title()))
+            return
+        
         payload = json.loads(payload)
 
         if topic.split('/')[-1] == 'start': #meaning a scan is starting
             location = payload['identity']
             if self.get_state(self.monitor_entity) != 'scanning':
-                '''since it idle, just set it to scanning and put in the location of the scan'''
-                self.set_app_state(self.monitor_entity, state = 'scanning', attributes = {'scan_type' : topic.split('/')[2], 'location': [location]})
-            else: #meaing it was already set to 'scanning' already, so just update the location
-                location_attr = self.get_state(self.monitor_entity, attribute = 'location')
-                if location not in location_attr: #meaning it hadn't started the scan before
-                    location_attr.append(location)
-                    self.set_app_state(self.monitor_entity, attributes = {'location': location_attr}) #update the location in the event of different scan systems in place
+                '''since its idle, just set it to scanning and put in the location of the scan'''
+                self.set_app_state(self.monitor_entity, state = 'scanning', attributes = {'scan_type' : topic.split('/')[2], 'locations': [location], location : 'scanning'})
+            else: #meaning it was already set to 'scanning' already, so just update the location
+                locations_attr = self.get_state(self.monitor_entity, attribute = 'locations')
+                if location not in locations_attr: #meaning it hadn't started the scan before
+                    locations_attr.append(location)
+                    self.set_app_state(self.monitor_entity, attributes = {'locations': locations_attr, location : 'scanning'}) #update the location in the event of different scan systems in place
                 
         elif topic.split('/')[-1] == 'end': #meaning a scan in a location just ended
             location = payload['identity']
-            location_attr = self.get_state(self.monitor_entity, attribute = 'location')
-            if location in location_attr: #meaning it had started the scan before
-                location_attr.remove(location)
+            locations_attr = self.get_state(self.monitor_entity, attribute = 'locations')
+            if location in locations_attr: #meaning it had started the scan before
+                locations_attr.remove(location)
             
-                if location_attr == []: #meaning no more locations scanning
-                    self.set_app_state(self.monitor_entity, state = 'idle', attributes = {'scan_type' : topic.split('/')[2], 'location': []}) #set the monitor state to idle since no messages being sent
+                if locations_attr == []: #meaning no more locations scanning
+                    self.set_app_state(self.monitor_entity, state = 'idle', attributes = {'scan_type' : topic.split('/')[2], 'locations': [], location : 'idle'}) #set the monitor state to idle 
                 else:
-                    self.set_app_state(self.monitor_entity, attributes = {'location': location_attr}) #update the location in the event of different scan systems in place
+                    self.set_app_state(self.monitor_entity, attributes = {'locations': locations_attr, location : 'idle'}) #update the location in the event of different scan systems in place
 
         device_name = None
         location = topic.split('/')[1].replace('_',' ').title()
         
-        if payload.get('status', None) != None: #meaning its a message on the presence system
-            self.log('The Presence System in the {} is {}'.format(location, payload.get('status').title()))
-        
-        elif payload.get('type', None) == 'KNOWN_MAC':
+        if payload.get('type', None) == 'KNOWN_MAC':
             mac_address = topic.split('/')[2]
             device_name = payload['name']
 
@@ -392,7 +394,7 @@ class HomePresenceApp(mqtt.Mqtt):
         self.cancel_listen_state(self.monitor_handlers[scan])
         self.monitor_handlers[scan] = None
 
-    def run_arrive_scan(self):
+    def run_arrive_scan(self, location = None):
         topic = '{}/scan/Arrive'.format(self.presence_topic)
         payload = ''
 
@@ -406,7 +408,7 @@ class HomePresenceApp(mqtt.Mqtt):
                             new = 'idle', old = 'scanning', scan = 'Arrive Scan', topic = topic, payload = payload)
         return
 
-    def run_depart_scan(self):
+    def run_depart_scan(self, location = None):
         topic ='{}/scan/Depart'.format(self.presence_topic)
         payload = ''
         self.gateway_timer = self.run_in(self.send_mqtt_message, self.depart_check_time, topic = topic, payload = payload, scan = True) #send to scan for departure of anyone
