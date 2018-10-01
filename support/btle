@@ -25,7 +25,7 @@ btle_scanner () {
 		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error')
 
 		#ALL OTHER BEACON DEVICES FILTERED
-		beacons_filtered=$(echo "$hcitool_raw" | grep -Ei "([0-9a-f]{2}:){5}[0-9a-f]{2}" | sort -u)
+		beacons_filtered=$(echo "$hcitool_raw" | grep -Ei "([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}" | sort -u)
 
 		#PUBLISH ERRORS BACK TO MAIN LOOP
 		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe 
