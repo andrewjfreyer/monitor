@@ -311,6 +311,50 @@ PREF_MINIMUM_TIME_BETWEEN_SCANS=15
 #SHOULD REPORT START/END OF KNOWN DEVICE SCANS
 PREF_MQTT_REPORT_SCAN_MESSAGES=false
 
+#The following settings can be set from the command line
+
+# repeated scan mode enabled (-r)
+#PREF_PERIODIC_MODE=true
+
+# ibeacon reporting mode enabled (-b)
+#PREF_BEACON_MODE=true
+
+# trigger mode: arrive scan only on MQTT trigger (-ta|-tra|-tar)
+#PREF_TRIGGER_MODE_ARRIVE=true
+
+# trigger mode: depart scan only on MQTT trigger (-td|-trd|-tdr)
+#PREF_TRIGGER_MODE_DEPART=true
+
+# trigger mode: report out MQTT arrive\/depart scan triggers to other devices (-tr)
+#PREF_TRIGGER_MODE_REPORT_OUT=true
+
+# generic bluetooth beacon reporting mode enabled (-g)
+#PREF_PUBLIC_MODE=true
+
+# report all scan results mode enabled (-a)
+#PREF_REPORT_ALL_MODE=true
+
+# private information redacted from logs (-R)
+#PREF_REDACT=true
+
+# retaining mqtt status reports (-x)
+#PREF_SHOULD_RETAIN=true
+
+# only allow letters, numbers, and spaces in mqtt topic paths (-f)
+#PREF_FORMAT_MQTT=true
+
+# report bluetooth environment periodically via mqtt at topic: [topic path]\/environment (-e)
+#PREF_PUBLISH_ENVIRONMENT_MODE=true
+
+# send heartbeat signal (-m)
+#PREF_HEARTBEAT=true
+
+# publishing MQTT scan, arrival, depart, start, end (-E)
+#PREF_MQTT_REPORT_SCAN_MESSAGES=true
+
+#publishing all MQTT presence messages to single topic (-s)
+#PREF_MQTT_SINGLE_TOPIC_MODE=true
+
 " > "$PREF_CONFIG"
 
 	#LOAD DEFAULT PREFERENCES
