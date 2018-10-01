@@ -104,9 +104,9 @@ last_environment_report=$((now - 25))
 # ----------------------------------------------------------------------------------------
 
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY, IGNORING COMMENTS
-known_static_beacons=($(sed 's/#.\{0,\}//g' < "$BEAC_CONFIG" | awk '{print $1}' | grep -oiE "([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}" ))
-known_static_addresses=($(sed 's/#.\{0,\}//g' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}" ))
-address_blacklist=($(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}" ))
+known_static_beacons=($(sed 's/#.\{0,\}//g' < "$BEAC_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
+known_static_addresses=($(sed 's/#.\{0,\}//g' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
+address_blacklist=($(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
 
 #ASSEMBLE COMMENT-CLEANED BLACKLIST INTO BLACKLIST ARRAY
 for addr in ${address_blacklist[@]}; do 
