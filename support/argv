@@ -72,10 +72,21 @@ a specified bluetooth device, while reducing the number of times
 an affirmative scan operation is required (which may interfere 
 with 2.4GHz Wi-Fi).
 
+To see current command line settings view service exec command by 
+'sudo systemctl status monitor.service'
+
+To use from the command line (once installed) please stop the service
+'sudo systemctl stop monitor.service'
 
 usage:
+   Monitor not started - info only:
 
 	monitor -h 	show usage information
+	monitor -v	print version number
+	monitor -l	List preferences set in behavior_preferences file
+
+   Monitor started - all saved command line options are ignored:
+
 	monitor -R 	redact private information from logs
 	monitor -m 	send heartbeat signal
 	monitor -C 	clean retained messages from MQTT broker
@@ -85,10 +96,9 @@ usage:
 				[topic path]/scan/[arrive|depart]/[start|end]
 
 	monitor -c 	clean manufacturer cache and generic beacon cache
-	monitor -v	print version number
 	monitor -d	restore to default settings
 	monitor -u	update 'monitor.service' to current command line settings
-			(excluding -u and -d flags)
+			(excluding -u and -d flags) - existing options overwritten
 
 	monitor -s  report all mqtt messages to a single topic with 
 				\$mqtt_topicpath/\$mqtt_publisher_identity  (defined in MQTT preferences file)
@@ -106,31 +116,91 @@ usage:
 	"
 }
 
+show_settings() {
+	base_directory=$(dirname "$(readlink -f "$0")")
+	TEMP_PREF_CONFIG="$base_directory/behavior_preferences"
+	source "$TEMP_PREF_CONFIG"
+
+	preferences=$(echo "> preference: delay between scans = $PREF_INTERSCAN_DELAY
+> preference: periodic arrive/depart check interval = $PREF_CLOCK_INTERVAL
+> preference: periodic arrive interval = $PREF_ARRIVE_SCAN_INTERVAL
+> preference: periodic depart interval = $PREF_DEPART_SCAN_INTERVAL 
+> preference: database refresh interval = $PREF_DATABASE_REFRESH_INTERVAL
+> preference: max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS
+> preference: max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
+> preference: random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL
+> preference: beacon rssi change required for reporting = $PREF_RSSI_CHANGE_THRESHOLD 
+> preference: bluetooth environmental report frequency = $PREF_ENVIRONMENTAL_REPORT_INTERVAL
+> preference: forced departure check interval = $PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL
+> preference: interval until beacon is considered expired = $PREF_BEACON_EXPIRATION
+> preference: trigger a departure scan at other nodes below [x] confidence = $PREF_COOPERATIVE_SCAN_THRESHOLD
+> preference: preferred HCI device = $PREF_HCI_DEVICE
+> preference: minimum time between the same type of scan = $PREF_MINIMUM_TIME_BETWEEN_SCANS
+> preference: mqtt scan start/end reporting = $PREF_MQTT_REPORT_SCAN_MESSAGES
+> mqtt trigger: $mqtt_topicpath/scan/ARRIVE
+> mqtt trigger: $mqtt_topicpath/scan/DEPART
+>
+> command line preferences currently set in behavior_preferences
+> use sudo systemctl status monitor.service to see preferences set by command line
+>
+> (-r) repeated scan mode enabled - PREF_PERIODIC_MODE = $PREF_PERIODIC_MODE
+> (-b) ibeacon reporting mode enabled - PREF_BEACON_MODE = $PREF_BEACON_MODE
+> (-ta|-tra|-tar) trigger mode: arrive scan only on MQTT trigger - PREF_TRIGGER_MODE_ARRIVE = $PREF_TRIGGER_MODE_ARRIVE
+> (-td|-trd|-tdr) trigger mode: depart scan only on MQTT trigger - PREF_TRIGGER_MODE_DEPART = $PREF_TRIGGER_MODE_DEPART
+> (-tr) trigger mode: report out MQTT arrive/depart scan triggers to other devices - PREF_TRIGGER_MODE_REPORT_OUT = $PREF_TRIGGER_MODE_REPORT_OUT
+> (-g) generic bluetooth beacon reporting mode enabled - PREF_PUBLIC_MODE = $PREF_PUBLIC_MODE
+> (-a) report all scan results mode enabled - PREF_REPORT_ALL_MODE = $PREF_REPORT_ALL_MODE
+> (-R) private information redacted from logs - PREF_REDACT = $PREF_REDACT
+> (-x) retaining mqtt status reports - PREF_SHOULD_RETAIN = $PREF_SHOULD_RETAIN
+> (-f) only allow letters, numbers, and spaces in mqtt topic paths - PREF_FORMAT_MQTT = $PREF_FORMAT_MQTT
+> (-e) publishing bluetooth environment every $PREF_ENVIRONMENTAL_REPORT_INTERVAL seconds - PREF_PUBLISH_ENVIRONMENT_MODE = $PREF_PUBLISH_ENVIRONMENT_MODE
+> (-m) send heartbeat signal - PREF_HEARTBEAT = $PREF_HEARTBEAT
+> (-E) publishing MQTT .../scan/[arrival|depart]/[start|end] - PREF_MQTT_REPORT_SCAN_MESSAGES = $PREF_MQTT_REPORT_SCAN_MESSAGES
+> (-s) publishing all MQTT presence messages to - PREF_MQTT_SINGLE_TOPIC_MODE = $PREF_MQTT_SINGLE_TOPIC_MODE
+" | sed 's/= $/= \*\*Not Set In behavior_preferences File\*\*/g')
+
+	echo "$preferences"
+}
+
 # ----------------------------------------------------------------------------------------
 # PROCESS OPTIONS (technique: https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash)
 # ----------------------------------------------------------------------------------------
 
 OPTIND=1
 
-#PREFERENCES
-PREF_PERIODIC_MODE=false
-PREF_BEACON_MODE=false
-PREF_TRIGGER_MODE_ARRIVE=false
-PREF_TRIGGER_MODE_DEPART=false
-PREF_TRIGGER_MODE_REPORT_OUT=false
-PREF_PUBLIC_MODE=false
-PREF_REPORT_ALL_MODE=false
-PREF_RESTORE_DEFAULTS=false
-PREF_UPDATE_SERVICE=false
-PREF_REDACT=false
-PREF_SHOULD_RETAIN=false
-PREF_CLEAN_MQTT=false
-PREF_FORMAT_MQTT=false
-PREF_PUBLISH_ENVIRONMENT_MODE=false
-PREF_HEARTBEAT=false
-PREF_MQTT_REPORT_SCAN_MESSAGES=false
+while getopts "h?lvrfbut:EgRcCmesadx" opt; do
+	case "$opt" in
+		r|f|b|u|t|E|g|R|c|C|m|e|s|a|d|x)
+			#PREFERENCES
+			PREF_PERIODIC_MODE=false
+			PREF_BEACON_MODE=false
+			PREF_TRIGGER_MODE_ARRIVE=false
+			PREF_TRIGGER_MODE_DEPART=false
+			PREF_TRIGGER_MODE_REPORT_OUT=false
+			PREF_PUBLIC_MODE=false
+			PREF_REPORT_ALL_MODE=false
+			PREF_RESTORE_DEFAULTS=false
+			PREF_UPDATE_SERVICE=false
+			PREF_REDACT=false
+			PREF_SHOULD_RETAIN=false
+			PREF_CLEAN_MQTT=false
+			PREF_FORMAT_MQTT=false
+			PREF_PUBLISH_ENVIRONMENT_MODE=false
+			PREF_HEARTBEAT=false
+			PREF_MQTT_REPORT_SCAN_MESSAGES=false
+			PREF_MQTT_SINGLE_TOPIC_MODE=false
+			break
+			;;
 
-while getopts "h?vrfbut:EgRcCmesadx" opt; do
+		h|\?|v|l)
+			break
+			;;
+	esac
+done
+
+OPTIND=1
+
+while getopts "h?lvrfbut:EgRcCmesadx" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
@@ -140,6 +210,10 @@ while getopts "h?vrfbut:EgRcCmesadx" opt; do
 			echo "$VERSION"
 			exit 0
 			;;
+                l)	
+			show_settings
+			exit 0
+                        ;;
 		c)  
 			rm ".manufacturer_cache" && rm ".public_name_cache" && echo "> cleaning caches"
 			;;
@@ -188,7 +262,9 @@ while getopts "h?vrfbut:EgRcCmesadx" opt; do
 			;;
 		m)  PREF_HEARTBEAT=true 	&& echo "> send heartbeat signal"
 			;;
-		*)	echo "> unknown argument: $opt"
+		*)	
+			echo "> unknown argument: $opt"
+			exit 1
 	esac
 done
 
