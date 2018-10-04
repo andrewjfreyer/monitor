@@ -57,7 +57,7 @@ log_listener () {
 			fi  
 
 			if [ "$PREF_REDACT" == true ]; then 
-				line=$(echo "$line" | sed "s/\([0-9A-Fa-f]\{2\}:\)\{5\}/ [REDACTED]:/g;s/\([0-9A-F-a-f]\{36\}\)/ [REDACTED]/g" )
+				line=$(echo "$line" | sed "s/\([0-9A-Fa-f]\{2\}:\)\{5\}/ [REDACTED]:/g;s/\([0-9A-Fa-f-]\{36\}\)/ [REDACTED]/g" )
 				line="$line"
 			fi 
 

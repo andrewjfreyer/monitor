@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.669
+version=0.1.670
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -862,7 +862,7 @@ while true; do
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" ]; then 
 					unset random_device_log[$key]
-					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-${RED}DEL${BLUE}]	${NC}$key expired after $difference seconds ${NC}"
+					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-DEL]	${NC}$key expired after $difference seconds ${NC}"
 			
 					#AT LEAST ONE DEVICE EXPIRED
 					should_scan=true 
@@ -894,13 +894,19 @@ while true; do
 				#RSSI
 				latest_rssi="${rssi_log[$key]}" 
 
+				#ONLY KNOWN BEACONS
+				should_publish=true
+				[ "$PREF_ONLY_REPORT_KNOWN_BEACONS" == true ] && [ -z "${known_public_device_name["$key"]}" ] && should_publish=false
+
+
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
+
 					unset public_device_log[$key]
-					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-${RED}DEL${BLUE}]	${NC}$key expired after $difference seconds ${NC}"
+					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-DEL]	${NC}$key expired after $difference seconds ${NC}"
 
 					#REPORT PRESENCE OF DEVICE
-					[ "$PREF_PUBLIC_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "$mqtt_publisher_identity/$key" "0" "$expected_name" "$local_manufacturer" "GENERIC_BEACON" 
+					[ "$should_publish" == true ] && [ "$PREF_PUBLIC_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "$mqtt_publisher_identity/$key" "0" "$expected_name" "$local_manufacturer" "GENERIC_BEACON" 
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
@@ -909,8 +915,7 @@ while true; do
 					percent_confidence=$(( 100 - difference * 100 / PREF_BEACON_EXPIRATION )) 
 
 					#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
-					[ "$PREF_PUBLIC_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "50" ] && publish_presence_message "$mqtt_publisher_identity/$key" "$percent_confidence" "$expected_name" "$local_manufacturer" "GENERIC_BEACON" "$latest_rssi" "" "$adv_data"
-
+					[ "$should_publish" == true ] && [ "$PREF_PUBLIC_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "50" ] && publish_presence_message "$mqtt_publisher_identity/$key" "$percent_confidence" "$expected_name" "$local_manufacturer" "GENERIC_BEACON" "$latest_rssi" "" "$adv_data"
 				fi 
 			done
 
@@ -1098,14 +1103,18 @@ while true; do
 			#DOES AN EXPECTED NAME EXIST? 
 			expected_name="$(determine_name $data)"
 
+			#SHOULD PUBLISH? 
+			should_publish=true
+			[ "$PREF_ONLY_REPORT_KNOWN_BEACONS" == true ] && [ -z "${known_public_device_name["$data"]}" ] && should_publish=false
+
 			#PRINTING FORMATING
 			[ -z "$expected_name" ] && expected_name="Unknown"
 		
 			#PROVIDE USEFUL LOGGING
-			[ -z "${blacklisted_devices[$data]}" ] && log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
+			[ "$should_publish" == true ] && [ -z "${blacklisted_devices[$data]}" ] && log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
 
 			#PUBLISH PRESENCE OF BEACON
-			[ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "APPLE_IBEACON" "$rssi" "$power" "$adv_data"
+			[ "$should_publish" == true ] && [ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "APPLE_IBEACON" "$rssi" "$power" "$adv_data"
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$PREF_PUBLIC_MODE" == true ] && [ "$rssi_updated" == true ]; then 
 
@@ -1114,14 +1123,12 @@ while true; do
 			#REPORT PRESENCE OF DEVICE
 			should_publish=true
 			[ "$PREF_ONLY_REPORT_KNOWN_BEACONS" == true ] && [ -z "${known_public_device_name["$data"]}" ] && should_publish=false
-
-			log "Publication of: $mac is $should_publish"
 			
 			#PUBLISH PRESENCE MESSAGE FOR BEACON
-			[ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$mac" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi" "" "$adv_data"
+			[ "$should_publish" == true ] && [ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$mac" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi" "" "$adv_data"
 
 			#PROVIDE USEFUL LOGGING
-			[ -z "${blacklisted_devices[$data]}" ] && log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm "
+			[ "$should_publish" == true ] && [ -z "${blacklisted_devices[$data]}" ] && log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm "
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] ; then 
 
