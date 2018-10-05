@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.667
+version=0.1.670
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -91,10 +91,6 @@ declare -A blacklisted_devices
 #LAST TIME THIS 
 scan_pid=""
 scan_type=""
-
-#DEFINE PERFORMANCE TRACKING/IMRROVEMENT VARS
-declare -A expired_device_log
-declare -A device_expiration_biases
 
 #SCAN VARIABLES
 now=$(date +%s)
@@ -370,7 +366,7 @@ perform_complete_scan () {
 			if [ -z "$name" ] && [ "$previous_state" == "1" ]; then 
 
 				#CALCULATE PERCENT CONFIDENCE
-				local percent_confidence=$(echo "100 / 2 ^ $repetition" | bc )
+				local percent_confidence=$(echo "100 / ( $repetitions ^ ( 1 /( $repetitions - $repetition )))" | bc )
 
 				#ONLY PUBLISH COOPERATIVE SCAN MODE IF WE ARE NOT IN TRIGGER MODE
 				#TRIGGER ONLY MODE DOES NOT SEND COOPERATIVE MESSAGES
@@ -855,10 +851,7 @@ while true; do
 			
 			#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
 			for key in "${!random_device_log[@]}"; do
-				#GET BIAS
-				random_bias=${device_expiration_biases[$key]}
-				[ -z "$random_bias" ] && random_bias=0 
-
+			
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen=${random_device_log[$key]}
 				difference=$((timestamp - last_seen))
@@ -867,17 +860,15 @@ while true; do
 				[ -z "$last_seen" ] && continue 
 
 				#TIMEOUT AFTER 120 SECONDS
-				if [ "$difference" -gt "$(( PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL + random_bias))" ]; then 
+				if [ "$difference" -gt "$PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" ]; then 
 					unset random_device_log[$key]
-					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-${RED}DEL${BLUE}]	${NC}$key expired after $difference ($random_bias bias) seconds ${NC}"
+					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-DEL]	${NC}$key expired after $difference seconds ${NC}"
 			
 					#AT LEAST ONE DEVICE EXPIRED
 					should_scan=true 
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
-				#else 
-					#log "${BLUE}[CHECK-${GREEN}OK${BLUE}]	${NC}$key last seen $difference ($random_bias bias) seconds RAND_NUM: ${#random_device_log[@]}  ${NC}"
 				fi 
 			done
 
@@ -885,11 +876,7 @@ while true; do
 			[ "$should_scan" == true ] && [ "$PREF_TRIGGER_MODE_DEPART" == false ] && perform_departure_scan
 
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
-			beacon_bias=0
 			for key in "${!public_device_log[@]}"; do
-				#GET BIAS
-				beacon_bias=${device_expiration_biases[$key]}
-				[ -z "$beacon_bias" ] && beacon_bias=0 
 
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen=${public_device_log[$key]}
@@ -907,23 +894,28 @@ while true; do
 				#RSSI
 				latest_rssi="${rssi_log[$key]}" 
 
+				#ONLY KNOWN BEACONS
+				should_publish=true
+				[ "$PREF_ONLY_REPORT_KNOWN_BEACONS" == true ] && [ -z "${known_public_device_name["$key"]}" ] && should_publish=false
+
+
 				#TIMEOUT AFTER 120 SECONDS
-				if [ "$difference" -gt "$((PREF_BEACON_EXPIRATION + beacon_bias ))" ]; then 
+				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
+
 					unset public_device_log[$key]
-					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-${RED}DEL${BLUE}]	${NC}$key expired after $difference ($random_bias bias) seconds ${NC}"
+					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-DEL]	${NC}$key expired after $difference seconds ${NC}"
 
 					#REPORT PRESENCE OF DEVICE
-					[ "$PREF_PUBLIC_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "$mqtt_publisher_identity/$key" "0" "$expected_name" "$local_manufacturer" "GENERIC_BEACON" 
+					[ "$should_publish" == true ] && [ "$PREF_PUBLIC_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "$mqtt_publisher_identity/$key" "0" "$expected_name" "$local_manufacturer" "GENERIC_BEACON" 
 
 					#ADD TO THE EXPIRED LOG
 					expired_device_log[$key]=$timestamp
 				else 
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
-					percent_confidence=$(( 100 - difference * 100 / (PREF_BEACON_EXPIRATION + beacon_bias) )) 
+					percent_confidence=$(( 100 - difference * 100 / PREF_BEACON_EXPIRATION )) 
 
 					#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
-					[ "$PREF_PUBLIC_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "50" ] && publish_presence_message "$mqtt_publisher_identity/$key" "$percent_confidence" "$expected_name" "$local_manufacturer" "GENERIC_BEACON" "$latest_rssi" "" "$adv_data"
-
+					[ "$should_publish" == true ] && [ "$PREF_PUBLIC_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "50" ] && publish_presence_message "$mqtt_publisher_identity/$key" "$percent_confidence" "$expected_name" "$local_manufacturer" "GENERIC_BEACON" "$latest_rssi" "" "$adv_data"
 				fi 
 			done
 
@@ -1025,31 +1017,6 @@ while true; do
 		#**********************************************************************
 		#
 		#
-		#	THE FOLLOWING INCREASES DEVICE BAISES IF A DEVICE RE-
-		#	APPEARS AFTER A SHORT AMOUNT OF TIME (2 MINUTES)
-		#	
-		#
-		#**********************************************************************
-
-		if [ "$is_new" == true ]; then 
-
-			#GET CURRENT BIAS
-			bias=${device_expiration_biases[$data]}
-			[ -z "$bias" ] && bias=0
-
-			#WHEN DID THIS LAST EXPIRE?
-			last_expired=${expired_device_log[$data]}
-			difference=$((timestamp - last_expired))
-
-			#DO WE NEED TO ADD A LEANRED BIAS FOR EXPIRATION?
-			if [ "$difference" -lt "60" ]; then 
-				device_expiration_biases[$data]=$(( bias + 15 ))
-			fi  
-		fi 
-
-		#**********************************************************************
-		#
-		#
 		#	THE FOLLOWING REPORTS RSSI CHANGES FOR PUBLIC OR RANDOM DEVICES 
 		#	
 		#
@@ -1136,14 +1103,18 @@ while true; do
 			#DOES AN EXPECTED NAME EXIST? 
 			expected_name="$(determine_name $data)"
 
+			#SHOULD PUBLISH? 
+			should_publish=true
+			[ "$PREF_ONLY_REPORT_KNOWN_BEACONS" == true ] && [ -z "${known_public_device_name["$data"]}" ] && should_publish=false
+
 			#PRINTING FORMATING
 			[ -z "$expected_name" ] && expected_name="Unknown"
 		
 			#PROVIDE USEFUL LOGGING
-			[ -z "${blacklisted_devices[$data]}" ] && log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
+			[ "$should_publish" == true ] && [ -z "${blacklisted_devices[$data]}" ] && log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
 
 			#PUBLISH PRESENCE OF BEACON
-			[ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "APPLE_IBEACON" "$rssi" "$power" "$adv_data"
+			[ "$should_publish" == true ] && [ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "APPLE_IBEACON" "$rssi" "$power" "$adv_data"
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$PREF_PUBLIC_MODE" == true ] && [ "$rssi_updated" == true ]; then 
 
@@ -1152,14 +1123,12 @@ while true; do
 			#REPORT PRESENCE OF DEVICE
 			should_publish=true
 			[ "$PREF_ONLY_REPORT_KNOWN_BEACONS" == true ] && [ -z "${known_public_device_name["$data"]}" ] && should_publish=false
-
-			log "Publication of: $mac is $should_publish"
 			
 			#PUBLISH PRESENCE MESSAGE FOR BEACON
-			[ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$mac" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi" "" "$adv_data"
+			[ "$should_publish" == true ] && [ -z "${blacklisted_devices[$data]}" ] && publish_presence_message "$mqtt_publisher_identity/$mac" "100" "$expected_name" "$manufacturer" "GENERIC_BEACON" "$rssi" "" "$adv_data"
 
 			#PROVIDE USEFUL LOGGING
-			[ -z "${blacklisted_devices[$data]}" ] && log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm "
+			[ "$should_publish" == true ] && [ -z "${blacklisted_devices[$data]}" ] && log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm "
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] ; then 
 
