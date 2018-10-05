@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.670
+version=0.1.671
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -867,8 +867,6 @@ while true; do
 					#AT LEAST ONE DEVICE EXPIRED
 					should_scan=true 
 
-					#ADD TO THE EXPIRED LOG
-					expired_device_log[$key]=$timestamp
 				fi 
 			done
 
@@ -908,8 +906,6 @@ while true; do
 					#REPORT PRESENCE OF DEVICE
 					[ "$should_publish" == true ] && [ "$PREF_PUBLIC_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "$mqtt_publisher_identity/$key" "0" "$expected_name" "$local_manufacturer" "GENERIC_BEACON" 
 
-					#ADD TO THE EXPIRED LOG
-					expired_device_log[$key]=$timestamp
 				else 
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
 					percent_confidence=$(( 100 - difference * 100 / PREF_BEACON_EXPIRATION )) 
