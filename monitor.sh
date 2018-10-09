@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.672
+version=0.1.673
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -717,7 +717,16 @@ while true; do
 				
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
 				log "${GREEN}[INSTRUCT] ${NC}mqtt trigger depart $data_of_instruction ${NC}"
-				perform_departure_scan				 
+				perform_departure_scan		
+
+			elif [[ $mqtt_topic_branch =~ .*UPDATE.* ]] || [[ $mqtt_topic_branch =~ .*RESTART.* ]]; then 
+				log "${GREEN}[INSTRUCT] ${NC}mqtt update/restart  ${NC}"
+				
+				#GIT PULL
+				git pull 
+
+				#RESTART SYSTEM
+				systemctl restart monitor.service	 
 			fi
 
 		elif [ "$cmd" == "TIME" ]; then 
