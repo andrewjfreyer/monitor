@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.673
+version=0.1.674
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -367,6 +367,9 @@ perform_complete_scan () {
 
 				#CALCULATE PERCENT CONFIDENCE
 				local percent_confidence=$(echo "scale=1; ($repetitions - $repetition + 1) / $repetitions * 90" | bc )
+
+				#FALLBACK TO REMOVE DECIMAL AND PRINT INTEGER ONLY
+				percent_confidence=${percent_confidence%.*}
 
 				#ONLY PUBLISH COOPERATIVE SCAN MODE IF WE ARE NOT IN TRIGGER MODE
 				#TRIGGER ONLY MODE DOES NOT SEND COOPERATIVE MESSAGES
