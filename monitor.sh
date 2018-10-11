@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.674
+version=0.1.675
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -720,16 +720,45 @@ while true; do
 				
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
 				log "${GREEN}[INSTRUCT] ${NC}mqtt trigger depart $data_of_instruction ${NC}"
+				
+				#DEPART SCAN
 				perform_departure_scan		
 
-			elif [[ $mqtt_topic_branch =~ .*UPDATE.* ]] || [[ $mqtt_topic_branch =~ .*RESTART.* ]]; then 
-				log "${GREEN}[INSTRUCT] ${NC}mqtt update/restart  ${NC}"
+			elif [[ $mqtt_topic_branch =~ .*RESTART.* ]]; then 
+				log "${GREEN}[INSTRUCT] ${NC}mqtt restart  ${NC}"
+				
+				#RESTART SYSTEM
+				systemctl restart monitor.service		
+
+			elif [[ $mqtt_topic_branch =~ .*UPDATEBETA.* ]]; then 
+				log "${GREEN}[INSTRUCT] ${NC}mqtt update beta branch ${NC}"
+				
+				#GIT FETCH
+				git fetch
+				
+				#GIT FETCH
+				git checkout beta				
 				
 				#GIT PULL
-				git pull 
+				git pull
 
 				#RESTART SYSTEM
-				systemctl restart monitor.service	 
+				systemctl restart monitor.service	
+				
+			elif [[ $mqtt_topic_branch =~ .*UPDATE.* ]]; then 
+				log "${GREEN}[INSTRUCT] ${NC}mqtt update master branch ${NC}"
+				
+				#GIT FETCH
+				git fetch
+				
+				#GIT FETCH
+				git checkout master				
+				
+				#GIT PULL
+				git pull
+
+				#RESTART SYSTEM
+				systemctl restart monitor.service				
 			fi
 
 		elif [ "$cmd" == "TIME" ]; then 
