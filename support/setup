@@ -80,7 +80,7 @@ echo "# ---------------------------
 #								
 # ---------------------------
 
-# IP ADDRESS OF MQTT BROKER
+# DNS OR IP ADDRESS OF MQTT BROKER
 mqtt_address=0.0.0.0
 
 # MQTT BROKER USERNAME (OR BLANK FOR NONE)
