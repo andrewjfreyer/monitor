@@ -37,14 +37,15 @@ should_exit=false
 
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
 base_directory=$(dirname "$(readlink -f "$0")")
+[ ! -z "$PREF_CONFIG_DIR" ] && echo "Using $PREF_CONFIG_DIR as config dir" && base_directory="$PREF_CONFIG_DIR"
 
 #SET THE NAME CACHE IF IT DOESN'T EXIST
 [ ! -f "$base_directory/.public_name_cache" ] && echo "" > "$base_directory/.public_name_cache"
 [ ! -f "address_blacklist" ] && echo "#LIST MAC ADDRESSES TO IGNORE, ONE PER LINE:
-" > "address_blacklist"
+" > "$base_directory/address_blacklist"
 
 #BLACKLISTED ADDRESSES
-ADDRESS_BLACKLIST="address_blacklist"
+ADDRESS_BLACKLIST="$base_directory/address_blacklist"
 
 #----------------------------------------------------------------------------------------
 # CHECK MQTT CONFIGURATION FILES
