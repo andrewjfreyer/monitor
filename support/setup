@@ -221,7 +221,7 @@ if [ -f "$PREF_CONFIG" ]; then
 > preference: max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS
 > preference: max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
 > preference: random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL
-> preference: rssi threshold for triggering = $PREF_RSSI_IGNORE_BELOW 
+> preference: rssi threshold for triggering = $PREF_RSSI_IGNORE_BELOW
 > preference: beacon rssi change required for reporting = $PREF_RSSI_CHANGE_THRESHOLD 
 > preference: bluetooth environmental report frequency = $PREF_ENVIRONMENTAL_REPORT_INTERVAL
 > preference: forced departure check interval = $PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL
