@@ -80,7 +80,7 @@ echo "# ---------------------------
 #								
 # ---------------------------
 
-# IP ADDRESS OF MQTT BROKER
+# IP ADDRESS OR HOSTNAME OF MQTT BROKER
 mqtt_address=0.0.0.0
 
 # MQTT BROKER USERNAME (OR BLANK FOR NONE)
@@ -149,7 +149,7 @@ else
 #
 # BEACON MAC ADDRESS LIST
 #
-# 	Format: 00:00:00:00:00:00 Nickname #optional comments
+# 	Format: 00:00:00:00:00:00 Nickname #comments
 # ---------------------------" > "$BEAC_CONFIG"
 fi 
 
@@ -221,6 +221,7 @@ if [ -f "$PREF_CONFIG" ]; then
 > preference: max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS
 > preference: max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
 > preference: random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL
+> preference: rssi threshold for triggering = $PREF_RSSI_IGNORE_BELOW
 > preference: beacon rssi change required for reporting = $PREF_RSSI_CHANGE_THRESHOLD 
 > preference: bluetooth environmental report frequency = $PREF_ENVIRONMENTAL_REPORT_INTERVAL
 > preference: forced departure check interval = $PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL
@@ -243,6 +244,7 @@ if [ -f "$PREF_CONFIG" ]; then
 	[ -z "$PREF_DATABASE_REFRESH_INTERVAL" ] && PREF_DATABASE_REFRESH_INTERVAL=35
 	[ -z "$PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" ] && PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL=45
 	[ -z "$PREF_RSSI_CHANGE_THRESHOLD" ] && PREF_RSSI_CHANGE_THRESHOLD=20
+	[ -z "$PREF_RSSI_IGNORE_BELOW" ] && PREF_RSSI_IGNORE_BELOW=-75
 	[ -z "$PREF_ENVIRONMENTAL_REPORT_INTERVAL" ] && PREF_ENVIRONMENTAL_REPORT_INTERVAL=300
 	[ -z "$PREF_BEACON_EXPIRATION" ] && PREF_BEACON_EXPIRATION=145
 	[ -z "$PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL" ] && PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL=120
@@ -310,6 +312,9 @@ PREF_MINIMUM_TIME_BETWEEN_SCANS=15
 
 #SHOULD REPORT START/END OF KNOWN DEVICE SCANS
 PREF_MQTT_REPORT_SCAN_MESSAGES=false
+
+#IGNORE ANY ADVERTISEMENTS BELOW THIS VALUE (NOTE: Negative value in dBm)
+PREF_RSSI_IGNORE_BELOW=-70
 
 " > "$PREF_CONFIG"
 

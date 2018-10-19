@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.676
+version=0.1.678
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -67,7 +67,7 @@ trap "clean" EXIT
 # ----------------------------------------------------------------------------------------
 
 #CYCLE BLUETOOTH INTERFACE 
-hciconfig $PREF_HCI_DEVICE down && sleep 2 && hciconfig $PREF_HCI_DEVICE up
+hciconfig $PREF_HCI_DEVICE down && sleep 3 && hciconfig $PREF_HCI_DEVICE up
 
 #SETUP MAIN PIPE
 rm main_pipe &>/dev/null
@@ -327,12 +327,14 @@ perform_complete_scan () {
 
 			#MARK THE ADDRESS AS SCANNED SO THAT IT CAN BE LOGGED ON THE MAIN PIPE
 			echo "SCAN$known_addr" > main_pipe & 
+			disown "$!"
 
 			#IF STATUS CHANGES TO PRESENT FROM NOT PRESENT, REMOVE FROM VERIFICATIONS
 			if [ ! -z "$name" ] && [ "$previous_state" == "0" ]; then 
 
 				#PUSH TO MAIN POPE
 				echo "NAME$known_addr|$name" > main_pipe & 
+				disown "$!"
 
 				#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT 
 				publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "KNOWN_MAC"
@@ -346,6 +348,7 @@ perform_complete_scan () {
 
 				#NEED TO UPDATE STATE TO MAIN THREAD
 				echo "NAME$known_addr|$name" > main_pipe & 
+				disown "$!"
 
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
 				publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "KNOWN_MAC"
@@ -483,6 +486,7 @@ perform_departure_scan () {
 	if [ "$scan_active" == false ] ; then 
 		#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 		perform_complete_scan "$depart_list" "$PREF_DEPART_SCAN_ATTEMPTS" "1" & 
+		disown "$!"
 
 		scan_pid=$!
 		scan_type=1
@@ -504,6 +508,7 @@ perform_arrival_scan () {
 	if [ "$scan_active" == false ] ; then 
 		#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 		perform_complete_scan "$arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" "0" & 
+		disown "$!"
 
 		scan_pid=$!
 		scan_type=0
@@ -573,11 +578,22 @@ determine_name () {
 # ----------------------------------------------------------------------------------------
 
 log_listener &
+disown "$!"
+
 btle_scanner & 
+disown "$!"
+
 btle_listener &
+disown "$!"
+
 mqtt_listener &
+disown "$!"
+
 periodic_trigger & 
+disown "$!"
+
 refresh_databases &
+disown "$!"
 
 # ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
