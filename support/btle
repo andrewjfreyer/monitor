@@ -124,7 +124,7 @@ btle_packet_processor () {
 
 			#SHOJLD REJECT? 
 			local should_ignore=false 
-			[ ! -z "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -lt "$rssi_value" ]] && should_ignore=true
+			[ ! -z "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true
 			
 			#REPORT ONLY IF WE SHOULD NOT IGNORE THIS REPORT
 			[ "$should_ignore" == false ]  && echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe
