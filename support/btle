@@ -121,7 +121,13 @@ btle_packet_processor () {
 		#FILTER BASED ON RESPONSE/DATA TYPE		
         if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
 			#SEND TO MAIN LOOP
-			echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe
+
+			#SHOJLD REJECT? 
+			local should_ignore=false 
+			[ ! -z "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -lt "$rssi_value" ]] && should_ignore=true
+			
+			#REPORT ONLY IF WE SHOULD NOT IGNORE THIS REPORT
+			[ "$should_ignore" == false ]  && echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe
 		fi 
 
 	#NAME REQUEST RESPONSES
