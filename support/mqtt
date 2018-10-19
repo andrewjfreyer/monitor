@@ -32,7 +32,7 @@ mqtt_broker_clean (){
 # ----------------------------------------------------------------------------------------
 mqtt_listener (){
 	#ANNOUCEE HEALTH 
-	$mosquitto_pub_path $should_retain $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$mqtt_publisher_identity/status" -m "online"
+	$mosquitto_pub_path $should_retain $mqtt_ca_file_append -r -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$mqtt_publisher_identity/status" -m "online"
 
 	#MQTT LOOP
 	while read instruction; do 
