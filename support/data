@@ -102,6 +102,9 @@ determine_manufacturer () {
 	if [ ! -z "$1" ]; then  
 		local address="$1"
 
+		#VERIFY THIS IS A MAC ADDRESS
+		[ -z "$(echo "$address" | grep -Ei "([0-9a-f]{2}:){5}[0-9a-f]{2}")" ] && manufacturer="Unknown"
+
 		#SET THE FILE IF IT DOESN'T EXIST
 		[ ! -f ".manufacturer_cache" ] && echo "" > ".manufacturer_cache"
 
