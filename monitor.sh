@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.678
+version=0.1.680
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -1052,7 +1052,6 @@ while true; do
 			#GET MAC AND PDU HEADER
 			mac=$(echo "$data" | awk -F "|" '{print $6}')
 			pdu_header=$(echo "$data" | awk -F "|" '{print $7}')
-			manufacturer="$(determine_manufacturer $mac)"
 
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			data="$mac"
@@ -1061,10 +1060,7 @@ while true; do
 			rssi_latest="${rssi_log[$data]}" 
 			[ -z "${public_device_log[$data]}" ] && is_new=true
 			public_device_log[$data]="$timestamp"	
-			rssi_log[$data]="$rssi"
-
-			#GET MANUFACTURER INFORMATION
-			manufacturer="$(determine_manufacturer $uuid)"			
+			rssi_log[$data]="$rssi"		
 		fi
 
 		#**********************************************************************
