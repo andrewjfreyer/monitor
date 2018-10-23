@@ -326,7 +326,7 @@ sudo nano mqtt_preferences
 11. **[CONFIGURE MONITOR]** edit **known_static_addresses**: 
 
 ```
-nano known_static_addresses
+sudo nano known_static_addresses
 ```
 
 12. **[READ HELPFILE]**:
@@ -376,7 +376,7 @@ And make sure that you're running the most recent version:
 Now, add that address to your `known_static_addresses` file created when you ran `monitor` the first time. To do this from the command line, you can use your favorite text editor. I prefer `nano`:
 
 ```
-nano known_static_addresses
+sudo nano known_static_addresses
 ```
 
 Add the mac address that you copied for your phone at the end of the file. Next to the mac address, you can add a "nickname" or a hash-prepended comment if you like. For example: 
