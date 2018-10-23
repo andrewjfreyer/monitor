@@ -33,7 +33,7 @@ should_exit=false
 [ -z "$hcidump_path" ] && echo "Error: Required package 'hcidump' not found. Please install 'bluez-hcidump' (e.g., sudo apt-get install bluez-hcidump)." && should_exit=true
 [ -z "$bc_path" ] && echo "Error: Required package 'bc' not found. Please install 'bc' (e.g., apt-get install bc)" && should_exit=true
 [ -z "$git_path" ] && echo "Warning: Recommended package 'git' not found. Please consider installing for regular updates."
-[ ! -z "$(which systemctl)" ] && [ ! -e "$service_path" ] && echo "Warning: monitor.service not installed. Install service? (y/n)" && read should_install
+[ ! -f /.dockerenv  ] && [ ! -z "$(which systemctl)" ] && [ ! -e "$service_path" ] && echo "Warning: monitor.service not installed. Install service? (y/n)" && read should_install
 
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
 base_directory=$(dirname "$(readlink -f "$0")")
