@@ -37,7 +37,7 @@ log_listener () {
 	#LOG PIPE
 	while true; do 
 		#SHOULD EXIT? 
-		[ "$PREF_DISABLE_LOGGING" == false ] && return 0 
+		[ "$PREF_DISABLE_LOGGING" == true ] && return 0 
 		
 		#READ FROM THE MAIN PIPE
 		local line 
