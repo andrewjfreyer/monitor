@@ -17,19 +17,26 @@
 # BLUETOOTH LE BACKGROUND SCANNING
 # ----------------------------------------------------------------------------------------
 btle_scanner () {
+	#ESTABLISH LISTENER PID
+	local listener_pid
+
 	while true; do 
+		#STARTUP LISTENER
+		btle_listener &
+		listener_pid=$!
+
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
 		local hcitool_raw=$(timeout --signal SIGINT 30 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
 
 		#FIND ERROR VALUES 
 		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error')
 
-		#ALL OTHER BEACON DEVICES FILTERED
-		beacons_filtered=$(echo "$hcitool_raw" | grep -Ei "([0-9a-f]{2}:){5}[0-9a-f]{2}" | sort -u)
+		#KILL THE LISTENER
+		kill -SIGTERM $listener_pid
 
 		#PUBLISH ERRORS BACK TO MAIN LOOP
 		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe 
-		sleep 2
+		sleep 3
 	done
 }
 
