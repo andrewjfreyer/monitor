@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.686
+version=0.1.687
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -1050,7 +1050,7 @@ while true; do
 			power=$(echo "$data" | awk -F "|" '{print $5}')
 
 			#GET MAC AND PDU HEADER
-			mac=$(echo "$data" | awk -F "|" '{print $6}')
+			mac="$uuid-$major-$minor"
 			pdu_header=$(echo "$data" | awk -F "|" '{print $7}')
 
 			#KEY DEFINED AS UUID-MAJOR-MINOR
