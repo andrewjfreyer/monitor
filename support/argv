@@ -103,7 +103,7 @@ usage:
 				a \$mqtt_topicpath/scan/ARRIVE (defined in MQTT preferences file)
 				d \$mqtt_topicpath/scan/DEPART (defined in MQTT preferences file)
 				r send ARRIVE or DEPART messages to trigger other devices to scan 
-        monitor -D[dir] use alternative directory for configuration files
+	monitor -D[dir] use alternative directory for configuration files
 	"
 }
 
