@@ -32,7 +32,7 @@ btle_scanner () {
 		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error')
 
 		#KILL THE LISTENER QUIETLY
-		kill -SIGTERM "$listener_pid" 2>/dev/null
+		kill -SIGTERM "$listener_pid" 2>&1 1>/dev/null
 
 		#PUBLISH ERRORS BACK TO MAIN LOOP
 		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe 
