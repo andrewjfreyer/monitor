@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.685
+version=0.1.686
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -581,6 +581,9 @@ log_listener &
 disown "$!"
 
 btle_scanner & 
+disown "$!"
+
+btle_listener & 
 disown "$!"
 
 mqtt_listener &

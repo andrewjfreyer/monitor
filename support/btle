@@ -17,22 +17,12 @@
 # BLUETOOTH LE BACKGROUND SCANNING
 # ----------------------------------------------------------------------------------------
 btle_scanner () {
-	#ESTABLISH LISTENER PID
-	local listener_pid
-
 	while true; do 
-		#STARTUP LISTENER
-		btle_listener &
-		listener_pid=$!
-
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
 		local hcitool_raw=$(timeout --signal SIGINT 30 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
 
 		#FIND ERROR VALUES 
 		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error')
-
-		#KILL THE LISTENER QUIETLY
-		kill -SIGTERM "$listener_pid" 2>&1 1>/dev/null
 
 		#PUBLISH ERRORS BACK TO MAIN LOOP
 		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe 
@@ -86,7 +76,8 @@ btle_packet_processor () {
 		[ ! -z "$UUID" ] && echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address|$pdu_header" > main_pipe 
 	
 	elif [[ "$packet" =~ ^04\ 3E* ]]; then
-		
+
+
 		#IF IN TRIGGER MODE, IGNORE
 		[ "$PREF_TRIGGER_MODE_ARRIVE" == true ] && packet="" && return 0
 
@@ -153,32 +144,40 @@ btle_packet_processor () {
 # ----------------------------------------------------------------------------------------
 btle_listener () {	
 	#DEFINE VARAIBLES
-	local packet=""
-	local complete_packet_str_length=0
-	while read line; do
-		# packets start with ">" or "<"
-		if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
-			# process the completed packet (unless this is the first time through)
-			if [ "$packet" ] && [[ $packet =~ ^\> ]]; then
-				btle_packet_processor "$packet"
+	while true; do 
+
+		#LOCAL VALUES 
+		local packet=""
+		local complete_packet_str_length=0
+		
+		while read line; do
+			# packets start with ">" or "<"
+			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
+				# process the completed packet (unless this is the first time through)
+				if [ "$packet" ] && [[ $packet =~ ^\> ]]; then
+					btle_packet_processor "$packet"
+				fi
+				# start the new packet
+				packet=$line
+				complete_packet_str_length=0
+
+				if [[ "$packet" =~ ^\>\ 04\ 3E* ]]; then
+					local packet_len=$(echo $packet | awk '{print "ibase=16;"$4}' | bc )
+					complete_packet_str_length=$((( packet_len + 3) * 3  + 1))
+				fi 
+			else
+				# continue building the packet
+				packet="$packet $line"
+
+				#PROCESS A PACKET WHEN IT IS COMPLETE
+				if [ "$complete_packet_str_length" == "${#packet}" ]; then 
+					btle_packet_processor "$packet"
+					packet=""
+				fi 
 			fi
-			# start the new packet
-			packet=$line
-			complete_packet_str_length=0
+		done < <(timeout --signal SIGINT 65 hcidump -i $PREF_HCI_DEVICE --raw)
 
-			if [[ "$packet" =~ ^\>\ 04\ 3E* ]]; then
-				local packet_len=$(echo $packet | awk '{print "ibase=16;"$4}' | bc )
-				complete_packet_str_length=$((( packet_len + 3) * 3  + 1))
-			fi 
-		else
-			# continue building the packet
-			packet="$packet $line"
-
-			#PROCESS A PACKET WHEN IT IS COMPLETE
-			if [ "$complete_packet_str_length" == "${#packet}" ]; then 
-				btle_packet_processor "$packet"
-				packet=""
-			fi 
-		fi
-	done < <(hcidump -i $PREF_HCI_DEVICE --raw)
+		#TO PREVENT HCIDUMP FROM LEAKING MEMORY, REFRESH EVERY 60 SECONDS
+		sleep 2
+	done 
 }
