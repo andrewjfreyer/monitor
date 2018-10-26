@@ -103,6 +103,7 @@ usage:
 				a \$mqtt_topicpath/scan/ARRIVE (defined in MQTT preferences file)
 				d \$mqtt_topicpath/scan/DEPART (defined in MQTT preferences file)
 				r send ARRIVE or DEPART messages to trigger other devices to scan 
+        monitor -D[dir] use alternative directory for configuration files
 	"
 }
 
@@ -129,8 +130,10 @@ PREF_FORMAT_MQTT=false
 PREF_PUBLISH_ENVIRONMENT_MODE=false
 PREF_HEARTBEAT=false
 PREF_MQTT_REPORT_SCAN_MESSAGES=false
+PREF_SERVICE_CHECK=true
+PREF_CONFIG_DIR=''
 
-while getopts "h?vrfbut:EgRcCmesadx" opt; do
+while getopts "h?vrfbut:EgRcCmesadxD:" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
@@ -188,6 +191,9 @@ while getopts "h?vrfbut:EgRcCmesadx" opt; do
 			;;
 		m)  PREF_HEARTBEAT=true 	&& echo "> send heartbeat signal"
 			;;
+                D)  PREF_CONFIG_DIR=$OPTARG && echo "> using custom config directory [$PREF_CONFIG_DIR]"
+                    [ ! -d "$PREF_CONFIG_DIR" ] && echo "> error: config directory [$PREF_CONFIG_DIR] doesn't exist" && exit 1
+                        ;;
 		*)	echo "> unknown argument: $opt"
 	esac
 done

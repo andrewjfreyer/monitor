@@ -534,7 +534,7 @@ determine_name () {
 	if [ -z "$expected_name" ]; then 
 
 		#CHECK CACHE
-		expected_name=$(grep "$address" < ".public_name_cache" | awk -F "\t" '{print $2}')
+		expected_name=$(grep "$address" < "$base_directory/.public_name_cache" | awk -F "\t" '{print $2}')
 
 		#IF CACHE DOES NOT EXIST, TRY TO SCAN
 		if [ -z "$expected_name" ]; then 
