@@ -142,7 +142,7 @@ while getopts "h?vrfbut:EgSRcCmesadxD:" opt; do
 			exit 0
 			;;
 		S)
-			PREF_DISABLE_LOGGING=true && echo "> logging is DISABLED"
+			PREF_DISABLE_LOGGING=true && echo "> logging is disabled, although startup messages will still be shown"
 			;;
 		v)  
 			echo "$VERSION"
