@@ -33,8 +33,12 @@ duplicate_log_count=1
 
 #FORK THE LOG FROM THE MAIN THREAD 
 log_listener () {
+
 	#LOG PIPE
 	while true; do 
+		#SHOULD EXIT? 
+		[ "$PREF_DISABLE_LOGGING" == false ] && return 0 
+		
 		#READ FROM THE MAIN PIPE
 		local line 
 		while read line; do 
@@ -73,5 +77,5 @@ log_listener () {
 #PRINT TO LOG UNLESS DUPLICATE LINE
 log() {
 	#SEND TO LOG PIPE
-	echo "$1" | sed 's/  */ /g' > log_pipe
+	[ "$PREF_DISABLE_LOGGING" == false ] && echo "$1" | sed 's/  */ /g' > log_pipe
 }

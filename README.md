@@ -120,14 +120,21 @@ usage:
   monitor -h  show usage information
   monitor -R  redact private information from logs
   monitor -m  send heartbeat signal
+  monitor -S  silent operation (no logging)
   monitor -C  clean retained messages from MQTT broker
-  monitor -e  report bluetooth environment periodically via mqtt at topic: \$mqtt_topicpath/environment 
-  monitor -E  report scan status messages: \$mqtt_topicpath/scan/[arrive|depart]/[start|end]
+  monitor -e  report bluetooth environment periodically via mqtt at topic:
+        [topic path]/environment 
+  monitor -E  report scan status messages:
+        [topic path]/scan/[arrive|depart]/[start|end]
+
   monitor -c  clean manufacturer cache and generic beacon cache
   monitor -v  print version number
   monitor -d  restore to default settings
   monitor -u  update 'monitor.service' to current command line settings
       (excluding -u and -d flags)
+
+  monitor -s  report all mqtt messages to a single topic with 
+        \$mqtt_topicpath/\$mqtt_publisher_identity  (defined in MQTT preferences file)
 
   monitor -r  repeatedly scan for arrival & departure of known devices
   monitor -f  format MQTT topics with only letters and numbers
@@ -139,8 +146,8 @@ usage:
         a \$mqtt_topicpath/scan/ARRIVE (defined in MQTT preferences file)
         d \$mqtt_topicpath/scan/DEPART (defined in MQTT preferences file)
         r send ARRIVE or DEPART messages to trigger other devices to scan 
+  monitor -D[dir] use alternative directory for configuration files
   
-
 ```
 ___
 

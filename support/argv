@@ -78,6 +78,7 @@ usage:
 	monitor -h 	show usage information
 	monitor -R 	redact private information from logs
 	monitor -m 	send heartbeat signal
+	monitor -S 	silent operation (no logging)
 	monitor -C 	clean retained messages from MQTT broker
 	monitor -e 	report bluetooth environment periodically via mqtt at topic:
 				[topic path]/environment 
@@ -132,12 +133,16 @@ PREF_HEARTBEAT=false
 PREF_MQTT_REPORT_SCAN_MESSAGES=false
 PREF_SERVICE_CHECK=true
 PREF_CONFIG_DIR=''
+PREF_DISABLE_LOGGING=false
 
-while getopts "h?vrfbut:EgRcCmesadxD:" opt; do
+while getopts "h?vrfbut:EgSRcCmesadxD:" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
 			exit 0
+			;;
+		S)
+			PREF_DISABLE_LOGGING=true
 			;;
 		v)  
 			echo "$VERSION"
