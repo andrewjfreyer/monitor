@@ -104,7 +104,7 @@ btle_packet_processor () {
 		received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 		
 		#VERIFY ADDRESS DOES NOT START WITH 00
-		[[ "$received_mac_address" =~ ^00 ]] && return  0
+		[[ "$received_mac_address" =~ ^00 ]] && return 0
 
 		#TWO BYTES ARE PDU HEADER
 		pdu_header=$(echo "$packet" | awk '{print $7$6}' )
@@ -144,7 +144,10 @@ btle_packet_processor () {
 			[ ! -z "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true
 			
 			#REPORT ONLY IF WE SHOULD NOT IGNORE THIS REPORT
-			[ "$should_ignore" == false ]  && echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe
+			if [ "$should_ignore" == false ]; then 
+				echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe & 
+				disown "$!"
+			fi 
 		fi 
 
 	#NAME REQUEST RESPONSES
@@ -173,7 +176,8 @@ btle_listener () {
 			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
 				# process the completed packet (unless this is the first time through)
 				if [ "$packet" ] && [[ $packet =~ ^\> ]]; then
-					btle_packet_processor "$packet"
+					btle_packet_processor "$packet" & 
+					disown "$!"
 				fi
 				# start the new packet
 				packet=$line
@@ -189,7 +193,8 @@ btle_listener () {
 
 				#PROCESS A PACKET WHEN IT IS COMPLETE
 				if [ "$complete_packet_str_length" == "${#packet}" ]; then 
-					btle_packet_processor "$packet"
+					btle_packet_processor "$packet" &
+					disown "$!"
 					packet=""
 				fi 
 			fi
