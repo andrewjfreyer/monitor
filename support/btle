@@ -65,11 +65,11 @@ btle_packet_processor () {
 		pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
 
 		#RAW VALUES
-		UUID=$(echo $packet | sed 's/^.\{69\}\(.\{47\}\).*$/\1/')
-		MAJOR=$(echo $packet | sed 's/^.\{117\}\(.\{5\}\).*$/\1/')
-		MINOR=$(echo $packet | sed 's/^.\{123\}\(.\{5\}\).*$/\1/')
-		POWER=$(echo $packet | sed 's/^.\{129\}\(.\{2\}\).*$/\1/')
-		UUID=$(echo $UUID | sed -e 's/\ //g' -e 's/^\(.\{8\}\)\(.\{4\}\)\(.\{4\}\)\(.\{4\}\)\(.\{12\}\)$/\1-\2-\3-\4-\5/')
+		UUID=$(echo "$packet" | sed 's/^.\{69\}\(.\{47\}\).*$/\1/')
+		MAJOR=$(echo "$packet" | sed 's/^.\{117\}\(.\{5\}\).*$/\1/')
+		MINOR=$(echo "$packet" | sed 's/^.\{123\}\(.\{5\}\).*$/\1/')
+		POWER=$(echo "$packet" | sed 's/^.\{129\}\(.\{2\}\).*$/\1/')
+		UUID=$(echo "$UUID" | sed -e 's/\ //g' -e 's/^\(.\{8\}\)\(.\{4\}\)\(.\{4\}\)\(.\{4\}\)\(.\{12\}\)$/\1-\2-\3-\4-\5/')
 	
 		#MAJOR CALCULATION
 		MAJOR=$(echo $MAJOR | sed 's/\ //g')
@@ -84,7 +84,7 @@ btle_packet_processor () {
 		POWER=$((POWER - 256))
 
 		#RSSI CALCULATION
-		RSSI=$(echo $packet | sed 's/^.\{132\}\(.\{2\}\).*$/\1/')
+		RSSI=$(echo "$packet" | sed 's/^.\{132\}\(.\{2\}\).*$/\1/')
 		RSSI=$(echo "ibase=16; $RSSI" | bc)
 		RSSI=$((RSSI - 256))
 
@@ -107,7 +107,7 @@ btle_packet_processor () {
 		[[ "$received_mac_address" =~ ^00 ]] && return  0
 
 		#TWO BYTES ARE PDU HEADER
-		pdu_header=$(echo $packet | awk '{print $7$6}' )
+		pdu_header=$(echo "$packet" | awk '{print $7$6}' )
 		pdu_header_bin=$(echo "ibase=16;obase=2;$pdu_header" | bc | xargs printf "%016d")
 
 		#TxADD
@@ -150,11 +150,7 @@ btle_packet_processor () {
 	#NAME REQUEST RESPONSES
 	elif [[ "$packet" =~ ^04\ 07* ]]; then
 
-		return 0
-		
-	else 
-		#SEND UNKNOWN PACKET
-		echo "UKNO$packet" > main_pipe		
+		return 0	
 	fi
 }
 
@@ -166,6 +162,7 @@ btle_listener () {
 	local packet
     local complete_packet_str_length
 	local packet_len
+	local line 
 		
 	#DEFINE VARAIBLES
 	while true; do 
