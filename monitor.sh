@@ -1174,7 +1174,7 @@ while true; do
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] ; then 
 			
 			should_ignore=false 
-			[ ! -z "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi" ]] && should_ignore=true
+			[ ! -z "$rssi" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi" ]] && should_ignore=true
 			
 			#REPORT ONLY IF WE SHOULD NOT IGNORE THIS REPORT
 			if [ "$should_ignore" == false ]; then 
