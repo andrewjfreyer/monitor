@@ -111,7 +111,7 @@ usage:
 # ----------------------------------------------------------------------------------------
 
 #REMOVE MANUFACTURER CACHE AND PUBLIC NAME CACHE FROM PREVIOUS SESSION 
-rm ".manufacturer_cache" && rm ".public_name_cache" && echo "> removing caches"
+rm ".manufacturer_cache" && echo "> removing web request caches (to determine device manufacturer)"
 
 
 #PROCESS ARGV OPTIONS
