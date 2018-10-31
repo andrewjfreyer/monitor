@@ -139,9 +139,9 @@ btle_packet_processor () {
         if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
 			#SEND TO MAIN LOOP
 
-			#SHOJLD REJECT? 
+			#SHOJLD REJECT ALL RSSI REPORTS THAT ARE BELOW 85; MUST BE CLOSE TO THE 
 			should_ignore=false 
-			[ ! -z "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true
+			[ ! -z "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "85" ]] && should_ignore=true
 			
 			#REPORT ONLY IF WE SHOULD NOT IGNORE THIS REPORT
 			if [ "$should_ignore" == false ]; then 

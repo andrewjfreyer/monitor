@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.693
+version=0.1.694
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -1172,13 +1172,23 @@ while true; do
 			fi 
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] ; then 
-
-			#PROVIDE USEFUL LOGGING
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm "
 			
-			#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
-		 	perform_arrival_scan 
-	
+			should_ignore=false 
+			[ ! -z "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi" ]] && should_ignore=true
+			
+			#REPORT ONLY IF WE SHOULD NOT IGNORE THIS REPORT
+			if [ "$should_ignore" == false ]; then 
+
+				#PROVIDE USEFUL LOGGING
+				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (rssi triggers arrive scan)"
+				
+				#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
+			 	perform_arrival_scan 
+			else 
+
+				#LOG THE RESULT EVEN IF WE DONT' SCAN 
+				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (rssi does not trigger arrive scan)"
+			fi 
 		fi 
 
 	done < main_pipe
