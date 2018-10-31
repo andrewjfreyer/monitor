@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.697
+version=0.1.698
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -542,20 +542,14 @@ determine_name () {
 				expected_name=$(hcitool -i $PREF_HCI_DEVICE name "$address" | grep -ivE 'input/output error|invalid device|invalid|error|network')
 
 				#IS THE EXPECTED NAME BLANK? 
-				if [ -z "$expected_name" ]; then 
+				if [ ! -z "$expected_name" ]; then 
 
-					expected_name="Unresponsive Device"
-				
-				else 
 					#ADD TO SESSION ARRAY
 					known_public_device_name[$address]="$expected_name"
 
 					#ADD TO CACHE
 					echo "$data	$expected_name" >> .public_name_cache
 				fi 
-			
-			else
-				expected_name="Undiscoverable Device Name"
 			fi 
 		else
 			#WE HAVE A CACHED NAME, ADD IT BACK TO THE PUBLIC DEVICE ARRAY 
@@ -986,6 +980,9 @@ while true; do
 			adv_data=$(echo "$data" | awk -F "|" '{print $5}')
 			data="$mac"
 			beacon_type="GENERIC_BEACON_PUBLIC"
+
+			#SET NAME 
+			[ ! -z "$name" ] && known_public_device_name[$data]="$name"
 
 			#EXPECTED NAME
 			expected_name="$(determine_name $data)"
