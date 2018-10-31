@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.696
+version=0.1.697
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -516,8 +516,6 @@ perform_arrival_scan () {
 # ----------------------------------------------------------------------------------------
 
 determine_name () {
-	#MOVE THIS TO A SEPARATE FUNCTION IN ORDER TO MAKE SURE THAT
-	#THE CACHE IS ACTUALLY USED
 
 	#SET DATA 
 	local address="$1"
@@ -1184,10 +1182,6 @@ while true; do
 				
 				#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 			 	perform_arrival_scan 
-			else 
-
-				#LOG THE RESULT EVEN IF WE DONT' SCAN 
-				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (rssi does not trigger arrive scan)"
 			fi 
 		fi 
 
