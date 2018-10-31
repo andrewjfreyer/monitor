@@ -1176,9 +1176,6 @@ while true; do
 			should_ignore=false 
 			[ ! -z "$rssi" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi" ]] && should_ignore=true 
 
-			[ ! -z "$rssi" ] && echo "RSSI value exists" || echo "value does not exist"
-			[[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi" ]] && echo "Threshold passes $PREF_RSSI_IGNORE_BELOW ~~ $ $rssi " || echo "Threshold fails $PREF_RSSI_IGNORE_BELOW ~~ $ $rssi "
-
 			#REPORT ONLY IF WE SHOULD NOT IGNORE THIS REPORT
 			if [ "$should_ignore" == false ]; then 
 
