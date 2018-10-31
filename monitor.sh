@@ -590,7 +590,9 @@ disown "$!"
 while true; do 
 	
 	#READ FROM THE MAIN PIPE
-	while read event; do 
+	while read -r event; do 
+
+		echo "$event"
 		
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
