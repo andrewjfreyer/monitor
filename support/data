@@ -52,8 +52,6 @@ gap_name () {
 		name_as_string=$(echo "$name_as_string" | sed 's/[^0-9a-zA-Z]//g;s/  */ /g;s/ $//g;s/^ //g')
 	fi
 
-	echo "Gap Name Found: $name_as_string" 1>&2
-
 	#RETURN NAME
     echo "$name_as_string"
 }

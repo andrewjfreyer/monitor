@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.698
+version=0.1.699
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -982,10 +982,8 @@ while true; do
 			beacon_type="GENERIC_BEACON_PUBLIC"
 
 			#SET NAME 
-			[ ! -z "$name" ] && known_public_device_name[$data]="$name"
-
-			#EXPECTED NAME
-			expected_name="$(determine_name $data)"
+			[ ! -z "$name" ] && known_public_device_name[$mac]="$name"
+			[ -z "$name" ] &&  name="$(determine_name $data)"
 
 			#DATA IS PUBLIC MAC Addr.; ADD TO LOG
 			[ -z "${public_device_log[$data]}" ] && is_new=true
@@ -994,7 +992,7 @@ while true; do
 			rssi_latest="${rssi_log[$data]}" 
 
 			#IF NOT IN DATABASE, BUT FOUND HERE
-			if [ ! -z "$name" ] && [ -z "$expected_name" ]; then 
+			if [ ! -z "$name" ]; then 
 				known_public_device_name[$data]="$name"
 
 				#GET NAME FROM CACHE
@@ -1142,28 +1140,19 @@ while true; do
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
 		
 		elif [ "$cmd" == "BEAC" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$rssi_updated" == true ]; then 
-
-			#DOES AN EXPECTED NAME EXIST? 
-			expected_name="$(determine_name $data)"
-
-			#PRINTING FORMATING
-			[ -z "$expected_name" ] && expected_name="Unknown"
 		
 			#PROVIDE USEFUL LOGGING
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
 				log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
-				publish_presence_message "$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$expected_name" "$manufacturer" "$beacon_type" "$rssi" "$power" "$adv_data"
+				publish_presence_message "$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$name" "$manufacturer" "$beacon_type" "$rssi" "$power" "$adv_data"
 			fi 
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$rssi_updated" == true ]; then 
 
-			#GET NAME AND SCAN IF WE HAVE TO 
-			expected_name="$(determine_name $mac true)"
-	
 			#PUBLISH PRESENCE MESSAGE FOR BEACON
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
 				log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm "
-				publish_presence_message "$mqtt_publisher_identity/$mac" "100" "$expected_name" "$manufacturer" "$beacon_type" "$rssi" "" "$adv_data"
+				publish_presence_message "$mqtt_publisher_identity/$mac" "100" "$name" "$manufacturer" "$beacon_type" "$rssi" "" "$adv_data"
 			fi 
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] ; then 
