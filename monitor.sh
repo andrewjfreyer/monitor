@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.694
+version=0.1.695
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -1174,8 +1174,11 @@ while true; do
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] ; then 
 			
 			should_ignore=false 
-			[ ! -z "$rssi" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi" ]] && should_ignore=true
-			
+			[ ! -z "$rssi" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi" ]] && should_ignore=true 
+
+			[ ! -z "$rssi" ] && echo "RSSI value exists" || echo "value does not exist"
+			[[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi" ]] && echo "Threshold passes $PREF_RSSI_IGNORE_BELOW ~~ $ $rssi " || echo "Threshold fails $PREF_RSSI_IGNORE_BELOW ~~ $ $rssi "
+
 			#REPORT ONLY IF WE SHOULD NOT IGNORE THIS REPORT
 			if [ "$should_ignore" == false ]; then 
 
