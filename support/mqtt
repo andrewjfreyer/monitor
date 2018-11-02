@@ -28,11 +28,19 @@ mqtt_broker_clean (){
 }
 
 # ----------------------------------------------------------------------------------------
+# MQTT ANNOUNCE ONLINE
+# ----------------------------------------------------------------------------------------
+mqtt_announce_online(){
+	#ANNOUCEE HEALTH 
+	$mosquitto_pub_path $should_retain $mqtt_ca_file_append -r -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$mqtt_publisher_identity/status" -m "online"
+}
+
+# ----------------------------------------------------------------------------------------
 # MQTT LISTENER
 # ----------------------------------------------------------------------------------------
 mqtt_listener (){
-	#ANNOUCEE HEALTH 
-	$mosquitto_pub_path $should_retain $mqtt_ca_file_append -r -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$mqtt_publisher_identity/status" -m "online"
+	#ANNOUNCE ONLINE PRESENCE
+	mqtt_announce_online
 
 	while true; do 
 		#MQTT LOOP
@@ -95,6 +103,8 @@ publish_presence_message () {
 		#DEBUGGING WITH SIMPLE
 		log "${PURPLE}$topic <br>{<br><p>retain: $retain_flag<br><p>version : $version<br><p>address : $(basename "$1")<br><p>confidence : $confidence<br><p>name : $name<br><p>timestamp : $stamp<br><p>manufacturer : $4<br><p>type : $5$debug_append<br>}${NC}"
 		
+		#POST VERIFICATION THAT WE ARE STILL ONLINE; CURES AN ISSUE OF HOMEASSISTANT RESTARTING
+		mqtt_announce_online
 
 		#POST TO MQTT
 		$mosquitto_pub_path $should_retain $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$topic" -m "{\"id\":\"$(basename "$1")\", \"retained\":\"$retain_flag\", \"version\":\"$version\", \"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\",\"type\":\"$5\",\"rssi\":\"$6\"$append}"
@@ -102,6 +112,10 @@ publish_presence_message () {
 }
 
 publish_cooperative_scan_message () {
+
+	#POST VERIFICATION THAT WE ARE STILL ONLINE; CURES AN ISSUE OF HOMEASSISTANT RESTARTING
+	mqtt_announce_online
+
 	if [ ! -z "$1" ] && [ -z "$2" ]; then 
 		#DEBUGGING 
 		(>&2 log "${PURPLE}$mqtt_topicpath/scan/$1${NC}")
@@ -128,6 +142,9 @@ publish_environment_message () {
 	if [ ! -z "$1" ]; then 
 		#DEBUGGING 
 		(>&2 log "${PURPLE}$mqtt_topicpath/$mqtt_publisher_identity/environment $1${NC}")
+
+		#POST VERIFICATION THAT WE ARE STILL ONLINE; CURES AN ISSUE OF HOMEASSISTANT RESTARTING
+		mqtt_announce_online
 
 		#POST TO MQTT
 		$mosquitto_pub_path $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$mqtt_publisher_identity/environment" -m "$1"
