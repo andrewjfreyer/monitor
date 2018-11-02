@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.704
+version=0.1.705
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -97,6 +97,7 @@ now=$(date +%s)
 last_arrival_scan=$((now - 25))
 last_depart_scan=$((now - 25))
 last_environment_report=$((now - 25))
+first_arrive_scan=true
 
 # ----------------------------------------------------------------------------------------
 # POPULATE THE ASSOCIATIVE ARRAYS THAT INCLUDE INFORMATION ABOUT THE STATIC DEVICES
@@ -501,6 +502,10 @@ perform_arrival_scan () {
 		
 	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 	if [ "$scan_active" == false ] ; then 
+
+		#FIRST SCAN IS DEAD
+		first_arrive_scan=false
+
 		#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 		perform_complete_scan "$arrive_list" "$PREF_ARRIVAL_SCAN_ATTEMPTS" "0" & 
 		disown "$!"
@@ -1161,16 +1166,22 @@ while true; do
 			[ ! -z "$rssi" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi" ]] && should_ignore=true 
 
 			#REPORT ONLY IF WE SHOULD NOT IGNORE THIS REPORT
-			if [ "$should_ignore" == false ]; then 
+			if [ "$should_ignore" == false ] || [ "$first_arrive_scan" == true ] ; then 
 
 				#PROVIDE USEFUL LOGGING
 				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (rssi triggers arrive scan)"
 
-			#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
+				#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 				perform_arrival_scan 
 			else 
 				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (rssi does not trigger arrive scan)"
 			fi 
+		fi 
+
+		#SHOUD WE PERFORM AN ARRIVAL SCAN AFTER THIS FIRST LOOP?
+		if [ "$first_arrive_scan" == true ] ; then 
+
+			perform_arrival_scan 
 		fi 
 
 	done < main_pipe
