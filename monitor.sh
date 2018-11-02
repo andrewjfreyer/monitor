@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.701
+version=0.1.703
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -957,7 +957,7 @@ while true; do
 					fi  
 
 					#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
-					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "$mqtt_publisher_identity/$key" "$percent_confidence" "$expected_name" "$local_manufacturer" "$beacon_type" "$latest_rssi" "" "$adv_data"
+					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "80" ] && publish_presence_message "$mqtt_publisher_identity/$key" "$percent_confidence" "$expected_name" "$local_manufacturer" "$beacon_type" "$latest_rssi" "" "$adv_data"
 				fi 
 			done
 
@@ -1165,9 +1165,11 @@ while true; do
 
 				#PROVIDE USEFUL LOGGING
 				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (rssi triggers arrive scan)"
-				
-				#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
-			 	perform_arrival_scan 
+
+			#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
+				perform_arrival_scan 
+			else 
+				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (rssi does not trigger arrive scan)"
 			fi 
 		fi 
 
