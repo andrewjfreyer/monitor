@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.706
+version=0.1.707
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -968,9 +968,9 @@ while true; do
 
 		elif [ "$cmd" == "ERRO" ]; then 
 
-			log "${RED}[ERROR]	${NC}Correcting HCI error: $data${NC}"
+			log "${RED}[ERROR]	${NC}Attempting to correct HCI error: $data. Restarting $PREF_HCI_DEVICE after a 15 second delay. If you see this error multiple times in a log, consider restarting the script.${NC}"
 
-			hciconfig $PREF_HCI_DEVICE down && sleep 5 && hciconfig $PREF_HCI_DEVICE up
+			hciconfig $PREF_HCI_DEVICE down && sleep 15 && hciconfig $PREF_HCI_DEVICE up
 
 			sleep 5
 
