@@ -115,14 +115,14 @@ determine_manufacturer () {
 		[ ! -f ".manufacturer_cache" ] && echo "" > ".manufacturer_cache"
 
 		#CHECK CACHE
-		local manufacturer=$(grep "${address:0:8}" < ".manufacturer_cache" | awk -F "\t" '{print $2}')
+		local manufacturer=$(grep "${address:0:8}" < ".manufacturer_cache" | awk -F "\t" '{print $2}' | sort -u | head -1)
 
 		#EXCEPTION FOR SUSPECT PRODUCTS
-		[[ "$address" =~ ^FF:FF ]] && manufacturer="SIG Unassigned/Non-compliant Manufacturer"
+		[[ "$address" =~ ^FF:FF ]] && manufacturer="SIG Unassigned or Noncompliant OEM"
 
 		#IF CACHE DOES NOT EXIST, USE MACVENDORS.COM
 		if [ -z "$manufacturer" ]; then 
-			local remote_result=$(curl -sL https://api.macvendors.com/${address:0:8} | grep -vi "error")
+			local remote_result=$(curl -sL https://api.macvendors.com/${address:0:8} | grep -vi "error" | head -1 | sed 's/[^A-Za-z ]//g')
 
 			#MAKE SURE WE DONT' SCREW UP THE MANUFACTUERE'S FILE
 			if [[ ! "$remote_result" = *html* ]]; then
@@ -132,7 +132,7 @@ determine_manufacturer () {
 		fi
 
 		#SET DEFAULT MANUFACTURER 
-		[ -z "$manufacturer" ] && manufacturer="Unknown"
+		[ -z "$manufacturer" ] && manufacturer="Unknown" && echo "${address:0:8}	Unknown" >> .manufacturer_cache
 		echo "$manufacturer"
 	fi 
 }

@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.707
+version=0.1.708
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -87,6 +87,8 @@ declare -A known_public_device_log
 declare -A known_static_device_scan_log
 declare -A known_public_device_name
 declare -A blacklisted_devices
+declare -A beacon_private_address_log
+
 
 #LAST TIME THIS 
 scan_pid=""
@@ -775,30 +777,6 @@ while true; do
 
 			[ "$PREF_HEARTBEAT" == true ] && publish_cooperative_scan_message "$mqtt_publisher_identity" "heartbeat"
 
-			#CALCULATE DEPARTURE
-			duration_since_depart_scan=$((timestamp - last_depart_scan))
-
-			#MODE TO SKIP
-			if [ "$PREF_PERIODIC_MODE" == true ]; then 
-
-				#SCANNED RECENTLY? 
-				duration_since_arrival_scan=$((timestamp - last_arrival_scan))
-
-				if [ "$duration_since_depart_scan" -gt "$PREF_DEPART_SCAN_INTERVAL" ]; then 
-					
-					perform_departure_scan
-
-				elif [ "$duration_since_arrival_scan" -gt "$PREF_ARRIVE_SCAN_INTERVAL" ]; then 
-					
-					perform_arrival_scan 
-				fi 
-			
-			elif [ "$duration_since_depart_scan" -gt "$PREF_PERIODIC_FORCED_DEPARTURE_SCAN_INTERVAL" ] && [ "$PREF_TRIGGER_MODE_DEPART" == false ]; then 
-
-				perform_departure_scan
-
-			fi 
-
 			############################## SHOULD PUBLISH ENVIRONMENT MESSAGE? #############################################
 			if [ "$PREF_PUBLISH_ENVIRONMENT_MODE" == true ]; then 
 
@@ -902,7 +880,19 @@ while true; do
 			
 			#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
 			for key in "${!random_device_log[@]}"; do
-			
+
+				is_beacon=false
+				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
+				for beacon_key in "${!beacon_private_address_log[@]}"; do
+					if [ "$beacon_key" == "$key" ]; then 
+						is_beacon=true
+						continue 
+					fi 
+				done
+
+				#IF THIS IS ASSOCIATED WITH A BEACON, WE SKIP IT. 
+				[ "$is_beacon" == true ] && continue 
+
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen=${random_device_log[$key]}
 				difference=$((timestamp - last_seen))
@@ -913,7 +903,7 @@ while true; do
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" ]; then 
 					unset random_device_log[$key]
-					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-DEL]	${NC}$key expired after $difference seconds ${NC}"
+					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-DEL]	${NC}RAND $key expired after $difference seconds ${NC}"
 			
 					#AT LEAST ONE DEVICE EXPIRED
 					should_scan=true 
@@ -946,7 +936,7 @@ while true; do
 				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
 
 					unset public_device_log[$key]
-					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-DEL]	${NC}$key expired after $difference seconds ${NC}"
+					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[CHECK-DEL]	${NC}PUBL/BEAC $key expired after $difference seconds ${NC}"
 
 					#REPORT PRESENCE OF DEVICE
 					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "$mqtt_publisher_identity/$key" "0" "$expected_name" "$local_manufacturer" "$beacon_type" 
@@ -1044,14 +1034,18 @@ while true; do
 			minor=$(echo "$data" | awk -F "|" '{print $3}')
 			rssi=$(echo "$data" | awk -F "|" '{print $4}')
 			power=$(echo "$data" | awk -F "|" '{print $5}')
+			mac=$(echo "$data" | awk -F "|" '{print $6}')
 			beacon_type="APPLE_IBEACON"
 
 			#GET MAC AND PDU HEADER
-			mac="$uuid-$major-$minor"
+			uuid_reference="$uuid-$major-$minor"
 			pdu_header=$(echo "$data" | awk -F "|" '{print $7}')
 
+			#UPDATE PRIVATE ADDRESS
+			beacon_private_address_log["$uuid_reference"]="$mac"
+
 			#KEY DEFINED AS UUID-MAJOR-MINOR
-			data="$mac"
+			data="$uuid_reference"
 
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$data]}" 
