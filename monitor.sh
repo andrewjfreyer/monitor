@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.708
+version=0.1.709
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -1160,7 +1160,7 @@ while true; do
 			[ ! -z "$rssi" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi" ]] && should_ignore=true 
 
 			#REPORT ONLY IF WE SHOULD NOT IGNORE THIS REPORT
-			if [ "$should_ignore" == false ] || [ "$first_arrive_scan" == true ] ; then 
+			if [ "$should_ignore" == false ] ; then 
 
 				#PROVIDE USEFUL LOGGING
 				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (rssi triggers arrive scan)"
