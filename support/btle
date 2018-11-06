@@ -141,15 +141,8 @@ btle_packet_processor () {
         if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
 			#SEND TO MAIN LOOP
 
-			#SHOJLD REJECT ALL RSSI REPORTS THAT ARE BELOW 85; MUST BE CLOSE TO THE 
-			should_ignore=false 
-			[ ! -z "$rssi_value" ] && [[ "-100" -gt "$rssi_value" ]] && should_ignore=true
-			
-			#REPORT ONLY IF WE SHOULD NOT IGNORE THIS REPORT
-			if [ "$should_ignore" == false ]; then 
-				echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe & 
-				disown "$!"
-			fi 
+			echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe & 
+			disown "$!"
 		fi 
 
 	#NAME REQUEST RESPONSES
