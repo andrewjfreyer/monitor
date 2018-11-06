@@ -28,7 +28,7 @@ btle_scanner () {
 		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe && sleep 15
 
 		#NEED DELAY TO BE SURE WE'RE NOT RESTARTING HARDWARE TOO QUICKLY
-		sleep 5
+		sleep 2
 	done
 }
 
@@ -143,7 +143,7 @@ btle_packet_processor () {
 
 			#SHOJLD REJECT ALL RSSI REPORTS THAT ARE BELOW 85; MUST BE CLOSE TO THE 
 			should_ignore=false 
-			[ ! -z "$rssi_value" ] && [[ "-98" -gt "$rssi_value" ]] && should_ignore=true
+			[ ! -z "$rssi_value" ] && [[ "-100" -gt "$rssi_value" ]] && should_ignore=true
 			
 			#REPORT ONLY IF WE SHOULD NOT IGNORE THIS REPORT
 			if [ "$should_ignore" == false ]; then 
@@ -200,9 +200,9 @@ btle_listener () {
 					packet=""
 				fi 
 			fi
-		done < <(timeout --signal SIGINT 65 hcidump -i "$PREF_HCI_DEVICE" --raw)
+		done < <(timeout --signal SIGINT 24 hcidump -i "$PREF_HCI_DEVICE" --raw)
 
-		#TEST: PREVENT HCIDUMP FROM LEAKING MEMORY, REFRESH EVERY 60 SECONDS
+		#TEST: PREVENT HCIDUMP FROM LEAKING MEMORY
 		sleep 2
 	done 
 }
