@@ -727,11 +727,11 @@ while true; do
 
 			if [[ $mqtt_topic_branch =~ .*ARRIVE.* ]]; then 
 
-				log "${GREEN}[INSTRUCT] ${NC}mqtt trigger arrive $data_of_instruction ${NC}"
+				log "${GREEN}[INSTRUCT] ${NC}mqtt trigger arrive ${NC}"
 				perform_arrival_scan
 				
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
-				log "${GREEN}[INSTRUCT] ${NC}mqtt trigger depart $data_of_instruction ${NC}"
+				log "${GREEN}[INSTRUCT] ${NC}mqtt trigger depart ${NC}"
 				
 				#DEPART SCAN
 				perform_departure_scan		
@@ -1163,12 +1163,12 @@ while true; do
 			if [ "$should_ignore" == false ] ; then 
 
 				#PROVIDE USEFUL LOGGING
-				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (rssi triggers arrive scan)"
+				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (triggers arrival scan)"
 
 				#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 				perform_arrival_scan 
 			else 
-				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (rssi does not trigger arrive scan)"
+				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (too distant; arrival scan not triggered)"
 			fi 
 		fi 
 
