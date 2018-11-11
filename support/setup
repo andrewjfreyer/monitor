@@ -58,20 +58,27 @@ if [ -f $MQTT_CONFIG ] ; then
 	source $MQTT_CONFIG
 
 	#ERRORS
-	[ "$mqtt_address" == "0.0.0.0" ] && echo "Error: Please customize mqtt broker address in: mqtt_preferences" && should_exit=true
-	[ "$mqtt_user" == "username" ] && echo "Warning: For security purposes, please consider changing 'username' in: mqtt_preferences"
-	[ "$mqtt_password" == "password" ]&& echo "Warning: For security purposes, please consider changing 'password' in: mqtt_preferences"
-	[ ! -f "$mqtt_certificate_path" ] && [ ! -z "$mqtt_certificate_path" ] && echo "Error: Please check mqtt certificate path in mqtt_preferences" && should_exit=true
+	[ "$mqtt_address" == "0.0.0.0" ] && echo "error: please customize mqtt broker address in: mqtt_preferences" && should_exit=true
+	[ "$mqtt_user" == "username" ] && echo "warning: for security purposes, please consider changing 'username' in: mqtt_preferences"
+	[ "$mqtt_password" == "password" ]&& echo "warning: for security purposes, please consider changing 'password' in: mqtt_preferences"
+	[ "$mqtt_version" == "" ]&& echo "> preference: using default mqtt protocol version" || echo "> preference: using mqtt protocol version $mqtt_version"
+	[ ! -f "$mqtt_certificate_path" ] && [ ! -z "$mqtt_certificate_path" ] && echo "error: please check mqtt certificate path in mqtt_preferences" && should_exit=true
 
 	#WARNINGS
-	[ -z "$mqtt_port" ] && echo "Warning: Variable mqtt_port does not appear in: mqtt_preferences. Using default port 1883". && mqtt_port="1883"
-	[ -z "$mqtt_publisher_identity" ] && echo "Warning: Variable mqtt_publisher_identity does not appear in: mqtt_preferences. Using hostname: $(hostname)". && mqtt_publisher_identity="$(hostname)"
+	[ -z "$mqtt_port" ] && echo "warning: variable mqtt_port does not appear in mqtt_preferences. using default port 1883". && mqtt_port="1883"
+	[ -z "$mqtt_publisher_identity" ] && echo "warning: variable mqtt_publisher_identity does not appear in: mqtt_preferences. using hostname: $(hostname)". && mqtt_publisher_identity="$(hostname)"
 
 	#DEFINE CA APPEND
 	if [ -f "$mqtt_certificate_path" ]; then 
 		#DEFINE APPEND TO USE FOR MQTT
 		mqtt_ca_file_append="--cafile $mqtt_certificate_path"
-	fi 
+	fi
+
+	#DEFINE CA APPEND
+	if [ ! -z "$mqtt_version" ]; then 
+		#DEFINE APPEND TO USE FOR MQTT
+		mqtt_version_append="-V $mqtt_version"
+	fi
 else
 	echo "> mosquitto preferences file created. Please customize." 
 
@@ -100,7 +107,12 @@ mqtt_publisher_identity=''
 mqtt_port='1883'
 
 # MQTT CERTIFICATE FILE (LEAVE BLANK IF NONE)
-mqtt_certificate_path=''" > "$MQTT_CONFIG"
+mqtt_certificate_path=''
+
+#MQTT VERSION (LEAVE BLANK FOR DEFAULT; EXAMPLE: 'mqttv311')
+mqtt_version=''
+
+" > "$MQTT_CONFIG"
 
 	#SET SHOULD EXIT
 	should_exit=true

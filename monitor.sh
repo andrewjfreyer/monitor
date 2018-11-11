@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.712
+version=0.1.713
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -955,16 +955,6 @@ while true; do
 					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "80" ] && publish_presence_message "$mqtt_publisher_identity/$key" "$percent_confidence" "$expected_name" "$local_manufacturer" "$beacon_type" "$latest_rssi" "" "$adv_data"
 				fi 
 			done
-
-		elif [ "$cmd" == "ERRO" ]; then 
-
-			log "${RED}[ERROR]	${NC}Attempting to correct bluetooth hardware error: $data (Restarting $PREF_HCI_DEVICE after a delay).${NC}"
-
-			hciconfig $PREF_HCI_DEVICE down && sleep 1 && hciconfig $PREF_HCI_DEVICE up
-
-			sleep 1
-
-			continue
 
 		elif [ "$cmd" == "PUBL" ]; then 
 			#PARSE RECEIVED DATA
