@@ -25,7 +25,7 @@ btle_scanner () {
 		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error|network')
 
 		#PUBLISH ERRORS BACK TO MAIN LOOP
-		if [ ! -z "$error" ] then 
+		if [ ! -z "$error" ]; then 
 
 			log "${RED}[ERROR]	${NC}Attempting to correct bluetooth hardware error: $data (Restarting $PREF_HCI_DEVICE after a delay).${NC}"
 
