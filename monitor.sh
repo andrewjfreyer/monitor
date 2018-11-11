@@ -958,11 +958,11 @@ while true; do
 
 		elif [ "$cmd" == "ERRO" ]; then 
 
-			log "${RED}[ERROR]	${NC}Attempting to correct HCI error: $data. Restarting $PREF_HCI_DEVICE after a 15 second delay. If you see this error multiple times in a log, consider restarting the script.${NC}"
+			log "${RED}[ERROR]	${NC}Attempting to correct bluetooth hardware error: $data (Restarting $PREF_HCI_DEVICE after a delay).${NC}"
 
-			hciconfig $PREF_HCI_DEVICE down && sleep 15 && hciconfig $PREF_HCI_DEVICE up
+			hciconfig $PREF_HCI_DEVICE down && sleep 1 && hciconfig $PREF_HCI_DEVICE up
 
-			sleep 5
+			sleep 1
 
 			continue
 
