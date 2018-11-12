@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.713
+version=0.1.714
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -398,6 +398,13 @@ perform_complete_scan () {
 
 				#PUBLISH A NOT PRESENT TO THE NAME PIPE
 				echo "NAME$known_addr|" > main_pipe & 
+
+			elif [ -z "$name" ] && [ "$previous_state" == "0" ]; then 
+
+				if [ "$PREF_REPORT_ALL_MODE" == true ] ; then 			
+					#REPORT PRESENCE
+					publish_presence_message "$mqtt_publisher_identity/$known_addr" "0" "$expected_name" "$manufacturer" "KNOWN_MAC"			
+				fi 
 			fi 
 
 			#IF WE HAVE NO MORE DEVICES TO SCAN, IMMEDIATELY RETURN
