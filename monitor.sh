@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.715
+version=0.1.716
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -183,9 +183,13 @@ scannable_devices_with_state () {
 		#SCAN FOR DEPARTED DEVICES
 		scan_type_diff=$((timestamp - last_depart_scan))
 
+		log "Last arrival scan: $scan_type_diff seconds ago ($PREF_MINIMUM_TIME_BETWEEN_SCANS)"
+
 	elif [ "$scan_state" == "0" ]; then 
 		#SCAN FOR ARRIVED DEVICES
 		scan_type_diff=$((timestamp - last_arrival_scan))
+
+		log "Last depart scan: $scan_type_diff seconds ago ($PREF_MINIMUM_TIME_BETWEEN_SCANS)"
 	fi 
 
 	#REJECT IF WE SCANNED TO RECENTLY
