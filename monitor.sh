@@ -974,7 +974,7 @@ while true; do
 		if [ "$cmd" == "PUBL" ] || [ "$cmd" == "BEAC" ]; then 
 
 			#SET RSSI LATEST IF NOT ALREADY SET 
-			[ -z "$rssi_latest" ] && rssi_latest="100"
+			[ -z "$rssi_latest" ] && rssi_latest="-100"
 
 			#IS RSSI THE SAME? 
 			rssi_change=$((rssi - rssi_latest))
