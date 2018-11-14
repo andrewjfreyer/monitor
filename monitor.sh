@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.714
+version=0.1.715
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -114,6 +114,8 @@ address_blacklist=($(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | awk '{print $1
 #ASSEMBLE COMMENT-CLEANED BLACKLIST INTO BLACKLIST ARRAY
 for addr in ${address_blacklist[@]}; do 
 	blacklisted_devices["$addr"]=1
+
+	echo "> blacklisted device: $addr"
 done 
 
 # ----------------------------------------------------------------------------------------
@@ -1164,7 +1166,8 @@ while true; do
 
 				#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 				perform_arrival_scan 
-			else 
+			else
+
 				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (too distant; arrival scan not triggered)"
 			fi 
 		fi 

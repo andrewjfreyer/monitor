@@ -19,7 +19,7 @@
 btle_scanner () {
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
-		local hcitool_raw=$(timeout --signal SIGINT 30 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
+		local hcitool_raw=$(timeout --signal SIGINT 31 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
 
 		#FIND ERROR VALUES 
 		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error|network')
@@ -27,18 +27,19 @@ btle_scanner () {
 		#PUBLISH ERRORS BACK TO MAIN LOOP
 		if [ ! -z "$error" ]; then 
 
-			log "${RED}[ERROR]	${NC}Attempting to correct bluetooth hardware error: $data (Restarting $PREF_HCI_DEVICE after a delay).${NC}"
+			(>&2 echo "error! attempting to correct $PREF_HCI_DEVICE hardware fault: [$data]")
 
-			hciconfig $PREF_HCI_DEVICE down && sleep 2 && hciconfig $PREF_HCI_DEVICE up
+			hciconfig $PREF_HCI_DEVICE down && sleep 5 && hciconfig $PREF_HCI_DEVICE up
 
 			sleep 3
-
-			continue
 		fi 
 
 		#NEED DELAY TO BE SURE WE'RE NOT RESTARTING HARDWARE TOO QUICKLY
 		sleep 2
 	done
+
+	#REPORT ERROR
+	(>&2 echo "error! irrecoverable btle_scanner error")
 }
 
 # ----------------------------------------------------------------------------------------
@@ -202,9 +203,12 @@ btle_listener () {
 					packet=""
 				fi 
 			fi
-		done < <(timeout --signal SIGINT 24 hcidump -i "$PREF_HCI_DEVICE" --raw)
+		done < <(timeout --signal SIGINT 71 hcidump -i "$PREF_HCI_DEVICE" --raw)
 
 		#TEST: PREVENT HCIDUMP FROM LEAKING MEMORY
 		sleep 2
 	done 
+
+	#REPORT ERROR
+	(>&2 echo "error! irrecoverable btle_listener error")
 }
