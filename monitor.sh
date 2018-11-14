@@ -183,13 +183,13 @@ scannable_devices_with_state () {
 		#SCAN FOR DEPARTED DEVICES
 		scan_type_diff=$((timestamp - last_depart_scan))
 
-		log "Last arrival scan: $scan_type_diff seconds ago ($PREF_MINIMUM_TIME_BETWEEN_SCANS)"
+		log "Last depart scan: $scan_type_diff seconds ago ($PREF_MINIMUM_TIME_BETWEEN_SCANS)"
 
 	elif [ "$scan_state" == "0" ]; then 
 		#SCAN FOR ARRIVED DEVICES
 		scan_type_diff=$((timestamp - last_arrival_scan))
 
-		log "Last depart scan: $scan_type_diff seconds ago ($PREF_MINIMUM_TIME_BETWEEN_SCANS)"
+		log "Last arrive scan: $scan_type_diff seconds ago ($PREF_MINIMUM_TIME_BETWEEN_SCANS)"
 	fi 
 
 	#REJECT IF WE SCANNED TO RECENTLY
@@ -475,7 +475,6 @@ perform_complete_scan () {
 
 	#SET DONE TO MAIN PIPE
 	echo "DONE" > main_pipe
-
 }
 
 # ----------------------------------------------------------------------------------------
@@ -612,6 +611,8 @@ while true; do
 	#READ FROM THE MAIN PIPE
 	while read -r event; do 
 		
+		(>&2 echo "$event")
+
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
 		data="${event:4}"
