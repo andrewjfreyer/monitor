@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.718
+version=0.1.719
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -68,6 +68,14 @@ trap "clean" EXIT
 
 #CYCLE BLUETOOTH INTERFACE 
 hciconfig $PREF_HCI_DEVICE down && sleep 3 && hciconfig $PREF_HCI_DEVICE up
+
+#STOP OTHER INSTANCES OF MONITOR WITHOUT STOPPING THIS ONE
+echo "> stopping other instances of 'monitor.sh'"
+for pid in $(pidof -x $(basename "$0")); do
+    if [ "$pid" != $$ ]; then
+        kill -9 $pid
+    fi 
+done
 
 #SETUP MAIN PIPE
 rm main_pipe &>/dev/null
