@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.716
+version=0.1.717
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -595,9 +595,6 @@ disown "$!"
 mqtt_listener &
 disown "$!"
 
-periodic_trigger & 
-disown "$!"
-
 refresh_databases &
 disown "$!"
 
@@ -611,8 +608,6 @@ while true; do
 	#READ FROM THE MAIN PIPE
 	while read -r event; do 
 		
-		(>&2 echo "$event")
-
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
 		data="${event:4}"
@@ -786,97 +781,6 @@ while true; do
 				#RESTART SYSTEM
 				systemctl restart monitor.service				
 			fi
-
-		elif [ "$cmd" == "TIME" ]; then 
-
-			[ "$PREF_HEARTBEAT" == true ] && publish_cooperative_scan_message "$mqtt_publisher_identity" "heartbeat"
-
-			############################## SHOULD PUBLISH ENVIRONMENT MESSAGE? #############################################
-			if [ "$PREF_PUBLISH_ENVIRONMENT_MODE" == true ]; then 
-
-				#WHEN WAS OUR LAST ENVIRONMENTAL REPORT? 
-				duration_since_last_report=$((timestamp - last_environment_report))
-
-				#GREATER THAN THE ENVIRONMENTAL REPORT INTERVAL? 
-				if [ "$duration_since_last_report" -gt "$PREF_ENVIRONMENTAL_REPORT_INTERVAL" ]; then 
-
-					publ_json_array=""
-					#GET NAMES AND STATUS OF EACH PUBLIC DEVICE
-					for key in "${!public_device_log[@]}"; do
-						#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-						last_seen=${public_device_log[$key]}
-
-						#RSSI
-						latest_rssi="${rssi_log[$key]}" 
-
-						#EXPECTED NAME
-						expected_name="$(determine_name $key)"
-						[ -z "$expected_name" ] && expected_name="Unknown"
-
-						#JSON MESSAGE
-						publ_json_array="$publ_json_array,{\"address\":\"$key\", \"name\": \"$expected_name\", \"last seen\":\"$last_seen\", \"rssi\":\"$latest_rssi\"}"
-					done
-
-					#FIX LEADING COMMA IN JSON ARRAY
-					publ_json_array=$(echo "$publ_json_array" | sed 's/^,//g')
-
-					#ENCLOSE IN BRACKETS
-					publ_json_array="[$publ_json_array]"
-
-					############################### RANDOM DEVICES #########################################
-					rand_json_array=""
-					#GET NAMES AND STATUS OF EACH PUBLIC DEVICE
-					for key in "${!random_device_log[@]}"; do
-						#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-						last_seen=${random_device_log[$key]}
-
-						#RSSI
-						latest_rssi="${rssi_log[$key]}" 
-
-						#JSON MESSAGE
-						rand_json_array="$rand_json_array,{\"address\":\"$key\", \"last seen\":\"$last_seen\", \"rssi\":\"$latest_rssi\"}"
-					done
-
-					#FIX LEADING COMMA IN JSON ARRAY
-					rand_json_array=$(echo "$rand_json_array" | sed 's/^,//g')
-
-					#ENCLOSE IN BRACKETS
-					rand_json_array="[$rand_json_array]"
-
-					############################### KNOWN DEVICES #########################################
-
-					known_json_array=""
-					#GET NAMES AND STATUS OF EACH PUBLIC DEVICE
-					for key in "${!known_public_device_log[@]}"; do
-						#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-						last_state=${known_public_device_log[$key]}
-
-						#EXPECTED NAME
-						expected_name="$(determine_name $key)"
-						[ -z "$expected_name" ] && expected_name="Unknown"
-
-						#JSON MESSAGE
-						known_json_array="$known_json_array,{\"address\":\"$key\", \"state\":\"$((last_state * 100))\"}"
-					done
-
-					#FIX LEADING COMMA IN JSON ARRAY
-					known_json_array=$(echo "$known_json_array" | sed 's/^,//g')
-
-					#ENCLOSE IN BRACKETS
-					known_json_array="[$known_json_array]"
-
-					############################### ASSEMBLE MESSAGE #########################################
-
-					#ASSEMBLE ENTIRE MESSAGE
-					env_message="{ \"generic\" : $publ_json_array, \"random\" : $rand_json_array, \"known\" : $known_json_array}"
-
-					#POST LOGGING MESSAGE
-					publish_environment_message "$env_message"
-
-					#SET THE VARIABLE THAT CONTROLS THE REPORT FREQUENCY
-					last_environment_report=$(date +%s)
-				fi 
-			fi 
 
 		elif [ "$cmd" == "REFR" ]; then 
 
@@ -1070,7 +974,7 @@ while true; do
 		if [ "$cmd" == "PUBL" ] || [ "$cmd" == "BEAC" ]; then 
 
 			#SET RSSI LATEST IF NOT ALREADY SET 
-			[ -z "$rssi_latest" ] && rssi_latest="0"
+			[ -z "$rssi_latest" ] && rssi_latest="100"
 
 			#IS RSSI THE SAME? 
 			rssi_change=$((rssi - rssi_latest))
@@ -1088,10 +992,10 @@ while true; do
 				$(( abs_rssi_change >= 50)) )
 					change_type="Fast Motion $motion_direction"
 					;;
-				$(( abs_rssi_change >= 20)) )
+				$(( abs_rssi_change >= 30)) )
 					change_type="Moderate Motion $motion_direction"
 					;;
-				$(( abs_rssi_change >= 7)) )
+				$(( abs_rssi_change >= 10)) )
 					change_type="Slow/No Motion"
 					;;			
 				*)

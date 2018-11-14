@@ -25,19 +25,18 @@ hcidump_path=$(which hcidump)
 bc_path=$(which bc)
 git_path=$(which git)
 
-#ERROR CHECKING FOR MOSQUITTO PUBLICATION 
+#error CHECKING FOR MOSQUITTO PUBLICATION 
 should_exit=false
-[ -z "$l2ping_path" ] && echo "Warning: Recommended package 'l2ping' not found. Please consider installing 'l2ping'."
-[ -z "$mosquitto_pub_path" ] && echo "Error: Required package 'mosquitto_pub' not found. Please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
-[ -z "$mosquitto_sub_path" ] && echo "Error: Required package 'mosquitto_sub' not found. Please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
-[ -z "$hcidump_path" ] && echo "Error: Required package 'hcidump' not found. Please install 'bluez-hcidump' (e.g., sudo apt-get install bluez-hcidump)." && should_exit=true
-[ -z "$bc_path" ] && echo "Error: Required package 'bc' not found. Please install 'bc' (e.g., apt-get install bc)" && should_exit=true
-[ -z "$git_path" ] && echo "Warning: Recommended package 'git' not found. Please consider installing for regular updates."
-[ ! -f /.dockerenv  ] && [ ! -z "$(which systemctl)" ] && [ ! -e "$service_path" ] && echo "Warning: monitor.service not installed. Install service? (y/n)" && read should_install
+[ -z "$mosquitto_pub_path" ] && echo "error: required package 'mosquitto_pub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
+[ -z "$mosquitto_sub_path" ] && echo "error: required package 'mosquitto_sub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
+[ -z "$hcidump_path" ] && echo "error: required package 'hcidump' not found. please install 'bluez-hcidump' (e.g., sudo apt-get install bluez-hcidump)." && should_exit=true
+[ -z "$bc_path" ] && echo "error: required package 'bc' not found. please install 'bc' (e.g., apt-get install bc)" && should_exit=true
+[ -z "$git_path" ] && echo "warning: Recommended package 'git' not found. please consider installing for regular updates."
+[ ! -f /.dockerenv  ] && [ ! -z "$(which systemctl)" ] && [ ! -e "$service_path" ] && echo "warning: monitor.service not installed. Install service? (y/n)" && read should_install
 
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
 base_directory=$(dirname "$(readlink -f "$0")")
-[ ! -z "$PREF_CONFIG_DIR" ] && echo "Using $PREF_CONFIG_DIR as config dir" && base_directory="$PREF_CONFIG_DIR"
+[ ! -z "$PREF_CONFIG_DIR" ] && echo "using $PREF_CONFIG_DIR as config dir" && base_directory="$PREF_CONFIG_DIR"
 
 #SET THE NAME CACHE IF IT DOESN'T EXIST
 [ ! -f "$base_directory/.public_name_cache" ] && echo "" > "$base_directory/.public_name_cache"
@@ -57,14 +56,14 @@ MQTT_CONFIG="$base_directory/mqtt_preferences"
 if [ -f $MQTT_CONFIG ] ; then 
 	source $MQTT_CONFIG
 
-	#ERRORS
+	#errorS
 	[ "$mqtt_address" == "0.0.0.0" ] && echo "error: please customize mqtt broker address in: mqtt_preferences" && should_exit=true
 	[ "$mqtt_user" == "username" ] && echo "warning: for security purposes, please consider changing 'username' in: mqtt_preferences"
 	[ "$mqtt_password" == "password" ]&& echo "warning: for security purposes, please consider changing 'password' in: mqtt_preferences"
 	[ "$mqtt_version" == "" ]&& echo "> preference: using default mqtt protocol version" || echo "> preference: using mqtt protocol version $mqtt_version"
 	[ ! -f "$mqtt_certificate_path" ] && [ ! -z "$mqtt_certificate_path" ] && echo "error: please check mqtt certificate path in mqtt_preferences" && should_exit=true
 
-	#WARNINGS
+	#warningS
 	[ -z "$mqtt_port" ] && echo "warning: variable mqtt_port does not appear in mqtt_preferences. using default port 1883". && mqtt_port="1883"
 	[ -z "$mqtt_publisher_identity" ] && echo "warning: variable mqtt_publisher_identity does not appear in: mqtt_preferences. using hostname: $(hostname)". && mqtt_publisher_identity="$(hostname)"
 
@@ -80,7 +79,7 @@ if [ -f $MQTT_CONFIG ] ; then
 		mqtt_version_append="-V $mqtt_version"
 	fi
 else
-	echo "> mosquitto preferences file created. Please customize." 
+	echo "> mosquitto preferences file created. please customize." 
 
 echo "# ---------------------------
 #								
@@ -127,9 +126,9 @@ PUB_CONFIG="$base_directory/known_static_addresses"
 
 if [ -f "$PUB_CONFIG" ]; then 
 	#DOUBLECHECKS 
-	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && echo " - Error: Please customize public mac addresses in: known_static_addresses" && should_exit=true
+	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && echo " - error: please customize public mac addresses in: known_static_addresses" && should_exit=true
 else
-	echo "> public MAC address list file created. Please customize."
+	echo "> public MAC address list file created. please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
 	echo "
 # ---------------------------
@@ -154,9 +153,9 @@ BEAC_CONFIG="$base_directory/known_beacon_addresses"
 
 if [ -f "$BEAC_CONFIG" ]; then 
 	#DOUBLECHECKS 
-	[ ! -z "$(cat "$BEAC_CONFIG" | grep "^00:00:00:00:00:00")" ] && echo " - Error: Please customize beacon mac addresses in: known_beacon_addresses" && should_exit=true
+	[ ! -z "$(cat "$BEAC_CONFIG" | grep "^00:00:00:00:00:00")" ] && echo " - error: please customize beacon mac addresses in: known_beacon_addresses" && should_exit=true
 else
-	echo "> beacon MAC address list file created. Please customize."
+	echo "> beacon MAC address list file created. please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
 	echo "# ---------------------------
 #
@@ -227,30 +226,23 @@ if [ -f "$PREF_CONFIG" ]; then
 	source "$PREF_CONFIG"
 
 	preferences=$(echo "> preference: delay between scans = $PREF_INTERSCAN_DELAY
-> preference: periodic arrive/depart check interval = $PREF_CLOCK_INTERVAL
-> preference: periodic arrive interval = $PREF_ARRIVE_SCAN_INTERVAL
-> preference: periodic depart interval = $PREF_DEPART_SCAN_INTERVAL 
 > preference: database refresh interval = $PREF_DATABASE_REFRESH_INTERVAL
 > preference: max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS
 > preference: max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
 > preference: random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL
-> preference: rssi threshold for triggering = $PREF_RSSI_IGNORE_BELOW
+> preference: rssi threshold for triggering arrival = $PREF_RSSI_IGNORE_BELOW
 > preference: beacon rssi change required for reporting = $PREF_RSSI_CHANGE_THRESHOLD 
-> preference: bluetooth environmental report frequency = $PREF_ENVIRONMENTAL_REPORT_INTERVAL
 > preference: interval until beacon is considered expired = $PREF_BEACON_EXPIRATION
-> preference: trigger a departure scan at other nodes below [x] confidence = $PREF_COOPERATIVE_SCAN_THRESHOLD
+> preference: trigger a departure scan at other nodes when below [x] confidence = $PREF_COOPERATIVE_SCAN_THRESHOLD
 > preference: preferred HCI device = $PREF_HCI_DEVICE
 > preference: minimum time between the same type of scan = $PREF_MINIMUM_TIME_BETWEEN_SCANS
 > preference: mqtt scan start/end reporting = $PREF_MQTT_REPORT_SCAN_MESSAGES
 > mqtt trigger: $mqtt_topicpath/scan/ARRIVE
-> mqtt trigger: $mqtt_topicpath/scan/DEPART" | sed 's/= $/= ERROR\!/g')
+> mqtt trigger: $mqtt_topicpath/scan/DEPART" | sed 's/= $/= error\!/g')
 	echo "$preferences"
 
 	#DEFAULTS
 	[ -z "$PREF_INTERSCAN_DELAY" ] && PREF_INTERSCAN_DELAY=3
-	[ -z "$PREF_CLOCK_INTERVAL" ] && PREF_CLOCK_INTERVAL=15
-	[ -z "$PREF_DEPART_SCAN_INTERVAL" ] && PREF_DEPART_SCAN_INTERVAL=90
-	[ -z "$PREF_ARRIVE_SCAN_INTERVAL" ] && PREF_ARRIVE_SCAN_INTERVAL=45
 	[ -z "$PREF_ARRIVAL_SCAN_ATTEMPTS" ] && PREF_ARRIVAL_SCAN_ATTEMPTS=2
 	[ -z "$PREF_DEPART_SCAN_ATTEMPTS" ] && PREF_DEPART_SCAN_ATTEMPTS=4
 	[ -z "$PREF_DATABASE_REFRESH_INTERVAL" ] && PREF_DATABASE_REFRESH_INTERVAL=35
@@ -265,10 +257,10 @@ if [ -f "$PREF_CONFIG" ]; then
 	[ -z "$PREF_MQTT_REPORT_SCAN_MESSAGES" ]  && PREF_MQTT_REPORT_SCAN_MESSAGES=false
 
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
-	[ "$(echo "$preferences" | grep -c "ERROR")" -gt "0" ] && echo "> warning: preferences error, using defaults. consider reset to defaults with '-d' flag"
+	[ "$(echo "$preferences" | grep -c "error")" -gt "0" ] && echo "> warning: preferences error, using defaults. consider reset to defaults with '-d' flag"
 
 else
-	echo "> default behavior preferences file created. Please customize to your needs." 
+	echo "> default behavior preferences file created. please customize to your needs." 
 
 	echo "# ---------------------------
 #								
@@ -279,20 +271,11 @@ else
 #DELAY BETWEEN SCANS OF DEVICES
 PREF_INTERSCAN_DELAY=3
 
-#DETERMINE HOW OFTEN TO CHECK FOR A DEPARTED DEVICE OR AN ARRIVED DEVICE
-PREF_CLOCK_INTERVAL=15
-
-#DEPART SCAN INTERVAL
-PREF_DEPART_SCAN_INTERVAL=90
-
-#ARRIVE SCAN INTERVAL
-PREF_ARRIVE_SCAN_INTERVAL=45
-
 #MAX RETRY ATTEMPTS FOR ARRIVAL
 PREF_ARRIVAL_SCAN_ATTEMPTS=2
 
 #MAX RETRY ATTEMPTS FOR DEPART
-PREF_DEPART_SCAN_ATTEMPTS=4
+PREF_DEPART_SCAN_ATTEMPTS=3
 
 #DETERMINE NOW OFTEN TO REFRESH DATABASES TO REMOVE EXPIRED DEVICES
 PREF_DATABASE_REFRESH_INTERVAL=35
