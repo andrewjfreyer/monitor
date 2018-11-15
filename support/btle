@@ -161,8 +161,11 @@ btle_packet_processor () {
 				#REPORT TO MAIN LOOP
 				echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe & 
 				disown "$!"
+			else 
+				(>&2 echo "ignoring because $rssi_value does not satisfy $PREF_RSSI_IGNORE_BELOW")
 			fi 
 		else 
+
 			(>&2 echo "pdu type: $pdu_type for $received_mac_address")
 		fi 
 
