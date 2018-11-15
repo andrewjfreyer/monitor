@@ -808,6 +808,7 @@ while true; do
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_key in "${!beacon_private_address_log[@]}"; do
 					if [ "$beacon_key" == "$key" ]; then 
+						(>&2 echo "$beacon_key is a beacon")
 						is_beacon=true
 						continue 
 					fi 
