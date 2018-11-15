@@ -31,7 +31,7 @@ btle_scanner () {
 
 			hciconfig $PREF_HCI_DEVICE down && sleep 5 && hciconfig $PREF_HCI_DEVICE up
 
-			sleep 3
+			sleep 10
 		fi 
 
 		#NEED DELAY TO BE SURE WE'RE NOT RESTARTING HARDWARE TOO QUICKLY

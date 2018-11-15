@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.722
+version=0.1.723
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -1084,17 +1084,14 @@ while true; do
 					#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 					perform_arrival_scan 
 
-				elif [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ]; then 
-					#PROVIDE USEFUL LOGGING
-					log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (moving device arrival trigger)"
-
-					#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
-					perform_arrival_scan 
-				fi 
+				fi
 			
 			else
 				#REPORT A RANDOM ADVERTISEMENT THAT'S TOO FAR AWAY ONLY ONCE
 				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (ignoring)"
+
+				#REMOVE FROM THE RANDOM DEVICE LOG
+				unset random_device_log[$mac]
 			fi 
 		fi 
 
