@@ -149,10 +149,16 @@ btle_packet_processor () {
 
 		#FILTER BASED ON RESPONSE/DATA TYPE		
         if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
-			#SEND TO MAIN LOOP
+			#SEND TO MAIN LOOP ONLY IF PASSES RSSI  THRESHOLD
 
-			echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe & 
-			disown "$!"
+			should_ignore=false 
+			[ ! -z "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true 
+
+			if [ "$should_ignore" == true ]; then 
+				#REPORT TO MAIN LOOP
+				echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe & 
+				disown "$!"
+			fi 
 		fi 
 
 	#NAME REQUEST RESPONSES
