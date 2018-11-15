@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.721
+version=0.1.722
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -993,16 +993,16 @@ while true; do
 			#IF POSITIVE, APPROACHING IF NEGATIVE DEPARTING
 			case 1 in
 				$(( abs_rssi_change >= 50)) )
-					change_type="Fast Motion $motion_direction"
+					change_type="fast $motion_direction"
 					;;
 				$(( abs_rssi_change >= 30)) )
-					change_type="Moderate Motion $motion_direction"
+					change_type="moderate $motion_direction"
 					;;
 				$(( abs_rssi_change >= 10)) )
-					change_type="Slow/No Motion"
+					change_type="slow movement"
 					;;			
 				*)
-					change_type="No Motion"
+					change_type="stationary"
 					;;	
 			esac
 
@@ -1095,9 +1095,6 @@ while true; do
 			else
 				#REPORT A RANDOM ADVERTISEMENT THAT'S TOO FAR AWAY ONLY ONCE
 				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (ignoring)"
-
-				#IGNORE THIS DEVICE
-				unset random_device_log[$mac]
 			fi 
 		fi 
 

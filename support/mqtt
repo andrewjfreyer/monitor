@@ -40,7 +40,7 @@ mqtt_announce_online(){
 # ----------------------------------------------------------------------------------------
 mqtt_listener (){
 	#ANNOUNCE ONLINE PRESENCE
-	mqtt_announce_online "-r"
+	mqtt_announce_online
 
 	while true; do 
 		#MQTT LOOP
