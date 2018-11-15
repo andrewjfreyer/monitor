@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.727
+version=0.1.728
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -694,10 +694,7 @@ while true; do
 
 					#CALCULATE INTERVAL
 					last_appearance=${random_device_log[$mac]}
-					rand_interval=$((timestamp - last_appearance))
-
-					#HAS THIS BECAON NOT BEEN HEARD FROM FOR MOR THAN [X]] SECONDS? 
-					[ "$rand_interval" -gt "45" ] && is_new=true	
+					rand_interval=$((timestamp - last_appearance))	
 
 					#ONLY ADD THIS TO THE DEVICE LOG 
 					random_device_log[$mac]="$timestamp"
@@ -808,7 +805,6 @@ while true; do
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_key in "${!beacon_private_address_log[@]}"; do
 					if [ "$beacon_key" == "$key" ]; then 
-						(>&2 echo "$beacon_key is a beacon")
 						is_beacon=true
 						continue 
 					fi 
