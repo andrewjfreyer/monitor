@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.720
+version=0.1.721
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -190,14 +190,9 @@ scannable_devices_with_state () {
 	if [ "$scan_state" == "1" ]; then 
 		#SCAN FOR DEPARTED DEVICES
 		scan_type_diff=$((timestamp - last_depart_scan))
-
-		log "Last depart scan: $scan_type_diff seconds ago ($PREF_MINIMUM_TIME_BETWEEN_SCANS)"
-
 	elif [ "$scan_state" == "0" ]; then 
 		#SCAN FOR ARRIVED DEVICES
 		scan_type_diff=$((timestamp - last_arrival_scan))
-
-		log "Last arrive scan: $scan_type_diff seconds ago ($PREF_MINIMUM_TIME_BETWEEN_SCANS)"
 	fi 
 
 	#REJECT IF WE SCANNED TO RECENTLY
@@ -1084,7 +1079,14 @@ while true; do
 				#IF THIS IS A NEW ADVERTISEMENT, DEFINITELY SCAN 
 				if [ "$is_new" == true ]; then 
 					#PROVIDE USEFUL LOGGING
-					log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (triggers arrival scan)"
+					log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (nearby device arrival trigger)"
+
+					#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
+					perform_arrival_scan 
+
+				elif [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ]; then 
+					#PROVIDE USEFUL LOGGING
+					log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (moving device arrival trigger)"
 
 					#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 					perform_arrival_scan 
@@ -1092,7 +1094,7 @@ while true; do
 			
 			else
 				#REPORT A RANDOM ADVERTISEMENT THAT'S TOO FAR AWAY ONLY ONCE
-				[ "$is_new" == true ] && log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (too distant. ignoring.)"
+				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (ignoring)"
 
 				#IGNORE THIS DEVICE
 				unset random_device_log[$mac]
