@@ -19,7 +19,7 @@
 btle_scanner () {
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
-		local hcitool_raw=$(timeout --signal SIGINT 31 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
+		local hcitool_raw=$(timeout --signal SIGINT 17 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
 
 		#FIND ERROR VALUES 
 		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error|network')
@@ -31,7 +31,7 @@ btle_scanner () {
 
 			hciconfig $PREF_HCI_DEVICE down && sleep 5 && hciconfig $PREF_HCI_DEVICE up
 
-			sleep 10
+			sleep 5
 		fi 
 
 		#NEED DELAY TO BE SURE WE'RE NOT RESTARTING HARDWARE TOO QUICKLY
