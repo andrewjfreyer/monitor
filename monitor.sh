@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.719
+version=0.1.720
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -1070,22 +1070,32 @@ while true; do
 				publish_presence_message "$mqtt_publisher_identity/$mac" "100" "$name" "$manufacturer" "$beacon_type" "$rssi" "" "$adv_data"
 			fi 
 
-		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] ; then 
+		elif [ "$cmd" == "RAND" ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] ; then 
 			
+			#IF WE HAVE AN RSSI, COMPARE TO THE THRESHOLD; IF WE DON'T HAVE AN RSSI, WE
+			#SHOULDN'T IGNORE ANYWAY
+
 			should_ignore=false 
 			[ ! -z "$rssi" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi" ]] && should_ignore=true 
 
 			#REPORT ONLY IF WE SHOULD NOT IGNORE THIS REPORT
 			if [ "$should_ignore" == false ] ; then 
 
-				#PROVIDE USEFUL LOGGING
-				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (triggers arrival scan)"
+				#IF THIS IS A NEW ADVERTISEMENT, DEFINITELY SCAN 
+				if [ "$is_new" == true ]; then 
+					#PROVIDE USEFUL LOGGING
+					log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (triggers arrival scan)"
 
-				#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
-				perform_arrival_scan 
+					#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
+					perform_arrival_scan 
+				fi 
+			
 			else
+				#REPORT A RANDOM ADVERTISEMENT THAT'S TOO FAR AWAY ONLY ONCE
+				[ "$is_new" == true ] && log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (too distant. ignoring.)"
 
-				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (too distant; arrival scan not triggered)"
+				#IGNORE THIS DEVICE
+				unset random_device_log[$mac]
 			fi 
 		fi 
 
