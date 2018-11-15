@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.724
+version=0.1.725
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -1068,7 +1068,7 @@ while true; do
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] ; then 
 			
 			#PROVIDE USEFUL LOGGING
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (nearby device arrival trigger)"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (new device arrival trigger)"
 
 			#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 			perform_arrival_scan 
