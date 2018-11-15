@@ -112,10 +112,6 @@ btle_packet_processor () {
 	
 	elif [[ "$packet" =~ ^04\ 3E* ]]; then
 
-
-		#IF IN TRIGGER MODE, IGNORE
-		[ "$PREF_TRIGGER_MODE_ARRIVE" == true ] && packet="" && return 0
-
 		#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 		received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 		
@@ -156,7 +152,7 @@ btle_packet_processor () {
 			#SEND TO MAIN LOOP ONLY IF PASSES RSSI  THRESHOLD
 
 			should_ignore=false 
-			[ ! -z "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true 
+			[ "$tx_add" == "RAND" ] && [ ! -z "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true 
 
 			if [ "$should_ignore" == false ]; then 
 				#REPORT TO MAIN LOOP
