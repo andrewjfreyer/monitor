@@ -157,7 +157,7 @@ btle_packet_processor () {
 			should_ignore=false 
 			[ ! -z "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true 
 
-			if [ "$should_ignore" == true ]; then 
+			if [ "$should_ignore" == false ]; then 
 				#REPORT TO MAIN LOOP
 				echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe & 
 				disown "$!"
