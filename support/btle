@@ -27,7 +27,7 @@ btle_scanner () {
 		#PUBLISH ERRORS BACK TO MAIN LOOP
 		if [ ! -z "$error" ]; then 
 
-			(>&2 echo "error! attempting to correct $PREF_HCI_DEVICE hardware fault: [$data]")
+			(>&2 echo "error! attempting to correct $PREF_HCI_DEVICE hardware fault.")
 
 			hciconfig $PREF_HCI_DEVICE down && sleep 5 && hciconfig $PREF_HCI_DEVICE up
 
