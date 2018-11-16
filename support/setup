@@ -40,7 +40,7 @@ base_directory=$(dirname "$(readlink -f "$0")")
 
 #SET THE NAME CACHE IF IT DOESN'T EXIST
 [ ! -f "$base_directory/.public_name_cache" ] && echo "" > "$base_directory/.public_name_cache"
-[ ! -f "address_blacklist" ] && echo "#LIST MAC ADDRESSES TO IGNORE, ONE PER LINE:
+[ ! -f "$base_directory/address_blacklist" ] && echo "#LIST MAC ADDRESSES TO IGNORE, ONE PER LINE:
 " > "$base_directory/address_blacklist"
 
 #BLACKLISTED ADDRESSES
@@ -159,7 +159,7 @@ else
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
 	echo "# ---------------------------
 #
-# BEACON MAC ADDRESS LIST
+# BEACON MAC ADDRESS LIST; REQUIRES NAME
 #
 # 	Format: 00:00:00:00:00:00 Nickname #comments
 # ---------------------------" > "$BEAC_CONFIG"
