@@ -169,6 +169,8 @@ btle_packet_processor () {
 
 		return 0	
 	fi
+
+	(>&2 echo "error: rejecting packet $packet")
 }
 
 # ----------------------------------------------------------------------------------------
