@@ -110,7 +110,7 @@ btle_packet_processor () {
 			disown "$!"
 		fi 
 	
-	elif [[ "$packet" =~ ^04\ 3E\ .* ]]; then
+	elif [[ $packet =~ ^04\ 3E\ .* ]]; then
 
 		#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 		received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
@@ -159,15 +159,11 @@ btle_packet_processor () {
 				#REPORT TO MAIN LOOP
 				echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe & 
 				disown "$!"
-			else
-				(>&2 echo "error 1: rejecting packet $packet")
-			fi
-		else
-			(>&2 echo "error - rejecting pdu type of $pdu_type")
+			fi 
 		fi 
 
 	#NAME REQUEST RESPONSES
-	elif [[ "$packet" =~ ^04\ 07* ]]; then
+	elif [[ $packet =~ ^04\ 07.* ]]; then
 
 		return 0	
 	fi
