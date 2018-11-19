@@ -1070,6 +1070,9 @@ while true; do
 
 			#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 			perform_arrival_scan 
+		
+		elif [ "$cmd" == "RAND" ]; then 
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (no action)"
 		fi 
 
 		#SHOUD WE PERFORM AN ARRIVAL SCAN AFTER THIS FIRST LOOP?
