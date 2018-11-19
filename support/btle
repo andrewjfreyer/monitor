@@ -159,6 +159,8 @@ btle_packet_processor () {
 				#REPORT TO MAIN LOOP
 				echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe & 
 				disown "$!"
+			else
+				(>&2 echo "error: rejecting packet $packet")
 			fi
 		else
 			(>&2 echo "error - rejecting pdu type of $pdu_type")
