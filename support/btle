@@ -160,7 +160,7 @@ btle_packet_processor () {
 				echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe & 
 				disown "$!"
 			else
-				(>&2 echo "error: rejecting packet $packet")
+				(>&2 echo "error 1: rejecting packet $packet")
 			fi
 		else
 			(>&2 echo "error - rejecting pdu type of $pdu_type")
@@ -172,7 +172,7 @@ btle_packet_processor () {
 		return 0	
 	fi
 
-	(>&2 echo "error: rejecting packet $packet")
+	(>&2 echo "error 2: rejecting packet $packet")
 }
 
 # ----------------------------------------------------------------------------------------
