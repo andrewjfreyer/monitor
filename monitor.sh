@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.733
+version=0.1.734
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -1072,6 +1072,8 @@ while true; do
 			perform_arrival_scan 
 		
 		elif [ "$cmd" == "RAND" ]; then 
+
+			#FOR LOGGING 
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (no action)"
 		fi 
 
