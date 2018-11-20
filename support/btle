@@ -159,12 +159,18 @@ btle_packet_processor () {
 				#REPORT TO MAIN LOOP
 				echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe & 
 				disown "$!"
+			else 
+				(>&2 echo "error 1: rejecting packet $packet")
+				return 0
 			fi 
+		else 
+			(>&2 echo "error 3: rejecting packet $packet")
+			return 0
+
 		fi 
 
 	#NAME REQUEST RESPONSES
 	elif [[ $packet =~ ^04\ 07.* ]]; then
-
 		return 0	
 	fi
 
