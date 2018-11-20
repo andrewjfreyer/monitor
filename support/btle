@@ -154,6 +154,7 @@ btle_packet_processor () {
 			should_ignore=false 
 			[ "$tx_add" == "RAND" ] && [ ! -z "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true 
 			[ ! -z "$gap_name_str" ] && should_ignore=false 
+			[ "$tx_add" != "RAND" ] && should_ignore=false 
 
 			if [ "$should_ignore" == false ]; then 
 				#REPORT TO MAIN LOOP
