@@ -109,62 +109,6 @@ btle_packet_processor () {
 			echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address|$pdu_header" > main_pipe & 
 			disown "$!"
 		fi 
-	
-	elif [[ $packet == 04\ 3E* ]]; then
-
-		#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
-		received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
-		
-		#VERIFY ADDRESS DOES NOT START WITH 00
-		[[ "$received_mac_address" =~ ^00 ]] && return 0
-
-		#TWO BYTES ARE PDU HEADER
-		pdu_header=$(echo "$packet" | awk '{print $7$6}' )
-		pdu_header_bin=$(echo "ibase=16;obase=2;$pdu_header" | bc | xargs printf "%016d")
-
-		#TxADD
-		tx_add=${pdu_header_bin:7:1}
-		[[ $tx_add == 0 ]] && tx_add="PUBL" || tx_add="RAND"
-
-		rx_add=${pdu_header_bin:8:1}
-		[[ $rx_add == 0 ]] && rx_add="PUBL" || rx_add="RAND"
-
-		#BREAKOUT OF PDU HEADER INFORMATION 
-		pdu_type=$(pdu_type $(echo "ibase=2;${pdu_header_bin:12:4}" | bc ))
-
-		#ADVERTISED DATA
-		adv_data="$packet"
-
-		#RSSI VALUE
-		rssi_value_raw="${packet: -3}"
-		rssi_value=$(echo "ibase=16;$rssi_value_raw" | bc )
-		rssi_value=$((rssi_value - 256))
-
-		gap_name_str=""
-
-		#IF THIS IS A SCAN RESPONSE, FIND WHETHER WE HAVE USABLE GAP NAME DATA 
-		if [ "$pdu_type" == 'SCAN_RSP' ] || [ "$pdu_type" == "ADV_NONCONN_IND" ]; then 
-			gap_name_str=$(gap_name "$packet")
-        fi
-
-		#FILTER BASED ON RESPONSE/DATA TYPE		
-        if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
-			#SEND TO MAIN LOOP ONLY IF PASSES RSSI  THRESHOLD
-
-			should_ignore=false 
-			[ "$tx_add" == "RAND" ] && [ ! -z "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true 
-			[ ! -z "$gap_name_str" ] && should_ignore=false 
-			[ "$tx_add" != "RAND" ] && should_ignore=false 
-
-			if [ "$should_ignore" == false ]; then 
-				#REPORT TO MAIN LOOP
-				echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe & 
-				disown "$!"
-				return 0
-			else 
-				return 0
-			fi 
-		fi 
 
 	#NAME REQUEST RESPONSES
 	elif [[ $packet =~ ^04\ 07.* ]]; then
@@ -224,41 +168,84 @@ btle_listener () {
 }
 
 
+ ----------------------------------------------------------------------------------------
+# PROCESS BLUETOOTH PACKETS
+# ----------------------------------------------------------------------------------------
+
+btle_text_processor () {
+ 	if [ ! -z "$1" ]; then 
+ 		local packet="$1"
+		
+		#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
+		received_mac_address=$(echo "$packet" | grep -ioE '([0-9a-f]{2}:){5}[0-9a-f]{2}')
+		
+		#VERIFY ADDRESS DOES NOT START WITH 00
+		[[ "$received_mac_address" =~ ^00 ]] && return 0
+
+		#TWO BYTES ARE PDU HEADER
+		pdu_type=$(echo "$packet" | grep -oE  "[A-Z_]{5,}")
+		
+		#FIND TYPE
+		tx_type=[ "$(echo "packet" | grep -ico "(Public)")" == "1" ] && "PUBL" || "RAND"
+
+		#RSSI VALUE
+		rssi_value=$(echo "$packet" | grep -oiE  "-[0-9]{2,3}")
+
+		(>&2 echo "$packet $received_mac_address $pdu_type $tx_type $rssi_value"
+
+		#FILTER BASED ON RESPONSE/DATA TYPE		
+        if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
+			#SEND TO MAIN LOOP ONLY IF PASSES RSSI  THRESHOLD
+
+			should_ignore=false 
+			[ "$tx_type" == "RAND" ] && [ ! -z "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true 
+			[ ! -z "$gap_name_str" ] && should_ignore=false 
+			[ "$tx_type" != "RAND" ] && should_ignore=false 
+
+			if [ "$should_ignore" == false ]; then 
+				#REPORT TO MAIN LOOP
+				echo "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe & 
+				disown "$!"
+				return 0
+			else 
+				return 0
+			fi 
+		fi 
+ 	fi  
+}
+
 # ----------------------------------------------------------------------------------------
 # BLUETOOTH LE RAW PACKET ANALYSIS
 # ----------------------------------------------------------------------------------------
 btle_text_listener () {
         #LOCAL VALUES 
 	local packet
-    local complete_packet_str_length
-	local packet_len
 	local line 
 		
 	#DEFINE VARAIBLES
 	while true; do 
 		packet=""
-		complete_packet_str_length=0
 		while read -r line; do
 			# packets start with ">" or "<"
 			if [[ $line =~ ^\> ]]; then
 				# process the completed packet (unless this is the first time through)
 				if [ "$packet" ]; then
-					(>&2 echo "HERE: $packet")
+					btle_text_processor $packet &
+					disown "$!"
 				fi
 				# start the new packet
 				packet=$line
-				complete_packet_str_length=0
 			else
 				# continue building the packet
-				packet="$packet $line" 
+				packet="$packet|$line" 
 			fi
-		done < <(timeout --signal SIGINT 71 hcidump -i "$PREF_HCI_DEVICE" -a)
+		done < <(timeout --signal SIGINT 31 hcidump -i "$PREF_HCI_DEVICE" -a)
 
 		#TEST: PREVENT HCIDUMP FROM LEAKING MEMORY
 		sleep 2
 	done 
 
 	#REPORT ERROR
-	(>&2 echo "error! irrecoverable btle_listener error")
+	(>&2 echo "error! irrecoverable btle_text_listener error")
 }
 
