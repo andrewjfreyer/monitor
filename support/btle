@@ -110,7 +110,7 @@ btle_packet_processor () {
 			disown "$!"
 		fi 
 	
-	elif [[ $packet == ^04\ 3E\ .* ]]; then
+	elif [[ $packet =~ ^04\ 3E\ .* ]]; then
 
 		#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 		received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
