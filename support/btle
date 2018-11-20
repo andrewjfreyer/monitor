@@ -68,7 +68,7 @@ btle_packet_processor () {
 	local should_ignore
 
 	#POPULATE PACKET 
-	packet=$(echo "$1" | sed 's/> *//g')
+	packet=$(echo "$1" | sed 's/> *//g;s/[^0-9A-Z ]//g')
 
 	#BEACON PACKET?
 	if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]]; then
@@ -110,7 +110,7 @@ btle_packet_processor () {
 			disown "$!"
 		fi 
 	
-	elif [[ $packet =~ ^04\ 3E\ .* ]]; then
+	elif [[ $packet == ^04\ 3E\ .* ]]; then
 
 		#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 		received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
