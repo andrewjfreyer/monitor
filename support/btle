@@ -161,7 +161,6 @@ btle_packet_processor () {
 				disown "$!"
 				return 0
 			else 
-				(>&2 echo "error 1: rejecting packet $packet")
 				return 0
 			fi 
 		fi 
@@ -170,8 +169,6 @@ btle_packet_processor () {
 	elif [[ $packet =~ ^04\ 07.* ]]; then
 		return 0	
 	fi
-
-	(>&2 echo "error 2: rejecting packet [$packet]")
 }
 
 # ----------------------------------------------------------------------------------------
