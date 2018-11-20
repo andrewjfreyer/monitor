@@ -174,26 +174,32 @@ btle_listener () {
 
 btle_text_processor () {
  	if [ ! -z "$1" ]; then 
+ 		#DEFINE PACKET VARIABLE
  		local packet="$1"
-
- 		#echo "$packet"
 		
 		#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
-		#received_mac_address=$(echo "$packet" | grep -ioE '([0-9a-f]{2}:){5}[0-9a-f]{2}')
+		received_mac_address=$(echo "$packet" | grep -ioE '([0-9a-f]{2}:){5}[0-9a-f]{2}')
 		
 		#VERIFY ADDRESS DOES NOT START WITH 00
-		#[[ "$received_mac_address" =~ ^00 ]] && return 0
+		[[ "$received_mac_address" =~ ^00 ]] && return 0
+		[ -z "$received_mac_address" ] && return 0
+
 
 		#TWO BYTES ARE PDU HEADER
-		#pdu_type=$(echo "$packet" | grep -oE  "[A-Z_]{5,}")
-		
+		pdu_type=$(echo "$packet" | grep -oE  "[A-Z_]{5,}")
+		[ -z "$pdu_type" ] && return 0
+
 		#FIND TYPE
-		#[ "$(echo "packet" | grep -c "Public")" == "1" ] && tx_type="PUBL" || tx_type="RAND"
+		[ "$(echo "packet" | grep -c "Public")" == "1" ] && tx_type="PUBL" || tx_type="RAND"
 
 		#RSSI VALUE
-		#rssi_value=$(echo "$packet" | grep -oiE  "-[0-9]{2,3}")
+		rssi_value=$(echo "$packet" | grep -oiE  "\-[0-9]{2,3}")
 
-		(>&2 echo "$packet ... $received_mac_address $pdu_type $tx_type $rssi_value")
+		#GAP NAME? 
+		gap_name_str=$(echo "$packet" | grep -oiE "name: .*?\|" | grep -ioE "'.*?'" | sed "s/'//g;s/^ //g;s/ *$//g")
+
+
+		(>&2 echo "$packet ... $received_mac_address $pdu_type $tx_type $rssi_value $gap_name_str")
 
 		#FILTER BASED ON RESPONSE/DATA TYPE		
         if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
@@ -201,8 +207,12 @@ btle_text_processor () {
 
 			should_ignore=false 
 			[ "$tx_type" == "RAND" ] && [ ! -z "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true 
+
+			#IF WE HAVE A NAME, DEFINITELY REPORT
 			[ ! -z "$gap_name_str" ] && should_ignore=false 
-			[ "$tx_type" != "RAND" ] && should_ignore=false 
+
+			#IF PUBLIC ADV, SET PUBLIC
+			[ "$tx_type" == "PUBL" ] && should_ignore=false 
 
 			if [ "$should_ignore" == false ]; then 
 				#REPORT TO MAIN LOOP
