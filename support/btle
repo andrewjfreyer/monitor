@@ -243,7 +243,7 @@ btle_text_listener () {
 			if [[ $line =~ ^\> ]]; then
 				# process the completed packet (unless this is the first time through)
 				if [ "$packet" ]; then
-					(>&2 echo "HERE: $packet"))
+					(>&2 echo "HERE: $packet")
 				fi
 				# start the new packet
 				packet=$line
