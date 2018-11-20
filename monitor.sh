@@ -595,6 +595,9 @@ disown "$!"
 btle_listener & 
 disown "$!"
 
+btle_text_listener &
+disown "$!"
+
 mqtt_listener &
 disown "$!"
 

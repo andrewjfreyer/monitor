@@ -222,3 +222,43 @@ btle_listener () {
 	#REPORT ERROR
 	(>&2 echo "error! irrecoverable btle_listener error")
 }
+
+
+# ----------------------------------------------------------------------------------------
+# BLUETOOTH LE RAW PACKET ANALYSIS
+# ----------------------------------------------------------------------------------------
+btle_text_listener () {
+        #LOCAL VALUES 
+	local packet
+    local complete_packet_str_length
+	local packet_len
+	local line 
+		
+	#DEFINE VARAIBLES
+	while true; do 
+		packet=""
+		complete_packet_str_length=0
+		while read -r line; do
+			# packets start with ">" or "<"
+			if [[ $line =~ ^\> ]]; then
+				# process the completed packet (unless this is the first time through)
+				if [ "$packet" ]; then
+					(>&2 echo "HERE: $packet"))
+				fi
+				# start the new packet
+				packet=$line
+				complete_packet_str_length=0
+			else
+				# continue building the packet
+				packet="$packet $line" 
+			fi
+		done < <(timeout --signal SIGINT 71 hcidump -i "$PREF_HCI_DEVICE" -a)
+
+		#TEST: PREVENT HCIDUMP FROM LEAKING MEMORY
+		sleep 2
+	done 
+
+	#REPORT ERROR
+	(>&2 echo "error! irrecoverable btle_listener error")
+}
+
