@@ -198,9 +198,6 @@ btle_text_processor () {
 		#GAP NAME? 
 		gap_name_str=$(echo "$packet" | grep -oiE "name: .*?\|" | grep -ioE "'.*?'" | sed "s/'//g;s/^ //g;s/ *$//g")
 
-
-		(>&2 echo "$packet ... $received_mac_address $pdu_type $tx_type $rssi_value $gap_name_str")
-
 		#FILTER BASED ON RESPONSE/DATA TYPE		
         if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
 			#SEND TO MAIN LOOP ONLY IF PASSES RSSI  THRESHOLD
