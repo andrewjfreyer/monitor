@@ -176,7 +176,7 @@ btle_text_processor () {
  	if [ ! -z "$1" ]; then 
  		local packet="$1"
 
- 		echo "$packet"
+ 		#echo "$packet"
 		
 		#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 		#received_mac_address=$(echo "$packet" | grep -ioE '([0-9a-f]{2}:){5}[0-9a-f]{2}')
@@ -193,7 +193,7 @@ btle_text_processor () {
 		#RSSI VALUE
 		#rssi_value=$(echo "$packet" | grep -oiE  "-[0-9]{2,3}")
 
-		(>&2 echo "$packet $received_mac_address $pdu_type $tx_type $rssi_value")
+		(>&2 echo "$packet ... $received_mac_address $pdu_type $tx_type $rssi_value")
 
 		#FILTER BASED ON RESPONSE/DATA TYPE		
         if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
@@ -231,7 +231,7 @@ btle_text_listener () {
 			# packets start with ">" or "<"
 			if [[ $line =~ ^\> ]]; then
 				# process the completed packet (unless this is the first time through)
-				if [ "$packet" ]; then
+				if [ ! -z "$packet" ]; then
 					btle_text_processor $packet &
 					disown "$!"
 				fi
