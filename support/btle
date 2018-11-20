@@ -110,13 +110,13 @@ btle_packet_processor () {
 			disown "$!"
 		fi 
 	
-	elif [[ $packet =~ ^04\ 3E\ .* ]]; then
+	elif [[ $packet == 04\ 3E* ]]; then
 
 		#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 		received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 		
 		#VERIFY ADDRESS DOES NOT START WITH 00
-		#[[ "$received_mac_address" =~ ^00 ]] && return 0
+		[[ "$received_mac_address" =~ ^00 ]] && return 0
 
 		#TWO BYTES ARE PDU HEADER
 		pdu_header=$(echo "$packet" | awk '{print $7$6}' )
