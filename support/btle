@@ -179,19 +179,19 @@ btle_text_processor () {
  		echo "$packet"
 		
 		#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
-		received_mac_address=$(echo "$packet" | grep -ioE '([0-9a-f]{2}:){5}[0-9a-f]{2}')
+		#received_mac_address=$(echo "$packet" | grep -ioE '([0-9a-f]{2}:){5}[0-9a-f]{2}')
 		
 		#VERIFY ADDRESS DOES NOT START WITH 00
-		[[ "$received_mac_address" =~ ^00 ]] && return 0
+		#[[ "$received_mac_address" =~ ^00 ]] && return 0
 
 		#TWO BYTES ARE PDU HEADER
-		pdu_type=$(echo "$packet" | grep -oE  "[A-Z_]{5,}")
+		#pdu_type=$(echo "$packet" | grep -oE  "[A-Z_]{5,}")
 		
 		#FIND TYPE
-		[ "$(echo "packet" | grep -c "Public")" == "1" ] && tx_type="PUBL" || tx_type="RAND"
+		#[ "$(echo "packet" | grep -c "Public")" == "1" ] && tx_type="PUBL" || tx_type="RAND"
 
 		#RSSI VALUE
-		rssi_value=$(echo "$packet" | grep -oiE  "-[0-9]{2,3}")
+		#rssi_value=$(echo "$packet" | grep -oiE  "-[0-9]{2,3}")
 
 		(>&2 echo "$packet $received_mac_address $pdu_type $tx_type $rssi_value")
 
