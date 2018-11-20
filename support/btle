@@ -116,7 +116,7 @@ btle_packet_processor () {
 		received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 		
 		#VERIFY ADDRESS DOES NOT START WITH 00
-		[[ "$received_mac_address" =~ ^00 ]] && return 0
+		#[[ "$received_mac_address" =~ ^00 ]] && return 0
 
 		#TWO BYTES ARE PDU HEADER
 		pdu_header=$(echo "$packet" | awk '{print $7$6}' )
@@ -163,10 +163,6 @@ btle_packet_processor () {
 				(>&2 echo "error 1: rejecting packet $packet")
 				return 0
 			fi 
-		else 
-			(>&2 echo "error 3: rejecting packet $packet")
-			return 0
-
 		fi 
 
 	#NAME REQUEST RESPONSES
