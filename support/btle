@@ -191,7 +191,7 @@ btle_text_processor () {
 		#RSSI VALUE
 		rssi_value=$(echo "$packet" | grep -oiE  "-[0-9]{2,3}")
 
-		(>&2 echo "$packet $received_mac_address $pdu_type $tx_type $rssi_value"
+		(>&2 echo "$packet $received_mac_address $pdu_type $tx_type $rssi_value")
 
 		#FILTER BASED ON RESPONSE/DATA TYPE		
         if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
