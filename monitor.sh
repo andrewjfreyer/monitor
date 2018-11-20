@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.735
+version=0.1.736
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -1063,7 +1063,7 @@ while true; do
 				publish_presence_message "$mqtt_publisher_identity/$mac" "100" "$name" "$manufacturer" "$beacon_type" "$rssi" "" "$adv_data"
 			fi 
 
-		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] ; then 
+		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
 			
 			#PROVIDE USEFUL LOGGING
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (new device arrival trigger)"
@@ -1071,7 +1071,7 @@ while true; do
 			#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 			perform_arrival_scan 
 		
-		elif [ "$cmd" == "RAND" ]; then 
+		elif [ "$cmd" == "RAND" ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
 
 			#FOR LOGGING 
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (no action)"

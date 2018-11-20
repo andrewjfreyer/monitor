@@ -231,7 +231,6 @@ if [ -f "$PREF_CONFIG" ]; then
 > preference: max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
 > preference: random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL
 > preference: rssi threshold for triggering arrival = $PREF_RSSI_IGNORE_BELOW
-> preference: beacon rssi change required for reporting = $PREF_RSSI_CHANGE_THRESHOLD 
 > preference: interval until beacon is considered expired = $PREF_BEACON_EXPIRATION
 > preference: trigger a departure scan at other nodes when below [x] confidence = $PREF_COOPERATIVE_SCAN_THRESHOLD
 > preference: preferred HCI device = $PREF_HCI_DEVICE
