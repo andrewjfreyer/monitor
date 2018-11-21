@@ -20,7 +20,6 @@
 service_path="/etc/systemd/system/monitor.service"
 mosquitto_pub_path=$(which mosquitto_pub)
 mosquitto_sub_path=$(which mosquitto_sub)
-l2ping_path=$(which l2ping)
 hcidump_path=$(which hcidump)
 bc_path=$(which bc)
 git_path=$(which git)

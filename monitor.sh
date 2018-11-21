@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.737
+version=0.1.738
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -360,6 +360,11 @@ perform_complete_scan () {
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
 				publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "KNOWN_MAC"
 
+
+				#COOPERATIVE SCAN ON RESTART
+				[ "$PREF_TRIGGER_MODE_REPORT_OUT" == true ] && publish_cooperative_scan_message "arrive" 
+
+
 			elif [ ! -z "$name" ] && [ "$previous_state" == "1" ]; then 
 
 				#THIS DEVICE IS STILL PRESENT; REMOVE FROM VERIFICATIONS
@@ -407,6 +412,9 @@ perform_complete_scan () {
 
 				#PUBLISH A NOT PRESENT TO THE NAME PIPE
 				echo "NAME$known_addr|" > main_pipe & 
+
+				#COOPERATIVE SCAN ON RESTART
+				[ "$PREF_TRIGGER_MODE_REPORT_OUT" == true ] && publish_cooperative_scan_message "depart"
 
 			elif [ -z "$name" ] && [ "$previous_state" == "0" ]; then 
 
