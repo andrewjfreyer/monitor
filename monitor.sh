@@ -25,10 +25,13 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.738
+version=0.1.740
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
+
+#LOG DELIMITER
+echo "====================== DEBUG ======================"
 
 # ----------------------------------------------------------------------------------------
 # KILL OTHER SCRIPTS RUNNING
@@ -325,7 +328,7 @@ perform_complete_scan () {
 			#SCAN PERFORMS VERIFICATIONS THAT REDUCE FALSE NEGATIVES. 
 
 			#L2SCAN MAY INVOLVE LESS INTERFERENCE
-			local name_raw=$(hcitool -i $PREF_HCI_DEVICE name "$known_addr" 2>&1)
+			local name_raw=$(hcitool -i $PREF_HCI_DEVICE name "$known_addr" 2>/dev/null)
 			local name=$(echo "$name_raw" | grep -ivE 'input/output error|invalid device|invalid|error|network')
 
 			#COLLECT STATISTICS ABOUT THE SCAN 
@@ -511,7 +514,11 @@ perform_departure_scan () {
 
 		scan_pid=$!
 		scan_type=1
+	else 
+		#HERE A DEPART SCAN IS ACTIVE; ENQUEUE ANOTHER DEPART SCAN AFTER 15-second delay 
+		[ "$scan_type" == "0" ] && sleep 5 && echo "ENQUdepart" > main_pipe & 	
 	fi
+
 }
 
 perform_arrival_scan () {
@@ -537,7 +544,9 @@ perform_arrival_scan () {
 
 		scan_pid=$!
 		scan_type=0
-
+	else 
+		#HERE A DEPART SCAN IS ACTIVE; ENQUEUE ANOTHER DEPART SCAN AFTER 15-second delay 
+		[ "$scan_type" == "1" ] && sleep 5 && echo "ENQUarrive" > main_pipe & 
 	fi 
 }
 
@@ -569,7 +578,7 @@ determine_name () {
 		 	if [ "$scan_active" == false ] && [ ! -z "$2" ] ; then 
 
 				#FIND NAME OF THIS DEVICE
-				expected_name=$(hcitool -i $PREF_HCI_DEVICE name "$address" | grep -ivE 'input/output error|invalid device|invalid|error|network')
+				expected_name=$(hcitool -i $PREF_HCI_DEVICE name "$address" 2>/dev/null)
 
 				#IS THE EXPECTED NAME BLANK? 
 				if [ ! -z "$expected_name" ]; then 
@@ -649,7 +658,19 @@ while true; do
 		beacon_type="GENERIC_BEACON"
 
 		#PROCEED BASED ON COMMAND TYPE
-		if [ "$cmd" == "RAND" ]; then 
+		if [ "$cmd" == "ENQU" ]; then 
+
+			#WE HAVE AN ENQUEUED OPPOSITE SCAN; NEED TO TRIGGER THAT SCAN
+			if [ "$data" == "arrive" ]; then 
+				#TRIGGER 
+				perform_arrival_scan
+
+			elif [ "$data" == "depart" ]; then 		
+				#TRIGGER 
+				perform_depart_scan
+			fi
+
+		elif [ "$cmd" == "RAND" ]; then 
 			#PARSE RECEIVED DATA
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			pdu_header=$(echo "$data" | awk -F "|" '{print $2}')
