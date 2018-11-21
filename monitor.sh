@@ -464,7 +464,7 @@ perform_complete_scan () {
 			publish_presence_message "$mqtt_publisher_identity/$known_addr" "0" "$expected_name" "$manufacturer" "KNOWN_MAC"
 		fi 
 
-		echo "NAME$known_addr|" > main_pipe & 
+		echo "NAME$known_addr|" > main_pipe 
 	done
 
 	#GROUP SCAN FINISHED
