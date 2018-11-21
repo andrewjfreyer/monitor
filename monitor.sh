@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.740
+version=0.1.741
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -662,10 +662,23 @@ while true; do
 
 			#WE HAVE AN ENQUEUED OPPOSITE SCAN; NEED TO TRIGGER THAT SCAN
 			if [ "$data" == "arrive" ]; then 
+
+				#LOG
+				log "${GREEN}[ENQ-ARR]	${NC}Enqueued arrival scan triggered.${NC}" 
+
+				#WAIT 5 SECONDS
+				sleep 5
+				
 				#TRIGGER 
 				perform_arrival_scan
 
 			elif [ "$data" == "depart" ]; then 		
+				#LOG
+				log "${GREEN}[ENQ-DEP]	${NC}Enqueued depart scan triggered.${NC}" 
+
+				#WAIT 5 SECONDS
+				sleep 5
+
 				#TRIGGER 
 				perform_depart_scan
 			fi
