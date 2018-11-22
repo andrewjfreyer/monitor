@@ -1124,4 +1124,6 @@ while true; do
 		fi 
 
 	done < main_pipe
+
+	echo "no events"
 done
