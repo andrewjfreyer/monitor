@@ -70,6 +70,7 @@ log_listener () {
 			last_log_line="$line"
 
 		done < log_pipe
+		echo "looping"
 	done 
 }
 
