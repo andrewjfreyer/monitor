@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.741
+version=0.1.742
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -343,7 +343,7 @@ perform_complete_scan () {
 			if [ ! -z "$name" ] && [ "$previous_state" == "0" ]; then 
 
 				#PUSH TO MAIN POPE
-				echo "NAME$known_addr|$name" > main_pipe & 
+				echo "NAME$known_addr|$name" > main_pipe 
 				disown "$!"
 
 				#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT 
@@ -357,7 +357,7 @@ perform_complete_scan () {
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
 
 				#NEED TO UPDATE STATE TO MAIN THREAD
-				echo "NAME$known_addr|$name" > main_pipe & 
+				echo "NAME$known_addr|$name" > main_pipe 
 				disown "$!"
 
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
@@ -414,7 +414,7 @@ perform_complete_scan () {
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
 
 				#PUBLISH A NOT PRESENT TO THE NAME PIPE
-				echo "NAME$known_addr|" > main_pipe & 
+				echo "NAME$known_addr|" > main_pipe 
 
 				#COOPERATIVE SCAN ON RESTART
 				[ "$PREF_TRIGGER_MODE_REPORT_OUT" == true ] && publish_cooperative_scan_message "depart"
@@ -850,7 +850,6 @@ while true; do
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_key in "${!beacon_private_address_log[@]}"; do
 					if [ "$beacon_key" == "$key" ]; then 
-						(>&2 echo "$beacon_key is associated with a beacon. not expired." )
 						is_beacon=true
 						continue 
 					fi 
