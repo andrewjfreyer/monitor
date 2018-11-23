@@ -235,12 +235,11 @@ btle_text_listener () {
 	while true; do 
 		packet=""
 		while read -r line; do
-			# packets start with ">" or "<"
-			if [[ $line =~ ^\> ]]; then
+			# packets start with ">"
+			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
 				# process the completed packet (unless this is the first time through)
 				if [ ! -z "$packet" ]; then
-					btle_text_processor "$packet" &
-					disown "$!"
+					btle_text_processor "$packet"
 				fi
 				# start the new packet
 				packet=$line

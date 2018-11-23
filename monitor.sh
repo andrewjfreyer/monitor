@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.742
+version=0.1.743
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -604,22 +604,34 @@ determine_name () {
 # ----------------------------------------------------------------------------------------
 
 log_listener &
-disown "$!"
+listener_pid="$!"
+echo "> log listener pid = $listener_pid"
+disown "$listener_pid"
 
 btle_scanner & 
-disown "$!"
+btle_scan_pid="$!"
+echo "> btle scan pid = $btle_scan_pid"
+disown "$btle_scan_pid"
 
 btle_listener & 
-disown "$!"
+btle_listener_pid="$!"
+echo "> btle listener pid = $btle_listener_pid"
+disown "$btle_listener_pid"
 
 btle_text_listener &
-disown "$!"
+btle_text_pid="$!"
+echo "> btle text pid = $btle_text_pid"
+disown "$btle_text_pid"
 
 mqtt_listener &
-disown "$!"
+mqtt_pid="$!"
+echo "> mqtt listener pid = $mqtt_pid"
+disown "$mqtt_pid"
 
 refresh_databases &
-disown "$!"
+database_clock_pid="$!"
+echo "> database clock pid = $database_clock_pid"
+disown "$database_clock_pid"
 
 echo "================== BEGIN LOGGING =================="
 
