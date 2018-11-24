@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.744
+version=0.1.745
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -603,34 +603,37 @@ determine_name () {
 # BACKGROUND PROCESSES
 # ----------------------------------------------------------------------------------------
 
+#SET LOG
+(2>&1 1>/dev/null rm .pids)
+
 log_listener &
 listener_pid="$!"
-echo "> log listener pid = $listener_pid"
+echo "> log listener pid = $listener_pid" >> .pids
 disown "$listener_pid"
 
 btle_scanner & 
 btle_scan_pid="$!"
-echo "> btle scan pid = $btle_scan_pid"
+echo "> btle scan pid = $btle_scan_pid" >> .pids
 disown "$btle_scan_pid"
 
 btle_listener & 
 btle_listener_pid="$!"
-echo "> btle listener pid = $btle_listener_pid"
+echo "> btle listener pid = $btle_listener_pid" >> .pids
 disown "$btle_listener_pid"
 
 btle_text_listener &
 btle_text_pid="$!"
-echo "> btle text pid = $btle_text_pid"
+echo "> btle text pid = $btle_text_pid" >> .pids
 disown "$btle_text_pid"
 
 mqtt_listener &
 mqtt_pid="$!"
-echo "> mqtt listener pid = $mqtt_pid"
+echo "> mqtt listener pid = $mqtt_pid" >> .pids
 disown "$mqtt_pid"
 
 refresh_databases &
 database_clock_pid="$!"
-echo "> database clock pid = $database_clock_pid"
+echo "> database clock pid = $database_clock_pid" >> .pids
 disown "$database_clock_pid"
 
 echo "================== BEGIN LOGGING =================="

@@ -157,7 +157,7 @@ btle_listener () {
 					packet=""
 				fi 
 			fi
-		done < <(timeout --signal SIGINT 71 hcidump -i "$PREF_HCI_DEVICE" --raw)
+		done < <(timeout --signal SIGINT 71 hcidump -i "$PREF_HCI_DEVICE" --raw 2>/dev/null)
 
 		#TEST: PREVENT HCIDUMP FROM LEAKING MEMORY
 		sleep 2
@@ -173,9 +173,16 @@ btle_listener () {
 # ----------------------------------------------------------------------------------------
 
 btle_text_processor () {
+	local received_mac_address
+	local packet
+	local pdu_type
+	local rssi_value
+	local gap_name_str
+	local should_ignore
+
  	if [ ! -z "$1" ]; then 
  		#DEFINE PACKET VARIABLE
- 		local packet="$1"
+ 		packet="$1"
 		
 		#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
 		received_mac_address=$(echo "$packet" | grep -ioE '([0-9a-f]{2}:){5}[0-9a-f]{2}')
@@ -234,20 +241,22 @@ btle_text_listener () {
 	#DEFINE VARAIBLES
 	while true; do 
 		packet=""
+		line=""
 		while read -r line; do
 			# packets start with ">"
 			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
 				# process the completed packet (unless this is the first time through)
 				if [ ! -z "$packet" ]; then
-					btle_text_processor "$packet"
+					btle_text_processor "$packet" & 
 				fi
 				# start the new packet
+				packet=""
 				packet=$line
 			else
 				# continue building the packet
 				packet="$packet|$line" 
 			fi
-		done < <(timeout --signal SIGINT 31 hcidump -i "$PREF_HCI_DEVICE" -a)
+		done < <(timeout --signal SIGINT 31 hcidump -i "$PREF_HCI_DEVICE" -a 2>/dev/null)
 
 		#TEST: PREVENT HCIDUMP FROM LEAKING MEMORY
 		sleep 2

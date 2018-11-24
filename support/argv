@@ -77,11 +77,8 @@ usage:
 
 	monitor -h 	show usage information
 	monitor -R 	redact private information from logs
-	monitor -m 	send heartbeat signal
 	monitor -S 	silent operation (no logging)
 	monitor -C 	clean retained messages from MQTT broker
-	monitor -e 	report bluetooth environment periodically via mqtt at topic:
-				[topic path]/environment 
 	monitor -E 	report scan status messages:
 				[topic path]/scan/[arrive|depart]/[start|end]
 
@@ -110,8 +107,7 @@ usage:
 # ----------------------------------------------------------------------------------------
 
 #REMOVE MANUFACTURER CACHE AND PUBLIC NAME CACHE FROM PREVIOUS SESSION 
-rm ".manufacturer_cache" && echo "> removing web request caches (to determine device manufacturer)"
-
+(2>&1 1>/dev/null rm ".manufacturer_cache") && echo "> removing web request caches"
 
 #PROCESS ARGV OPTIONS
 OPTIND=1
