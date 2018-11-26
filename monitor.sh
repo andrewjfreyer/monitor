@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.745
+version=0.1.746
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 RUNTIME_ARGS="$@"
@@ -604,7 +604,7 @@ determine_name () {
 # ----------------------------------------------------------------------------------------
 
 #SET LOG
-(2>&1 1>/dev/null rm .pids)
+(2>&1 1>/dev/null rm .pids &)
 
 log_listener &
 listener_pid="$!"
@@ -695,7 +695,7 @@ while true; do
 				sleep 5
 
 				#TRIGGER 
-				perform_depart_scan
+				perform_departure_scan
 			fi
 
 		elif [ "$cmd" == "RAND" ]; then 

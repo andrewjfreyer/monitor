@@ -79,7 +79,6 @@ publish_presence_message () {
 		local append_debug=""
 		[ ! -z "$6" ] && append="$append,\"rssi\":\"$6\"" && append_debug="$append_debug , rssi : $6 " 
 		[ ! -z "$7" ] && append="$append,\"power\":\"$7\"" && append_debug="$append_debug , power : $7 " 
-		[ ! -z "$8" ] && append="$append,\"adv_data\":\"$8\"" && append_debug="$append_debug , adv_data : $8 " 
 
 		#DEBUG PRINTING
 		debug_append=$(echo "$append_debug" | sed 's/ , /<br><p>/g')
@@ -107,7 +106,7 @@ publish_presence_message () {
 		mqtt_announce_online
 
 		#POST TO MQTT
-		$mosquitto_pub_path -I "$mqtt_publisher_identity" $should_retain $mqtt_version_append $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$topic" -m "{\"id\":\"$(basename "$1")\", \"retained\":\"$retain_flag\", \"version\":\"$version\", \"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\",\"type\":\"$5\",\"$append}" 2>&1 
+		$mosquitto_pub_path -I "$mqtt_publisher_identity" $should_retain $mqtt_version_append $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$topic" -m "{\"id\":\"$(basename "$1")\", \"retained\":\"$retain_flag\", \"version\":\"$version\", \"confidence\":\"$2\",\"name\":\"$name\",\"timestamp\":\"$stamp\",\"manufacturer\":\"$4\",\"type\":\"$5\"$append}" 2>&1 
 	fi
 }
 
