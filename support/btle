@@ -25,7 +25,7 @@ btle_scanner () {
 		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error|network')
 
 		#PUBLISH ERRORS BACK TO MAIN LOOP
-		if [ ! -z "$error" ]; then 
+		if [ -n "$error" ]; then 
 
 			(>&2 echo "error! attempting to correct $PREF_HCI_DEVICE hardware fault.")
 
@@ -105,7 +105,7 @@ btle_packet_processor () {
         packet=""
 
 		#SEND TO MAIN LOOP
-		if [ ! -z "$UUID" ]; then 
+		if [ -n "$UUID" ]; then 
 			echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address|$pdu_header" > main_pipe & 
 			disown "$!"
 		fi 
@@ -180,7 +180,7 @@ btle_text_processor () {
 	local gap_name_str
 	local should_ignore
 
- 	if [ ! -z "$1" ]; then 
+ 	if [ -n "$1" ]; then 
  		#DEFINE PACKET VARIABLE
  		packet="$1"
 		
@@ -210,10 +210,10 @@ btle_text_processor () {
 			#SEND TO MAIN LOOP ONLY IF PASSES RSSI  THRESHOLD
 
 			should_ignore=false 
-			[ "$tx_type" == "RAND" ] && [ ! -z "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true 
+			[ "$tx_type" == "RAND" ] && [ -n "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true 
 
 			#IF WE HAVE A NAME, DEFINITELY REPORT
-			[ ! -z "$gap_name_str" ] && should_ignore=false 
+			[ -n "$gap_name_str" ] && should_ignore=false 
 
 			#IF PUBLIC ADV, SET PUBLIC
 			[ "$tx_type" == "PUBL" ] && should_ignore=false 
@@ -246,8 +246,9 @@ btle_text_listener () {
 			# packets start with ">"
 			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
 				# process the completed packet (unless this is the first time through)
-				if [ ! -z "$packet" ]; then
+				if [ -n "$packet" ]; then
 					btle_text_processor "$packet" & 
+					disown "$!"
 				fi
 				# start the new packet
 				packet=""

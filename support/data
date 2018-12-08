@@ -64,7 +64,7 @@ pdu_type () {
 	#IF NO ADDRESS, RETURN BLANK
 	local pdu_type_str="Reserved"
 	
-	if [ ! -z "$1" ]; then  
+	if [ -n "$1" ]; then  
 		local pdu_type="$1"
 		case $pdu_type in
 			"00"|0 )
@@ -105,7 +105,7 @@ pdu_type () {
 determine_manufacturer () {
 
 	#IF NO ADDRESS, RETURN BLANK
-	if [ ! -z "$1" ]; then  
+	if [ -n "$1" ]; then  
 		local address="$1"
 
 		#VERIFY THIS IS A MAC ADDRESS
@@ -126,7 +126,7 @@ determine_manufacturer () {
 
 			#MAKE SURE WE DONT' SCREW UP THE MANUFACTUERE'S FILE
 			if [[ ! "$remote_result" = *html* ]]; then
-				[ ! -z "$remote_result" ] && echo "${address:0:8}	$remote_result" >> .manufacturer_cache
+				[ -n "$remote_result" ] && echo "${address:0:8}	$remote_result" >> .manufacturer_cache
 				manufacturer="$remote_result"
 			fi 
 		fi

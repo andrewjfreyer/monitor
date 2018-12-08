@@ -25,10 +25,10 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-version=0.1.746
+export version=0.1.748
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
-RUNTIME_ARGS="$@"
+export RUNTIME_ARGS=("$@")
 
 #LOG DELIMITER
 echo "====================== DEBUG ======================"
@@ -70,13 +70,13 @@ trap "clean" EXIT
 # ----------------------------------------------------------------------------------------
 
 #CYCLE BLUETOOTH INTERFACE 
-hciconfig $PREF_HCI_DEVICE down && sleep 3 && hciconfig $PREF_HCI_DEVICE up
+hciconfig "$PREF_HCI_DEVICE" down && sleep 3 && hciconfig "$PREF_HCI_DEVICE" up
 
 #STOP OTHER INSTANCES OF MONITOR WITHOUT STOPPING THIS ONE
 echo "> stopping other instances of 'monitor.sh'"
-for pid in $(pidof -x $(basename "$0")); do
+for pid in $(pidof -x "$(basename "$0")"); do
     if [ "$pid" != $$ ]; then
-        kill -9 $pid
+        kill -9 "$pid"
     fi 
 done
 
@@ -109,7 +109,6 @@ scan_type=""
 now=$(date +%s)
 last_arrival_scan=$((now - 25))
 last_depart_scan=$((now - 25))
-last_environment_report=$((now - 25))
 first_arrive_scan=true
 
 # ----------------------------------------------------------------------------------------
@@ -118,14 +117,13 @@ first_arrive_scan=true
 # ----------------------------------------------------------------------------------------
 
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY, IGNORING COMMENTS
-known_static_beacons=($(sed 's/#.\{0,\}//g' < "$BEAC_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
-known_static_addresses=($(sed 's/#.\{0,\}//g' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
-address_blacklist=($(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" ))
+mapfile -t known_static_beacons < <(sed 's/#.\{0,\}//g' < "$BEAC_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
+mapfile -t known_static_addresses < <(sed 's/#.\{0,\}//g' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
+mapfile -t address_blacklist < <(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
 
 #ASSEMBLE COMMENT-CLEANED BLACKLIST INTO BLACKLIST ARRAY
-for addr in ${address_blacklist[@]}; do 
+for addr in "${address_blacklist[@]}"; do 
 	blacklisted_devices["$addr"]=1
-
 	echo "> blacklisted device: $addr"
 done 
 
@@ -134,13 +132,13 @@ done
 # ----------------------------------------------------------------------------------------
 
 #POPULATE KNOWN DEVICE ADDRESS
-for addr in ${known_static_addresses[@]}; do 
+for addr in "${known_static_addresses[@]}"; do 
 
 	#WAS THERE A NAME HERE?
 	known_name=$(grep "$addr" "$PUB_CONFIG" | tr "\\t" " " | sed 's/  */ /g;s/#.\{0,\}//g' | sed "s/$addr //g;s/  */ /g" )
 
 	#IF WE FOUND A NAME, RECORD IT
-	[ ! -z "$known_name" ] && known_public_device_name[$addr]="$known_name"
+	[ -n "$known_name" ] && known_public_device_name[$addr]="$known_name"
 
 	#PUBLICATION TOPIC 
 	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$addr"
@@ -154,13 +152,13 @@ done
 # POPULATE BEACON ADDRESS ARRAY
 # ----------------------------------------------------------------------------------------
 #POPULATE KNOWN DEVICE ADDRESS
-for addr in ${known_static_beacons[@]}; do 
+for addr in "${known_static_beacons[@]}"; do 
 
 	#WAS THERE A NAME HERE?
 	known_name=$(grep "$addr" "$BEAC_CONFIG" | tr "\\t" " " | sed 's/  */ /g;s/#.\{0,\}//g' | sed "s/$addr //g;s/  */ /g" )
 
 	#IF WE FOUND A NAME, RECORD IT
-	[ ! -z "$known_name" ] && known_public_device_name[$addr]="$known_name"
+	[ -n "$known_name" ] && known_public_device_name[$addr]="$known_name"
 
 	#PUBLICATION TOPIC 
 	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$addr"
@@ -258,12 +256,12 @@ perform_complete_scan () {
 
 	#REPEAT THROUGH ALL DEVICES THREE TIMES, THEN RETURN 
 	local repetitions=2
-	[ ! -z "$2" ] && repetitions="$2"
+	[ -n "$2" ] && repetitions="$2"
 	[ "$repetitions" -lt "1" ] && repetitions=1
 
 	#PRE
 	local previous_state=0
-	[ ! -z "$3" ] && previous_state="$3"
+	[ -n "$3" ] && previous_state="$3"
 
 	#SCAN TYPE
 	local transition_type="arrival"
@@ -292,6 +290,14 @@ perform_complete_scan () {
 		#ITERATE THROUGH THESE 
 		local known_addr
 		local known_addr_stated
+		local expected_name
+		local name_raw
+		local name
+		local scan_end
+		local scan_duration
+		local percent_confidence
+		local adjusted_delay
+
 		for known_addr_stated in $devices; do 
 
 			#EXTRACT KNOWN ADDRESS FROM STATE-PREFIXED KNOWN ADDRESS, IF PRESENT
@@ -308,7 +314,7 @@ perform_complete_scan () {
 			fi 
 
 			#DETERMINE MANUFACTUERE
-			manufacturer="$(determine_manufacturer $known_addr)"
+			manufacturer="$(determine_manufacturer "$known_addr")"
 			[ -z "$manufacturer" ] && manufacturer="Unknown" 
 
 			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
@@ -318,7 +324,7 @@ perform_complete_scan () {
 			scan_start="$(date +%s)"
 
 			#GET LOCAL NAME
-			local expected_name="$(determine_name $known_addr)"
+			expected_name="$(determine_name $known_addr)"
 			[ -z "$expected_name" ] && "Unknown"
 
 			#DEBUG LOGGING
@@ -328,23 +334,21 @@ perform_complete_scan () {
 			#SCAN PERFORMS VERIFICATIONS THAT REDUCE FALSE NEGATIVES. 
 
 			#L2SCAN MAY INVOLVE LESS INTERFERENCE
-			local name_raw=$(hcitool -i $PREF_HCI_DEVICE name "$known_addr" 2>/dev/null)
-			local name=$(echo "$name_raw" | grep -ivE 'input/output error|invalid device|invalid|error|network')
+			name_raw=$(hcitool -i "$PREF_HCI_DEVICE" name "$known_addr" 2>/dev/null)
+			name=$(echo "$name_raw" | grep -ivE 'input/output error|invalid device|invalid|error|network')
 
 			#COLLECT STATISTICS ABOUT THE SCAN 
-			local scan_end="$(date +%s)"
-			local scan_duration=$((scan_end - scan_start))
+			scan_end="$(date +%s)"
+			scan_duration=$((scan_end - scan_start))
 
 			#MARK THE ADDRESS AS SCANNED SO THAT IT CAN BE LOGGED ON THE MAIN PIPE
 			echo "SCAN$known_addr" > main_pipe & 
-			disown "$!"
 
 			#IF STATUS CHANGES TO PRESENT FROM NOT PRESENT, REMOVE FROM VERIFICATIONS
-			if [ ! -z "$name" ] && [ "$previous_state" == "0" ]; then 
+			if [ -n "$name" ] && [ "$previous_state" == "0" ]; then 
 
 				#PUSH TO MAIN POPE
 				echo "NAME$known_addr|$name" > main_pipe 
-				disown "$!"
 
 				#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT 
 				publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "KNOWN_MAC"
@@ -352,13 +356,12 @@ perform_complete_scan () {
 				#REMOVE FROM SCAN
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
 
-			elif [ ! -z "$name" ] && [ "$previous_state" == "3" ]; then 
+			elif [ -n "$name" ] && [ "$previous_state" == "3" ]; then 
 				#HERE, WE HAVE FOUND A DEVICE FOR THE FIRST TIME
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
 
 				#NEED TO UPDATE STATE TO MAIN THREAD
 				echo "NAME$known_addr|$name" > main_pipe 
-				disown "$!"
 
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
 				publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "KNOWN_MAC"
@@ -368,7 +371,7 @@ perform_complete_scan () {
 				[ "$PREF_TRIGGER_MODE_REPORT_OUT" == true ] && publish_cooperative_scan_message "arrive" 
 
 
-			elif [ ! -z "$name" ] && [ "$previous_state" == "1" ]; then 
+			elif [ -n "$name" ] && [ "$previous_state" == "1" ]; then 
 
 				#THIS DEVICE IS STILL PRESENT; REMOVE FROM VERIFICATIONS
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
@@ -384,7 +387,7 @@ perform_complete_scan () {
 			if [ -z "$name" ] && [ "$previous_state" == "1" ]; then 
 
 				#CALCULATE PERCENT CONFIDENCE
-				local percent_confidence=$(echo "scale=1; ($repetitions - $repetition + 1) / $repetitions * 90" | bc )
+				percent_confidence=$(echo "scale=1; ($repetitions - $repetition + 1) / $repetitions * 90" | bc )
 
 				#FALLBACK TO REMOVE DECIMAL AND PRINT INTEGER ONLY
 				percent_confidence=${percent_confidence%.*}
@@ -432,7 +435,7 @@ perform_complete_scan () {
 
 			#TO PREVENT HARDWARE PROBLEMS
 			if [ "$scan_duration" -lt "$PREF_INTERSCAN_DELAY" ]; then 
-				local adjusted_delay="$((PREF_INTERSCAN_DELAY - scan_duration))"
+				adjusted_delay="$((PREF_INTERSCAN_DELAY - scan_duration))"
 
 				if [ "$adjusted_delay" -gt "0" ]; then 
 					sleep "$adjusted_delay"
@@ -498,10 +501,12 @@ perform_complete_scan () {
 perform_departure_scan () {
 
 	#SET SCAN TYPE
- 	local depart_list=$(scannable_devices_with_state 1)
+ 	local depart_list
+ 	depart_list=$(scannable_devices_with_state 1)
 
  	#LOCAL SCAN ACTIVE VARIABLE
-	local scan_active=true 
+	local scan_active
+	scan_active=true 
 
  	#SCAN ACTIVE?
  	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
@@ -524,10 +529,12 @@ perform_departure_scan () {
 perform_arrival_scan () {
 
 	#SET SCAN TYPE
- 	local arrive_list=$(scannable_devices_with_state 0)
+ 	local arrive_list
+ 	arrive_list=$(scannable_devices_with_state 0)
 
 	#LOCAL SCAN ACTIVE VARIABLE
-	local scan_active=true 
+	local scan_active
+	scan_active=true 
 
  	#SCAN ACTIVE?
  	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
@@ -557,10 +564,12 @@ perform_arrival_scan () {
 determine_name () {
 
 	#SET DATA 
-	local address="$1"
+	local address
+	address="$1"
 	
 	#IF IS NEW AND IS PUBLIC, SHOULD CHECK FOR NAME
-	local expected_name="${known_public_device_name[$address]}"
+	local expected_name
+	expected_name="${known_public_device_name[$address]}"
 	
 	#FIND PERMANENT DEVICE NAME OF PUBLIC DEVICE
 	if [ -z "$expected_name" ]; then 
@@ -575,13 +584,13 @@ determine_name () {
 			kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
 
 		 	#ONLY SCAN IF WE ARE NOT OTHERWISE SCANNING; NAME FOR THIS DEVICE IS NOT IMPORTANT
-		 	if [ "$scan_active" == false ] && [ ! -z "$2" ] ; then 
+		 	if [ "$scan_active" == false ] && [ -n "$2" ] ; then 
 
 				#FIND NAME OF THIS DEVICE
-				expected_name=$(hcitool -i $PREF_HCI_DEVICE name "$address" 2>/dev/null)
+				expected_name=$(hcitool -i "$PREF_HCI_DEVICE" name "$address" 2>/dev/null)
 
 				#IS THE EXPECTED NAME BLANK? 
-				if [ ! -z "$expected_name" ]; then 
+				if [ -n "$expected_name" ]; then 
 
 					#ADD TO SESSION ARRAY
 					known_public_device_name[$address]="$expected_name"
@@ -604,7 +613,7 @@ determine_name () {
 # ----------------------------------------------------------------------------------------
 
 #SET LOG
-(2>&1 1>/dev/null rm .pids &)
+(2>&1 1>/dev/null rm .pids)
 
 log_listener &
 listener_pid="$!"
@@ -720,10 +729,10 @@ while true; do
 			#ALSO NEED TO CHECK WHETHER THE RANDOM BROADCAST
 			#IS INCLUDED IN THE KNOWN DEVICES LOG...
 
-			if [ ! -z "$name" ] || [ ! -z "$expected_name" ]; then 
+			if [ -n "$name" ] || [ -n "$expected_name" ]; then 
 				#RESET COMMAND
 				cmd="PUBL"
-				unset random_device_log[$mac]
+				unset "random_device_log[$mac]"
 
 				#BEACON TYPE
 				beacon_type="GENERIC_BEACON_RANDOM"
@@ -738,7 +747,7 @@ while true; do
 
 			else
 				#IS THIS ALREADY IN THE STATIC LOG? 
-				if [ ! -z  "${public_device_log[$mac]}" ]; then 
+				if [ -n  "${public_device_log[$mac]}" ]; then 
 					#IS THIS A NEW STATIC DEVICE?
 					public_device_log[$mac]="$timestamp"
 					rssi_log[$mac]="$rssi"
@@ -882,7 +891,7 @@ while true; do
 
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" ]; then 
-					unset random_device_log[$key]
+					unset "random_device_log[$key]"
 					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-RAND]	${NC}RAND $key expired after $difference seconds ${NC}"
 			
 					#AT LEAST ONE DEVICE EXPIRED
@@ -904,7 +913,7 @@ while true; do
 				[ -z "$last_seen" ] && continue 
 
 				#GET EXPECTED NAME
-				expected_name="$(determine_name $key)"
+				expected_name="$(determine_name "$key")"
 
 				#determine manufacturer
 				local_manufacturer="$(determine_manufacturer "$key")"
@@ -915,7 +924,7 @@ while true; do
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
 
-					unset public_device_log[$key]
+					unset "public_device_log[$key]"
 					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL/BEAC $key expired after $difference seconds ${NC}"
 
 					#REPORT PRESENCE OF DEVICE
@@ -945,8 +954,8 @@ while true; do
 			beacon_type="GENERIC_BEACON_PUBLIC"
 
 			#SET NAME 
-			[ ! -z "$name" ] && known_public_device_name[$mac]="$name"
-			[ -z "$name" ] &&  name="$(determine_name $data)"
+			[ -n "$name" ] && known_public_device_name[$mac]="$name"
+			[ -z "$name" ] &&  name="$(determine_name "$data")"
 
 			#DATA IS PUBLIC MAC Addr.; ADD TO LOG
 			[ -z "${public_device_log[$data]}" ] && is_new=true
@@ -955,7 +964,7 @@ while true; do
 			rssi_latest="${rssi_log[$data]}" 
 
 			#IF NOT IN DATABASE, BUT FOUND HERE
-			if [ ! -z "$name" ]; then 
+			if [ -n "$name" ]; then 
 				known_public_device_name[$data]="$name"
 
 				#GET NAME FROM CACHE
@@ -986,7 +995,7 @@ while true; do
 			manufacturer="$(determine_manufacturer "$data")"
 
 			#IF NAME IS DISCOVERED, PRESUME HOME
-			if [ ! -z "$name" ]; then 
+			if [ -n "$name" ]; then 
 				known_public_device_log[$mac]=1
 				[ "$previous_state" != "1" ] && did_change=true
 			else
@@ -1041,14 +1050,14 @@ while true; do
 			abs_rssi_change=${rssi_change#-}
 
 			#DO WE HAVE A NAME?
-			expected_name="$(determine_name $mac)"
+			expected_name="$(determine_name "$mac")"
 
 			#DETERMINE MOTION DIRECTION
 			motion_direction="Departing"
 			[ "$rssi_change" == "$abs_rssi_change" ] && motion_direction="Approaching"
 
 			#IF POSITIVE, APPROACHING IF NEGATIVE DEPARTING
-			case 1 in
+			case "1" in
 				$(( abs_rssi_change >= 50)) )
 					change_type="fast $motion_direction"
 					;;
@@ -1081,15 +1090,15 @@ while true; do
 			
 			#PRINTING FORMATING
 			debug_name="$name"
-			expected_name="$(determine_name $mac)"
+			expected_name="$(determine_name "$mac")"
 			current_state="${known_public_device_log[$mac]}"
 
 			#IF NAME IS NOT PREVIOUSLY SEEN, THEN WE SET THE STATIC DEVICE DATABASE NAME
-			[ -z "$expected_name" ] && [ ! -z "$name" ] && known_public_device_name[$data]="$name" 
-			[ ! -z "$expected_name" ] && [ -z "$name" ] && name="$expected_name"
+			[ -z "$expected_name" ] && [ -n "$name" ] && known_public_device_name[$data]="$name" 
+			[ -n "$expected_name" ] && [ -z "$name" ] && name="$expected_name"
 
 			#OVERWRITE WITH EXPECTED NAME
-			[ ! -z "$expected_name" ] && [ ! -z "$name" ] && name="$expected_name"
+			[ -n "$expected_name" ] && [ -n "$name" ] && name="$expected_name"
 
 			#FOR LOGGING; MAKE SURE THAT AN UNKNOWN NAME IS ADDED
 			if [ -z "$debug_name" ]; then 
@@ -1097,7 +1106,7 @@ while true; do
 				debug_name="Unknown Name"
 				
 				#CHECK FOR KNOWN NAME
-				[ ! -z "$expected_name" ] && debug_name="$expected_name"
+				[ -n "$expected_name" ] && debug_name="$expected_name"
 			fi 
 
 			#IF WE HAVE DEPARTED OR ARRIVED; MAKE A NOTE UNLESS WE ARE ALSO IN THE TRIGGER MODE
