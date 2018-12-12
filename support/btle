@@ -29,7 +29,10 @@ btle_scanner () {
 
 			(>&2 echo "error! attempting to correct $PREF_HCI_DEVICE hardware fault.")
 
-			hciconfig $PREF_HCI_DEVICE down && sleep 5 && hciconfig $PREF_HCI_DEVICE up
+			#POWER CYCLE
+			hciconfig $PREF_HCI_DEVICE down
+			sleep 5 
+			hciconfig $PREF_HCI_DEVICE up
 
 			sleep 5
 		fi 
@@ -106,13 +109,8 @@ btle_packet_processor () {
 
 		#SEND TO MAIN LOOP
 		if [ -n "$UUID" ]; then 
-			echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address|$pdu_header" > main_pipe & 
-			disown "$!"
-		fi 
-
-	#NAME REQUEST RESPONSES
-	elif [[ $packet =~ ^04\ 07.* ]]; then
-		return 0	
+			echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address|$pdu_header" > main_pipe
+		fi 	
 	fi
 }
 
@@ -135,8 +133,7 @@ btle_listener () {
 			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
 				# process the completed packet (unless this is the first time through)
 				if [ "$packet" ] && [[ $packet =~ ^\> ]]; then
-					btle_packet_processor "$packet" & 
-					disown "$!"
+					btle_packet_processor "$packet"
 				fi
 				# start the new packet
 				packet=$line
@@ -152,8 +149,7 @@ btle_listener () {
 
 				#PROCESS A PACKET WHEN IT IS COMPLETE
 				if [ "$complete_packet_str_length" == "${#packet}" ]; then 
-					btle_packet_processor "$packet" &
-					disown "$!"
+					btle_packet_processor "$packet"
 					packet=""
 				fi 
 			fi
@@ -220,11 +216,7 @@ btle_text_processor () {
 
 			if [ "$should_ignore" == false ]; then 
 				#REPORT TO MAIN LOOP
-				echo "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe & 
-				disown "$!"
-				return 0
-			else 
-				return 0
+				echo "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe 
 			fi 
 		fi 
 	fi
@@ -247,8 +239,7 @@ btle_text_listener () {
 			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
 				# process the completed packet (unless this is the first time through)
 				if [ -n "$packet" ]; then
-					btle_text_processor "$packet" & 
-					disown "$!"
+					btle_text_processor "$packet" 
 				fi
 				# start the new packet
 				packet=""
