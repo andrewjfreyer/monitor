@@ -105,14 +105,21 @@ btle_text_processor () {
 		if [[ $packet =~ Type:\ {0,}([^|\(]*)\ (\||$|\() ]]; then 
 			device_type=${BASH_REMATCH[1]}
 			device_type=${adv_data##*( )}
-			[[ -z "$device_type" ]] && adv_data="Unknown"
+			[[ -z "$device_type" ]] && device_type="Unknown"
 		fi 
 
 		if [[ $packet =~ Flags:\ {0,}([^|\(]*)(\||$|\() ]]; then 
 			flags=${BASH_REMATCH[1]}
 			flags=${adv_data##*( )}
-			[[ -z "$device_type" ]] && adv_data="Unknown"
+			[[ -z "$flags" ]] && flags="Unknown"
 		fi 
+
+		if [[ $packet =~ 1 entry\| {1,}([^|\(]*)\ {1,}(\||$|\() ]]; then 
+			entry_uuid=${BASH_REMATCH[1]}
+			[[ -z "$entry_uuid" ]] && entry_uuid="Unknown"
+		fi 
+
+		
 
 		#FILTER BASED ON RESPONSE/DATA TYPE		
         if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
@@ -129,7 +136,7 @@ btle_text_processor () {
 
 			if [ "$should_ignore" == false ]; then 
 				#REPORT TO MAIN LOOP
-				echo "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags" > main_pipe & 
+				echo "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$entry_uuid" > main_pipe & 
 			fi 
 		fi 
 	fi
