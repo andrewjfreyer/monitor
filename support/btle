@@ -104,18 +104,19 @@ btle_text_processor () {
 
 		if [[ $packet =~ Type:\ {0,}([^|\(]*)\ (\||$|\() ]]; then 
 			device_type=${BASH_REMATCH[1]}
-			device_type=${adv_data##*( )}
+			device_type=${device_type##*( )}
 			[[ -z "$device_type" ]] && device_type="Unknown"
 		fi 
 
 		if [[ $packet =~ Flags:\ {0,}([^|\(]*)(\||$|\() ]]; then 
 			flags=${BASH_REMATCH[1]}
-			flags=${adv_data##*( )}
+			flags=${flags##*( )}
 			[[ -z "$flags" ]] && flags="Unknown"
 		fi 
 
 		if [[ $packet =~ 1\ entry\|\ {1,}([^|\(]*)\ {1,}(\||$|\() ]]; then 
 			entry_uuid=${BASH_REMATCH[1]}
+			entry_uuid=${entry_uuid##*( )}
 			[[ -z "$entry_uuid" ]] && entry_uuid="Unknown"
 		fi 
 
