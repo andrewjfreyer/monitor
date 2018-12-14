@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.750
+export version=0.1.751
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -709,6 +709,7 @@ while true; do
 			name=$(echo "$data" | awk -F "|" '{print $3}')
 			rssi=$(echo "$data" | awk -F "|" '{print $4}')
 			adv_data=$(echo "$data" | awk -F "|" '{print $5}')
+			manufacturer=$(echo "$data" | awk -F "|" '{print $6}')
 			data="$mac"
 
 			#GET LAST RSSI
@@ -945,6 +946,7 @@ while true; do
 			name=$(echo "$data" | awk -F "|" '{print $3}')
 			rssi=$(echo "$data" | awk -F "|" '{print $4}')
 			adv_data=$(echo "$data" | awk -F "|" '{print $5}')
+			manufacturer=$(echo "$data" | awk -F "|" '{print $6}')
 			data="$mac"
 			beacon_type="GENERIC_BEACON_PUBLIC"
 
@@ -974,7 +976,7 @@ while true; do
 			rssi_log[$data]="$rssi"
 
 			#MANUFACTURER
-			manufacturer="$(determine_manufacturer "$data")"
+			[ -z "$manufacturer" ] && manufacturer="$(determine_manufacturer "$data")"
 
 		elif [ "$cmd" == "NAME" ]; then 
 			#DATA IS DELIMITED BY VERTICAL PIPE
@@ -1129,7 +1131,7 @@ while true; do
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
 			
 			#PROVIDE USEFUL LOGGING
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm (new device arrival trigger)"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm [$manufacturer] (new device arrival trigger)"
 
 			#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 			perform_arrival_scan 
