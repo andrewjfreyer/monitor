@@ -114,7 +114,7 @@ btle_text_processor () {
 			[[ -z "$flags" ]] && flags="Unknown"
 		fi 
 
-		if [[ $packet =~ 1\ entry\| {1,}([^|\(]*)\ {1,}(\||$|\() ]]; then 
+		if [[ $packet =~ 1\ entry\|\ {1,}([^|\(]*)\ {1,}(\||$|\() ]]; then 
 			entry_uuid=${BASH_REMATCH[1]}
 			[[ -z "$entry_uuid" ]] && entry_uuid="Unknown"
 		fi 
