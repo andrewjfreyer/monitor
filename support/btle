@@ -100,6 +100,12 @@ btle_text_processor () {
 			[[ -z "$adv_data" ]] && adv_data="00"
 		fi 
 
+		if [[ $packet =~ Type:\ {0,}([^|\(]*)\ (\||$|\() ]]; then 
+			device_type=${BASH_REMATCH[1]}
+			device_type=${adv_data##*( )}
+			[[ -z "$device_type" ]] && adv_data="Unknown"
+		fi 
+
 		#FILTER BASED ON RESPONSE/DATA TYPE		
         if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
 			#SEND TO MAIN LOOP ONLY IF PASSES RSSI  THRESHOLD
@@ -115,7 +121,7 @@ btle_text_processor () {
 
 			if [ "$should_ignore" == false ]; then 
 				#REPORT TO MAIN LOOP
-				echo "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer" > main_pipe & 
+				echo "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type" > main_pipe & 
 			fi 
 		fi 
 	fi

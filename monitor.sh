@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.751
+export version=0.1.752
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -710,6 +710,8 @@ while true; do
 			rssi=$(echo "$data" | awk -F "|" '{print $4}')
 			adv_data=$(echo "$data" | awk -F "|" '{print $5}')
 			manufacturer=$(echo "$data" | awk -F "|" '{print $6}')
+			device_type=$(echo "$data" | awk -F "|" '{print $7}')
+
 			data="$mac"
 
 			#GET LAST RSSI
@@ -947,6 +949,8 @@ while true; do
 			rssi=$(echo "$data" | awk -F "|" '{print $4}')
 			adv_data=$(echo "$data" | awk -F "|" '{print $5}')
 			manufacturer=$(echo "$data" | awk -F "|" '{print $6}')
+			device_type=$(echo "$data" | awk -F "|" '{print $7}')
+
 			data="$mac"
 			beacon_type="GENERIC_BEACON_PUBLIC"
 
@@ -1131,7 +1135,7 @@ while true; do
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
 			
 			#PROVIDE USEFUL LOGGING
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm [$manufacturer] (new device arrival trigger)"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm [$manufacturer - $device_type] (new device arrival trigger)"
 
 			#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 			perform_arrival_scan 
