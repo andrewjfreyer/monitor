@@ -114,13 +114,12 @@ btle_text_processor () {
 			[[ -z "$flags" ]] && flags="Unknown"
 		fi 
 
-		if [[ $packet =~ 1 entry\| {1,}([^|\(]*)\ {1,}(\||$|\() ]]; then 
+		if [[ $packet =~ 1\ entry\| {1,}([^|\(]*)\ {1,}(\||$|\() ]]; then 
 			entry_uuid=${BASH_REMATCH[1]}
 			[[ -z "$entry_uuid" ]] && entry_uuid="Unknown"
 		fi 
 
 		
-
 		#FILTER BASED ON RESPONSE/DATA TYPE		
         if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
 			#SEND TO MAIN LOOP ONLY IF PASSES RSSI  THRESHOLD
