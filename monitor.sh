@@ -712,7 +712,7 @@ while true; do
 			manufacturer=$(echo "$data" | awk -F "|" '{print $6}')
 			device_type=$(echo "$data" | awk -F "|" '{print $7}')
 			flags=$(echo "$data" | awk -F "|" '{print $8}')
-			entry_uuid=$(echo "$data" | awk -F "|" '{print $9}')
+			oem_data=$(echo "$data" | awk -F "|" '{print $9}')
 
 			data="$mac"
 
@@ -953,7 +953,7 @@ while true; do
 			manufacturer=$(echo "$data" | awk -F "|" '{print $6}')
 			device_type=$(echo "$data" | awk -F "|" '{print $7}')
 			flags=$(echo "$data" | awk -F "|" '{print $8}')
-			entry_uuid=$(echo "$data" | awk -F "|" '{print $9}')
+			oem_data=$(echo "$data" | awk -F "|" '{print $9}')
 
 			data="$mac"
 			beacon_type="GENERIC_BEACON_PUBLIC"
@@ -1139,7 +1139,7 @@ while true; do
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
 			
 			#PROVIDE USEFUL LOGGING
-			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm [$manufacturer - $device_type ($flags, $entry_uuid)] (new device arrival trigger)"
+			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm [$manufacturer - $device_type ($flags, $oem_data)] (new device arrival trigger)"
 
 			#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 			perform_arrival_scan 
