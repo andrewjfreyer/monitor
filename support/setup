@@ -21,6 +21,7 @@ service_path="/etc/systemd/system/monitor.service"
 mosquitto_pub_path=$(which mosquitto_pub)
 mosquitto_sub_path=$(which mosquitto_sub)
 hcidump_path=$(which hcidump)
+btmon_path=$(which btmon)
 bc_path=$(which bc)
 git_path=$(which git)
 
@@ -28,6 +29,7 @@ git_path=$(which git)
 should_exit=false
 [ -z "$mosquitto_pub_path" ] && echo "error: required package 'mosquitto_pub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
 [ -z "$mosquitto_sub_path" ] && echo "error: required package 'mosquitto_sub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
+[ -z "$btmon_path" ] && echo "error: required package 'btmon' not found. please install 'btmon'." && should_exit=true
 [ -z "$hcidump_path" ] && echo "error: required package 'hcidump' not found. please install 'bluez-hcidump' (e.g., sudo apt-get install bluez-hcidump)." && should_exit=true
 [ -z "$bc_path" ] && echo "error: required package 'bc' not found. please install 'bc' (e.g., apt-get install bc)" && should_exit=true
 [ -z "$git_path" ] && echo "warning: Recommended package 'git' not found. please consider installing for regular updates."

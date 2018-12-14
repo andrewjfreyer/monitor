@@ -133,7 +133,7 @@ btle_text_listener () {
 	while IFS= read -r line; do
 		if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]] || [[ $line =~ RSSI ]]; then
 			[[ $line =~ RSSI ]] && packet="$packet|$line"
-			[[ $packet =~ ^\> ]] && parse "$packet"
+			[[ $packet =~ ^\> ]] && btle_text_processor "$packet"
 			packet=""
 			packet=$line
 		else 		
