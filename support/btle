@@ -115,9 +115,9 @@ btle_text_processor () {
 		fi 
 
 		if [[ $packet =~ 1\ entry\|\ {1,}([^|\(]*)\ {1,}(\||$|\() ]]; then 
-			entry_uuid=${BASH_REMATCH[1]}
-			entry_uuid=${entry_uuid##*( )}
-			[[ -z "$entry_uuid" ]] && entry_uuid="Unknown"
+			oem_data=${BASH_REMATCH[1]}
+			oem_data=${oem_data##*( )}
+			[[ -z "$oem_data" ]] && oem_data="Unknown"
 		fi 
 
 		
@@ -136,7 +136,7 @@ btle_text_processor () {
 
 			if [ "$should_ignore" == false ]; then 
 				#REPORT TO MAIN LOOP
-				echo "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$entry_uuid" > main_pipe & 
+				echo "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe & 
 			fi 
 		fi 
 	fi
