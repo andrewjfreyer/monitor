@@ -114,7 +114,8 @@ publish_presence_message () {
 		[ "$PREF_FORMAT_MQTT" == true ] && topic=$(echo "$topic" | sed 's/[^A-Z0-9a-z/]//g') 
 
 		#DEBUGGING WITH SIMPLE
-		log "${PURPLE}$topic\n$(json_unformat "$message" )${NC}"
+		printf "%s\n" "$topic"
+		printf "%s\n" "$message"
 		
 		#POST VERIFICATION THAT WE ARE STILL ONLINE; CURES AN ISSUE OF HOMEASSISTANT RESTARTING
 		mqtt_announce_online
