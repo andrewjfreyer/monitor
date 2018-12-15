@@ -115,7 +115,7 @@ publish_presence_message () {
 
 		#DEBUGGING WITH SIMPLE
 		printf "%s\n" "$topic"
-		printf "%s\n" "$message"
+		printf "%s\n" "$(json_unformat $message)"
 		
 		#POST VERIFICATION THAT WE ARE STILL ONLINE; CURES AN ISSUE OF HOMEASSISTANT RESTARTING
 		mqtt_announce_online
