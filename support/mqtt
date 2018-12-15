@@ -92,19 +92,29 @@ publish_presence_message () {
 		local stamp
 		local should_retain
 		local isolated_address
+		local retain_flag
+		local message
+
+		#SET ISOLATED ADDRESS
 	    isolated_address="${1##*=}"
 
 		#SET TIMESTAMP
 		stamp=$(date "+%a %b %d %Y %H:%M:%S GMT%z (%Z)")
 		
 		#CLEAR PREVIOUS RETAINED MESSAGE
+		retain_flag="false"
 		if [ "$PREF_SHOULD_RETAIN" == true ]; then 
 			should_retain="-r "
 			retain_flag="true"
 		fi 
 
-		local message
-		message=$(json_format "$@" "retained=$retain_flag" "timestamp=$stamp")
+		#ASSEMBLE 
+		message=$(\
+			json_format "$@"\
+		 	"retained=$retain_flag"\
+		  	"timestamp=$stamp"\
+		  	"version=$version"\
+		)
 
 		#DEFINE THE TOPIC
 		local topic="$mqtt_topicpath/$mqtt_publisher_identity/$isolated_address"
@@ -114,8 +124,8 @@ publish_presence_message () {
 		[ "$PREF_FORMAT_MQTT" == true ] && topic=$(echo "$topic" | sed 's/[^A-Z0-9a-z/]//g') 
 
 		#DEBUGGING WITH SIMPLE
-		printf "%s\n" "$topic"
-		printf "%s\n" "$(json_unformat "$message")"
+		printf "%s\n" "${PURPLE}$topic${NC}"
+		printf "%s\n" "${PURPLE}$(json_unformat "$message")${NC}"
 		
 		#POST VERIFICATION THAT WE ARE STILL ONLINE; CURES AN ISSUE OF HOMEASSISTANT RESTARTING
 		mqtt_announce_online
