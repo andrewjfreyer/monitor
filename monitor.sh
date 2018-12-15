@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.760
+export version=0.1.761
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -928,14 +928,14 @@ while true; do
 					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL/BEAC $key expired after $difference seconds ${NC}"
 
 					#REPORT PRESENCE OF DEVICE
-					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" 
+					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" "adv_data=$adv_data"
 
 				else 
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
 					percent_confidence=$(( 100 - difference * 100 / PREF_BEACON_EXPIRATION )) 
 
 					if [ "$PREF_REPORT_ALL_MODE" == true ]; then						#REPORTING ALL 
-						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" "rssi=$latest_rssi" "adv_data=$adv_data"
+						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" "rssi=$latest_rssi" "adv_data=$adv_data" 
 					fi  
 
 					#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
@@ -1125,7 +1125,18 @@ while true; do
 			#PROVIDE USEFUL LOGGING
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
 				log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
-				publish_presence_message  "id=$uuid-$major-$minor" "confidence=100" "name=$name" "manufacturer=$manufacturer" "type=$beacon_type" "rssi=$rssi" "power=$power" "adv_data=$adv_data" "flags=$flags" "oem=$oem_data"
+				
+				publish_presence_message  \
+				"id=$uuid-$major-$minor" \
+				"confidence=100" \
+				"name=$name" \
+				"manufacturer=$manufacturer" \
+				"type=$beacon_type" \
+				"rssi=$rssi" "power=$power" \
+				"adv_data=$adv_data" \
+				"flags=$flags" \
+				"oem=$oem_data" \
+				"movement=$change_type"
 			fi 
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$rssi_updated" == true ]; then 
@@ -1133,7 +1144,18 @@ while true; do
 			#PUBLISH PRESENCE MESSAGE FOR BEACON
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
 				log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm "
-				publish_presence_message "id=$mac" "confidence=100" "name=$name" "manufacturer=$manufacturer" "type=$beacon_type" "rssi=$rssi" "adv_data=$adv_data" "flags=$flags" "oem=$oem_data"
+				
+				publish_presence_message \
+				"id=$mac" \
+				"confidence=100" \
+				"name=$name" \
+				"manufacturer=$manufacturer" \
+				"type=$beacon_type" \
+				"rssi=$rssi" \
+				"adv_data=$adv_data" \
+				"flags=$flags" \
+				"oem=$oem_data" \
+				"movement=$change_type"
 			fi 
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
