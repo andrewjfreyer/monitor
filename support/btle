@@ -69,12 +69,16 @@ btle_text_processor () {
 			received_mac_address=${BASH_REMATCH[1]}
 			received_mac_address=${received_mac_address^^}
 			received_mac_address=${received_mac_address##*( )}
+		else 
+			return 0
 		fi 
 
 		#------------ PDU TYPE
 		if [[ $packet =~ Event\ type:\ ([^|\(]*)\  ]]; then 
 			pdu_type=${BASH_REMATCH[1]}
 			pdu_type=${pdu_type##* }
+		else 
+			return 0
 		fi 
 
 		#------------ ADVERTISEMENT TYPE
