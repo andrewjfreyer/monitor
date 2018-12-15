@@ -1159,15 +1159,16 @@ while true; do
 			fi 
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
-
-			#FLAG AND MFCG FILTER
-			[[ $flags =~ $PREF_ARRIVE_TRIGGER_FILTER ]] || [[ $manufacturer =~ $PREF_ARRIVE_TRIGGER_FILTER ]] && echo "MATCH FOUND FOR MATCH"
 			
 			#PROVIDE USEFUL LOGGING
 			log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm [$manufacturer - $device_type ($flags, $oem_data)] (new device arrival trigger)"
 
-			#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
-			perform_arrival_scan 
+			#FLAG AND MFCG FILTER
+			if [[ $flags =~ $PREF_ARRIVE_TRIGGER_FILTER ]] || [[ $manufacturer =~ $PREF_ARRIVE_TRIGGER_FILTER ]]; then 
+				
+				#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
+				perform_arrival_scan 
+			fi 
 		fi 
 
 		#SHOUD WE PERFORM AN ARRIVAL SCAN AFTER THIS FIRST LOOP?
