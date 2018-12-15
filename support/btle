@@ -58,68 +58,89 @@ btle_text_processor () {
 	local manufacturer
 	local flags
 	local device_type
+	local oem_data
 
  	if [ -n "$1" ]; then 
  		#DEFINE PACKET VARIABLE
  		packet="$1"
 		
-		#EXTRACT DATA 
+		#------------ MAC ADDRESS
 		if [[ $packet =~ Address:\ ([^|\(]*)\  ]]; then 
 			received_mac_address=${BASH_REMATCH[1]}
 			received_mac_address=${received_mac_address^^}
 			received_mac_address=${received_mac_address##*( )}
+		else 
+			return 0
 		fi 
 
+		#------------ PDU TYPE
 		if [[ $packet =~ Event\ type:\ ([^|\(]*)\  ]]; then 
 			pdu_type=${BASH_REMATCH[1]}
 			pdu_type=${pdu_type##* }
+		else 
+			return 0
 		fi 
 
+		#------------ ADVERTISEMENT TYPE
 		if [[ $packet =~ Random ]] || [[ $packet =~ Public ]]; then 
 			tx_type=${BASH_REMATCH^^}
 			tx_type=${tx_type:0:4}
 		fi 
 
+		#------------ RSSI 
 		if [[ $packet =~ RSSI[^:]*?:([^|\(]*) ]]; then 
 			rssi_value=${BASH_REMATCH[1]}
 			rssi_value=${rssi_value//[^-0-9]/}
+			rssi_value=${rssi_value%% *}
 		fi 
 
+		#------------ NAME
 		if [[ $packet =~ Name[^:]{0,}:\ {0,}([^|\(]*)\ {0,}(\||$|\() ]]; then 
 			gap_name_str=${BASH_REMATCH[1]}
-			[[ -z "$gap_name_str" ]] && gap_name_str="Unknown"
+			gap_name_str=${gap_name_str##*( )}
+			gap_name_str=${gap_name_str%% *}
 		fi 
+		[[ -z "$gap_name_str" ]] && gap_name_str="Unknown"
 
+		#------------ MANUFACTURER OF RADIO
 		if [[ $packet =~ Company:\ {0,}([^|\(]*)\ {0,}(\||$|\() ]]; then 
 			manufacturer=${BASH_REMATCH[1]}
-			[[ -z "$manufacturer" ]] && manufacturer="Unknown"
+			manufacturer=${manufacturer%% *}
 		fi 
+		[[ -z "$manufacturer" ]] && manufacturer="Unknown"
 
+		#------------ ADVERTISEMENT
 		if [[ $packet =~ Data:\ {0,}([^|\(]*)\ {0,}(\||$|\() ]]; then 
 			adv_data=${BASH_REMATCH[1]}
 			adv_data=${adv_data##*( )}
-			[[ -z "$adv_data" ]] && adv_data="00"
+			adv_data=${adv_data%% *}
 		fi 
+		[[ -z "$adv_data" ]] && adv_data="00"
 
+		#------------ DEVICE TYPE
 		if [[ $packet =~ Type:\ {0,}([^|\(]*)\ (\||$|\() ]]; then 
 			device_type=${BASH_REMATCH[1]}
 			device_type=${device_type##*( )}
-			[[ -z "$device_type" ]] && device_type="Unknown"
+			device_type=${device_type%% *}
 		fi 
+		[[ -z "$device_type" ]] && device_type="Unknown"
 
+		#------------ FLAGS 
 		if [[ $packet =~ Flags:\ {0,}([^|\(]*)(\||$|\() ]]; then 
 			flags=${BASH_REMATCH[1]}
 			flags=${flags##*( )}
-			[[ -z "$flags" ]] && flags="Unknown"
+			flags=${flags%% *}
 		fi 
+		[[ -z "$flags" ]] && flags="Unknown"
 
+		#------------ OEM DATA 
 		if [[ $packet =~ 1\ entry\|\ {1,}([^|\(]*)\ {1,}(\||$|\() ]]; then 
 			oem_data=${BASH_REMATCH[1]}
 			oem_data=${oem_data##*( )}
-			[[ -z "$oem_data" ]] && oem_data="Unknown"
+			oem_data=${oem_data%% *}
 		fi 
+		[[ -z "$oem_data" ]] && oem_data="Unknown"
 
-		
 		#FILTER BASED ON RESPONSE/DATA TYPE		
         if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
 			#SEND TO MAIN LOOP ONLY IF PASSES RSSI  THRESHOLD
