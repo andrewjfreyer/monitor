@@ -104,7 +104,7 @@ publish_presence_message () {
 		fi 
 
 		local message
-		message=$(json_format "$@" "timestamp=$stamp" "retain=$should_retain" )
+		message=$(json_format $@)
 
 		#DEFINE THE TOPIC
 		local topic="$mqtt_topicpath/$mqtt_publisher_identity/$isolated_address"
