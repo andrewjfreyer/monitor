@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.761
+export version=0.1.762
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -1058,8 +1058,8 @@ while true; do
 			expected_name="$(determine_name "$mac")"
 
 			#DETERMINE MOTION DIRECTION
-			motion_direction="Departing"
-			[ "$rssi_change" == "$abs_rssi_change" ] && motion_direction="Approaching"
+			motion_direction="depart"
+			[ "$rssi_change" == "$abs_rssi_change" ] && motion_direction="approach"
 
 			#IF POSITIVE, APPROACHING IF NEGATIVE DEPARTING
 			case "1" in
