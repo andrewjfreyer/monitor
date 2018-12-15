@@ -92,6 +92,8 @@ btle_text_processor () {
 		if [[ $packet =~ Event\ type:\ ([^|\(]*)\  ]]; then 
 			pdu_type=${BASH_REMATCH[1]}
 			pdu_type=${pdu_type##* }
+		else 
+			return 0
 		fi 
 
 		#------------ ADVERTISEMENT TYPE
@@ -159,7 +161,7 @@ btle_text_processor () {
 				version=$(trim_whitespace "$version")
 			fi 
 
-			echo "BEAC$uuid|MAJ|MIN|$rssi_value|$tx_power|$received_mac_address|$pdu_type|$version" > main_pipe & 
+			printf "%s\n" "BEAC$uuid|MAJ|MIN|$rssi_value|$tx_power|$received_mac_address|$pdu_type|$version" > main_pipe & 
 			return 0
 		fi 
 
@@ -175,7 +177,7 @@ btle_text_processor () {
 
 		if [ "$should_ignore" == false ]; then 
 			#REPORT TO MAIN LOOP
-			echo "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe & 
+			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe & 
 		fi 
 	fi
 }
@@ -184,22 +186,27 @@ btle_text_processor () {
 # BLUETOOTH LE RAW PACKET ANALYSIS
 # ----------------------------------------------------------------------------------------
 btle_text_listener () {
-        #LOCAL VALUES 
-	local packet
-	local line 
-		
-	#DEFINE VARAIBLES
-	while IFS= read -r line; do
-		if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]] || [[ $line =~ RSSI ]]; then
-			[[ $line =~ RSSI ]] && packet="$packet|$line"
-			[[ $packet =~ ^\> ]] && btle_text_processor "$packet"
-			packet=""
-			packet=$line
-		else 		
-			packet="$packet|$line" 
-		fi
-	done < <(stdbuf -o0 btmon 2>&1)
+    	
+    while true; do 
+	    #LOCAL VALUES 
+		local packet
+		local line 
+			
+		#DEFINE VARAIBLES
+		while IFS= read -r line; do
+			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]] || [[ $line =~ RSSI ]]; then
+				[[ $line =~ RSSI ]] && packet="$packet|$line"
+				[[ $packet =~ ^\> ]] && btle_text_processor "$packet"
+				packet=""
+				packet=$line
+			else 		
+				packet="$packet|$line" 
+			fi
+		done < <(timeout --signal SIGINT 67 stdbuf -o0 btmon 2>&1)
 
+		#PREVENT MEMORY 
+		sleep 5
+	done 
 	#REPORT ERROR
 	(>&2 echo "error! irrecoverable btle_text_listener error")
 }
