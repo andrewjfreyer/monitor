@@ -227,6 +227,7 @@ if [ -f "$PREF_CONFIG" ]; then
 	source "$PREF_CONFIG"
 
 	preferences=$(echo "> preference: delay between scans = $PREF_INTERSCAN_DELAY
+> preference: arrival filter (regex) = $PREF_ARRIVE_TRIGGER_FILTER
 > preference: database refresh interval = $PREF_DATABASE_REFRESH_INTERVAL
 > preference: max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS
 > preference: max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
@@ -255,6 +256,7 @@ if [ -f "$PREF_CONFIG" ]; then
 	[ -z "$PREF_COOPERATIVE_SCAN_THRESHOLD" ] && PREF_COOPERATIVE_SCAN_THRESHOLD=25
 	[ -z "$PREF_MINIMUM_TIME_BETWEEN_SCANS" ] && PREF_MINIMUM_TIME_BETWEEN_SCANS=15
 	[ -z "$PREF_MQTT_REPORT_SCAN_MESSAGES" ]  && PREF_MQTT_REPORT_SCAN_MESSAGES=false
+	[ -z "$PREF_ARRIVE_TRIGGER_FILTER" ]  && PREF_ARRIVE_TRIGGER_FILTER=0x1a|Apple
 
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
 	[ "$(echo "$preferences" | grep -c "error")" -gt "0" ] && echo "> warning: preferences error, using defaults. consider reset to defaults with '-d' flag"
@@ -300,6 +302,9 @@ PREF_MQTT_REPORT_SCAN_MESSAGES=false
 
 #IGNORE ANY ADVERTISEMENTS BELOW THIS VALUE (NOTE: Negative value in dBm)
 PREF_RSSI_IGNORE_BELOW=-90
+
+#ARRIVE TRIGGER FILTER
+PREF_ARRIVE_TRIGGER_FILTER=0x1a|Apple
 
 " > "$PREF_CONFIG"
 
