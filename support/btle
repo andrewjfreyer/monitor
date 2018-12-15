@@ -19,7 +19,7 @@
 btle_scanner () {
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
-		local hcitool_raw=$(timeout --signal SIGINT 31 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
+		local hcitool_raw=$(timeout --signal SIGINT 17 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
 
 		#FIND ERROR VALUES 
 		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error|network')
@@ -63,6 +63,7 @@ btle_text_processor () {
 	local flags
 	local device_type
 	local oem_data
+	local version
 
 	#BEACON
 	local uuid
@@ -158,7 +159,13 @@ btle_text_processor () {
 				tx_power=$(trim_whitespace "$tx_power")
 			fi 			
 
-			echo "BEAC$uuid|MAJ|MIN|$rssi|$tx_power|$received_mac_address|$pdu_type" > main_pipe & 
+			#------------ TX POWER
+			if [[ $packet =~ Version:\ {0,}([^|]{1,})(\||$) ]]; then 
+				version=${BASH_REMATCH[1]}
+				version=$(trim_whitespace "$version")
+			fi 
+
+			echo "BEAC$uuid|MAJ|MIN|$rssi_value|$tx_power|$received_mac_address|$pdu_type|$version" > main_pipe & 
 			return 0
 		fi 
 
