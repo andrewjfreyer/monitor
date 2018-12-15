@@ -64,13 +64,19 @@ btle_text_processor () {
 	local device_type
 	local oem_data
 
-	#beacons
+	#BEACON
 	local uuid
 	local tx_power
+
 
  	if [ -n "$1" ]; then 
  		#DEFINE PACKET VARIABLE
  		packet="$1"
+
+		#RETUREN FROM NAME REQUEST
+		if [[ $packet =~ Event:\ Remote  ]]; then 
+			return 0
+		fi
 		
 		#------------ MAC ADDRESS
 		if [[ $packet =~ Address:\ ([^|\(]*)\  ]]; then 
@@ -152,7 +158,7 @@ btle_text_processor () {
 				tx_power=$(trim_whitespace "$tx_power")
 			fi 			
 
-			echo "BEAC$uuid|NA|NA|$rssi|$tx_power|$received_mac_address|$pdu_type" > main_pipe & 
+			echo "BEAC$uuid|MAJ|MIN|$rssi|$tx_power|$received_mac_address|$pdu_type" > main_pipe & 
 			return 0
 		fi 
 
