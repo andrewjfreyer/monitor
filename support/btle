@@ -75,9 +75,9 @@ btle_text_processor () {
  		packet="$1"
 
 		#RETUREN FROM NAME REQUEST
-		if [[ $packet =~ Event:\ Remote ]]; then 
-			return 0
-		fi
+		#if [[ $packet =~ Event:\ Remote ]]; then 
+	#		return 0
+#		fi
 		
 		#------------ MAC ADDRESS
 		if [[ $packet =~ Address:\ ([^|\(]*)\  ]]; then 
