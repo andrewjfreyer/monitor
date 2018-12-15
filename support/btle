@@ -33,7 +33,6 @@ btle_scanner () {
 			hciconfig $PREF_HCI_DEVICE down
 			sleep 5 
 			hciconfig $PREF_HCI_DEVICE up
-
 			sleep 5
 		fi 
 

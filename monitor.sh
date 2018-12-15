@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.755
+export version=0.1.756
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -351,7 +351,7 @@ perform_complete_scan () {
 				echo "NAME$known_addr|$name" > main_pipe 
 
 				#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT 
-				publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "KNOWN_MAC"
+				publish_presence_message "id=$known_addr" "confidence=100" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
 
 				#REMOVE FROM SCAN
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
@@ -364,7 +364,7 @@ perform_complete_scan () {
 				echo "NAME$known_addr|$name" > main_pipe 
 
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
-				publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "KNOWN_MAC"
+				publish_presence_message "id=$known_addr" "confidence=100" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
 
 
 				#COOPERATIVE SCAN ON RESTART
@@ -379,7 +379,7 @@ perform_complete_scan () {
 				#NEED TO REPORT? 
 				if [[ $should_report =~ .*$known_addr.* ]] || [ "$PREF_REPORT_ALL_MODE" == true ] ; then 			
 					#REPORT PRESENCE
-					publish_presence_message "$mqtt_publisher_identity/$known_addr" "100" "$expected_name" "$manufacturer" "KNOWN_MAC"			
+					publish_presence_message "id=$known_addr" "confidence=100" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"			
 				fi 
 			fi 
 
@@ -403,7 +403,7 @@ perform_complete_scan () {
 				fi 
 
 				#REPORT PRESENCE OF DEVICE
-				publish_presence_message "$mqtt_publisher_identity/$known_addr" "$percent_confidence" "$expected_name" "$manufacturer" "KNOWN_MAC"
+				publish_presence_message "id=$known_addr" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
 
 				#IF WE DO FIND A NAME LATER, WE SHOULD REPORT OUT 
 				should_report="$should_report$known_addr"
@@ -411,7 +411,7 @@ perform_complete_scan () {
 			elif [ -z "$name" ] && [ "$previous_state" == "3" ]; then 
 
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
-				publish_presence_message "$mqtt_publisher_identity/$known_addr" "0" "$expected_name" "$manufacturer" "KNOWN_MAC"
+				publish_presence_message "id=$known_addr" "confidence=0" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
 
 				#NREMOVE FROM THE SCAN LIST TO THE MAIN BECAUSE THIS IS A BOOT UP 
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
@@ -426,7 +426,7 @@ perform_complete_scan () {
 
 				if [ "$PREF_REPORT_ALL_MODE" == true ] ; then 			
 					#REPORT PRESENCE
-					publish_presence_message "$mqtt_publisher_identity/$known_addr" "0" "$expected_name" "$manufacturer" "KNOWN_MAC"			
+					publish_presence_message "id=$known_addr" "confidence=0" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"			
 				fi 
 			fi 
 
@@ -475,7 +475,7 @@ perform_complete_scan () {
 			[ -z "$manufacturer" ] && manufacturer="Unknown" 	
 
 			#PUBLISH PRESENCE METHOD
-			publish_presence_message "$mqtt_publisher_identity/$known_addr" "0" "$expected_name" "$manufacturer" "KNOWN_MAC"
+			publish_presence_message "id=$known_addr" "confidence=0" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
 		fi 
 
 		echo "NAME$known_addr|" > main_pipe 
@@ -928,18 +928,18 @@ while true; do
 					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL/BEAC $key expired after $difference seconds ${NC}"
 
 					#REPORT PRESENCE OF DEVICE
-					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "$mqtt_publisher_identity/$key" "0" "$expected_name" "$local_manufacturer" "$beacon_type" 
+					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" 
 
 				else 
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
 					percent_confidence=$(( 100 - difference * 100 / PREF_BEACON_EXPIRATION )) 
 
 					if [ "$PREF_REPORT_ALL_MODE" == true ]; then						#REPORTING ALL 
-						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "$mqtt_publisher_identity/$key" "$percent_confidence" "$expected_name" "$local_manufacturer" "$beacon_type" "$latest_rssi" "" "$adv_data"
+						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" "rssi=$latest_rssi" "adv_data=$adv_data"
 					fi  
 
 					#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
-					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "50" ] && publish_presence_message "$mqtt_publisher_identity/$key" "$percent_confidence" "$expected_name" "$local_manufacturer" "$beacon_type" "$latest_rssi" "" "$adv_data"
+					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "50" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" "rssi=$latest_rssi" "adv_data=$adv_data"
 				fi 
 			done
 
@@ -1125,7 +1125,7 @@ while true; do
 			#PROVIDE USEFUL LOGGING
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
 				log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
-				publish_presence_message "$mqtt_publisher_identity/$uuid-$major-$minor" "100" "$name" "$manufacturer" "$beacon_type" "$rssi" "$power" "$adv_data"
+				publish_presence_message "id=$uuid-$major-$minor" "confidence=100" "name=$name" "manufacturer=$manufacturer" "type=$beacon_type" "rssi=$rssi" "power=$power" "adv_data=$adv_data"
 			fi 
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$rssi_updated" == true ]; then 
@@ -1133,7 +1133,7 @@ while true; do
 			#PUBLISH PRESENCE MESSAGE FOR BEACON
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
 				log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm "
-				publish_presence_message "$mqtt_publisher_identity/$mac" "100" "$name" "$manufacturer" "$beacon_type" "$rssi" "" "$adv_data"
+				publish_presence_message "id=$mac" "confidence=100" "name=$name" "manufacturer=$manufacturer" "type=$beacon_type" "rssi=$rssi" "adv_data=$adv_data"
 			fi 
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] && [ -z "${blacklisted_devices[$mac]}" ]; then 

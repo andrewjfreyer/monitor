@@ -13,93 +13,6 @@
 # ----------------------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------------------
-# EXTRACT GENERAL ACCESS PROFILE NAME FROM ADV PACKET
-# ----------------------------------------------------------------------------------------
-gap_name () {
-	#DEFINE LOCAL
-	local name_as_string
-	local name_len_dec
-	local name_len_hex
-	local name_len_str
-	local gap_name
-	local name_as_string
-	local packet
-
-	#SET PACKET FROM INPUT
-	packet="$1"
-
-	#LOCAL STRING
-	name_as_string=""
-
-	#IS A GAP NAME GIVE? COMPLETE OR LOCAL? 
-	gap_name=$(echo "$packet" | awk '{print $16}')
-
-	#CHECK IF GAP DATA IS 
-	if [[ $gap_name =~ ^0[89] ]]; then
-		#HEX CONVERSION
-		name_len_hex=$(echo "$packet" | awk '{print $15}')
-
-		#DECIMAL CONVERSION
-		name_len_dec=$(echo "ibase=16; $name_len_hex" | bc)
-		
-		#STR CHARACTER COUNT (2 CHAR + 1 _SPACE_ PER BYTE)
-		name_len_str=$(((name_len_dec - 1) * 3))
-		
-		#EXTRACT LOCAL NAME
-		name_as_string=$(echo "${packet:48:name_len_str}" | xxd -r -p)
-
-		#CLEANUP
-		name_as_string=$(echo "$name_as_string" | sed 's/[^0-9a-zA-Z]//g;s/  */ /g;s/ $//g;s/^ //g')
-	fi
-
-	#RETURN NAME
-    echo "$name_as_string"
-}
-
-# ----------------------------------------------------------------------------------------
-# OBTAIN PROTOCOL DATA UNIT TYPE
-# ----------------------------------------------------------------------------------------
-
-pdu_type () {
-	#IF NO ADDRESS, RETURN BLANK
-	local pdu_type_str="Reserved"
-	
-	if [ -n "$1" ]; then  
-		local pdu_type="$1"
-		case $pdu_type in
-			"00"|0 )
-				pdu_type_str="ADV_IND"
-				;;
-			"01"|1)
-				pdu_type_str="ADV_DIRECT_IND"
-				;;	
-			"02"|2)
-				pdu_type_str="ADV_NONCONN_IND"
-				;;	
-			"03"|3)
-				pdu_type_str="ADV_NONCONN_IND" #SCAN_REQ
-				;;	
-			"04"|4)
-				pdu_type_str="SCAN_RSP"
-				;;	
-			"05"|5)
-				pdu_type_str="CONNECT_REQ"
-				;;	
-			"06"|6)
-				pdu_type_str="ADV_SCAN_IND"
-				;;	
-			*)
-				pdu_type_str="Reserved"
-				;;	
-		esac
-	fi 
-
-	#RETURN
-	echo "$pdu_type_str"
-}
-
-
-# ----------------------------------------------------------------------------------------
 # OBTAIN MANUFACTURER INFORMATION FOR A PARTICULAR BLUETOOTH MAC ADDRESS
 # ----------------------------------------------------------------------------------------
 determine_manufacturer () {
@@ -109,7 +22,7 @@ determine_manufacturer () {
 		local address="$1"
 
 		#VERIFY THIS IS A MAC ADDRESS
-		[ -z "$(echo "$address" | grep -Ei "([0-9a-f]{2}:){5}[0-9a-f]{2}")" ] && manufacturer="Unknown"
+		[[ $address =~ ([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2} ]] && manufacturer="Unknown"
 
 		#SET THE FILE IF IT DOESN'T EXIST
 		[ ! -f ".manufacturer_cache" ] && echo "" > ".manufacturer_cache"
@@ -118,7 +31,7 @@ determine_manufacturer () {
 		local manufacturer=$(grep "${address:0:8}" < ".manufacturer_cache" | awk -F "\t" '{print $2}' | sort -u | head -1)
 
 		#EXCEPTION FOR SUSPECT PRODUCTS
-		[[ "$address" =~ ^FF:FF ]] && manufacturer="SIG Unassigned or Noncompliant OEM"
+		[[ $address =~ ^FF:FF ]] && manufacturer="SIG Unassigned or Noncompliant OEM"
 
 		#IF CACHE DOES NOT EXIST, USE MACVENDORS.COM
 		if [ -z "$manufacturer" ]; then 
