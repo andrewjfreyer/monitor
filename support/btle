@@ -48,6 +48,11 @@ btle_scanner () {
 # PROCESS BLUETOOTH PACKETS
 # ----------------------------------------------------------------------------------------
 
+trim_whitespace () {
+	[[ "$1" =~ [^[:space:]](.*[^[:space:]])? ]] && printf "%s" "$BASH_REMATCH"
+}
+
+
 btle_text_processor () {
 	local received_mac_address
 	local packet
@@ -68,7 +73,7 @@ btle_text_processor () {
 		if [[ $packet =~ Address:\ ([^|\(]*)\  ]]; then 
 			received_mac_address=${BASH_REMATCH[1]}
 			received_mac_address=${received_mac_address^^}
-			received_mac_address=${received_mac_address##*( )}
+			received_mac_address=$(trim_whitespace "$received_mac_address")
 		else 
 			return 0
 		fi 
@@ -91,48 +96,42 @@ btle_text_processor () {
 		if [[ $packet =~ RSSI[^:]*?:([^|\(]*) ]]; then 
 			rssi_value=${BASH_REMATCH[1]}
 			rssi_value=${rssi_value//[^-0-9]/}
-			rssi_value=${rssi_value%% *}
 		fi 
 
 		#------------ NAME
 		if [[ $packet =~ Name[^:]{0,}:\ {0,}([^|\(]*)\ {0,}(\||$|\() ]]; then 
 			gap_name_str=${BASH_REMATCH[1]}
-			gap_name_str=${gap_name_str##*( )}
-			gap_name_str=${gap_name_str%% *}
+			gap_name_str=$(trim_whitespace "$gap_name_str")
 		fi 
 
 		#------------ MANUFACTURER OF RADIO
 		if [[ $packet =~ Company:\ {0,}([^|\(]*)\ {0,}(\||$|\() ]]; then 
 			manufacturer=${BASH_REMATCH[1]}
-			manufacturer=${manufacturer%% *}
+			manufacturer=$(trim_whitespace "$manufacturer")
 		fi 
 
 		#------------ ADVERTISEMENT
 		if [[ $packet =~ Data:\ {0,}([^|\(]*)\ {0,}(\||$|\() ]]; then 
 			adv_data=${BASH_REMATCH[1]}
-			adv_data=${adv_data##*( )}
-			adv_data=${adv_data%% *}
+			adv_data=$(trim_whitespace "$adv_data")
 		fi 
 
 		#------------ DEVICE TYPE
 		if [[ $packet =~ Type:\ {0,}([^|\(]*)\ (\||$|\() ]]; then 
 			device_type=${BASH_REMATCH[1]}
-			device_type=${device_type##*( )}
-			device_type=${device_type%% *}
+			device_type=$(trim_whitespace "$device_type")
 		fi 
 
 		#------------ FLAGS 
 		if [[ $packet =~ Flags:\ {0,}([^|\(]*)(\||$|\() ]]; then 
 			flags=${BASH_REMATCH[1]}
-			flags=${flags##*( )}
-			flags=${flags%% *}
+			flags=$(trim_whitespace "$flags")
 		fi 
 
 		#------------ OEM DATA 
 		if [[ $packet =~ 1\ entry\|\ {1,}([^|\(]*)\ {1,}(\||$|\() ]]; then 
 			oem_data=${BASH_REMATCH[1]}
-			oem_data=${oem_data##*( )}
-			oem_data=${oem_data%% *}
+			oem_data=$(trim_whitespace "$oem_data")
 		fi 
 
 		should_ignore=false 
