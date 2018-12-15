@@ -104,7 +104,7 @@ publish_presence_message () {
 		fi 
 
 		local message
-		message=$(json_format $@)
+		message=$(json_format "$@" "retained=$retain_flag" "timestamp=$stamp")
 
 		#DEFINE THE TOPIC
 		local topic="$mqtt_topicpath/$mqtt_publisher_identity/$isolated_address"
@@ -115,7 +115,7 @@ publish_presence_message () {
 
 		#DEBUGGING WITH SIMPLE
 		printf "%s\n" "$topic"
-		printf "%s\n" "$(json_unformat $message)"
+		printf "%s\n" "$(json_unformat "$message")"
 		
 		#POST VERIFICATION THAT WE ARE STILL ONLINE; CURES AN ISSUE OF HOMEASSISTANT RESTARTING
 		mqtt_announce_online
