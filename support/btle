@@ -83,7 +83,6 @@ btle_text_processor () {
 		if [[ $packet =~ Address:\ ([^|\(]*)\  ]]; then 
 			received_mac_address=${BASH_REMATCH[1]}
 			received_mac_address=${received_mac_address^^}
-			received_mac_address=$(trim_whitespace "$received_mac_address")
 		else 
 			return 0
 		fi 
@@ -123,61 +122,59 @@ btle_text_processor () {
 		#------------ ADVERTISEMENT
 		if [[ $packet =~ Data:\ {0,}([^|\(]*)\ {0,}(\||$|\() ]]; then 
 			adv_data=${BASH_REMATCH[1]}
-			adv_data=$(trim_whitespace "$adv_data")
 		fi 
 
 		#------------ DEVICE TYPE
 		if [[ $packet =~ Type:\ {0,}([^|\(]*)\ (\||$|\() ]]; then 
 			device_type=${BASH_REMATCH[1]}
-			device_type=$(trim_whitespace "$device_type")
 		fi 
 
 		#------------ FLAGS 
 		if [[ $packet =~ Flags:\ {0,}([^|\(]*)(\||$|\() ]]; then 
 			flags=${BASH_REMATCH[1]}
-			flags=$(trim_whitespace "$flags")
 		fi 
 
 		#------------ OEM DATA 
 		if [[ $packet =~ 1\ entry\|\ {1,}([^|\(]*)\ {1,}(\||$|\() ]]; then 
 			oem_data=${BASH_REMATCH[1]}
-			oem_data=$(trim_whitespace "$oem_data")
 		fi 
 
 		#------------ UUID
 		if [[ $packet =~ UUID:\ {0,}([^|\(]*)(\||$|\() ]]; then 
 			uuid=${BASH_REMATCH[1]}
-			uuid=$(trim_whitespace "$uuid")
 
 			#------------ TX POWER
 			if [[ $packet =~ TX\ power:\ {0,}([^|]{1,})(\||$) ]]; then 
 				tx_power=${BASH_REMATCH[1]}
-				tx_power=$(trim_whitespace "$tx_power")
 			fi 			
 
 			#------------ TX POWER
 			if [[ $packet =~ Version:\ {0,}([^|]{1,})(\||$) ]]; then 
 				version=${BASH_REMATCH[1]}
-				version=$(trim_whitespace "$version")
 			fi 
 
-			printf "%s\n" "BEAC$uuid|MAJ|MIN|$rssi_value|$tx_power|$received_mac_address|$pdu_type|$version" > main_pipe & 
+			printf "%s\n" "BEAC$uuid|MAJ|MIN|$rssi_value|$tx_power|$received_mac_address|$pdu_type|$version" > main_pipe
 			return 0
 		fi 
 
-		#IF THIS DOES NOT HAVE A UUID, PROCESS AS GENERIC BEACON
-		should_ignore=false 
-		[ "$tx_type" == "RAND" ] && [ -n "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true 
+		if [ "$tx_type" == "PUBL" ]; then 
+			#PRINT ALL PUBLIC BEACONS
+			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe
 
-		#IF WE HAVE A NAME, DEFINITELY REPORT
-		[ -n "$gap_name_str" ] && should_ignore=false 
+		elif [ "$tx_type" == "RAND" ]; then 
+			if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
+				#IF THIS DOES NOT HAVE A UUID, PROCESS AS GENERIC BEACON
+				should_ignore=false 
+				[ "$tx_type" == "RAND" ] && [ -n "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true 
 
-		#IF PUBLIC ADV, SET PUBLIC
-		[ "$tx_type" == "PUBL" ] && should_ignore=false 
+				#IF WE HAVE A NAME, DEFINITELY REPORT
+				[ -n "$gap_name_str" ] && should_ignore=false 
 
-		if [ "$should_ignore" == false ]; then 
-			#REPORT TO MAIN LOOP
-			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe & 
+				if [ "$should_ignore" == false ]; then 
+					#REPORT TO MAIN LOOP
+					printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe 
+				fi 
+			fi 
 		fi 
 	fi
 }
