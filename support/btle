@@ -104,42 +104,42 @@ btle_text_processor () {
 			gap_name_str=${BASH_REMATCH[1]}
 			gap_name_str=$(trim_whitespace "$gap_name_str")
 		fi 
-		#[[ -z "$gap_name_str" ]] && gap_name_str="Unknown"
+		[ -z "$gap_name_str" ] && gap_name_str="Unknown"
 
 		#------------ MANUFACTURER OF RADIO
 		if [[ $packet =~ Company:\ {0,}([^|\(]*)\ {0,}(\||$|\() ]]; then 
 			manufacturer=${BASH_REMATCH[1]}
 			manufacturer=$(trim_whitespace "$manufacturer")
 		fi 
-		#[[ -z "$manufacturer" ]] && manufacturer="Unknown"
+		[ -z "$manufacturer" ] && manufacturer="Unknown"
 
 		#------------ ADVERTISEMENT
 		if [[ $packet =~ Data:\ {0,}([^|\(]*)\ {0,}(\||$|\() ]]; then 
 			adv_data=${BASH_REMATCH[1]}
 			adv_data=$(trim_whitespace "$adv_data")
 		fi 
-		#[[ -z "$adv_data" ]] && adv_data="0000"
+		[ -z "$adv_data" ] && adv_data="0000"
 
 		#------------ DEVICE TYPE
 		if [[ $packet =~ Type:\ {0,}([^|\(]*)\ (\||$|\() ]]; then 
 			device_type=${BASH_REMATCH[1]}
 			device_type=$(trim_whitespace "$device_type")
 		fi 
-		#[[ -z "$device_type" ]] && device_type="Unknown"
+		[ -z "$device_type" ] && device_type="Unknown"
 
 		#------------ FLAGS 
 		if [[ $packet =~ Flags:\ {0,}([^|\(]*)(\||$|\() ]]; then 
 			flags=${BASH_REMATCH[1]}
 			flags=$(trim_whitespace "$flags")
 		fi 
-		#[[ -z "$flags" ]] && flags="0x00"
+		[ -z "$flags" ] && flags="0x00"
 
 		#------------ OEM DATA 
 		if [[ $packet =~ 1\ entry\|\ {1,}([^|\(]*)\ {1,}(\||$|\() ]]; then 
 			oem_data=${BASH_REMATCH[1]}
 			oem_data=$(trim_whitespace "$oem_data")
 		fi 
-		#[[ -z "$oem_data" ]] && oem_data="Unknown OEM"
+		[ -z "$oem_data" ] && oem_data="Unknown OEM"
 
 		#------------ UUID
 		if [[ $packet =~ UUID:\ {0,}([^|\(]*)(\||$|\() ]]; then 
