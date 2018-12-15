@@ -19,7 +19,7 @@
 btle_scanner () {
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
-		local hcitool_raw=$(timeout --signal SIGINT 17 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
+		local hcitool_raw=$(timeout --signal SIGINT 31 hcitool -i $PREF_HCI_DEVICE lescan --duplicates 2>&1)
 
 		#FIND ERROR VALUES 
 		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error|network')
@@ -33,7 +33,6 @@ btle_scanner () {
 			hciconfig $PREF_HCI_DEVICE down
 			sleep 5 
 			hciconfig $PREF_HCI_DEVICE up
-			sleep 5
 		fi 
 
 		#NEED DELAY TO BE SURE WE'RE NOT RESTARTING HARDWARE TOO QUICKLY
@@ -64,6 +63,10 @@ btle_text_processor () {
 	local flags
 	local device_type
 	local oem_data
+
+	#beacons
+	local uuid
+	local tx_power
 
  	if [ -n "$1" ]; then 
  		#DEFINE PACKET VARIABLE
@@ -133,7 +136,6 @@ btle_text_processor () {
 		fi 
 		[[ -z "$flags" ]] && flags="0x00"
 
-
 		#------------ OEM DATA 
 		if [[ $packet =~ 1\ entry\|\ {1,}([^|\(]*)\ {1,}(\||$|\() ]]; then 
 			oem_data=${BASH_REMATCH[1]}
@@ -141,19 +143,36 @@ btle_text_processor () {
 		fi 
 		[[ -z "$oem_data" ]] && oem_data="Unknown OEM"
 
-		should_ignore=false 
-		[ "$tx_type" == "RAND" ] && [ -n "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true 
+		#------------ UUID
+		if [[ $packet =~ UUID:\ {0,}([^|\(]*)(\||$|\() ]]; then 
+			uuid=${BASH_REMATCH[1]}
+			uuid=$(trim_whitespace "$uuid")
 
-		#IF WE HAVE A NAME, DEFINITELY REPORT
-		[ -n "$gap_name_str" ] && should_ignore=false 
+			#------------ TX POWER
+			if [[ $packet =~ TX\ power:\ {0,}([^|]{1,})(\||$) ]]; then 
+				tx_power=${BASH_REMATCH[1]}
+				tx_power=$(trim_whitespace "$tx_power")
+			fi 			
 
-		#IF PUBLIC ADV, SET PUBLIC
-		[ "$tx_type" == "PUBL" ] && should_ignore=false 
+			echo "BEAC$uuid|error|error|$rssi|$tx_power|$received_mac_address|$pdu_type" > main_pipe & 
+		
+		else
 
-		if [ "$should_ignore" == false ]; then 
-			#REPORT TO MAIN LOOP
-			echo "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe & 
-		fi 
+			#IF THIS DOES NOT HAVE A UUID, PROCESS AS GENERIC BEACON
+			should_ignore=false 
+			[ "$tx_type" == "RAND" ] && [ -n "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true 
+
+			#IF WE HAVE A NAME, DEFINITELY REPORT
+			[ -n "$gap_name_str" ] && should_ignore=false 
+
+			#IF PUBLIC ADV, SET PUBLIC
+			[ "$tx_type" == "PUBL" ] && should_ignore=false 
+
+			if [ "$should_ignore" == false ]; then 
+				#REPORT TO MAIN LOOP
+				echo "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe & 
+			fi 
+		fi
 	fi
 }
 
@@ -180,4 +199,3 @@ btle_text_listener () {
 	#REPORT ERROR
 	(>&2 echo "error! irrecoverable btle_text_listener error")
 }
-
