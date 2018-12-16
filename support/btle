@@ -19,7 +19,7 @@
 btle_scanner () {
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
-		local hcitool_raw=$(timeout --signal SIGINT 17 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
+		local hcitool_raw=$(timeout --signal SIGINT 300 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
 
 		#FIND ERROR VALUES 
 		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error|network')
@@ -36,7 +36,7 @@ btle_scanner () {
 		fi 
 
 		#NEED DELAY TO BE SURE WE'RE NOT RESTARTING HARDWARE TOO QUICKLY
-		sleep 2
+		sleep 10
 	done
 
 	#REPORT ERROR
@@ -161,7 +161,8 @@ btle_text_processor () {
 			#PRINT ALL PUBLIC BEACONS
 			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe
 
-		elif [ "$tx_type" == "RAND" ]; then 
+		elif [ "$tx_type" == "RAND" ]; then
+		 
 			if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
 				#IF THIS DOES NOT HAVE A UUID, PROCESS AS GENERIC BEACON
 				should_ignore=false 
@@ -183,7 +184,6 @@ btle_text_processor () {
 # BLUETOOTH LE RAW PACKET ANALYSIS
 # ----------------------------------------------------------------------------------------
 btle_text_listener () {
-    	
     while true; do 
 	    #LOCAL VALUES 
 		local packet
@@ -199,10 +199,10 @@ btle_text_listener () {
 			else 		
 				packet="$packet|$line" 
 			fi
-		done < <(timeout --signal SIGINT 67 stdbuf -o0 btmon 2>&1)
+		done < <(timeout --signal SIGINT 300 stdbuf -o0 btmon 2>&1)
 
 		#PREVENT MEMORY 
-		sleep 5
+		sleep 7
 	done 
 	#REPORT ERROR
 	(>&2 echo "error! irrecoverable btle_text_listener error")
