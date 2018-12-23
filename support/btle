@@ -199,10 +199,10 @@ btle_text_listener () {
 			else 		
 				packet="$packet|$line" 
 			fi
-		done < <(timeout --signal SIGINT 300 stdbuf -o0 btmon 2>&1)
+		done < <(timeout --signal SIGINT 400 stdbuf -o0 btmon 2>&1)
 
 		#PREVENT MEMORY 
-		sleep 7
+		sleep 5
 	done 
 	#REPORT ERROR
 	(>&2 echo "error! irrecoverable btle_text_listener error")
