@@ -78,6 +78,7 @@ usage:
 	monitor -h 	show usage information
 	monitor -R 	redact private information from logs
 	monitor -S 	silent operation (no logging)
+	monitor -c addr	create connection to bluetooth device
 	monitor -C 	clean retained messages from MQTT broker
 	monitor -E 	report scan status messages:
 				[topic path]/scan/[arrive|depart]/[start|end]
@@ -132,7 +133,7 @@ PREF_SERVICE_CHECK=true
 PREF_CONFIG_DIR=''
 PREF_DISABLE_LOGGING=false
 
-while getopts "h?vfbut:EgSRcCmesadxD:" opt; do
+while getopts "h?vfbut:EgSRcCmesadxD:c:" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
@@ -143,6 +144,22 @@ while getopts "h?vfbut:EgSRcCmesadxD:" opt; do
 			;;
 		v)  
 			echo "$VERSION"
+			exit 0
+			;;
+		c) 
+			target_mac="$OPTARG"
+			echo "> creating connection to $target_mac..."
+			echo "> please set $target_mac to discoverable"
+			
+			#WAIT 5 SECONDS FOR DISCOVERABLE MODE
+			sleep 5
+
+			#CREATE CONNECTION
+			return_data=$(sudo hcitool cc $target_mac 2>&1 && sudo hcitool auth $target_mac 2>&1 && sudo hcitool dc $target_mac 2>&1)
+
+			#ERROR REPORTING
+			[[ $return_data =~ *error* ]] && echo "> error: connection to $target_mac failed" || echo ">  connection created to $target_mac"
+
 			exit 0
 			;;
 		C)  
