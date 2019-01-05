@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.783
+export version=0.1.784
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -576,6 +576,8 @@ determine_name () {
 	#SET DATA 
 	local address
 	address="$1"
+
+	[ -z "$address" ] && return 0
 	
 	#IF IS NEW AND IS PUBLIC, SHOULD CHECK FOR NAME
 	local expected_name
