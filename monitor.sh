@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.782
+export version=0.1.783
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -148,14 +148,14 @@ for addr in "${known_static_addresses[@]}"; do
 	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { id: $addr ... }"
 
 	#CONNECTED?
-	is_connected=" not previously connected"
-	[[ $connected_devices =~ .*$addr.* ]] && is_connected=" previously connected"
+	is_connected="not previously connected"
+	[[ $connected_devices =~ .*$addr.* ]] && is_connected="previously connected"
 
 	#FOR DBUGGING
 	echo "> $addr has $is_connected to $PREF_HCI_DEVICE"
 
 	#FOR DEBUGGING
-	echo "> updates for $addr will publish to: $pub_topic"
+	echo "> $addr will publish updates to: $pub_topic"
 done
 
 # ----------------------------------------------------------------------------------------
