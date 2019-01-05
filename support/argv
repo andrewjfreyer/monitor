@@ -133,7 +133,7 @@ PREF_SERVICE_CHECK=true
 PREF_CONFIG_DIR=''
 PREF_DISABLE_LOGGING=false
 
-while getopts "h?vfbut:EgSRcCmesadxD:c:" opt; do
+while getopts "h?vfbut:EgSRCmesadxD:c:" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
