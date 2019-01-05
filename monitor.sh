@@ -132,7 +132,7 @@ done
 # ----------------------------------------------------------------------------------------
 
 #LIST CONNECTED DEVICES
-connected_devices=$(echo "quit" | bluetoothctl | grep -Eio "Device ([0-9A-F]{2}:){5}[0-9A-F]{2}" | sed 's/Device //g')
+previously_connected_devices=$(echo "quit" | bluetoothctl | grep -Eio "Device ([0-9A-F]{2}:){5}[0-9A-F]{2}" | sed 's/Device //g')
 
 #POPULATE KNOWN DEVICE ADDRESS
 for addr in "${known_static_addresses[@]}"; do 
@@ -149,7 +149,7 @@ for addr in "${known_static_addresses[@]}"; do
 
 	#CONNECTED?
 	is_connected="not previously connected"
-	[[ $connected_devices =~ .*$addr.* ]] && is_connected="previously connected"
+	[[ $previously_connected_devices =~ .*$addr.* ]] && is_connected="previously connected"
 
 	#FOR DBUGGING
 	echo "> $addr has $is_connected to $PREF_HCI_DEVICE"
