@@ -149,7 +149,7 @@ while getopts "h?vfbut:EgSRCmesadxD:c:" opt; do
 		c) 
 			target_mac="$OPTARG"
 			echo "> creating connection to $target_mac..."
-			echo "> please set $target_mac to discoverable"
+			echo "> witihin 5 seconds, please set $target_mac to discoverable..."
 			
 			#WAIT 5 SECONDS FOR DISCOVERABLE MODE
 			sleep 5
