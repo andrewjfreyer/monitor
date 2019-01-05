@@ -143,6 +143,11 @@ btle_text_processor () {
 		if [[ $packet =~ UUID:\ {0,}([^|\(]*)(\||$|\() ]]; then 
 			uuid=${BASH_REMATCH[1]}
 
+			#NEED TO CORRECT BTMON ENDIANNNESS
+			uuid=${uuid//-/}; 
+			uuid=$(tac -rs .. <<< $uuid)
+			uuid="${uuid:0:9}-${uuid:9:4}-${uuid:13:4}-${uuid:17:4}-${uuid:21:12}"
+
 			#------------ TX POWER
 			if [[ $packet =~ TX\ power:\ {0,}([^|]{1,})(\||$) ]]; then 
 				tx_power=${BASH_REMATCH[1]}
@@ -159,7 +164,8 @@ btle_text_processor () {
 
 		if [ "$tx_type" == "PUBL" ]; then 
 			#PRINT ALL PUBLIC BEACONS
-			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe
+			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe &
+			disown "$!"
 
 		elif [ "$tx_type" == "RAND" ]; then
 		 
@@ -173,7 +179,8 @@ btle_text_processor () {
 
 				if [ "$should_ignore" == false ]; then 
 					#REPORT TO MAIN LOOP
-					printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe 
+					printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe &
+					disown "$!"
 				fi 
 			fi 
 		fi 
@@ -193,7 +200,12 @@ btle_text_listener () {
 		while IFS= read -r line; do
 			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]] || [[ $line =~ RSSI ]]; then
 				[[ $line =~ RSSI ]] && packet="$packet|$line"
-				[[ $packet =~ ^\> ]] && btle_text_processor "$packet"
+
+				if [[ $packet =~ ^\> ]]; then 
+					btle_text_processor "$packet" & 
+					disown "$!"
+				fi 
+
 				packet=""
 				packet=$line
 			else 		
