@@ -126,14 +126,12 @@ PREF_REDACT=false
 PREF_SHOULD_RETAIN=false
 PREF_CLEAN_MQTT=false
 PREF_FORMAT_MQTT=false
-PREF_PUBLISH_ENVIRONMENT_MODE=false
-PREF_HEARTBEAT=false
 PREF_MQTT_REPORT_SCAN_MESSAGES=false
 PREF_SERVICE_CHECK=true
 PREF_CONFIG_DIR=''
 PREF_DISABLE_LOGGING=false
 
-while getopts "h?vfbut:EgSRCmesadxD:c:" opt; do
+while getopts "h?vfbut:EgSRCmsadxD:c:" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
@@ -148,6 +146,12 @@ while getopts "h?vfbut:EgSRCmesadxD:c:" opt; do
 			;;
 		c) 
 			target_mac="$OPTARG"
+			echo "> setting bluetooth device name to: monitor-$mqtt_publisher_identity"
+			hciconfig "$PREF_HCI_DEVICE" name 'monitor-$mqtt_publisher_identity'
+
+			echo "> removing previous pairings to $target_mac"
+			(1>&2 >/dev/null echo -e 'remove $target_mac' | bluetoothctl)
+
 			echo "> creating connection to $target_mac..."
 			echo "> witihin 5 seconds, please set $target_mac to discoverable..."
 			
@@ -157,8 +161,6 @@ while getopts "h?vfbut:EgSRCmesadxD:c:" opt; do
 			#CREATE CONNECTION
 			return_data=$(sudo hcitool cc $target_mac 2>&1 && sudo hcitool auth $target_mac 2>&1 && sudo hcitool dc $target_mac 2>&1)
 
-			echo "$return_data"
-			
 			#ERROR REPORTING
 			[[ $return_data =~ .*error.* ]] && echo "> error: connection to $target_mac failed" || echo "> connection created to $target_mac"
 
@@ -170,8 +172,6 @@ while getopts "h?vfbut:EgSRCmesadxD:c:" opt; do
 		E)  PREF_MQTT_REPORT_SCAN_MESSAGES=true  && echo "> publishing MQTT .../scan/[arrival|depart]/[start|end]"
 			;;
 		s)  PREF_MQTT_SINGLE_TOPIC_MODE=true  && echo "> publishing all MQTT presence messages to \$mqtt_topicpath/\$mqtt_publisher_identity"
-			;;
-		e)  PREF_PUBLISH_ENVIRONMENT_MODE=true  && echo "> publishing bluetooth environment every $PREF_ENVIRONMENTAL_REPORT_INTERVAL seconds"
 			;;
 		x)  PREF_SHOULD_RETAIN=true  && echo "> retaining mqtt status reports"
 			;;
@@ -203,11 +203,9 @@ while getopts "h?vfbut:EgSRCmesadxD:c:" opt; do
 			;;
 		a)  PREF_REPORT_ALL_MODE=true 	&& echo "> report all scan results mode enabled"
 			;;
-		m)  PREF_HEARTBEAT=true 	&& echo "> send heartbeat signal"
-			;;
-                D)  PREF_CONFIG_DIR=$OPTARG && echo "> using custom config directory [$PREF_CONFIG_DIR]"
-                    [ ! -d "$PREF_CONFIG_DIR" ] && echo "> error: config directory [$PREF_CONFIG_DIR] doesn't exist" && exit 1
-                        ;;
+        D)  PREF_CONFIG_DIR=$OPTARG && echo "> using custom config directory [$PREF_CONFIG_DIR]"
+            [ ! -d "$PREF_CONFIG_DIR" ] && echo "> error: config directory [$PREF_CONFIG_DIR] doesn't exist" && exit 1
+                ;;
 		*)	echo "> unknown or depreciated argument: $opt"
 	esac
 done
