@@ -108,7 +108,7 @@ usage:
 # ----------------------------------------------------------------------------------------
 
 #REMOVE MANUFACTURER CACHE AND PUBLIC NAME CACHE FROM PREVIOUS SESSION 
-(2>&1 1>/dev/null rm ".manufacturer_cache") && echo "> removing web request caches"
+(&>/dev/null rm ".manufacturer_cache") && echo "> removing web request caches"
 
 #PROCESS ARGV OPTIONS
 OPTIND=1
