@@ -160,7 +160,7 @@ while getopts "h?vfbut:EgSRCmesadxD:c:" opt; do
 			echo "$return_data"
 
 			#ERROR REPORTING
-			[[ $return_data =~ *error* ]] && echo "> error: connection to $target_mac failed" || echo "> connection created to $target_mac"
+			[[ $return_data =~ .*error.* ]] && echo "> error: connection to $target_mac failed" || echo "> connection created to $target_mac"
 
 			exit 0
 			;;
