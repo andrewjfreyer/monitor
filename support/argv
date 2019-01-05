@@ -145,11 +145,14 @@ while getopts "h?vfbut:EgSRCmsadxD:c:" opt; do
 			exit 0
 			;;
 		c) 
+			#GET TARGET MAC ADDRESS
 			target_mac="$OPTARG"
-		
+			
+			#REMOVE PREVIOUS PAIRINGS		
 			echo "> removing previous pairings to $target_mac"
-			(echo -e "remove $target_mac" | bluetoothctl 2>&1 1>/dev/null &)
+			(echo -e "remove $target_mac" | bluetoothctl &>/dev/null)
 
+			#DEBUG ECHO
 			echo "> creating connection to $target_mac..."
 			echo "> witihin 5 seconds, please set $target_mac to discoverable..."
 			
