@@ -158,14 +158,12 @@ btle_text_processor () {
 				version=${BASH_REMATCH[1]}
 			fi 
 
-			printf "%s\n" "BEAC$uuid|MAJ|MIN|$rssi_value|$tx_power|$received_mac_address|$pdu_type|$version" > main_pipe &
-			disown "$!"
+			printf "%s\n" "BEAC$uuid|MAJ|MIN|$rssi_value|$tx_power|$received_mac_address|$pdu_type|$version" > main_pipe
 		fi 
 
 		if [ "$tx_type" == "PUBL" ]; then 
 			#PRINT ALL PUBLIC BEACONS
-			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe &
-			disown "$!"
+			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe
 
 		elif [ "$tx_type" == "RAND" ]; then
 		 
@@ -179,8 +177,7 @@ btle_text_processor () {
 
 				if [ "$should_ignore" == false ]; then 
 					#REPORT TO MAIN LOOP
-					printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe &
-					disown "$!"
+					printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe
 				fi 
 			fi 
 		fi 
