@@ -143,14 +143,14 @@ btle_text_processor () {
 		if [[ $packet =~ UUID:\ {0,}([^|\(]*)(\||$|\() ]]; then 
 			uuid=${BASH_REMATCH[1]}
 
-			echo "$uuid" >&2 
+			echo "oridingal $uuid" >&2 
 
 			#NEED TO CORRECT BTMON ENDIANNNESS
 			uuid=${uuid//-/}; 
 			uuid=$(tac -rs .. <<< $uuid)
 			uuid="${uuid:0:9}-${uuid:9:4}-${uuid:13:4}-${uuid:17:4}-${uuid:21:12}"
 
-			echo "$uuid" >&2 
+			echo "corrected $uuid" >&2 
 
 			#------------ TX POWER
 			if [[ $packet =~ TX\ power:\ {0,}([^|]{1,})(\||$) ]]; then 
