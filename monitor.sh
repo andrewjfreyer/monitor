@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.788
+export version=0.1.789
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -197,7 +197,7 @@ connectable_present_devices () {
 
 		#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
 		if [ "$this_state" == "1" ] && [[ $previously_connected_devices =~ .*$known_addr.* ]] ; then 
-			known_device_rssi=$(hcitool cc $known_addr && hcitool rssi $known_addr | grep -Eio "[0-9-]{2,}")
+			known_device_rssi=$(hcitool cc $known_addr && hcitool rssi $known_addr)
 
 			echo "RSSI of $known_addr is $known_device_rssi"
 		fi 
