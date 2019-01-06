@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.805
+export version=0.1.806
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -528,17 +528,16 @@ perform_complete_scan () {
 		echo "NAME$known_addr|" > main_pipe 
 	done
 
+	#SET DONE TO MAIN PIPE
+	echo "DONE" > main_pipe
+
 	#GROUP SCAN FINISHED
 	log "${GREEN}[CMD-INFO]	${GREEN}**** Completed $transition_type scan. **** ${NC}"
-
-	#DELAY BEFORE CLEARNING THE MAIN PIPE
-	sleep 2
 
 	#PUBLISH END OF COOPERATIVE SCAN
 	[ "$PREF_MQTT_REPORT_SCAN_MESSAGES" == true ] && publish_cooperative_scan_message "$transition_type/end"
 
-	#SET DONE TO MAIN PIPE
-	echo "DONE" > main_pipe
+
 }
 
 # ----------------------------------------------------------------------------------------
