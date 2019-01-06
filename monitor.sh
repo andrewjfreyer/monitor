@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.803
+export version=0.1.804
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -200,6 +200,9 @@ connectable_present_devices () {
 
 			#KNOWN RSSI
 			known_device_rssi=${known_device_rssi//[^0-9]/}
+
+			#IF NO NUMBERS, WE HAVE A HARDWARE FAULT
+			[ -z "$known_device_rssi" ] && continue 
 
 			publish_presence_message \
 			"id=$known_addr" \
