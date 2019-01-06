@@ -258,6 +258,9 @@ if [ -f "$PREF_CONFIG" ]; then
 	[ -z "$PREF_MQTT_REPORT_SCAN_MESSAGES" ]  && PREF_MQTT_REPORT_SCAN_MESSAGES=false
 	[ -z "$PREF_ARRIVE_TRIGGER_FILTER" ]  && PREF_ARRIVE_TRIGGER_FILTER="0x1a|Apple"
 
+	#HIDDEN OPTIONS 
+	[ -z "$PREF_CLOCK_INTERVAL" ]  && PREF_CLOCK_INTERVAL=180
+
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
 	[ "$(echo "$preferences" | grep -c "error")" -gt "0" ] && echo "> warning: preferences error, using defaults. consider reset to defaults with '-d' flag"
 

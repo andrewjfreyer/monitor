@@ -21,3 +21,13 @@ refresh_databases (){
 		echo "REFR" > main_pipe
 	done
 }
+
+# ----------------------------------------------------------------------------------------
+# PERIODIC TRIGGER TO MAIN LOOP
+# ----------------------------------------------------------------------------------------
+periodic_trigger (){
+	while : ; do 
+		sleep "$PREF_CLOCK_INTERVAL"
+		echo "TIME" > main_pipe
+	done
+}

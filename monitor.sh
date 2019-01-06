@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.785
+export version=0.1.786
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -177,6 +177,32 @@ for addr in "${known_static_beacons[@]}"; do
 	#FOR DBUGGING
 	echo "> known beacon: $addr will publish to: $pub_topic"
 done
+
+# ----------------------------------------------------------------------------------------
+# ASSEMBLE RSSI LISTS
+# ----------------------------------------------------------------------------------------
+
+connectable_present_devices () {
+
+	#DEFINE LOCAL VARS
+	local this_state
+	local known_device_rssi
+
+	#ITERATE THROUGH THE KNOWN DEVICES 
+	local known_addr
+	for known_addr in "${known_static_addresses[@]}"; do 
+		
+		#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
+		this_state="${known_public_device_log[$known_addr]}"
+
+		#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
+		if [ "$this_state" == "1" ] && [[ $previously_connected_devices =~ .*$known_addr.* ]] ; then 
+			known_device_rssi=$(hcitool cc $known_addr && hcitool rssi $known_addr | grep -Eio "[0-9-]{2,}")
+
+			echo "RSSI of $known_addr is $known_device_rssi"
+		fi 
+	done
+}
 
 # ----------------------------------------------------------------------------------------
 # ASSEMBLE SCAN LISTS
@@ -652,6 +678,11 @@ database_clock_pid="$!"
 echo "> database clock pid = $database_clock_pid" >> .pids
 disown "$database_clock_pid"
 
+periodic_trigger &
+periodic_clock_pid="$!"
+echo "> periodic clock pid = $periodic_clock_pid" >> .pids
+disown "$periodic_clock_pid"
+
 echo "================== BEGIN LOGGING =================="
 
 # ----------------------------------------------------------------------------------------
@@ -864,6 +895,11 @@ while true; do
 				#RESTART SYSTEM
 				systemctl restart monitor.service				
 			fi
+
+		elif [ "$cmd" == "TIME" ]; then 
+			
+			#FIND RSSI OF KNOWN DEVICES PREVIOUSLY CONNECTED
+			connectable_present_devices
 
 		elif [ "$cmd" == "REFR" ]; then 
 
