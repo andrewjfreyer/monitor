@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.800
+export version=0.1.801
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -205,6 +205,9 @@ connectable_present_devices () {
 			"id=$known_addr" \
 			"confidence=100" \
 			"rssi=-$known_device_rssi"
+
+			#SET RSSI LOG
+			rssi_log[$known_addr]="$known_device_rssi"
 		fi 
 	done
 }
@@ -975,18 +978,18 @@ while true; do
 					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL/BEAC $key expired after $difference seconds ${NC}"
 
 					#REPORT PRESENCE OF DEVICE
-					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" "adv_data=$adv_data"
+					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" 
 
 				else 
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
 					percent_confidence=$(( 100 - difference * 100 / PREF_BEACON_EXPIRATION )) 
 
 					if [ "$PREF_REPORT_ALL_MODE" == true ]; then						#REPORTING ALL 
-						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" "rssi=$latest_rssi" "adv_data=$adv_data" 
+						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" "rssi=$latest_rssi" 
 					fi  
 
 					#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
-					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "50" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" "rssi=$latest_rssi" "adv_data=$adv_data"
+					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "50" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" "rssi=$latest_rssi"
 				fi 
 			done
 
@@ -1038,6 +1041,7 @@ while true; do
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			name=$(echo "$data" | awk -F "|" '{print $2}')
 			data="$mac"
+			rssi_latest="${rssi_log[$data]}"
 
 			#PREVIOUS STATE; SET DEFAULT TO UNKNOWN
 			previous_state="${known_public_device_log[$mac]}"
