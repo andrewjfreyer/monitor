@@ -148,7 +148,7 @@ btle_text_processor () {
 			#NEED TO CORRECT BTMON ENDIANNNESS
 			uuid=${uuid//-/}; 
 			uuid=$(tac -rs .. <<< $uuid)
-			uuid="${uuid:0:9}-${uuid:9:4}-${uuid:13:4}-${uuid:17:4}-${uuid:21:12}"
+			uuid="${uuid:1:9}-${uuid:9:4}-${uuid:13:4}-${uuid:17:4}-${uuid:21:12}"
 
 			echo "corrected $uuid" >&2 
 
@@ -162,8 +162,8 @@ btle_text_processor () {
 				version=${BASH_REMATCH[1]}
 			fi 
 
-			printf "%s\n" "BEAC$uuid|MAJ|MIN|$rssi_value|$tx_power|$received_mac_address|$pdu_type|$version" > main_pipe
-			return 0
+			printf "%s\n" "BEAC$uuid|MAJ|MIN|$rssi_value|$tx_power|$received_mac_address|$pdu_type|$version" > main_pipe &
+			disown "$!"
 		fi 
 
 		if [ "$tx_type" == "PUBL" ]; then 
