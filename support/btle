@@ -65,7 +65,7 @@ btle_packet_processor () {
 btle_scanner () {
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
-		local hcitool_raw=$(timeout --signal SIGINT 45 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
+		local hcitool_raw=$(timeout --signal SIGINT 29 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
 
 		#FIND ERROR VALUES 
 		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error|network')
@@ -232,7 +232,7 @@ btle_text_listener () {
 			else 		
 				packet="$packet|$line" 
 			fi
-		done < <(timeout --signal SIGINT 80 stdbuf -o0 btmon 2>&1)
+		done < <(timeout --signal SIGINT 31 stdbuf -o0 btmon 2>&1)
 
 		#PREVENT MEMORY 
 		sleep 5
@@ -274,5 +274,5 @@ btle_listener () {
 				packet=""
 			fi 
 		fi
-	done < <(timeout --signal SIGINT 80 stdbuf -o0 hcidump -i $PREF_HCI_DEVICE --raw)
+	done < <(timeout --signal SIGINT 31 stdbuf -o0 hcidump -i $PREF_HCI_DEVICE --raw)
 }
