@@ -79,13 +79,15 @@ btle_scanner () {
 			hciconfig $PREF_HCI_DEVICE down
 			sleep 5 
 			hciconfig $PREF_HCI_DEVICE up
+
+			continue
 		fi 
 
 		#SEND SIGNAL THAT 
 		echo "BOFF" > main_pipe
 
 		#NEED DELAY TO BE SURE WE'RE NOT RESTARTING HARDWARE TOO QUICKLY
-		sleep 3
+		sleep 15
 	done
 
 	#REPORT ERROR
