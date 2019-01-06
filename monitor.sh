@@ -203,6 +203,7 @@ connectable_present_devices () {
 
 			publish_presence_message \
 			"id=$known_addr" \
+			"confidence=100" \
 			"rssi=-$known_device_rssi"
 		fi 
 	done
