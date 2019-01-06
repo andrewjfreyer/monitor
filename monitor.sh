@@ -1213,14 +1213,18 @@ while true; do
 				#PROVIDE USEFUL LOGGING
 				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm"
 
-								#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
+				#WE ARE PERFORMING THE FIRST ARRIVAL SCAN?
+				first_arrive_scan=false
+
+				#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 				perform_arrival_scan 
+
+
 			fi 
 		fi 
 
 		#SHOUD WE PERFORM AN ARRIVAL SCAN AFTER THIS FIRST LOOP?
 		if [ "$first_arrive_scan" == true ] ; then 
-
 			perform_arrival_scan 
 		fi 
 
