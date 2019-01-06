@@ -12,6 +12,53 @@
 #
 # ----------------------------------------------------------------------------------------
 
+# ----------------------------------------------------------------------------------------
+# PROCESS BLUETOOTH PACKETS
+# ----------------------------------------------------------------------------------------
+
+btle_packet_processor () {
+	#POPULATE PACKET 
+	local packet=$(echo "$1" | sed 's/> *//g')
+
+	#BEACON PACKET?
+	if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01 ]]; then
+
+		#HARDARE MAC AND PDU HEADER
+		local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
+		local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
+
+		#RAW VALUES
+		local UUID=$(echo $packet | sed 's/^.\{69\}\(.\{47\}\).*$/\1/')
+		local MAJOR=$(echo $packet | sed 's/^.\{117\}\(.\{5\}\).*$/\1/')
+		local MINOR=$(echo $packet | sed 's/^.\{123\}\(.\{5\}\).*$/\1/')
+		local POWER=$(echo $packet | sed 's/^.\{129\}\(.\{2\}\).*$/\1/')
+		local UUID=$(echo $UUID | sed -e 's/\ //g' -e 's/^\(.\{8\}\)\(.\{4\}\)\(.\{4\}\)\(.\{4\}\)\(.\{12\}\)$/\1-\2-\3-\4-\5/')
+	
+		#MAJOR CALCULATION
+		MAJOR=$(echo $MAJOR | sed 's/\ //g')
+		MAJOR=$(echo "ibase=16; $MAJOR" | bc)
+
+		#MINOR CALCULATION
+		MINOR=$(echo $MINOR | sed 's/\ //g')
+		MINOR=$(echo "ibase=16; $MINOR" | bc)
+
+		#POWER CALCULATION
+		POWER=$(echo "ibase=16; $POWER" | bc)
+		POWER=$((POWER - 256))
+
+		#RSSI CALCULATION
+		local RSSI=$(echo $packet | sed 's/^.\{132\}\(.\{2\}\).*$/\1/')
+		RSSI=$(echo "ibase=16; $RSSI" | bc)
+		RSSI=$((RSSI - 256))
+
+        #CLEAR PACKET
+        packet=""
+
+		#SEND TO MAIN LOOP
+		[ ! -z "$UUID" ] && echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address|$pdu_header" > main_pipe 
+	fi
+}
+
 
 # ----------------------------------------------------------------------------------------
 # BLUETOOTH LE BACKGROUND SCANNING
@@ -139,28 +186,6 @@ btle_text_processor () {
 			oem_data=${BASH_REMATCH[1]}
 		fi 
 
-		#------------ UUID
-		if [[ $packet =~ UUID:\ {0,}([^|\(]*)(\||$|\() ]]; then 
-			uuid=${BASH_REMATCH[1]}
-
-			#NEED TO CORRECT BTMON ENDIANNNESS
-			uuid=${uuid//-/}; 
-			uuid=$(tac -rs .. <<< $uuid)
-			uuid="${uuid:1:9}-${uuid:9:4}-${uuid:13:4}-${uuid:17:4}-${uuid:21:12}"
-
-			#------------ TX POWER
-			if [[ $packet =~ TX\ power:\ {0,}([^|]{1,})(\||$) ]]; then 
-				tx_power=${BASH_REMATCH[1]}
-			fi 			
-
-			#------------ TX POWER
-			if [[ $packet =~ Version:\ {0,}([^|]{1,})(\||$) ]]; then 
-				version=${BASH_REMATCH[1]}
-			fi 
-
-			printf "%s\n" "BEAC$uuid|MAJ|MIN|$rssi_value|$tx_power|$received_mac_address|$pdu_type|$version" > main_pipe
-		fi 
-
 		if [ "$tx_type" == "PUBL" ]; then 
 			#PRINT ALL PUBLIC BEACONS
 			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe
@@ -215,4 +240,40 @@ btle_text_listener () {
 	done 
 	#REPORT ERROR
 	(>&2 echo "error! irrecoverable btle_text_listener error")
+}
+
+# ----------------------------------------------------------------------------------------
+# BLUETOOTH LE RAW PACKET ANALYSIS
+# ----------------------------------------------------------------------------------------
+btle_listener () {	
+	#DEFINE VARAIBLES
+	local packet=""
+	local complete_packet_str_length=0
+	
+	while IFS= read -r line; do
+		# packets start with ">" or "<"
+		if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
+			# process the completed packet (unless this is the first time through)
+			if [ "$packet" ] && [[ $packet =~ ^\> ]]; then
+				btle_packet_processor "$packet"
+			fi
+			# start the new packet
+			packet=$line
+			complete_packet_str_length=0
+
+			if [[ "$packet" =~ ^\>\ 04\ 3E* ]]; then
+				local packet_len=$(echo $packet | awk '{print "ibase=16;"$4}' | bc )
+				complete_packet_str_length=$((( packet_len + 3) * 3  + 1))
+			fi 
+		else
+			# continue building the packet
+			packet="$packet $line"
+
+			#PROCESS A PACKET WHEN IT IS COMPLETE
+			if [ "$complete_packet_str_length" == "${#packet}" ]; then 
+				btle_packet_processor "$packet"
+				packet=""
+			fi 
+		fi
+	done < <(hcidump -i $PREF_HCI_DEVICE --raw)
 }
