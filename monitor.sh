@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.792
+export version=0.1.793
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -199,7 +199,14 @@ connectable_present_devices () {
 		if [ "$this_state" == "1" ] && [[ $previously_connected_devices =~ .*$known_addr.* ]] ; then 
 			known_device_rssi=$(hcitool cc $known_addr && hcitool rssi $known_addr)
 
-			echo "RSSI of $known_addr is $known_device_rssi"
+			#KNOWN RSSI
+			known_device_rssi=${known_device_rssi//[^0-9]/}
+
+			publish_presence_message \
+			"id=$known_addr" \
+			"confidence=100" \
+			"type=KNOWN_MAC" \
+			"rssi=$known_device_rssi"
 		fi 
 	done
 }
@@ -1181,7 +1188,6 @@ while true; do
 				"manufacturer=$manufacturer" \
 				"type=$beacon_type" \
 				"rssi=$rssi" "power=$power" \
-				"adv_data=$adv_data" \
 				"flags=$flags" \
 				"oem=$oem_data" \
 				"movement=$change_type"
@@ -1200,7 +1206,6 @@ while true; do
 				"manufacturer=$manufacturer" \
 				"type=$beacon_type" \
 				"rssi=$rssi" \
-				"adv_data=$adv_data" \
 				"flags=$flags" \
 				"oem=$oem_data" \
 				"movement=$change_type"
@@ -1218,8 +1223,6 @@ while true; do
 
 				#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 				perform_arrival_scan 
-
-
 			fi 
 		fi 
 
