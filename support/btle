@@ -232,7 +232,7 @@ btle_text_listener () {
 			else 		
 				packet="$packet|$line" 
 			fi
-		done < <(timeout --signal SIGINT 400 stdbuf -o0 btmon 2>&1)
+		done < <(timeout --signal SIGINT 80 stdbuf -o0 btmon 2>&1)
 
 		#PREVENT MEMORY 
 		sleep 5
@@ -274,5 +274,5 @@ btle_listener () {
 				packet=""
 			fi 
 		fi
-	done < <(timeout --signal SIGINT 303 stdbuf -o0 hcidump -i $PREF_HCI_DEVICE --raw)
+	done < <(timeout --signal SIGINT 80 stdbuf -o0 hcidump -i $PREF_HCI_DEVICE --raw)
 }
