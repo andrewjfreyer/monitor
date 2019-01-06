@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.806
+export version=0.1.807
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -330,6 +330,9 @@ perform_complete_scan () {
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	local repetition 
 	for repetition in $(seq 1 $repetitions); do
+
+		#SET DONE TO MAIN PIPE
+		echo "DONE" > main_pipe
 
 		#SET DEVICES
 		devices="$devices_next"
