@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.796
+export version=0.1.797
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -672,6 +672,11 @@ btle_text_listener &
 btle_text_pid="$!"
 echo "> btle text pid = $btle_text_pid" >> .pids
 disown "$btle_text_pid"
+
+btle_listener &
+btle_listener_pid="$!"
+echo "> btle listener pid = $btle_listener_pid" >> .pids
+disown "$btle_listener_pid"
 
 mqtt_listener &
 mqtt_pid="$!"
