@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.804
+export version=0.1.805
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -848,6 +848,7 @@ while true; do
 				continue
 			fi 
 
+
 			#GET THE TOPIC 
 			mqtt_topic_branch=$(basename "$topic_path_of_instruction")
 
@@ -856,14 +857,21 @@ while true; do
 
 			if [[ $mqtt_topic_branch =~ .*ARRIVE.* ]]; then 
 
-				log "${GREEN}[INSTRUCT] ${NC}mqtt trigger arrive ${NC}"
-				perform_arrival_scan
+				#IGNORE OR PASS MQTT INSTRUCTION?
+				scan_type_diff=$((timestamp - last_arrival_scan))
+				if [ "$scan_type_diff" -gt "$PREF_MINIMUM_TIME_BETWEEN_SCANS" ]; then 
+					log "${GREEN}[INSTRUCT] ${NC}mqtt trigger arrive ${NC}"
+					perform_arrival_scan
+				fi 
 				
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
-				log "${GREEN}[INSTRUCT] ${NC}mqtt trigger depart ${NC}"
 				
-				#DEPART SCAN
-				perform_departure_scan		
+				#IGNORE OR PASS MQTT INSTRUCTION?
+				scan_type_diff=$((timestamp - last_depart_scan))
+				if [ "$scan_type_diff" -gt "$PREF_MINIMUM_TIME_BETWEEN_SCANS" ]; then 
+					log "${GREEN}[INSTRUCT] ${NC}mqtt trigger depart ${NC}"
+					perform_departure_scan
+				fi 		
 
 			elif [[ $mqtt_topic_branch =~ .*RESTART.* ]]; then 
 				log "${GREEN}[INSTRUCT] ${NC}mqtt restart  ${NC}"

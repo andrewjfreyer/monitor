@@ -84,10 +84,11 @@ btle_scanner () {
 		fi 
 
 		#SEND SIGNAL THAT 
-		echo "BOFF" > main_pipe
+		echo "BOFF" > main_pipe & 
+		disown "$!"
 
 		#NEED DELAY TO BE SURE WE'RE NOT RESTARTING HARDWARE TOO QUICKLY
-		sleep 15
+		sleep 3
 	done
 
 	#REPORT ERROR
