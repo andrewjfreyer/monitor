@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.786
+export version=0.1.787
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -1126,7 +1126,7 @@ while true; do
 			esac
 
 			#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-			[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$data $expected_name ${GREEN}$cmd ${NC}RSSI: $rssi dBm ($change_type, changed $rssi_change) ${NC}" && rssi_updated=true
+			[ -n "$mac" ] && [ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$data $expected_name ${GREEN}$cmd ${NC}RSSI: $rssi dBm ($change_type, changed $rssi_change) ${NC}" && rssi_updated=true
 		fi
 
 		#**********************************************************************
