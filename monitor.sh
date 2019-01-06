@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.799
+export version=0.1.800
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -46,7 +46,6 @@ source './support/mqtt'
 source './support/log'
 source './support/data'
 source './support/btle'
-source './support/time'
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -683,16 +682,6 @@ mqtt_pid="$!"
 echo "> mqtt listener pid = $mqtt_pid" >> .pids
 disown "$mqtt_pid"
 
-refresh_databases &
-database_clock_pid="$!"
-echo "> database clock pid = $database_clock_pid" >> .pids
-disown "$database_clock_pid"
-
-periodic_trigger &
-periodic_clock_pid="$!"
-echo "> periodic clock pid = $periodic_clock_pid" >> .pids
-disown "$periodic_clock_pid"
-
 echo "================== BEGIN LOGGING =================="
 
 # ----------------------------------------------------------------------------------------
@@ -906,12 +895,11 @@ while true; do
 				systemctl restart monitor.service				
 			fi
 
-		elif [ "$cmd" == "TIME" ]; then 
+		elif [ "$cmd" == "BOFF" ]; then 
 			
-			#FIND RSSI OF KNOWN DEVICES PREVIOUSLY CONNECTED
+			#FIND RSSI OF KNOWN DEVICES PREVIOUSLY CONNECTED WHILE HICTOOL IS NOT 
+			#SCANNING
 			connectable_present_devices
-
-		elif [ "$cmd" == "REFR" ]; then 
 
 			#**********************************************************************
 			#
