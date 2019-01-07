@@ -101,9 +101,6 @@ publish_rssi_message () {
 		
 		local topic="$mqtt_topicpath/$mqtt_publisher_identity/$address/rssi"
 
-		#POST VERIFICATION THAT WE ARE STILL ONLINE; CURES AN ISSUE OF HOMEASSISTANT RESTARTING
-		mqtt_announce_online
-
 		#POST TO MQTT
 		$mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
