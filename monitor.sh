@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.813
+export version=0.1.814
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -194,6 +194,8 @@ connectable_present_devices () {
 		
 		#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
 		this_state="${known_public_device_log[$known_addr]}"
+
+		[ -z "$this_state" ] && this_state=0
 
 		#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
 		if [ "$this_state" == "1" ] && [[ $previously_connected_devices =~ .*$known_addr.* ]] ; then 
