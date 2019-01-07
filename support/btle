@@ -88,7 +88,7 @@ btle_scanner () {
 		disown "$!"
 
 		#NEED DELAY TO BE SURE WE'RE NOT RESTARTING HARDWARE TOO QUICKLY
-		sleep 3
+		sleep 1
 	done
 
 	#REPORT ERROR
@@ -239,9 +239,6 @@ btle_text_listener () {
 				packet="$packet|$line" 
 			fi
 		done < <(timeout --signal SIGINT 400 stdbuf -o0 btmon 2>&1)
-
-		#PREVENT MEMORY 
-		sleep 5
 	done 
 	#REPORT ERROR
 	(>&2 echo "error! irrecoverable btle_text_listener error")
@@ -280,5 +277,5 @@ btle_listener () {
 				packet=""
 			fi 
 		fi
-	done < <(timeout --signal SIGINT 300 stdbuf -o0 hcidump -i $PREF_HCI_DEVICE --raw)
+	done < <(timeout --signal SIGINT 900 stdbuf -o0 hcidump -i $PREF_HCI_DEVICE --raw)
 }

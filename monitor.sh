@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.807
+export version=0.1.808
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -106,6 +106,7 @@ scan_type=""
 
 #SCAN VARIABLES
 now=$(date +%s)
+last_rssi_scan=""
 last_arrival_scan=$((now - 25))
 last_depart_scan=$((now - 25))
 first_arrive_scan=true
@@ -915,8 +916,14 @@ while true; do
 		elif [ "$cmd" == "BOFF" ]; then 
 			
 			#FIND RSSI OF KNOWN DEVICES PREVIOUSLY CONNECTED WHILE HICTOOL IS NOT 
-			#SCANNING
-			connectable_present_devices
+			#SCANNING			
+			difference_last_rssi=$((timestamp - last_rssi_scan))
+
+			#ONLY EVER 5 MINUTES
+			if [ "$difference" -gt "300" ] || [ -z "$last_rssi_scan" ] ; then 
+				connectable_present_devices
+				last_rssi_scan=$(date +%s)
+			fi 
 
 			#**********************************************************************
 			#
