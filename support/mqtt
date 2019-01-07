@@ -82,6 +82,42 @@ mqtt_listener (){
 	done 
 
 }
+
+
+# ----------------------------------------------------------------------------------------
+# PUBLISH RSSI MESSAGE
+# ----------------------------------------------------------------------------------------
+
+publish_rssi_message () {
+	if [ -n "$1" ]; then 
+		#TIMESTAMP
+		local stamp
+		local address
+		local message
+
+		#SET ISOLATED ADDRESS
+	    address="$1"
+		message="$2"
+		
+		local topic="$mqtt_topicpath/$mqtt_publisher_identity/$address/rssi"
+
+		#POST VERIFICATION THAT WE ARE STILL ONLINE; CURES AN ISSUE OF HOMEASSISTANT RESTARTING
+		mqtt_announce_online
+
+		#POST TO MQTT
+		$mosquitto_pub_path \
+		-I "$mqtt_publisher_identity" \
+		$mqtt_version_append \
+		$mqtt_ca_file_append \
+		-h "$mqtt_address" \
+		-p "$mqtt_port" \
+		-u "$mqtt_user" \
+		-P "$mqtt_password" \
+		-t "$topic" \
+		-m "$message" 2>&1
+	fi
+}
+
 # ----------------------------------------------------------------------------------------
 # PUBLISH MESSAGE
 # ----------------------------------------------------------------------------------------
