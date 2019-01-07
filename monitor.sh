@@ -197,6 +197,7 @@ connectable_present_devices () {
 
 		#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
 		if [ "$this_state" == "1" ] && [[ $previously_connected_devices =~ .*$known_addr.* ]] ; then 
+				
 			known_device_rssi=$(hcitool cc $known_addr && hcitool rssi $known_addr)
 
 			#KNOWN RSSI
@@ -209,6 +210,9 @@ connectable_present_devices () {
 			publish_rssi_message \
 			"$known_addr" \
 			"-$known_device_rssi"
+
+			#REPORT 
+			log "${CYAN}[CMD-RSSI]	${NC}$known_addr ${GREEN}$cmd ${NC}RSSI: $known_device_rssi dBm ${NC}"
 
 			#SET RSSI LOG
 			rssi_log[$known_addr]="$known_device_rssi"
