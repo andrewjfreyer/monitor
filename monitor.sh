@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.812
+export version=0.1.813
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -924,7 +924,7 @@ while true; do
 			difference_last_rssi=$((timestamp - last_rssi_scan))
 
 			#ONLY EVER 5 MINUTES
-			if [ "$difference_last_rssi" -gt "300" ] || [ -z "$last_rssi_scan" ] ; then 
+			if [ "$difference_last_rssi" -gt "100" ] || [ -z "$last_rssi_scan" ] ; then 
 				connectable_present_devices
 				last_rssi_scan=$(date +%s)
 			else 
