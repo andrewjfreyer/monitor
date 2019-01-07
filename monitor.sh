@@ -928,7 +928,7 @@ while true; do
 				connectable_present_devices
 				last_rssi_scan=$(date +%s)
 			else 
-				echo "> rejected $last_rssi_scan"
+				echo "> rejected $last_rssi_scan $difference_last_rssi"
 			fi 
 
 			#**********************************************************************
