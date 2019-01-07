@@ -216,6 +216,8 @@ connectable_present_devices () {
 
 			#SET RSSI LOG
 			rssi_log[$known_addr]="$known_device_rssi"
+		else 
+			echo "rejecting scan $this_state $known_addr"
 		fi 
 	done
 }
