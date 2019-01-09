@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.814
+export version=0.1.815
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -341,7 +341,7 @@ perform_complete_scan () {
 	for repetition in $(seq 1 $repetitions); do
 
 		#SET DONE TO MAIN PIPE
-		echo "DONE" > main_pipe
+		printf "DONE\n" > main_pipe
 
 		#SET DEVICES
 		devices="$devices_next"
@@ -401,13 +401,13 @@ perform_complete_scan () {
 			scan_duration=$((scan_end - scan_start))
 
 			#MARK THE ADDRESS AS SCANNED SO THAT IT CAN BE LOGGED ON THE MAIN PIPE
-			echo "SCAN$known_addr" > main_pipe & 
+			printf "SCAN$known_addr\n" > main_pipe & 
 
 			#IF STATUS CHANGES TO PRESENT FROM NOT PRESENT, REMOVE FROM VERIFICATIONS
 			if [ -n "$name" ] && [ "$previous_state" == "0" ]; then 
 
 				#PUSH TO MAIN POPE
-				echo "NAME$known_addr|$name" > main_pipe 
+				printf "NAME$known_addr|$name\n" > main_pipe 
 
 				#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT 
 				publish_presence_message "id=$known_addr" "confidence=100" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
@@ -420,7 +420,7 @@ perform_complete_scan () {
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
 
 				#NEED TO UPDATE STATE TO MAIN THREAD
-				echo "NAME$known_addr|$name" > main_pipe 
+				printf "NAME$known_addr|$name\n" > main_pipe 
 
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
 				publish_presence_message "id=$known_addr" "confidence=100" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
@@ -476,7 +476,7 @@ perform_complete_scan () {
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
 
 				#PUBLISH A NOT PRESENT TO THE NAME PIPE
-				echo "NAME$known_addr|" > main_pipe 
+				printf "NAME$known_addr|\n" > main_pipe 
 
 				#COOPERATIVE SCAN ON RESTART
 				[ "$PREF_TRIGGER_MODE_REPORT_OUT" == true ] && publish_cooperative_scan_message "depart"
@@ -537,11 +537,11 @@ perform_complete_scan () {
 			publish_presence_message "id=$known_addr" "confidence=0" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
 		fi 
 
-		echo "NAME$known_addr|" > main_pipe 
+		printf "NAME$known_addr|\n" > main_pipe 
 	done
 
 	#SET DONE TO MAIN PIPE
-	echo "DONE" > main_pipe
+	printf "DONE\n" > main_pipe
 
 	#GROUP SCAN FINISHED
 	log "${GREEN}[CMD-INFO]	${GREEN}**** Completed $transition_type scan. **** ${NC}"
@@ -579,7 +579,7 @@ perform_departure_scan () {
 		scan_type=1
 	else 
 		#HERE A DEPART SCAN IS ACTIVE; ENQUEUE ANOTHER DEPART SCAN AFTER 15-second delay 
-		[ "$scan_type" == "0" ] && sleep 5 && echo "ENQUdepart" > main_pipe & 	
+		[ "$scan_type" == "0" ] && sleep 5 && printf "ENQUdepart\n" > main_pipe & 	
 	fi
 
 }
@@ -611,7 +611,7 @@ perform_arrival_scan () {
 		scan_type=0
 	else 
 		#HERE A DEPART SCAN IS ACTIVE; ENQUEUE ANOTHER DEPART SCAN AFTER 15-second delay 
-		[ "$scan_type" == "1" ] && sleep 5 && echo "ENQUarrive" > main_pipe & 
+		[ "$scan_type" == "1" ] && sleep 5 && printf "ENQUarrive\n" > main_pipe & 
 	fi 
 }
 
@@ -882,8 +882,19 @@ while true; do
 				if [ "$scan_type_diff" -gt "$PREF_MINIMUM_TIME_BETWEEN_SCANS" ]; then 
 					log "${GREEN}[INSTRUCT] ${NC}mqtt trigger depart ${NC}"
 					perform_departure_scan
-				fi 		
+				fi 	
 
+			elif [[ $mqtt_topic_branch =~ .*RSSI.* ]]; then 
+				log "${GREEN}[INSTRUCT] ${NC}mqtt RSSI update  ${NC}"
+				
+				#SCAN FOR RSSI
+				difference_last_rssi=$((timestamp - last_rssi_scan))
+
+				#ONLY EVER 5 MINUTES
+				if [ "$difference_last_rssi" -gt "100" ] || [ -z "$last_rssi_scan" ] ; then 
+					connectable_present_devices
+					last_rssi_scan=$(date +%s)
+				fi 
 			elif [[ $mqtt_topic_branch =~ .*RESTART.* ]]; then 
 				log "${GREEN}[INSTRUCT] ${NC}mqtt restart  ${NC}"
 				
@@ -931,8 +942,6 @@ while true; do
 			if [ "$difference_last_rssi" -gt "100" ] || [ -z "$last_rssi_scan" ] ; then 
 				connectable_present_devices
 				last_rssi_scan=$(date +%s)
-			else 
-				echo "> rejected $last_rssi_scan $difference_last_rssi"
 			fi 
 
 			#**********************************************************************

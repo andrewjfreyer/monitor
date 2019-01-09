@@ -54,7 +54,7 @@ btle_packet_processor () {
         packet=""
 
 		#SEND TO MAIN LOOP
-		[ ! -z "$UUID" ] && echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address" > main_pipe 
+		[ ! -z "$UUID" ] && printf "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address\n" > main_pipe 
 	fi
 }
 
@@ -84,7 +84,7 @@ btle_scanner () {
 		fi 
 
 		#SEND SIGNAL THAT 
-		echo "BOFF" > main_pipe & 
+		printf "BOFF\n" > main_pipe & 
 		disown "$!"
 
 		#NEED DELAY TO BE SURE WE'RE NOT RESTARTING HARDWARE TOO QUICKLY
