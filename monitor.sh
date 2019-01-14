@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.818
+export version=0.1.819
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -194,7 +194,7 @@ connectable_present_devices () {
 		#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
 		this_state="${known_public_device_log[$known_addr]}"
 
-		[ -z "$this_state" ] && this_state=0
+		this_state=${this_state:-0}
 
 		#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
 		if [ "$this_state" == "1" ] && [[ "$previously_connected_devices" =~ .*$known_addr.* ]] ; then 
@@ -254,8 +254,8 @@ scannable_devices_with_state () {
 	#REJECT IF WE SCANNED TO RECENTLY
 	[ "$scan_type_diff" -lt "$PREF_MINIMUM_TIME_BETWEEN_SCANS" ] && return 0
 
-	#SCAN ALL? SET THE SCAN STATE TO [X]
-	[ -z "$scan_state" ] && scan_state=2
+	#SCAN ALL? SET THE DEFAULT SCAN STATE TO [X]
+	scan_state=${scan_state:-2}
 		 	
 	#ITERATE THROUGH THE KNOWN DEVICES 
 	local known_addr
@@ -267,7 +267,8 @@ scannable_devices_with_state () {
 		#IF WE HAVE NEVER SCANNED THIS DEVICE BEFORE, WE MARK AS 
 		#SCAN STATE [X]; THIS ALLOWS A FIRST SCAN TO PROGRESS TO 
 		#COMPLETION FOR ALL DEVICES
-		[ -z "$this_state" ] && this_state=3
+		this_state=${this_state:-3}
+
 
 		#FIND LAST TIME THIS DEVICE WAS SCANNED
 		last_scan="${known_static_device_scan_log[$known_addr]}"
@@ -373,7 +374,7 @@ perform_complete_scan () {
 
 			#DETERMINE MANUFACTUERE
 			manufacturer="$(determine_manufacturer "$known_addr")"
-			[ -z "$manufacturer" ] && manufacturer="Unknown" 
+			manufacturer=${manufacturer:-Unknown}
 
 			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
 			[ -z "$known_addr" ] && continue
@@ -383,7 +384,7 @@ perform_complete_scan () {
 
 			#GET LOCAL NAME
 			expected_name="$(determine_name $known_addr)"
-			[ -z "$expected_name" ] && "Unknown"
+			expected_name=${expected_name:-Unknown}
 
 			#DEBUG LOGGING
 			log "${GREEN}[CMD-SCAN]	${GREEN}(No. $repetition)${NC} $known_addr $transition_type? ${NC}"
@@ -527,10 +528,11 @@ perform_complete_scan () {
 		#PUBLISH MESSAGE
 		if [ ! "$previous_state" == "0" ]; then 
 			local expected_name="$(determine_name "$known_addr")"
-			[ -z "$expected_name" ] && "Unknown"
+			expected_name=${expected_name:-Unknown}
+
 					#DETERMINE MANUFACTUERE
 			manufacturer="$(determine_manufacturer "$known_addr")"
-			[ -z "$manufacturer" ] && manufacturer="Unknown" 	
+			manufacturer=${manufacturer:-Unknown}
 
 			#PUBLISH PRESENCE METHOD
 			publish_presence_message "id=$known_addr" "confidence=0" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
@@ -538,6 +540,7 @@ perform_complete_scan () {
 
 		printf "NAME$known_addr|\n" > main_pipe 
 	done
+
 
 	#SET DONE TO MAIN PIPE
 	printf "DONE\n" > main_pipe
@@ -1050,7 +1053,7 @@ while true; do
 
 			#SET NAME 
 			[ -n "$name" ] && known_public_device_name[$mac]="$name"
-			[ -z "$name" ] &&  name="$(determine_name "$data")"
+			[ -z "$name" ] && name="$(determine_name "$data")"
 
 			#DATA IS PUBLIC MAC Addr.; ADD TO LOG
 			[ -z "${public_device_log[$data]}" ] && is_new=true
@@ -1085,7 +1088,7 @@ while true; do
 
 			#PREVIOUS STATE; SET DEFAULT TO UNKNOWN
 			previous_state="${known_public_device_log[$mac]}"
-			[ -z "$previous_state" ] && previous_state=-1
+			previous_state=${previous_state:--1}
 
 			#GET MANUFACTURER INFORMATION
 			manufacturer="$(determine_manufacturer "$data")"
@@ -1139,7 +1142,7 @@ while true; do
 		if [ "$cmd" == "PUBL" ] || [ "$cmd" == "BEAC" ]; then 
 
 			#SET RSSI LATEST IF NOT ALREADY SET 
-			[ -z "$rssi_latest" ] && rssi_latest="-100"
+			rssi_latest=${rssi_latest:--100}
 
 			#IS RSSI THE SAME? 
 			rssi_change=$((rssi - rssi_latest))
@@ -1251,7 +1254,7 @@ while true; do
 			#FLAG AND MFCG FILTER
 			if [[ $flags =~ $PREF_ARRIVE_TRIGGER_FILTER ]] || [[ $manufacturer =~ $PREF_ARRIVE_TRIGGER_FILTER ]]; then 
 				#PROVIDE USEFUL LOGGING
-				log "${RED}[CMD-$cmd]${NC}	[${GREEN}passed filter${NC}] data: $data pdu: $pdu_header rssi: $rssi dBm flags: $flags man: $manufacturer"
+				log "${RED}[CMD-$cmd]${NC}	[${GREEN}passed filter${NC}] data: ${data:-none} pdu: ${pdu_header:-none} rssi: ${rssi:--100} dBm flags: ${flags:-none} man: ${manufacturer:-unknown}"
 
 				#WE ARE PERFORMING THE FIRST ARRIVAL SCAN?
 				first_arrive_scan=false
@@ -1260,7 +1263,7 @@ while true; do
 				perform_arrival_scan 
 			else 
 				#PROVIDE USEFUL LOGGING
-				log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: $data pdu: $pdu_header rssi: $rssi dBm flags: $flags man: $manufacturer"
+				log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: ${data:-none} pdu: ${pdu_header:-none} rssi: ${rssi:--100} dBm flags: ${flags:-none} man: ${manufacturer:-unknown}"
 			fi 
 		fi 
 
