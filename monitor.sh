@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.822
+export version=0.1.823
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -151,11 +151,8 @@ for addr in "${known_static_addresses[@]}"; do
 	is_connected="not previously connected"
 	[[ $previously_connected_devices =~ .*$addr.* ]] && is_connected="previously connected"
 
-	#FOR DBUGGING
-	echo "> $addr has $is_connected to $PREF_HCI_DEVICE"
-
 	#FOR DEBUGGING
-	echo "> $addr will publish updates to: $pub_topic"
+	echo "> $addr will publish updates to: $pub_topic (has $is_connected to $PREF_HCI_DEVICE)"
 done
 
 # ----------------------------------------------------------------------------------------
@@ -1064,13 +1061,15 @@ while true; do
 			[ -z "${public_device_log[$data]}" ] && is_new=true
 
 			#HAS THIS DEVICE BEEN MARKED AS EXPIRING SOON? IF SO, SHOULD REPORT 100 AGAIN
-			[ -n "${expiring_device_log[$data]}" ] && is_new=true
+			#[ -n "${expiring_device_log[$data]}" ] && is_new=true
 
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$data]}" 
 
 			#IF NOT IN DATABASE, BUT FOUND HERE
-			if [ -n "$name" ]; then 
+			if [ -n "$name" ]; then
+
+				#FIND PUBLIC NAME 
 				known_public_device_name[$data]="$name"
 
 				#GET NAME FROM CACHE
