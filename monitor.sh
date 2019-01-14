@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.819
+export version=0.1.820
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -94,6 +94,7 @@ declare -A rssi_log
 
 #STATIC DEVICE ASSOCIATIVE ARRAYS
 declare -A known_public_device_log
+declare -A expiring_device_log
 declare -A known_static_device_scan_log
 declare -A known_public_device_name
 declare -A blacklisted_devices
@@ -818,7 +819,6 @@ while true; do
 
 					#BEACON TYPE
 					beacon_type="GENERIC_BEACON_RANDOM"
-
 				else 
 
 					#DATA IS RANDOM MAC Addr.; ADD TO LOG
@@ -984,6 +984,10 @@ while true; do
 
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" ]; then 
+					#REMOVE FROM EXPIRING DEVICE LOG
+					unset "expiring_device_log[$key]"
+
+					#REMOVE FROM RANDOM DEVICE LOG
 					unset "random_device_log[$key]"
 					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-RAND]	${NC}RAND $key expired after $difference seconds ${NC}"
 			
@@ -1028,11 +1032,12 @@ while true; do
 					percent_confidence=$(( 100 - difference * 100 / PREF_BEACON_EXPIRATION )) 
 
 					if [ "$PREF_REPORT_ALL_MODE" == true ]; then						#REPORTING ALL 
-						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" "rssi=$latest_rssi" 
+						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" "rssi=$latest_rssi" && expiring_device_log[$key]=true
+					else 
+						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
+						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "50" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" "rssi=$latest_rssi" && expiring_device_log[$key]=true
 					fi  
 
-					#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
-					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "50" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" "rssi=$latest_rssi"
 				fi 
 			done
 
@@ -1057,6 +1062,9 @@ while true; do
 
 			#DATA IS PUBLIC MAC Addr.; ADD TO LOG
 			[ -z "${public_device_log[$data]}" ] && is_new=true
+
+			#HAS THIS DEVICE BEEN MARKED AS EXPIRING SOON? IF SO, SHOULD REPORT 100 AGAIN
+			[ -n "${expiring_device_log[$data]}" ] && is_new=true
 
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$data]}" 
@@ -1254,7 +1262,7 @@ while true; do
 			#FLAG AND MFCG FILTER
 			if [[ $flags =~ $PREF_ARRIVE_TRIGGER_FILTER ]] || [[ $manufacturer =~ $PREF_ARRIVE_TRIGGER_FILTER ]]; then 
 				#PROVIDE USEFUL LOGGING
-				log "${RED}[CMD-$cmd]${NC}	[${GREEN}passed filter${NC}] data: ${data:-none} pdu: ${pdu_header:-none} rssi: ${rssi:--100} dBm flags: ${flags:-none} man: ${manufacturer:-unknown}"
+				log "${RED}[CMD-$cmd]${NC}	[${GREEN}passed filter${NC}] data: ${BLUE}${data:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN}${NC} dBm flags: ${BLUE}${flags:-none}${NC} man: ${BLUE}${manufacturer:-unknown}${NC}"
 
 				#WE ARE PERFORMING THE FIRST ARRIVAL SCAN?
 				first_arrive_scan=false
@@ -1263,7 +1271,7 @@ while true; do
 				perform_arrival_scan 
 			else 
 				#PROVIDE USEFUL LOGGING
-				log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: ${data:-none} pdu: ${pdu_header:-none} rssi: ${rssi:--100} dBm flags: ${flags:-none} man: ${manufacturer:-unknown}"
+				log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: ${BLUE}${data:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN}${NC} dBm flags: ${BLUE}${flags:-none}${NC} man: ${BLUE}${manufacturer:-unknown}${NC}"
 			fi 
 		fi 
 
