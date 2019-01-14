@@ -238,7 +238,7 @@ if [ -f "$PREF_CONFIG" ]; then
 > preference: minimum time between the same type of scan = $PREF_MINIMUM_TIME_BETWEEN_SCANS
 > preference: mqtt scan start/end reporting = $PREF_MQTT_REPORT_SCAN_MESSAGES
 > mqtt trigger: $mqtt_topicpath/scan/ARRIVE
-> mqtt trigger: $mqtt_topicpath/scan/DEPART" | sed 's/= $/= ${RED}error${NC}\!/g')
+> mqtt trigger: $mqtt_topicpath/scan/DEPART" | sed 's/= $/= error\!/g')
 	echo "$preferences"
 
 	#DEFAULTS
@@ -260,7 +260,7 @@ if [ -f "$PREF_CONFIG" ]; then
 	PREF_STARTUP_SETTLE_TIME=${PREF_STARTUP_SETTLE_TIME:-45}
 
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
-	[ "$(echo "$preferences" | grep -c "error")" -gt "0" ] && echo -e "> warning: preferences error, using defaults. consider reset to defaults with '-d' flag"
+	[ "$(echo "$preferences" | grep -c "error")" -gt "0" ] && echo "> warning: preferences error, using defaults. consider reset to defaults with '-d' flag"
 
 else
 	echo "> default behavior preferences file created. please customize to your needs." 
