@@ -1061,7 +1061,7 @@ while true; do
 			[ -z "${public_device_log[$data]}" ] && is_new=true
 
 			#HAS THIS DEVICE BEEN MARKED AS EXPIRING SOON? IF SO, SHOULD REPORT 100 AGAIN
-			#[ -n "${expiring_device_log[$data]}" ] && is_new=true
+			[ -n "${expiring_device_log[$data]}" ] && rssi_updated=true
 
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$data]}" 
