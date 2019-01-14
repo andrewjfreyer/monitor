@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.816
+export version=0.1.817
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -218,8 +218,8 @@ connectable_present_devices () {
 
 			#SET RSSI LOG
 			rssi_log[$known_addr]="$known_device_rssi"
-		else 
-			echo "rejecting scan $this_state $known_addr $previously_connected_devices"
+		#else 
+	#		echo "rejecting scan $this_state $known_addr $previously_connected_devices"
 		fi 
 	done
 }
