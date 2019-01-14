@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.817
+export version=0.1.818
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -98,7 +98,6 @@ declare -A known_static_device_scan_log
 declare -A known_public_device_name
 declare -A blacklisted_devices
 declare -A beacon_private_address_log
-
 
 #LAST TIME THIS 
 scan_pid=""
@@ -716,6 +715,7 @@ while true; do
 		cmd="${event:0:4}"
 		data="${event:4}"
 		timestamp=$(date +%s)
+		uptime=$((timestamp - now))
 
 		#FLAGS TO DETERMINE FRESHNESS OF DATA
 		is_new=false
@@ -737,7 +737,7 @@ while true; do
 		beacon_type="GENERIC_BEACON"
 
 		#PROCEED BASED ON COMMAND TYPE
-		if [ "$cmd" == "ENQU" ]; then 
+		if [ "$cmd" == "ENQU" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
 
 			#WE HAVE AN ENQUEUED OPPOSITE SCAN; NEED TO TRIGGER THAT SCAN
 			if [ "$data" == "arrive" ]; then 
@@ -849,7 +849,8 @@ while true; do
 			scan_type=""
 			continue
 
-		elif [ "$cmd" == "MQTT" ]; then 
+		elif [ "$cmd" == "MQTT" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
+
 			#GET INSTRUCTION 
 			topic_path_of_instruction=$(echo "$data"  | sed 's/ {.*//')
 			data_of_instruction=$(echo "$data" | sed 's/.* {//;s/^/{/g')
@@ -932,7 +933,7 @@ while true; do
 				systemctl restart monitor.service				
 			fi
 
-		elif [ "$cmd" == "BOFF" ]; then 
+		elif [ "$cmd" == "BOFF" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
 			
 			#FIND RSSI OF KNOWN DEVICES PREVIOUSLY CONNECTED WHILE HICTOOL IS NOT 
 			#SCANNING			
@@ -1134,7 +1135,7 @@ while true; do
 		#
 		#**********************************************************************
 
-				#REPORT RSSI CHANGES
+		#REPORT RSSI CHANGES
 		if [ "$cmd" == "PUBL" ] || [ "$cmd" == "BEAC" ]; then 
 
 			#SET RSSI LATEST IF NOT ALREADY SET 
@@ -1180,7 +1181,6 @@ while true; do
 		#
 		#**********************************************************************
 
-		#ECHO VALUES FOR DEBUGGING
 		if [ "$cmd" == "NAME" ] ; then 
 			
 			#PRINTING FORMATING
@@ -1251,18 +1251,21 @@ while true; do
 			#FLAG AND MFCG FILTER
 			if [[ $flags =~ $PREF_ARRIVE_TRIGGER_FILTER ]] || [[ $manufacturer =~ $PREF_ARRIVE_TRIGGER_FILTER ]]; then 
 				#PROVIDE USEFUL LOGGING
-				log "${RED}[CMD-$cmd]${NC}	$data $pdu_header $rssi dBm"
+				log "${RED}[CMD-$cmd]${NC}	[${GREEN}passed filter${NC}] data: $data pdu: $pdu_header rssi: $rssi dBm flags: $flags man: $manufacturer"
 
 				#WE ARE PERFORMING THE FIRST ARRIVAL SCAN?
 				first_arrive_scan=false
 
 				#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
 				perform_arrival_scan 
+			else 
+				#PROVIDE USEFUL LOGGING
+				log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: $data pdu: $pdu_header rssi: $rssi dBm flags: $flags man: $manufacturer"
 			fi 
 		fi 
 
 		#SHOUD WE PERFORM AN ARRIVAL SCAN AFTER THIS FIRST LOOP?
-		if [ "$first_arrive_scan" == true ] ; then 
+		if [ "$first_arrive_scan" == true ] && [ "$uptime" -lt "$PREF_STARTUP_SETTLE_TIME" ] ; then 
 			perform_arrival_scan 
 		fi 
 

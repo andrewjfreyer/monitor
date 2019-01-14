@@ -255,6 +255,9 @@ if [ -f "$PREF_CONFIG" ]; then
 	[ -z "$PREF_MINIMUM_TIME_BETWEEN_SCANS" ] && PREF_MINIMUM_TIME_BETWEEN_SCANS=15
 	[ -z "$PREF_MQTT_REPORT_SCAN_MESSAGES" ]  && PREF_MQTT_REPORT_SCAN_MESSAGES=false
 	[ -z "$PREF_ARRIVE_TRIGGER_FILTER" ]  && PREF_ARRIVE_TRIGGER_FILTER="0x1a|Apple"
+
+	#HIDDEN OR CUSTOM OPTIONS
+	[ -z "$PREF_STARTUP_SETTLE_TIME" ]  && PREF_STARTUP_SETTLE_TIME="45"
 	
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
 	[ "$(echo "$preferences" | grep -c "error")" -gt "0" ] && echo "> warning: preferences error, using defaults. consider reset to defaults with '-d' flag"
