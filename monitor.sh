@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.823
+export version=0.1.824
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -1149,7 +1149,7 @@ while true; do
 		if [ "$cmd" == "PUBL" ] || [ "$cmd" == "BEAC" ]; then 
 
 			#SET RSSI LATEST IF NOT ALREADY SET 
-			rssi_latest=${rssi_latest:--100}
+			rssi_latest=${rssi_latest:--200}
 
 			#IS RSSI THE SAME? 
 			rssi_change=$((rssi - rssi_latest))
@@ -1179,7 +1179,9 @@ while true; do
 			esac
 
 			#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-			[ -n "$mac" ] && [ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$data $expected_name ${GREEN}$cmd ${NC}RSSI: $rssi dBm ($change_type, changed $rssi_change) ${NC}" && rssi_updated=true
+			if [ -n "$mac" ]; then 
+				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$data $expected_name ${GREEN}$cmd ${NC}RSSI: $rssi dBm ($change_type, changed $rssi_change) ${NC}" && rssi_updated=true
+			fi 
 		fi
 
 		#**********************************************************************
