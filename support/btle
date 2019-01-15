@@ -23,7 +23,7 @@ btle_packet_processor () {
 	#BEACON PACKET?
 	if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]]; then
 
-		printf "DEBUG: %s\n" "$packet"
+		printf "DEBUG ACCEPT: %s\n" "$packet"
 
 		#HARDARE MAC AND PDU HEADER
 		local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
@@ -57,6 +57,8 @@ btle_packet_processor () {
 
 		#SEND TO MAIN LOOP
 		[ -n "$UUID" ] && printf "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address\n" > main_pipe 
+	else 
+		printf "DEBUG REJECT: %s\n" "$packet"
 	fi
 }
 
