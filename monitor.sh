@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.831
+export version=0.1.832
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -766,7 +766,6 @@ while true; do
 				#TRIGGER 
 				perform_departure_scan
 			fi
-
 		elif [ "$cmd" == "RAND" ]; then 
 			#PARSE RECEIVED DATA
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
@@ -819,7 +818,7 @@ while true; do
 					cmd="PUBL"
 
 					#BEACON TYPE
-					beacon_type="GENERIC_BEACON_RANDOM"
+					beacon_type="GENERIC_BEACON_PUBLIC"
 				else 
 
 					#DATA IS RANDOM MAC Addr.; ADD TO LOG
@@ -834,13 +833,11 @@ while true; do
 					rssi_log[$mac]="$rssi"
 				fi 
 			fi
-
 		elif [ "$cmd" == "SCAN" ]; then 
 
 			#ADD TO THE SCAN LOG
 			known_static_device_scan_log[$data]=$(date +%s)
 			continue
-
 		elif [ "$cmd" == "DONE" ]; then 
 
 			#SCAN MODE IS COMPLETE
@@ -852,7 +849,6 @@ while true; do
 
 			scan_type=""
 			continue
-
 		elif [ "$cmd" == "MQTT" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
 
 			#GET INSTRUCTION 
@@ -935,7 +931,6 @@ while true; do
 				#RESTART SYSTEM
 				systemctl restart monitor.service				
 			fi
-
 		elif [ "$cmd" == "BOFF" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
 			
 			#FIND RSSI OF KNOWN DEVICES PREVIOUSLY CONNECTED WHILE HICTOOL IS NOT 
@@ -1040,8 +1035,68 @@ while true; do
 
 				fi 
 			done
+		elif [ "$cmd" == "NAME" ]; then 
+			#DATA IS DELIMITED BY VERTICAL PIPE
+			mac=$(echo "$data" | awk -F "|" '{print $1}')
+			name=$(echo "$data" | awk -F "|" '{print $2}')
+			data="$mac"
+			rssi_latest="${rssi_log[$data]}"
 
-		elif [ "$cmd" == "PUBL" ]; then 
+			#PREVIOUS STATE; SET DEFAULT TO UNKNOWN
+			previous_state="${known_public_device_log[$mac]}"
+			previous_state=${previous_state:--1}
+
+			#GET MANUFACTURER INFORMATION
+			manufacturer="$(determine_manufacturer "$data")"
+
+			#IF NAME IS DISCOVERED, PRESUME HOME
+			if [ -n "$name" ]; then 
+				known_public_device_log[$mac]=1
+				[ "$previous_state" != "1" ] && did_change=true
+			else
+				known_public_device_log[$mac]=0
+				[ "$previous_state" != "0" ] && did_change=true
+			fi 
+		elif [ "$cmd" == "BEAC" ]; then 
+
+			#DATA IS DELIMITED BY VERTICAL PIPE
+			uuid=$(echo "$data" | awk -F "|" '{print $1}')
+			major=$(echo "$data" | awk -F "|" '{print $2}')
+			minor=$(echo "$data" | awk -F "|" '{print $3}')
+			rssi=$(echo "$data" | awk -F "|" '{print $4}')
+			power=$(echo "$data" | awk -F "|" '{print $5}')
+			mac=$(echo "$data" | awk -F "|" '{print $6}')
+			pdu_header=$(echo "$data" | awk -F "|" '{print $7}')
+			beacon_type="APPLE_IBEACON"
+
+			#GET MAC AND PDU HEADER
+			uuid_reference="$uuid-$major-$minor"
+
+			#HAS THIS DEVICE BEEN MARKED AS EXPIRING SOON? IF SO, SHOULD REPORT 100 AGAIN
+			[ -n "${expiring_device_log[$uuid_reference]}" ] && rssi_updated=true
+
+			#UPDATE PRIVATE ADDRESS
+			beacon_private_address_log["$uuid_reference"]="$mac"
+
+			#KEY DEFINED AS UUID-MAJOR-MINOR
+			data="$uuid_reference"
+
+			#FIND NAME OF BEACON
+			[ -z "$name" ] && name="$(determine_name "$data")"
+
+			#GET LAST RSSI
+			rssi_latest="${rssi_log[$data]}" 
+			[ -z "${public_device_log[$data]}" ] && is_new=true
+
+			#RECORD 
+			public_device_log[$data]="$timestamp"	
+			rssi_log[$data]="$rssi"		
+		fi 
+
+		#NEED TO VERIFY WHETHER WE HAVE TO UPDATE INFORMATION FOR A PRIVATE BEACON THAT IS 
+		#ACTUALLY PUBLIC
+
+		if [ "$cmd" == "PUBL" ]; then 
 			#PARSE RECEIVED DATA
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			pdu_header=$(echo "$data" | awk -F "|" '{print $2}')
@@ -1117,63 +1172,6 @@ while true; do
 			#MANUFACTURER
 			[ -z "$manufacturer" ] && manufacturer="$(determine_manufacturer "$data")"
 
-		elif [ "$cmd" == "NAME" ]; then 
-			#DATA IS DELIMITED BY VERTICAL PIPE
-			mac=$(echo "$data" | awk -F "|" '{print $1}')
-			name=$(echo "$data" | awk -F "|" '{print $2}')
-			data="$mac"
-			rssi_latest="${rssi_log[$data]}"
-
-			#PREVIOUS STATE; SET DEFAULT TO UNKNOWN
-			previous_state="${known_public_device_log[$mac]}"
-			previous_state=${previous_state:--1}
-
-			#GET MANUFACTURER INFORMATION
-			manufacturer="$(determine_manufacturer "$data")"
-
-			#IF NAME IS DISCOVERED, PRESUME HOME
-			if [ -n "$name" ]; then 
-				known_public_device_log[$mac]=1
-				[ "$previous_state" != "1" ] && did_change=true
-			else
-				known_public_device_log[$mac]=0
-				[ "$previous_state" != "0" ] && did_change=true
-			fi 
-
-		elif [ "$cmd" == "BEAC" ]; then 
-
-			#DATA IS DELIMITED BY VERTICAL PIPE
-			uuid=$(echo "$data" | awk -F "|" '{print $1}')
-			major=$(echo "$data" | awk -F "|" '{print $2}')
-			minor=$(echo "$data" | awk -F "|" '{print $3}')
-			rssi=$(echo "$data" | awk -F "|" '{print $4}')
-			power=$(echo "$data" | awk -F "|" '{print $5}')
-			mac=$(echo "$data" | awk -F "|" '{print $6}')
-			pdu_header=$(echo "$data" | awk -F "|" '{print $7}')
-			beacon_type="APPLE_IBEACON"
-
-			#GET MAC AND PDU HEADER
-			uuid_reference="$uuid-$major-$minor"
-
-			#HAS THIS DEVICE BEEN MARKED AS EXPIRING SOON? IF SO, SHOULD REPORT 100 AGAIN
-			[ -n "${expiring_device_log[$uuid_reference]}" ] && rssi_updated=true
-
-			#UPDATE PRIVATE ADDRESS
-			beacon_private_address_log["$uuid_reference"]="$mac"
-
-			#KEY DEFINED AS UUID-MAJOR-MINOR
-			data="$uuid_reference"
-
-			#FIND NAME OF BEACON
-			[ -z "$name" ] && name="$(determine_name "$data")"
-
-			#GET LAST RSSI
-			rssi_latest="${rssi_log[$data]}" 
-			[ -z "${public_device_log[$data]}" ] && is_new=true
-
-			#RECORD 
-			public_device_log[$data]="$timestamp"	
-			rssi_log[$data]="$rssi"		
 		fi
 
 		#**********************************************************************
@@ -1221,7 +1219,7 @@ while true; do
 			[ "$rssi_latest" == "200" ] && change_type="arrival" && motion_direction="" && rssi_updated=true
 
 			#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-			[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$data $expected_name ${GREEN}$cmd ${NC}RSSI: $rssi dBm ($change_type, changed $rssi_change) ${NC}" && rssi_updated=true
+			[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$data $expected_name ${GREEN}$cmd ${NC}RSSI: -$rssi dBm ($change_type, changed $rssi_change) ${NC}" && rssi_updated=true
 		fi
 
 		#**********************************************************************
