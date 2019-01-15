@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.828
+export version=0.1.829
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -722,9 +722,12 @@ while true; do
 		is_new=false
 		rssi_updated=false
 		did_change=false
+		is_beacon=false
+
 
 		#CLEAR DATA IN NONLOCAL VARS
 		manufacturer="Unknown"
+		associated_beacon=""
 		name=""
 		expected_name=""
 		mac=""
@@ -859,7 +862,6 @@ while true; do
 			if [[ $data_of_instruction =~ .*$mqtt_publisher_identity.* ]]; then 
 				continue
 			fi 
-
 
 			#GET THE TOPIC 
 			mqtt_topic_branch=$(basename "$topic_path_of_instruction")
@@ -1053,6 +1055,18 @@ while true; do
 			data="$mac"
 			beacon_type="GENERIC_BEACON_PUBLIC"
 
+			#DETERMINE WHETHER THIS DEVICE IS ASSOCIATED WITH AN IBEACON
+			associated_beacon=""
+			for beacon_key in "${!beacon_private_address_log[@]}"; do
+				if [ "$beacon_key" == "$mac" ]; then 
+					associated_beacon="${beacon_private_address_log[$beacon_key]}"
+					break
+				fi 
+			done
+
+			#OK, WE HAVE A BEACON - SWITCH UP THE HANDLING OF IT BACK TO BEACON
+			[ -n "$associated_beacon" ] && beacon_type="APPLE_IBEACON" && cmd="BEAC"
+
 			#SET NAME 
 			[ -n "$name" ] && known_public_device_name[$mac]="$name"
 			[ -z "$name" ] && name="$(determine_name "$data")"
@@ -1077,11 +1091,27 @@ while true; do
 
 				#ECHO TO CACHE IF DOES NOT EXIST
 				[ -z "$cached_name" ] && echo "$data	$name" >> .public_name_cache
+
+				if [ -n "$associated_beacon" ]; then 
+					#IF THIS IS AN IBEACON, WE ADD THE NAME TO THAT ARRAY TOO
+					known_public_device_name[$associated_beacon]="$name"
+
+					#GET NAME FROM CACHE
+					cached_name=""
+					cached_name=$(grep "$associated_beacon" < ".public_name_cache" | awk -F "\t" '{print $2}')
+
+					#ECHO TO CACHE IF DOES NOT EXIST
+					[ -z "$cached_name" ] && echo "$associated_beacon	$name" >> .public_name_cache
+				fi 
 			fi 
 
 			#STATIC DEVICE DATABASE AND RSSI DATABASE
 			public_device_log[$data]="$timestamp"
 			rssi_log[$data]="$rssi"
+
+			#IF BEACON
+			public_device_log[$associated_beacon]="$timestamp"	
+			rssi_log[$associated_beacon]="$rssi"		
 
 			#MANUFACTURER
 			[ -z "$manufacturer" ] && manufacturer="$(determine_manufacturer "$data")"
@@ -1118,11 +1148,11 @@ while true; do
 			rssi=$(echo "$data" | awk -F "|" '{print $4}')
 			power=$(echo "$data" | awk -F "|" '{print $5}')
 			mac=$(echo "$data" | awk -F "|" '{print $6}')
+			pdu_header=$(echo "$data" | awk -F "|" '{print $7}')
 			beacon_type="APPLE_IBEACON"
 
 			#GET MAC AND PDU HEADER
 			uuid_reference="$uuid-$major-$minor"
-			pdu_header=$(echo "$data" | awk -F "|" '{print $7}')
 
 			#HAS THIS DEVICE BEEN MARKED AS EXPIRING SOON? IF SO, SHOULD REPORT 100 AGAIN
 			[ -n "${expiring_device_log[$uuid_reference]}" ] && rssi_updated=true
@@ -1133,9 +1163,14 @@ while true; do
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			data="$uuid_reference"
 
+			#FIND NAME OF BEACON
+			[ -z "$name" ] && name="$(determine_name "$data")"
+
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$data]}" 
 			[ -z "${public_device_log[$data]}" ] && is_new=true
+
+			#RECORD 
 			public_device_log[$data]="$timestamp"	
 			rssi_log[$data]="$rssi"		
 		fi
@@ -1242,7 +1277,8 @@ while true; do
 				"name=$name" \
 				"manufacturer=$manufacturer" \
 				"type=$beacon_type" \
-				"rssi=$rssi" "power=$power" \
+				"rssi=$rssi" \
+				"power=$power" \
 				"flags=$flags" \
 				"oem=$oem_data" \
 				"movement=$change_type"
