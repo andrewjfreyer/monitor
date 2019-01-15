@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.829
+export version=0.1.830
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -1111,8 +1111,8 @@ while true; do
 			rssi_log[$data]="$rssi"
 
 			#IF BEACON
-			public_device_log[$associated_beacon]="$timestamp"	
-			rssi_log[$associated_beacon]="$rssi"		
+			[ -n "$associated_beacon" ] && public_device_log[$associated_beacon]="$timestamp"	
+			[ -n "$associated_beacon" ] && rssi_log[$associated_beacon]="$rssi"		
 
 			#MANUFACTURER
 			[ -z "$manufacturer" ] && manufacturer="$(determine_manufacturer "$data")"
