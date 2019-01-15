@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.825
+export version=0.1.826
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -1124,6 +1124,9 @@ while true; do
 			uuid_reference="$uuid-$major-$minor"
 			pdu_header=$(echo "$data" | awk -F "|" '{print $7}')
 
+			#HAS THIS DEVICE BEEN MARKED AS EXPIRING SOON? IF SO, SHOULD REPORT 100 AGAIN
+			[ -n "${expiring_device_log[$uuid_reference]}" ] && rssi_updated=true
+
 			#UPDATE PRIVATE ADDRESS
 			beacon_private_address_log["$uuid_reference"]="$mac"
 
@@ -1227,6 +1230,9 @@ while true; do
 		
 			#PROVIDE USEFUL LOGGING
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
+				unset "expiring_device_log[$data]}"
+
+
 				log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
 				
 				publish_presence_message  \
@@ -1245,6 +1251,8 @@ while true; do
 
 			#PUBLISH PRESENCE MESSAGE FOR BEACON
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
+				unset "expiring_device_log[$data]}"
+
 				log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm "
 				
 				publish_presence_message \
