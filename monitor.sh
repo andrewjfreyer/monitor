@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.833
+export version=0.1.834
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -1183,44 +1183,48 @@ while true; do
 		#**********************************************************************
 
 		#REPORT RSSI CHANGES
-		if [ "$cmd" == "PUBL" ] || [ "$cmd" == "BEAC" ]; then 
+		if [ -n "$rssi" ]; then 
 
-			#SET RSSI LATEST IF NOT ALREADY SET 
-			rssi_latest=${rssi_latest:--200}
+			#ONLY FOR PUBLIC OR BEAON DEVICES
+			if [ "$cmd" == "PUBL" ] || [ "$cmd" == "BEAC" ]; then 
 
-			#IS RSSI THE SAME? 
-			rssi_change=$((rssi - rssi_latest))
-			abs_rssi_change=${rssi_change#-}
+				#SET RSSI LATEST IF NOT ALREADY SET 
+				rssi_latest=${rssi_latest:--200}
 
-			#DO WE HAVE A NAME?
-			expected_name="$(determine_name "$mac")"
+				#IS RSSI THE SAME? 
+				rssi_change=$((rssi - rssi_latest))
+				abs_rssi_change=${rssi_change#-}
 
-			#DETERMINE MOTION DIRECTION
-			motion_direction="depart"
-			[ "$rssi_change" == "$abs_rssi_change" ] && motion_direction="approach"
+				#DO WE HAVE A NAME?
+				expected_name="$(determine_name "$mac")"
 
-			#IF POSITIVE, APPROACHING IF NEGATIVE DEPARTING
-			case "1" in
-				$(( abs_rssi_change >= 50)) )
-					change_type="fast $motion_direction"
-					;;
-				$(( abs_rssi_change >= 30)) )
-					change_type="moderate $motion_direction"
-					;;
-				$(( abs_rssi_change >= 10)) )
-					change_type="slow movement"
-					;;			
-				*)
-					change_type="stationary"
-					;;	
-			esac
+				#DETERMINE MOTION DIRECTION
+				motion_direction="depart"
+				[ "$rssi_change" == "$abs_rssi_change" ] && motion_direction="approach"
 
-			#WITHOUT ANY DATA OR INFORMATION, MAKE SURE TO REPORT
-			[ "$rssi_latest" == "-200" ] && change_type="arrival" && motion_direction="" && rssi_updated=true
+				#IF POSITIVE, APPROACHING IF NEGATIVE DEPARTING
+				case "1" in
+					$(( abs_rssi_change >= 50)) )
+						change_type="fast $motion_direction"
+						;;
+					$(( abs_rssi_change >= 30)) )
+						change_type="moderate $motion_direction"
+						;;
+					$(( abs_rssi_change >= 10)) )
+						change_type="slow movement"
+						;;			
+					*)
+						change_type="stationary"
+						;;	
+				esac
 
-			#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-			[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$data $expected_name ${GREEN}$cmd ${NC}RSSI: -${rssi:-100} dBm ($change_type, changed $rssi_change) ${NC}" && rssi_updated=true
-		fi
+				#WITHOUT ANY DATA OR INFORMATION, MAKE SURE TO REPORT
+				[ "$rssi_latest" == "-200" ] && change_type="arrival" && motion_direction="" && rssi_updated=true
+
+				#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
+				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$data $expected_name ${GREEN}$cmd ${NC}RSSI: -${rssi:-100} dBm ($change_type, changed $rssi_change) ${NC}" && rssi_updated=true
+			fi
+		fi 
 
 		#**********************************************************************
 		#

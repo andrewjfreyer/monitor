@@ -23,6 +23,8 @@ btle_packet_processor () {
 	#BEACON PACKET?
 	if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]]; then
 
+		printf "DEBUG: %s\n" "$packet"
+
 		#HARDARE MAC AND PDU HEADER
 		local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
 
@@ -54,7 +56,7 @@ btle_packet_processor () {
         packet=""
 
 		#SEND TO MAIN LOOP
-		[ ! -z "$UUID" ] && printf "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address\n" > main_pipe 
+		[ -n "$UUID" ] && printf "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address\n" > main_pipe 
 	fi
 }
 
@@ -88,7 +90,7 @@ btle_scanner () {
 		disown "$!"
 
 		#NEED DELAY TO BE SURE WE'RE NOT RESTARTING HARDWARE TOO QUICKLY
-		sleep 1
+		sleep 2
 	done
 
 	#REPORT ERROR
