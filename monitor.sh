@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.830
+export version=0.1.831
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -1289,7 +1289,7 @@ while true; do
 
 			#PUBLISH PRESENCE MESSAGE FOR BEACON
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
-				[ -n "${expiring_device_log[$data]}"] && unset "expiring_device_log[$data]}"
+				[ -n "${expiring_device_log[$data]}"] && unset "expiring_device_log[$data]" 
 
 				log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm "
 				
