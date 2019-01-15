@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.827
+export version=0.1.828
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -1230,7 +1230,9 @@ while true; do
 		
 			#PROVIDE USEFUL LOGGING
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
-				[ -n "${expiring_device_log[$data]}"] && unset "expiring_device_log[$data]}"
+
+				#REMOVE 
+				[ -n "${expiring_device_log[$data]}"] && unset "expiring_device_log[$data]"
 
 				log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
 				
