@@ -212,7 +212,7 @@ connectable_present_devices () {
 			"-$known_device_rssi"
 
 			#REPORT 
-			log "${CYAN}[CMD-RSSI]	${NC}$known_addr ${GREEN}$cmd ${NC}RSSI: $known_device_rssi dBm ${NC}"
+			log "${CYAN}[CMD-RSSI]	${NC}$known_addr ${GREEN}$cmd ${NC}RSSI: -$known_device_rssi dBm ${NC}"
 
 			#SET RSSI LOG
 			rssi_log[$known_addr]="$known_device_rssi"
