@@ -1266,7 +1266,7 @@ while true; do
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
 
 				#REMOVE 
-				[ -n "${expiring_device_log[$data]}"] && unset "expiring_device_log[$data]"
+				[ -n "${expiring_device_log[$data]}" ] && unset "expiring_device_log[$data]"
 
 				log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
 				
@@ -1287,9 +1287,9 @@ while true; do
 
 			#PUBLISH PRESENCE MESSAGE FOR BEACON
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
-				[ -n "${expiring_device_log[$data]}"] && unset "expiring_device_log[$data]" 
+				[ -n "${expiring_device_log[$data]}" ] && unset "expiring_device_log[$data]" 
 
-				log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm "
+				log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
 				
 				publish_presence_message \
 				"id=$mac" \
