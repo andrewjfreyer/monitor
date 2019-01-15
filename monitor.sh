@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.826
+export version=0.1.827
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -1016,7 +1016,7 @@ while true; do
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
 					#REMOVE FROM EXPIRING DEVICE LOG
-					unset "expiring_device_log[$key]"
+					[ -n "${expiring_device_log[$key]}"] && unset "expiring_device_log[$key]"
 
 					unset "public_device_log[$key]"
 					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL/BEAC $key expired after $difference seconds ${NC}"
@@ -1230,8 +1230,7 @@ while true; do
 		
 			#PROVIDE USEFUL LOGGING
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
-				unset "expiring_device_log[$data]}"
-
+				[ -n "${expiring_device_log[$data]}"] && unset "expiring_device_log[$data]}"
 
 				log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
 				
@@ -1251,7 +1250,7 @@ while true; do
 
 			#PUBLISH PRESENCE MESSAGE FOR BEACON
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
-				unset "expiring_device_log[$data]}"
+				[ -n "${expiring_device_log[$data]}"] && unset "expiring_device_log[$data]}"
 
 				log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm "
 				
