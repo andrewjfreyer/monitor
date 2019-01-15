@@ -239,6 +239,9 @@ btle_text_listener () {
 				packet="$packet|$line" 
 			fi
 		done < <(timeout --signal SIGINT 400 stdbuf -o0 btmon 2>&1)
+
+		#PREVENT LOOPING
+		sleep 1
 	done 
 	#REPORT ERROR
 	(>&2 echo "error! irrecoverable btle_text_listener error")
@@ -248,37 +251,44 @@ btle_text_listener () {
 # BLUETOOTH LE RAW PACKET ANALYSIS
 # ----------------------------------------------------------------------------------------
 btle_listener () {	
-	#DEFINE VARAIBLES
-	local packet=""
-	local complete_packet_str_length=0
+ 	while true; do 
+		#LOCAL VALUES 
+		local packet
+		local line
+		local complete_packet_str_length
+ 		complete_packet_str_length=0
 	
-	while IFS= read -r line; do
-		# packets start with ">" or "<"
-		if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
-			# process the completed packet (unless this is the first time through)
-			if [ "$packet" ] && [[ $packet =~ ^\> ]]; then
-				btle_packet_processor "$packet" & 
-				disown "$!"
+		while IFS= read -r line; do
+			# packets start with ">" or "<"
+			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
+				# process the completed packet (unless this is the first time through)
+				if [ "$packet" ] && [[ $packet =~ ^\> ]]; then
+					btle_packet_processor "$packet" & 
+					disown "$!"
+				fi
+				# start the new packet
+				packet=$line
+				complete_packet_str_length=0
+
+				if [[ "$packet" =~ ^\>\ 04\ 3E* ]]; then
+					local packet_len=$(echo $packet | awk '{print "ibase=16;"$4}' | bc )
+					complete_packet_str_length=$((( packet_len + 3) * 3  + 1))
+				fi 
+			else
+				# continue building the packet
+				packet="$packet $line"
+
+				#PROCESS A PACKET WHEN IT IS COMPLETE
+				if [ "$complete_packet_str_length" == "${#packet}" ]; then 
+					btle_packet_processor "$packet" & 
+					disown "$!"
+
+					packet=""
+				fi 
 			fi
-			# start the new packet
-			packet=$line
-			complete_packet_str_length=0
+		done < <(timeout --signal SIGINT 300 stdbuf -o0 hcidump -i $PREF_HCI_DEVICE --raw)
 
-			if [[ "$packet" =~ ^\>\ 04\ 3E* ]]; then
-				local packet_len=$(echo $packet | awk '{print "ibase=16;"$4}' | bc )
-				complete_packet_str_length=$((( packet_len + 3) * 3  + 1))
-			fi 
-		else
-			# continue building the packet
-			packet="$packet $line"
-
-			#PROCESS A PACKET WHEN IT IS COMPLETE
-			if [ "$complete_packet_str_length" == "${#packet}" ]; then 
-				btle_packet_processor "$packet" & 
-				disown "$!"
-				
-				packet=""
-			fi 
-		fi
-	done < <(timeout --signal SIGINT 300 stdbuf -o0 hcidump -i $PREF_HCI_DEVICE --raw)
+		#PREVENT INFINITE LOOPING
+		sleep 1
+	done
 }
