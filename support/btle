@@ -257,7 +257,8 @@ btle_listener () {
 		if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
 			# process the completed packet (unless this is the first time through)
 			if [ "$packet" ] && [[ $packet =~ ^\> ]]; then
-				btle_packet_processor "$packet"
+				btle_packet_processor "$packet" & 
+				disown "$!"
 			fi
 			# start the new packet
 			packet=$line
@@ -273,9 +274,11 @@ btle_listener () {
 
 			#PROCESS A PACKET WHEN IT IS COMPLETE
 			if [ "$complete_packet_str_length" == "${#packet}" ]; then 
-				btle_packet_processor "$packet"
+				btle_packet_processor "$packet" & 
+				disown "$!"
+				
 				packet=""
 			fi 
 		fi
-	done < <(timeout --signal SIGINT 900 stdbuf -o0 hcidump -i $PREF_HCI_DEVICE --raw)
+	done < <(timeout --signal SIGINT 300 stdbuf -o0 hcidump -i $PREF_HCI_DEVICE --raw)
 }
