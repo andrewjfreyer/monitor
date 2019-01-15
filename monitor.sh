@@ -197,7 +197,8 @@ connectable_present_devices () {
 		#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
 		if [ "$this_state" == "1" ] && [[ "$previously_connected_devices" =~ .*$known_addr.* ]] ; then 
 				
-			known_device_rssi=$(hcitool cc $known_addr && hcitool rssi $known_addr)
+			#CREATE CONNECTION AND DETERMINE RSSI
+			known_device_rssi=$(hcitool cc $known_addr 2>&1 && hcitool rssi $known_addr 2>&1)
 
 			#KNOWN RSSI
 			known_device_rssi=${known_device_rssi//[^0-9]/}
