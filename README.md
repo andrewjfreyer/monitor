@@ -18,7 +18,7 @@ ____
 
     * [Using Advertisements to Trigger "Name" Scans](#using-advertisements-to-trigger-name-scans) ***TL;DR***: We can use a random advertisement (from an unknown device) as a trigger for scanning for a known bluetooth device. Neat!
 
-  * [**Example with Home Assistant**](#an-example-use-with-home-assistant) 
+  * [**Example with Home Assistant**](#example-with-home-assistant) 
 
   * [**Installing on a Raspberry Pi Zero W**](#installation-instructions-raspbian-lite-stretch) 
 
