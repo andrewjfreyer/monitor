@@ -84,8 +84,7 @@ btle_scanner () {
 		fi 
 
 		#SEND SIGNAL THAT 
-		printf "BOFF\n" > main_pipe & 
-		disown "$!"
+		printf "BOFF\n" > main_pipe 
 
 		#NEED DELAY TO BE SURE WE'RE NOT RESTARTING HARDWARE TOO QUICKLY
 		sleep 2
@@ -229,8 +228,7 @@ btle_text_listener () {
 				[[ $line =~ RSSI ]] && packet="$packet|$line"
 
 				if [[ $packet =~ ^\> ]]; then 
-					btle_text_processor "$packet" & 
-					disown "$!"
+					btle_text_processor "$packet" 
 				fi 
 
 				packet=""
@@ -263,8 +261,7 @@ btle_listener () {
 			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
 				# process the completed packet (unless this is the first time through)
 				if [ "$packet" ] && [[ $packet =~ ^\> ]]; then
-					btle_packet_processor "$packet" & 
-					disown "$!"
+					btle_packet_processor "$packet"
 				fi
 				# start the new packet
 				packet=$line
@@ -280,9 +277,7 @@ btle_listener () {
 
 				#PROCESS A PACKET WHEN IT IS COMPLETE
 				if [ "$complete_packet_str_length" == "${#packet}" ]; then 
-					btle_packet_processor "$packet" & 
-					disown "$!"
-
+					btle_packet_processor "$packet" 
 					packet=""
 				fi 
 			fi
