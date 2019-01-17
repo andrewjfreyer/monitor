@@ -201,7 +201,7 @@ connectable_present_devices () {
 				
 			#CREATE CONNECTION AND DETERMINE RSSI 
 			#AVERAGE OVER THREE CYCLES 
-			known_device_rssi=$(hcitool cc $known_addr; avg_total=""; for i in 1 2 3; do scan_result=$(hcitool rssi $known_addr 2>&1); scan_result=${scan_result//[^0-9]/}; [[ -n "$scan_result" ]] && counter=$(( counter + 1 )) ; ; avg_total=$((avg_total + scan_result )); sleep 0.5; done; counter=${counter:-1}; printf "$(( avg_total / counter ))" )
+			known_device_rssi=$(hcitool cc $known_addr; avg_total=""; for i in 1 2 3; do scan_result=$(hcitool rssi $known_addr 2>&1); scan_result=${scan_result//[^0-9]/}; [[ -n "$scan_result" ]] && counter=$(( counter + 1 )) ; avg_total=$((avg_total + scan_result )); sleep 0.5; done; counter=${counter:-1}; printf "$(( avg_total / counter ))" )
 
 			#IF NO NUMBERS, WE HAVE A HARDWARE FAULT
 			[ -z "$known_device_rssi" ] && continue 
