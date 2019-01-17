@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.841
+export version=0.1.842
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -200,8 +200,8 @@ connectable_present_devices () {
 		if [ "$this_state" == "1" ] && [[ "$previously_connected_devices" =~ .*$known_addr.* ]] ; then 
 				
 			#CREATE CONNECTION AND DETERMINE RSSI 
-			#AVERAGE OVER THREE CYCLES 
-			known_device_rssi=$(hcitool cc $known_addr; avg_total=""; for i in 1 2 3; do scan_result=$(hcitool rssi $known_addr 2>&1); scan_result=${scan_result//[^0-9]/}; [[ -n "$scan_result" ]] && counter=$(( counter + 1 )) ; avg_total=$((avg_total + scan_result )); sleep 0.5; done; counter=${counter:-1}; printf "$(( avg_total / counter ))" )
+			#AVERAGE OVER THREE CYCLES; IF BLANK GIVE VALUE OF 100
+			known_device_rssi=$(hcitool cc $known_addr; avg_total=""; for i in 1 2 3; do scan_result=$(hcitool rssi $known_addr 2>&1); scan_result=${scan_result//[^0-9]/}; [[ "$scan_result" -gt "0" ]] && counter=$((counter+1)) || scan_result=100  ; avg_total=$((avg_total + scan_result )); sleep 0.5; done; printf "$(( avg_total / counter ))" )
 
 			#IF NO NUMBERS, WE HAVE A HARDWARE FAULT
 			[ -z "$known_device_rssi" ] && continue 
