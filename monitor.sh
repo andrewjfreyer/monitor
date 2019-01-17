@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.842
+export version=0.1.843
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -471,6 +471,11 @@ perform_complete_scan () {
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
 				publish_presence_message "id=$known_addr" "confidence=0" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
 
+				#PUBLISH MESSAGE TO RSSI SENSOR 
+				publish_rssi_message \
+				"$known_addr" \
+				"NaN"
+
 				#NREMOVE FROM THE SCAN LIST TO THE MAIN BECAUSE THIS IS A BOOT UP 
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
 
@@ -485,6 +490,11 @@ perform_complete_scan () {
 				if [ "$PREF_REPORT_ALL_MODE" == true ] ; then 			
 					#REPORT PRESENCE
 					publish_presence_message "id=$known_addr" "confidence=0" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"			
+
+					#PUBLISH MESSAGE TO RSSI SENSOR 
+					publish_rssi_message \
+					"$known_addr" \
+					"NaN"
 				fi 
 			fi 
 
@@ -535,6 +545,11 @@ perform_complete_scan () {
 
 			#PUBLISH PRESENCE METHOD
 			publish_presence_message "id=$known_addr" "confidence=0" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
+
+			#PUBLISH MESSAGE TO RSSI SENSOR 
+			publish_rssi_message \
+			"$known_addr" \
+			"NaN"
 		fi 
 
 		printf "NAME$known_addr|\n" > main_pipe 
