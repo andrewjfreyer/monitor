@@ -1129,6 +1129,9 @@ while true; do
 			associated_beacon=""
 			for beacon_key in "${!beacon_private_address_log[@]}"; do
 				if [ "$beacon_key" == "$mac" ]; then 
+
+					printf "$beacon_key is associated with $mac\n"
+
 					associated_beacon="${beacon_private_address_log[$beacon_key]}"
 					break
 				fi 
