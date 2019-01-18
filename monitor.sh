@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.853
+export version=0.1.854
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1075,10 +1075,10 @@ while true; do
 					[[ "$key" =~ - ]] && beacon_type="APPLE_IBEACON"
 
 					if [ "$PREF_REPORT_ALL_MODE" == true ]; then						#REPORTING ALL 
-						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" "rssi=$latest_rssi" && expiring_device_log[$key]='true'
+						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" && expiring_device_log[$key]='true'
 					else 
 						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
-						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "50" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" "rssi=$latest_rssi" && expiring_device_log[$key]='true'
+						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "50" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" && expiring_device_log[$key]='true'
 					fi  
 
 				fi 
