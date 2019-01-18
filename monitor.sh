@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.854
+export version=0.1.855
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1059,7 +1059,7 @@ while true; do
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
 					#REMOVE FROM EXPIRING DEVICE LOG
-					[ -n "${expiring_device_log[$key]}"] && unset "expiring_device_log[$key]"
+					[ -n "${expiring_device_log[$key]}" ] && unset "expiring_device_log[$key]"
 
 					unset "public_device_log[$key]"
 					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL/BEAC $key expired after $difference seconds ${NC}"
