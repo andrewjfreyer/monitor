@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.844
+export version=0.1.846
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -57,6 +57,7 @@ clean() {
 	#REMOVE PIPES
 	rm main_pipe &>/dev/null
 	rm log_pipe &>/dev/null
+	rm packet_pipe &>/dev/null
 
 	#MESSAGE
 	echo 'Exited.'
@@ -86,6 +87,11 @@ mkfifo main_pipe
 #SETUP LOG PIPE
 rm log_pipe &>/dev/null
 mkfifo log_pipe
+
+#SETUP BTLE PIPE
+rm packet_pipe &>/dev/null
+mkfifo packet_pipe
+
 
 #DEFINE DEVICE TRACKING VARS
 declare -A public_device_log
@@ -715,6 +721,13 @@ mqtt_listener &
 mqtt_pid="$!"
 echo "> mqtt listener pid = $mqtt_pid" >> .pids
 disown "$mqtt_pid"
+
+btle_packet_listener &
+btle_packet_listener_pid="$!"
+echo "> packet listener pid = $btle_packet_listener_pid" >> .pids
+disown "$btle_packet_listener_pid"
+
+btle_packet_listener
 
 echo "================== BEGIN LOGGING =================="
 

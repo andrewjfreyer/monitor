@@ -12,6 +12,42 @@
 #
 # ----------------------------------------------------------------------------------------
 
+
+# ----------------------------------------------------------------------------------------
+# BLUETOOTH LE BACKGROUND SCANNING
+# ----------------------------------------------------------------------------------------
+btle_scanner () {
+	while true; do 
+		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
+		local hcitool_raw=$(timeout --signal SIGINT 60 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
+
+		#FIND ERROR VALUES 
+		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error|network')
+
+		#PUBLISH ERRORS BACK TO MAIN LOOP
+		if [ -n "$error" ]; then 
+
+			(>&2 echo "error! attempting to correct $PREF_HCI_DEVICE hardware fault.")
+
+			#POWER CYCLE
+			hciconfig $PREF_HCI_DEVICE down
+			sleep 5 
+			hciconfig $PREF_HCI_DEVICE up
+
+			continue
+		fi 
+
+		#SEND SIGNAL THAT 
+		printf "BOFF\n" > main_pipe 
+
+		#NEED DELAY TO BE SURE WE'RE NOT RESTARTING HARDWARE TOO QUICKLY
+		sleep 10
+	done
+
+	#REPORT ERROR
+	(>&2 echo "error! irrecoverable btle_scanner error")
+}
+
 # ----------------------------------------------------------------------------------------
 # PROCESS BLUETOOTH PACKETS
 # ----------------------------------------------------------------------------------------
@@ -59,40 +95,6 @@ btle_packet_processor () {
 }
 
 
-# ----------------------------------------------------------------------------------------
-# BLUETOOTH LE BACKGROUND SCANNING
-# ----------------------------------------------------------------------------------------
-btle_scanner () {
-	while true; do 
-		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
-		local hcitool_raw=$(timeout --signal SIGINT 60 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
-
-		#FIND ERROR VALUES 
-		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error|network')
-
-		#PUBLISH ERRORS BACK TO MAIN LOOP
-		if [ -n "$error" ]; then 
-
-			(>&2 echo "error! attempting to correct $PREF_HCI_DEVICE hardware fault.")
-
-			#POWER CYCLE
-			hciconfig $PREF_HCI_DEVICE down
-			sleep 5 
-			hciconfig $PREF_HCI_DEVICE up
-
-			continue
-		fi 
-
-		#SEND SIGNAL THAT 
-		printf "BOFF\n" > main_pipe 
-
-		#NEED DELAY TO BE SURE WE'RE NOT RESTARTING HARDWARE TOO QUICKLY
-		sleep 2
-	done
-
-	#REPORT ERROR
-	(>&2 echo "error! irrecoverable btle_scanner error")
-}
 
 #----------------------------------------------------------------------------------------
 # PROCESS BLUETOOTH PACKETS
@@ -217,26 +219,24 @@ btle_text_processor () {
 # BLUETOOTH LE RAW PACKET ANALYSIS
 # ----------------------------------------------------------------------------------------
 btle_text_listener () {
+    #LOCAL VALUES 
+	local packet
+	local line 
+
     while true; do 
-	    #LOCAL VALUES 
-		local packet
-		local line 
-			
 		#DEFINE VARAIBLES
 		while IFS= read -r line; do
 			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]] || [[ $line =~ RSSI ]]; then
 				[[ $line =~ RSSI ]] && packet="$packet|$line"
-
 				if [[ $packet =~ ^\> ]]; then 
-					btle_text_processor "$packet" 
+					printf "%s\n" "1$packet" > packet_pipe
 				fi 
-
 				packet=""
 				packet=$line
 			else 		
 				packet="$packet|$line" 
 			fi
-		done < <(timeout --signal SIGINT 400 stdbuf -o0 btmon 2>&1)
+		done < <(timeout --signal SIGINT 90 stdbuf -o0 btmon 2>&1)
 
 		#PREVENT LOOPING
 		sleep 1
@@ -261,7 +261,7 @@ btle_listener () {
 			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
 				# process the completed packet (unless this is the first time through)
 				if [ "$packet" ] && [[ $packet =~ ^\> ]]; then
-					btle_packet_processor "$packet"
+					printf "%s\n" "0$packet" > packet_pipe
 				fi
 				# start the new packet
 				packet=$line
@@ -277,13 +277,54 @@ btle_listener () {
 
 				#PROCESS A PACKET WHEN IT IS COMPLETE
 				if [ "$complete_packet_str_length" == "${#packet}" ]; then 
-					btle_packet_processor "$packet" 
+					printf "%s\n" "0$packet" > packet_pipe
 					packet=""
 				fi 
 			fi
-		done < <(timeout --signal SIGINT 300 stdbuf -o0 hcidump -i $PREF_HCI_DEVICE --raw)
+		done < <(timeout --signal SIGINT 90 stdbuf -o0 hcidump -i $PREF_HCI_DEVICE --raw)
 
 		#PREVENT INFINITE LOOPING
 		sleep 1
 	done
 }
+
+
+# ----------------------------------------------------------------------------------------
+# BLUETOOTH PACKET PROCESSING 
+# ----------------------------------------------------------------------------------------
+btle_packet_listener () {
+	local cmd
+	local data 	
+	local event
+
+	#LOOPER
+	while true; do 
+		cmd=""
+		data=""
+		
+		#READ FROM THE MAIN PIPE
+		while read -r event; do 
+			#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
+			cmd="${event:0:1}"
+			data="${event:1}"
+
+			if [ "$cmd" == "0" ]; then
+				#RAW DATA PROCESSING 
+				btle_packet_processor "$packet" &
+				disown "$!"
+
+			elif [ "$cmd" == "1" ]; then
+
+				#TEXT DATA PROCESSING				
+				btle_text_processor "$packet" &
+				disown "$!"
+			fi  
+
+		done < packet_pipe
+
+		#SLEEPY TIME
+		sleep 1
+	done
+
+}
+
