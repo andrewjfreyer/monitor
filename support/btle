@@ -223,8 +223,6 @@ btle_text_listener () {
 	local packet
 	local line 
 
-	echo "testing ..."
-
     while true; do 
 		#DEFINE VARAIBLES
 		while IFS= read -r line; do
@@ -325,9 +323,6 @@ btle_packet_listener () {
 			fi  
 
 		done < packet_pipe
-
-		#SLEEPY TIME
-		sleep 1
 	done
 
 	#REPORT ERROR
