@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.855
+export version=0.1.856
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -706,7 +706,7 @@ determine_name () {
 		fi
 	fi 
 
-	echo "$expected_name"
+	printf "$expected_name\n"
 }
 
 # ----------------------------------------------------------------------------------------
@@ -1334,7 +1334,7 @@ while true; do
 				publish_presence_message  \
 				"id=$uuid-$major-$minor" \
 				"confidence=100" \
-				"name=$name" \
+				"name=$expected_name" \
 				"manufacturer=$manufacturer" \
 				"type=$beacon_type" \
 				"rssi=$rssi" \
@@ -1355,7 +1355,7 @@ while true; do
 				publish_presence_message \
 				"id=$mac" \
 				"confidence=100" \
-				"name=$name" \
+				"name=$expected_name" \
 				"manufacturer=$manufacturer" \
 				"type=$beacon_type" \
 				"rssi=$rssi" \
