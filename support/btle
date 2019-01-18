@@ -223,6 +223,8 @@ btle_text_listener () {
 	local packet
 	local line 
 
+	echo "testing ..."
+
     while true; do 
 		#DEFINE VARAIBLES
 		while IFS= read -r line; do
@@ -328,5 +330,7 @@ btle_packet_listener () {
 		sleep 1
 	done
 
+	#REPORT ERROR
+	(>&2 echo "error! irrecoverable btle_scanner error")
 }
 
