@@ -229,7 +229,8 @@ btle_text_listener () {
 			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]] || [[ $line =~ RSSI ]]; then
 				[[ $line =~ RSSI ]] && packet="$packet|$line"
 				if [[ $packet =~ ^\> ]]; then 
-					printf "%s\n" "1$packet" > packet_pipe
+					printf "%s\n" "1$packet" > packet_pipe & 
+					disown "$!"
 				fi 
 				packet=""
 				packet=$line
@@ -261,7 +262,8 @@ btle_listener () {
 			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
 				# process the completed packet (unless this is the first time through)
 				if [ "$packet" ] && [[ $packet =~ ^\> ]]; then
-					printf "%s\n" "0$packet" > packet_pipe
+					printf "%s\n" "0$packet" > packet_pipe & 
+					disown "$!"
 				fi
 				# start the new packet
 				packet=$line
@@ -277,7 +279,9 @@ btle_listener () {
 
 				#PROCESS A PACKET WHEN IT IS COMPLETE
 				if [ "$complete_packet_str_length" == "${#packet}" ]; then 
-					printf "%s\n" "0$packet" > packet_pipe
+					printf "%s\n" "0$packet" > packet_pipe & 
+					disown "$!"
+
 					packet=""
 				fi 
 			fi
@@ -310,14 +314,12 @@ btle_packet_listener () {
 
 			if [ "$cmd" == "0" ]; then
 				#RAW DATA PROCESSING 
-				btle_packet_processor "$packet" &
-				disown "$!"
+				btle_packet_processor "$packet"
 
 			elif [ "$cmd" == "1" ]; then
 
 				#TEXT DATA PROCESSING				
-				btle_text_processor "$packet" &
-				disown "$!"
+				btle_text_processor "$packet"
 			fi  
 
 		done < packet_pipe
