@@ -316,12 +316,12 @@ btle_packet_listener () {
 
 			if [ "$cmd" == "0" ]; then
 				#RAW DATA PROCESSING 
-				btle_packet_processor "$packet"
+				btle_packet_processor "$data"
 
 			elif [ "$cmd" == "1" ]; then
 
 				#TEXT DATA PROCESSING				
-				btle_text_processor "$packet"
+				btle_text_processor "$data"
 			fi  
 
 		done < packet_pipe
