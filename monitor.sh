@@ -40,9 +40,9 @@ REPEAT=$'\e[1A'
 #BETA WARNING
 printf "${RED}===================================================${NC}\n"
 
-printf "\n\n     ${RED}!!! THIS IS A **BETA** TEST RELEASE !!!${NC}      \n\n"
+printf "\n\n${RED}!!! THIS IS A ${PURPLE} - BETA - ${RED} TEST RELEASE !!!${NC}      \n\n"
 
-printf "${RED}===================================================${NC}\n"
+printf "${RED}===================================================${NC}\n\n"
 
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
