@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.846
+export version=0.1.847
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -726,8 +726,6 @@ btle_packet_listener &
 btle_packet_listener_pid="$!"
 echo "> packet listener pid = $btle_packet_listener_pid" >> .pids
 disown "$btle_packet_listener_pid"
-
-btle_packet_listener
 
 echo "================== BEGIN LOGGING =================="
 
