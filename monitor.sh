@@ -1072,7 +1072,7 @@ while true; do
 					percent_confidence=$(( 100 - difference * 100 / PREF_BEACON_EXPIRATION )) 
 
 					#MAKE SURE BEACON TYPE IS HONEST
-					[[ "$key" =~ - ]] && beacon_type="APPLE_IBEACON"
+					[[ "$key" =~ \- ]] && beacon_type="APPLE_IBEACON"
 
 					if [ "$PREF_REPORT_ALL_MODE" == true ]; then						#REPORTING ALL 
 						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" && expiring_device_log[$key]='true'
@@ -1162,7 +1162,9 @@ while true; do
 				#ECHO TO CACHE IF DOES NOT EXIST
 				[ -z "$cached_name" ] && echo "$data	$name" >> .public_name_cache
 
+				#IS THIS ASSOCITED WITH A BEACON? 
 				if [ -n "$associated_beacon" ]; then 
+				
 					#IF THIS IS AN IBEACON, WE ADD THE NAME TO THAT ARRAY TOO
 					known_public_device_name[$associated_beacon]="$name"
 
