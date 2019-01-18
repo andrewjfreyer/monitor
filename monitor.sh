@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.851
+export version=0.1.853
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -228,7 +228,7 @@ connectable_present_devices () {
 				
 			#CREATE CONNECTION AND DETERMINE RSSI 
 			#AVERAGE OVER THREE CYCLES; IF BLANK GIVE VALUE OF 100
-			known_device_rssi=$(hcitool cc $known_addr; avg_total=""; for i in 1 2 3; do scan_result=$(hcitool rssi $known_addr 2>&1); scan_result=${scan_result//[^0-9]/}; [[ "$scan_result" -gt "0" ]] && counter=$((counter+1)) || scan_result=100  ; avg_total=$((avg_total + scan_result )); sleep 0.5; done; printf "$(( avg_total / counter ))" )
+			known_device_rssi=$(hcitool cc $known_addr; avg_total=""; for i in 1 2 3; do scan_result=$(hcitool rssi $known_addr 2>&1); scan_result=${scan_result//[^0-9]/}; [[ "$scan_result" = "0" ]] && scan_result=100; counter=$((counter+1)); avg_total=$((avg_total + scan_result )); sleep 0.5; done; printf "$(( avg_total / counter ))" )
 
 			#IF NO NUMBERS, WE HAVE A HARDWARE FAULT
 			[ -z "$known_device_rssi" ] && continue 
@@ -243,8 +243,6 @@ connectable_present_devices () {
 
 			#SET RSSI LOG
 			rssi_log[$known_addr]="$known_device_rssi"
-		#else 
-	#		echo "rejecting scan $this_state $known_addr $previously_connected_devices"
 		fi 
 	done
 }
@@ -1072,6 +1070,9 @@ while true; do
 				else 
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
 					percent_confidence=$(( 100 - difference * 100 / PREF_BEACON_EXPIRATION )) 
+
+					#MAKE SURE BEACON TYPE IS HONEST
+					[[ "$key" =~ - ]] && beacon_type="APPLE_IBEACON"
 
 					if [ "$PREF_REPORT_ALL_MODE" == true ]; then						#REPORTING ALL 
 						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" "rssi=$latest_rssi" && expiring_device_log[$key]='true'
