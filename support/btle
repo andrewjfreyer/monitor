@@ -41,7 +41,7 @@ btle_scanner () {
 		printf "BOFF\n" > main_pipe 
 
 		#NEED DELAY TO BE SURE WE'RE NOT RESTARTING HARDWARE TOO QUICKLY
-		sleep 10
+		sleep 5
 	done
 
 	#REPORT ERROR
