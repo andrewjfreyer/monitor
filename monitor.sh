@@ -25,10 +25,25 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.849
+export version=0.1.850
+
+#COLOR OUTPUT FOR RICH OUTPUT 
+ORANGE=$'\e[1;33m'
+RED=$'\e[1;31m'
+NC=$'\e[0m'
+GREEN=$'\e[1;32m'
+PURPLE=$'\e[1;35m'
+BLUE=$'\e[1;34m'
+CYAN=$'\e[1;36m'
+REPEAT=$'\e[1A'
 
 #BETA WARNING
-printf "!!! THIS IS A **BETA** TEST RELEASE !!!\n\n"
+printf "${RED}===================================================${NC}\n"
+
+printf "\n\n     ${RED}!!! THIS IS A **BETA** TEST RELEASE !!!${NC}      \n\n"
+
+printf "${RED}===================================================${NC}\n"
+
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
