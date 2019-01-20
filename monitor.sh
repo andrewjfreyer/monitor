@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.873
+export version=0.1.874
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -449,7 +449,6 @@ perform_complete_scan () {
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
 				publish_presence_message "id=$known_addr" "confidence=100" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
 
-
 				#COOPERATIVE SCAN ON RESTART
 				[ "$PREF_TRIGGER_MODE_REPORT_OUT" == true ] && publish_cooperative_scan_message "arrive" 
 
@@ -797,6 +796,7 @@ while true; do
 		uuid=""
 		beacon_type="GENERIC_BEACON"
 		beacon_last_seen=""
+		uuid_reference=""
 
 		#PROCEED BASED ON COMMAND TYPE
 		if [ "$cmd" == "ENQU" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
@@ -1364,7 +1364,6 @@ while true; do
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
 		
-
 		elif [ "$cmd" == "BEAC" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$rssi_updated" == true ]; then 
 		
 			#PROVIDE USEFUL LOGGING
@@ -1433,6 +1432,7 @@ while true; do
 
 				continue
 			fi 
+		
 		fi 
 
 		#SHOUD WE PERFORM AN ARRIVAL SCAN AFTER THIS FIRST LOOP?
