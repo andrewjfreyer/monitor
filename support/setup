@@ -222,6 +222,8 @@ fi
 PREF_CONFIG="$base_directory/behavior_preferences"
 [ "$PREF_RESTORE_DEFAULTS" == true ] && rm "$PREF_CONFIG"
 
+#RESTORE DEFAULTS? 
+should_restore_defaults=false 
 
 if [ -f "$PREF_CONFIG" ]; then 
 	source "$PREF_CONFIG"
@@ -262,9 +264,14 @@ if [ -f "$PREF_CONFIG" ]; then
 	PREF_STARTUP_SETTLE_TIME=${PREF_STARTUP_SETTLE_TIME:-45}
 
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
-	[ "$(printf "%s\n" "$preferences" | grep -c "error")" -gt "0" ] && printf "%s\n" "> ${ORANGE}warning:${NC} preferences error, using defaults. consider reset to defaults with '-d' flag"
+	[ "$(printf "%s\n" "$preferences" | grep -c "error")" -gt "0" ] && printf "%s\n" "> ${ORANGE}warning:${NC} preferences error, using defaults. reset to defaults?" && read -t 10 -p should_restore_defaults
 
-else
+fi 
+
+#NEED TO RESTORE DEFAULTS? 
+
+if [ ! -f "$PREF_CONFIG" ] || [ "$should_restore_defaults" == true ] ; then 
+
 	printf "%s\n" "> default behavior preferences file created. please customize to your needs." 
 
 	printf "%s\n" "# ---------------------------
