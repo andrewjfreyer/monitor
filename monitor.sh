@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.865
+export version=0.1.866
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1041,8 +1041,6 @@ while true; do
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
 
-				log ">>>> working for $key"
-
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen=${public_device_log[$key]}
 
@@ -1054,9 +1052,12 @@ while true; do
 
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_key in "${!beacon_private_address_log[@]}"; do
-					log ">>>> jjjjj for $beacon_key"
+					
+					#FIND ASSOCIATED BEACON
+					associated_beacon="${beacon_private_address_log[$beacon_key]}"
 
-					if [ "$beacon_key" == "$key" ]; then 
+					#COMPARE TO CURRENT KEY
+					if [ "$associated_beacon" == "$key" ]; then 
 						
 						#BEACON SEEN MORE RECENTLY?
 						beacon_last_seen=${public_device_log[$beacon_key]}
@@ -1154,8 +1155,8 @@ while true; do
 			#DETERMINE WHETHER THIS DEVICE IS ASSOCIATED WITH AN IBEACON
 			associated_beacon=""
 			for beacon_key in "${!beacon_private_address_log[@]}"; do
-				if [ "$beacon_key" == "$mac" ]; then 
-					associated_beacon="${beacon_private_address_log[$beacon_key]}"
+				associated_beacon="${beacon_private_address_log[$beacon_key]}"
+				if [ "$associated_beacon" == "$mac" ]; then 
 					break
 				fi 
 			done
