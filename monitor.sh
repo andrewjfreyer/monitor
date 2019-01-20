@@ -825,7 +825,7 @@ while true; do
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$data]}"
 			expected_name="${known_public_device_name[$mac]}"
-			(2>&1 echo "$echo $LINENO" )
+			
 
 			#IF WE HAVE A NAME; UNSEAT FROM RANDOM AND ADD TO STATIC
 			#THIS IS A BIT OF A FUDGE, A RANDOM DEVICE WITH A LOCAL 
@@ -1281,10 +1281,6 @@ while true; do
 				rssi_change=$((rssi - rssi_latest))
 				abs_rssi_change=${rssi_change#-}
 
-				#DO WE HAVE A NAME?
-				expected_name="$(determine_name "$mac")"
-				(2>&1 echo "$echo $LINENO" )
-
 				#DETERMINE MOTION DIRECTION
 				motion_direction="depart"
 				[ "$rssi_change" == "$abs_rssi_change" ] && motion_direction="approach"
@@ -1309,7 +1305,7 @@ while true; do
 				[ "$rssi_latest" == "-200" ] && change_type="stationary" && motion_direction="" && rssi_updated=true
 
 				#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$data $expected_name ${GREEN}$cmd ${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && rssi_updated=true
+				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$data ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && rssi_updated=true
 			fi
 		fi 
 
@@ -1327,7 +1323,7 @@ while true; do
 			#PRINTING FORMATING
 			debug_name="$name"
 			expected_name="$(determine_name "$mac")"
-			(2>&1 echo "$echo $LINENO" )
+			
 
 			current_state="${known_public_device_log[$mac]}"
 

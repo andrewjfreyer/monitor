@@ -240,8 +240,8 @@ if [ -f "$PREF_CONFIG" ]; then
 > ${GREEN}preference:${NC} preferred HCI device = $PREF_HCI_DEVICE
 > ${GREEN}preference:${NC} minimum time between the same type of scan = $PREF_MINIMUM_TIME_BETWEEN_SCANS
 > ${GREEN}preference:${NC} mqtt scan start/end reporting = $PREF_MQTT_REPORT_SCAN_MESSAGES
-> mqtt trigger: $mqtt_topicpath/scan/ARRIVE
-> mqtt trigger: $mqtt_topicpath/scan/DEPART" | sed 's/= $/= '${RED}'error'${NC}'\!/g')
+> ${BLUE}mqtt trigger:${NC} $mqtt_topicpath/scan/ARRIVE
+> ${BLUE}mqtt trigger:${NC} $mqtt_topicpath/scan/DEPART" | sed 's/= $/= '${RED}'error'${NC}'\!/g')
 	printf "%s\n" "$preferences"
 
 	#DEFAULTS
