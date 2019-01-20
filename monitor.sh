@@ -1041,6 +1041,8 @@ while true; do
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
 
+				log ">>>> working for $key"
+
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen=${public_device_log[$key]}
 
@@ -1238,11 +1240,15 @@ while true; do
 				#FIND PREVIOUS ASSOCIATION
 				previous_association=${beacon_private_address_log[$uuid_reference]}
 
-				#REMOVE THIS FROM PUBLIC RECORDS
-				unset "random_device_log[$previous_association]"
-				unset "public_device_log[$previous_association]"
+				#ONLY IF THE ADDRESS HAS CHANGED
+				if [ "$previous_association" -ne "$mac" ]; then  
 
-				log ">>> RESETTING $uuid_reference association from $previous_association to $mac"
+					#REMOVE THIS FROM PUBLIC RECORDS
+					unset "random_device_log[$previous_association]"
+					unset "public_device_log[$previous_association]"
+
+					log ">>> RESETTING $uuid_reference association from $previous_association to $mac"
+				fi 
 			fi 
 
 			beacon_private_address_log["$uuid_reference"]="$mac"
