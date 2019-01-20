@@ -1054,7 +1054,7 @@ while true; do
 
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_key in "${!beacon_private_address_log[@]}"; do
-					log ">>>> working for $beacon_key"
+					log ">>>> jjjjj for $beacon_key"
 
 					if [ "$beacon_key" == "$key" ]; then 
 						
