@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.864
+export version=0.1.865
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1088,7 +1088,7 @@ while true; do
 					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL/BEAC $key expired after $difference seconds ${NC}"
 
 					#REPORT PRESENCE OF DEVICE
-					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" 
+					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" "name=$expected_name" "manufacturer=$local_manufacturer"
 
 				else 
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
@@ -1233,6 +1233,18 @@ while true; do
 			[ -n "${expiring_device_log[$uuid_reference]}" ] && rssi_updated=true
 
 			#UPDATE PRIVATE ADDRESS
+			if [ -n "${beacon_private_address_log[$uuid_reference]}" ]; then 
+
+				#FIND PREVIOUS ASSOCIATION
+				previous_association=${beacon_private_address_log[$uuid_reference]}
+
+				#REMOVE THIS FROM PUBLIC RECORDS
+				unset "random_device_log[$previous_association]"
+				unset "public_device_log[$previous_association]"
+
+				log ">>> RESETTING $uuid_reference association from $previous_association to $mac"
+			fi 
+
 			beacon_private_address_log["$uuid_reference"]="$mac"
 
 			#KEY DEFINED AS UUID-MAJOR-MINOR
