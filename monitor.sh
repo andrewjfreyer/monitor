@@ -1112,11 +1112,12 @@ while true; do
 						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence"  && expiring_device_log[$key]='true'
 					else 
 						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
-						if [[ "$key" != *$purged_devices* ]]; then 
+						if [[ "$key"  =~ $purged_devices ]]; then 
+							log "$key is within [$purged_devices]"
+						else 
 							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "65" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" && expiring_device_log[$key]='true'
 							purged_devices="$purged_devices $key"
-						else 
-							log "$key is not within [$purged_devices]"
+							
 						fi 
 					fi  
 
