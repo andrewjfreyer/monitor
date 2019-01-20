@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.862
+export version=0.1.863
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -358,7 +358,7 @@ perform_complete_scan () {
 	
 	#LOG START OF DEVICE SCAN 
 	[ "$PREF_MQTT_REPORT_SCAN_MESSAGES" == true ] && publish_cooperative_scan_message "$transition_type/start"
-	log "${GREEN}[CMD-INFO]	${GREEN}**** Started $transition_type scan. [x$repetitions max rep] **** ${NC}"
+	log "${GREEN}[CMD-INFO]	${GREEN}**** started $transition_type scan. [x$repetitions max rep] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	local repetition 
@@ -1076,11 +1076,12 @@ while true; do
 						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" && expiring_device_log[$key]='true'
 					else 
 						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
-						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "50" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" && expiring_device_log[$key]='true'
+						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "80" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" && expiring_device_log[$key]='true'
 					fi  
 
 				fi 
 			done
+
 		elif [ "$cmd" == "NAME" ]; then 
 			#DATA IS DELIMITED BY VERTICAL PIPE
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
@@ -1274,7 +1275,7 @@ while true; do
 				[ "$rssi_latest" == "-200" ] && change_type="stationary" && motion_direction="" && rssi_updated=true
 
 				#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$data $expected_name ${GREEN}$cmd ${NC}RSSI: ${rssi:-100} dBm ($change_type, changed $rssi_change) ${NC}" && rssi_updated=true
+				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$data $expected_name ${GREEN}$cmd ${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && rssi_updated=true
 			fi
 		fi 
 
@@ -1324,13 +1325,12 @@ while true; do
 				#REMOVE 
 				[ -n "${expiring_device_log[$data]}" ] && unset "expiring_device_log[$data]"
 
-				log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC} $manufacturer${NC}"
+				log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC}"
 				
 				publish_presence_message  \
 				"id=$uuid-$major-$minor" \
 				"confidence=100" \
 				"name=$expected_name" \
-				"manufacturer=$manufacturer" \
 				"type=$beacon_type" \
 				"rssi=$rssi" \
 				"power=$power" \
