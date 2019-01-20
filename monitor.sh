@@ -1382,7 +1382,6 @@ while true; do
 				publish_presence_message  \
 				"id=$uuid_reference" \
 				"confidence=100" \
-				"rand_mac=$mac" \				
 				"name=$expected_name" \
 				"type=$beacon_type" \
 				"rssi=$rssi" \
