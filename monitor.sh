@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.869
+export version=0.1.870
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -151,7 +151,7 @@ mapfile -t address_blacklist < <(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | aw
 #ASSEMBLE COMMENT-CLEANED BLACKLIST INTO BLACKLIST ARRAY
 for addr in "${address_blacklist[@]}"; do 
 	blacklisted_devices["$addr"]=1
-	echo "> blacklisted device: $addr"
+	printf "%s\n" "> ${RED}blacklisted device:${NC} $addr"
 done 
 
 # ----------------------------------------------------------------------------------------
@@ -179,7 +179,7 @@ for addr in "${known_static_addresses[@]}"; do
 	[[ $previously_connected_devices =~ .*$addr.* ]] && is_connected="previously connected"
 
 	#FOR DEBUGGING
-	echo "> $addr will publish updates to: $pub_topic (has $is_connected to $PREF_HCI_DEVICE)"
+	printf "%s\n" "> ${GREEN}$addr${NC} will publish updates to: $pub_topic (has $is_connected to $PREF_HCI_DEVICE)"
 done
 
 # ----------------------------------------------------------------------------------------
