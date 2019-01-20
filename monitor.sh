@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.857
+export version=0.1.858
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1072,9 +1072,10 @@ while true; do
 					percent_confidence=$(( 100 - difference * 100 / PREF_BEACON_EXPIRATION )) 
 
 					#MAKE SURE BEACON TYPE IS HONEST
-					[[ "$key" =~ \- ]] && beacon_type="APPLE_IBEACON"
+					[[ "$key" =~ \- ]] && printf "++++ $key is a beacon" && beacon_type="APPLE_IBEACON"
 
-					if [ "$PREF_REPORT_ALL_MODE" == true ]; then						#REPORTING ALL 
+					if [ "$PREF_REPORT_ALL_MODE" == true ]; then						
+						#REPORTING ALL 						
 						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$local_manufacturer" "type=$beacon_type" && expiring_device_log[$key]='true'
 					else 
 						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
@@ -1129,9 +1130,6 @@ while true; do
 			associated_beacon=""
 			for beacon_key in "${!beacon_private_address_log[@]}"; do
 				if [ "$beacon_key" == "$mac" ]; then 
-
-					printf "$beacon_key is associated with $mac\n"
-
 					associated_beacon="${beacon_private_address_log[$beacon_key]}"
 					break
 				fi 
@@ -1339,8 +1337,6 @@ while true; do
 				"type=$beacon_type" \
 				"rssi=$rssi" \
 				"power=$power" \
-				"flags=$flags" \
-				"oem=$oem_data" \
 				"movement=$change_type"
 			fi 
 		
