@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.874
+export version=0.1.875
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1050,6 +1050,8 @@ while true; do
 			#RANDOM DEVICE EXPIRATION SHOULD TRIGGER DEPARTURE SCAN
 			[ "$should_scan" == true ] && [ "$PREF_TRIGGER_MODE_DEPART" == false ] && perform_departure_scan
 
+			purged_devices=""
+
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
 
@@ -1110,7 +1112,12 @@ while true; do
 						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence"  && expiring_device_log[$key]='true'
 					else 
 						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
-						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "80" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" && expiring_device_log[$key]='true'
+						if [[ "$key" =~ $purged_devices ]]; then 
+							log "REJECTING PURGE OF $key"
+						else 
+							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "65" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" && expiring_device_log[$key]='true'
+						fi 
+						purged_devices="$purged_devices $key"
 					fi  
 
 				fi 
@@ -1241,7 +1248,7 @@ while true; do
 			uuid_reference="$uuid-$major-$minor"
 
 			#HAS THIS DEVICE BEEN MARKED AS EXPIRING SOON? IF SO, SHOULD REPORT 100 AGAIN
-			[ -n "${expiring_device_log[$uuid_reference]}" ] && rssi_updated=true
+			[ -n "${expiring_device_log[$uuid_reference]}" ] && rssi_updated=true && unset "expiring_device_log[$uuid_reference]"
 
 			#UPDATE PRIVATE ADDRESS
 			if [ -n "${beacon_private_address_log[$uuid_reference]}" ]; then 
@@ -1264,7 +1271,7 @@ while true; do
 			data="$uuid_reference"
 
 			#FIND NAME OF BEACON
-			[ -z "$name" ] && name="$(determine_name "$data")"
+			[ -z "$name" ] && name="$(determine_name "$mac" "$data")"
 
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$data]}" 
