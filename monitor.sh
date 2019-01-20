@@ -1050,7 +1050,7 @@ while true; do
 			#RANDOM DEVICE EXPIRATION SHOULD TRIGGER DEPARTURE SCAN
 			[ "$should_scan" == true ] && [ "$PREF_TRIGGER_MODE_DEPART" == false ] && perform_departure_scan
 
-			purged_devices=""
+			purged_devices="purgelist"
 
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
