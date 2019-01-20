@@ -25,13 +25,13 @@ if [ "$previous_version" != "$version" ]; then
 	[ -z "$previous_version" ] && previous_version="Unknown"
 	
 	#UPDATE REPORT
-	echo "Updated $(basename "$0") (v. $previous_version) -> (v. $version)..."
+	printf "%s\n" "updated $(basename "$0") (v. $previous_version) -> (v. $version)..."
 
 	#RECORD UPDATED VERSION
-	echo "$version" > ".previous_version"
+	printf "%s\n" "$version" > ".previous_version"
 else 
 	#STANDARD RUN
-	echo "Starting $(basename "$0") (v. $version)..."
+	printf "%s\n" "starting $(basename "$0") (v. $version)..."
 fi 
 
 # ----------------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ fi
 
 show_help_text() {
 	#SHOW HELPFULE
-	echo "
+	printf "%s\n" "
 
 monitor.sh
 
@@ -108,7 +108,7 @@ usage:
 # ----------------------------------------------------------------------------------------
 
 #REMOVE MANUFACTURER CACHE AND PUBLIC NAME CACHE FROM PREVIOUS SESSION 
-(&>/dev/null rm ".manufacturer_cache") && echo "> removing web request caches"
+(&>/dev/null rm ".manufacturer_cache") && printf "%s\n" "> removing web request caches"
 
 #PROCESS ARGV OPTIONS
 OPTIND=1
@@ -138,10 +138,10 @@ while getopts "h?vfbut:EgSRCmsadxD:c:" opt; do
 			exit 0
 			;;
 		S)
-			PREF_DISABLE_LOGGING=true && echo "> logging is disabled, although startup messages will still be shown"
+			PREF_DISABLE_LOGGING=true && printf "%s\n" "> logging is disabled, although startup messages will still be shown"
 			;;
 		v)  
-			echo "$VERSION"
+			printf "%s\n" "$VERSION"
 			exit 0
 			;;
 		c) 
@@ -149,12 +149,12 @@ while getopts "h?vfbut:EgSRCmsadxD:c:" opt; do
 			target_mac="$OPTARG"
 			
 			#REMOVE PREVIOUS PAIRINGS		
-			echo "> removing previous pairings to $target_mac"
+			printf "%s\n" "> removing previous pairings to $target_mac"
 			(echo -e "remove $target_mac" | bluetoothctl &>/dev/null)
 
 			#DEBUG ECHO
-			echo "> creating connection to $target_mac..."
-			echo "> witihin 5 seconds, please set $target_mac to discoverable..."
+			printf "%s\n" "> creating connection to $target_mac..."
+			printf "%s\n" "> witihin 5 seconds, please set $target_mac to discoverable..."
 			
 			#WAIT 5 SECONDS FOR DISCOVERABLE MODE
 			sleep 5
@@ -163,51 +163,51 @@ while getopts "h?vfbut:EgSRCmsadxD:c:" opt; do
 			return_data=$(sudo hcitool cc $target_mac 2>&1 && sudo hcitool auth $target_mac 2>&1 && sudo hcitool dc $target_mac 2>&1)
 
 			#ERROR REPORTING
-			[[ $return_data =~ .*error.* ]] && echo "> error: connection to $target_mac failed" || echo "> connection created to $target_mac"
+			[[ $return_data =~ .*error.* ]] && printf "%s\n" "> ${RED}error: ${NC}connection to $target_mac failed" || printf "%s\n" "> connection created to $target_mac"
 
 			exit 0
 			;;
 		C)  
-			PREF_CLEAN_MQTT=true && echo "> cleaning retained messages on broker"
+			PREF_CLEAN_MQTT=true && printf "%s\n" "> cleaning retained messages on broker"
 			;;
-		E)  PREF_MQTT_REPORT_SCAN_MESSAGES=true  && echo "> publishing MQTT .../scan/[arrival|depart]/[start|end]"
+		E)  PREF_MQTT_REPORT_SCAN_MESSAGES=true  && printf "%s\n" "> publishing MQTT .../scan/[arrival|depart]/[start|end]"
 			;;
-		s)  PREF_MQTT_SINGLE_TOPIC_MODE=true  && echo "> publishing all MQTT presence messages to \$mqtt_topicpath/\$mqtt_publisher_identity"
+		s)  PREF_MQTT_SINGLE_TOPIC_MODE=true  && printf "%s\n" "> publishing all MQTT presence messages to \$mqtt_topicpath/\$mqtt_publisher_identity"
 			;;
-		x)  PREF_SHOULD_RETAIN=true  && echo "> retaining mqtt status reports"
+		x)  PREF_SHOULD_RETAIN=true  && printf "%s\n" "> retaining mqtt status reports"
 			;;
-		R)  PREF_REDACT=true  && echo "> private information redacted from logs"
+		R)  PREF_REDACT=true  && printf "%s\n" "> private information redacted from logs"
 			;;
-		d)  PREF_RESTORE_DEFAULTS=true 	&& echo "> restoring default settings"
+		d)  PREF_RESTORE_DEFAULTS=true 	&& printf "%s\n" "> restoring default settings"
 			;;
-		u)  PREF_UPDATE_SERVICE=true 	&& echo "> updating monitor.service"
+		u)  PREF_UPDATE_SERVICE=true 	&& printf "%s\n" "> updating monitor.service"
 			;;
-		f)  PREF_FORMAT_MQTT=true 		&& echo "> only allow letters, numbers, and spaces in mqtt topic paths"
+		f)  PREF_FORMAT_MQTT=true 		&& printf "%s\n" "> only allow letters, numbers, and spaces in mqtt topic paths"
 			;;
-		b)  PREF_BEACON_MODE=true 		&& echo "> generic bluetooth beacon, ibeacon, and known beacon address reporting mode enabled"
+		b)  PREF_BEACON_MODE=true 		&& printf "%s\n" "> generic bluetooth beacon, ibeacon, and known beacon address reporting mode enabled"
 			;;
 		t)  #DO WE INCLUDE THE REPORTING TRIGGER?
-			[[ $OPTARG = *r* ]] && PREF_TRIGGER_MODE_REPORT_OUT=true && echo "> trigger mode: report out MQTT arrive/depart scan triggers to other devices" 
+			[[ $OPTARG = *r* ]] && PREF_TRIGGER_MODE_REPORT_OUT=true && printf "%s\n" "> trigger mode: report out MQTT arrive/depart scan triggers to other devices" 
 			#SORT THROUGH REMAINING FILTERS
 			case "$OPTARG" in 
 				r)	PREF_TRIGGER_MODE_REPORT_OUT=true
 					;;
-				d|rd|dr)	PREF_TRIGGER_MODE_DEPART=true && echo "> trigger mode: depart scan only on MQTT trigger" 
+				d|rd|dr)	PREF_TRIGGER_MODE_DEPART=true && printf "%s\n" "> trigger mode: depart scan only on MQTT trigger" 
 					;;
-				a|ra|ar)	PREF_TRIGGER_MODE_ARRIVE=true && echo "> trigger mode: arrive scan only on MQTT trigger" 
+				a|ra|ar)	PREF_TRIGGER_MODE_ARRIVE=true && printf "%s\n" "> trigger mode: arrive scan only on MQTT trigger" 
 					;;
-				da|ad|rda|rad|dra|ard|dar|adr) PREF_TRIGGER_MODE_ARRIVE=true && PREF_TRIGGER_MODE_DEPART==true && echo "> trigger mode: scan only (both on arrive and depart) on trigger" 
+				da|ad|rda|rad|dra|ard|dar|adr) PREF_TRIGGER_MODE_ARRIVE=true && PREF_TRIGGER_MODE_DEPART==true && printf "%s\n" "> trigger mode: scan only (both on arrive and depart) on trigger" 
 					;;
-				*) echo "> warning: unknown trigger mode: $OPTARG"
+				*) printf "%s\n" "> ${ORANGE}warning: ${NC}unknown trigger mode: $OPTARG"
 				;;
 			esac
 			;;
-		a)  PREF_REPORT_ALL_MODE=true 	&& echo "> report all scan results mode enabled"
+		a)  PREF_REPORT_ALL_MODE=true 	&& printf "%s\n" "> report all scan results mode enabled"
 			;;
-        D)  PREF_CONFIG_DIR=$OPTARG && echo "> using custom config directory [$PREF_CONFIG_DIR]"
-            [ ! -d "$PREF_CONFIG_DIR" ] && echo "> error: config directory [$PREF_CONFIG_DIR] doesn't exist" && exit 1
+        D)  PREF_CONFIG_DIR=$OPTARG && printf "%s\n" "> using custom config directory [$PREF_CONFIG_DIR]"
+            [ ! -d "$PREF_CONFIG_DIR" ] && printf "%s\n" "> ${RED}error: ${NC}config directory [$PREF_CONFIG_DIR] doesn't exist" && exit 1
                 ;;
-		*)	echo "> unknown or depreciated argument: $opt"
+		*)	printf "%s\n" "> unknown or depreciated argument: $opt"
 	esac
 done
 

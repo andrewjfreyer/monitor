@@ -32,8 +32,8 @@ should_exit=false
 [ -z "$btmon_path" ] && printf "%s\n" "${RED}error:${NC} required package 'btmon' not found. please install 'btmon'." && should_exit=true
 [ -z "$hcidump_path" ] && printf "%s\n" "${RED}error:${NC} required package 'hcidump' not found. please install 'bluez-hcidump' (e.g., sudo apt-get install bluez-hcidump)." && should_exit=true
 [ -z "$bc_path" ] && printf "%s\n" "${RED}error:${NC} required package 'bc' not found. please install 'bc' (e.g., apt-get install bc)" && should_exit=true
-[ -z "$git_path" ] && printf "%s\n" "warning: Recommended package 'git' not found. please consider installing for regular updates."
-[ ! -f /.dockerenv  ] && [ ! -z "$(which systemctl)" ] && [ ! -e "$service_path" ] && printf "%s\n" "warning: monitor.service not installed. Install service? (y/n)" && read should_install
+[ -z "$git_path" ] && printf "%s\n" "${ORANGE}warning:${NC} Recommended package 'git' not found. please consider installing for regular updates."
+[ ! -f /.dockerenv  ] && [ ! -z "$(which systemctl)" ] && [ ! -e "$service_path" ] && printf "%s\n" "${ORANGE}warning:${NC} monitor.service not installed. Install service? (y/n)" && read should_install
 
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
 base_directory=$(dirname "$(readlink -f "$0")")
@@ -59,14 +59,14 @@ if [ -f $MQTT_CONFIG ] ; then
 
 	#errorS
 	[ "$mqtt_address" == "0.0.0.0" ] && printf "%s\n" "${RED}error:${NC} please customize mqtt broker address in: mqtt_preferences" && should_exit=true
-	[ "$mqtt_user" == "username" ] && printf "%s\n" "warning: for security purposes, please consider changing 'username' in: mqtt_preferences"
-	[ "$mqtt_password" == "password" ]&& printf "%s\n" "warning: for security purposes, please consider changing 'password' in: mqtt_preferences"
-	[ "$mqtt_version" == "" ]&& printf "%s\n" "> ${BLUE}preference:${NC} using default mqtt protocol version" || printf "%s\n" "> ${BLUE}preference:${NC} using mqtt protocol version $mqtt_version"
+	[ "$mqtt_user" == "username" ] && printf "%s\n" "${ORANGE}warning:${NC} for security purposes, please consider changing 'username' in: mqtt_preferences"
+	[ "$mqtt_password" == "password" ]&& printf "%s\n" "${ORANGE}warning:${NC} for security purposes, please consider changing 'password' in: mqtt_preferences"
+	[ "$mqtt_version" == "" ]&& printf "%s\n" "> ${GREEN}preference:${NC} using default mqtt protocol version" || printf "%s\n" "> ${GREEN}preference:${NC} using mqtt protocol version $mqtt_version"
 	[ ! -f "$mqtt_certificate_path" ] && [ ! -z "$mqtt_certificate_path" ] && printf "%s\n" "${RED}error:${NC} please check mqtt certificate path in mqtt_preferences" && should_exit=true
 
 	#warningS
-	[ -z "$mqtt_port" ] && printf "%s\n" "warning: variable mqtt_port does not appear in mqtt_preferences. using default port 1883". && mqtt_port="1883"
-	[ -z "$mqtt_publisher_identity" ] && printf "%s\n" "warning: variable mqtt_publisher_identity does not appear in: mqtt_preferences. using hostname: $(hostname)". && mqtt_publisher_identity="$(hostname)"
+	[ -z "$mqtt_port" ] && printf "%s\n" "${ORANGE}warning:${NC} variable mqtt_port does not appear in mqtt_preferences. using default port 1883". && mqtt_port="1883"
+	[ -z "$mqtt_publisher_identity" ] && printf "%s\n" "${ORANGE}warning:${NC} variable mqtt_publisher_identity does not appear in: mqtt_preferences. using hostname: $(hostname)". && mqtt_publisher_identity="$(hostname)"
 
 	#DEFINE CA APPEND
 	if [ -f "$mqtt_certificate_path" ]; then 
@@ -226,18 +226,18 @@ PREF_CONFIG="$base_directory/behavior_preferences"
 if [ -f "$PREF_CONFIG" ]; then 
 	source "$PREF_CONFIG"
 
-	preferences=$(printf "%s\n" "> ${BLUE}preference:${NC} delay between scans = $PREF_INTERSCAN_DELAY
-> ${BLUE}preference:${NC} flag arrival filter (regex) = $PREF_ARRIVE_TRIGGER_FLAG_FILTER
-> ${BLUE}preference:${NC} manufacturer arrival filter (regex) = $PREF_ARRIVE_TRIGGER_MFCG_FILTER
-> ${BLUE}preference:${NC} max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS
-> ${BLUE}preference:${NC} max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
-> ${BLUE}preference:${NC} random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL
-> ${BLUE}preference:${NC} rssi threshold for triggering arrival = $PREF_RSSI_IGNORE_BELOW
-> ${BLUE}preference:${NC} interval until beacon is considered expired = $PREF_BEACON_EXPIRATION
-> ${BLUE}preference:${NC} trigger a departure scan at other nodes when below [x] confidence = $PREF_COOPERATIVE_SCAN_THRESHOLD
-> ${BLUE}preference:${NC} preferred HCI device = $PREF_HCI_DEVICE
-> ${BLUE}preference:${NC} minimum time between the same type of scan = $PREF_MINIMUM_TIME_BETWEEN_SCANS
-> ${BLUE}preference:${NC} mqtt scan start/end reporting = $PREF_MQTT_REPORT_SCAN_MESSAGES
+	preferences=$(printf "%s\n" "> ${GREEN}preference:${NC} delay between scans = $PREF_INTERSCAN_DELAY
+> ${GREEN}preference:${NC} flag arrival filter (regex) = $PREF_ARRIVE_TRIGGER_FLAG_FILTER
+> ${GREEN}preference:${NC} manufacturer arrival filter (regex) = $PREF_ARRIVE_TRIGGER_MFCG_FILTER
+> ${GREEN}preference:${NC} max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS
+> ${GREEN}preference:${NC} max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
+> ${GREEN}preference:${NC} random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL
+> ${GREEN}preference:${NC} rssi threshold for triggering arrival = $PREF_RSSI_IGNORE_BELOW
+> ${GREEN}preference:${NC} interval until beacon is considered expired = $PREF_BEACON_EXPIRATION
+> ${GREEN}preference:${NC} trigger a departure scan at other nodes when below [x] confidence = $PREF_COOPERATIVE_SCAN_THRESHOLD
+> ${GREEN}preference:${NC} preferred HCI device = $PREF_HCI_DEVICE
+> ${GREEN}preference:${NC} minimum time between the same type of scan = $PREF_MINIMUM_TIME_BETWEEN_SCANS
+> ${GREEN}preference:${NC} mqtt scan start/end reporting = $PREF_MQTT_REPORT_SCAN_MESSAGES
 > mqtt trigger: $mqtt_topicpath/scan/ARRIVE
 > mqtt trigger: $mqtt_topicpath/scan/DEPART" | sed 's/= $/= '${RED}'error'${NC}'\!/g')
 	printf "%s\n" "$preferences"
@@ -262,7 +262,7 @@ if [ -f "$PREF_CONFIG" ]; then
 	PREF_STARTUP_SETTLE_TIME=${PREF_STARTUP_SETTLE_TIME:-45}
 
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
-	[ "$(printf "%s\n" "$preferences" | grep -c "error")" -gt "0" ] && printf "%s\n" "> warning: preferences error, using defaults. consider reset to defaults with '-d' flag"
+	[ "$(printf "%s\n" "$preferences" | grep -c "error")" -gt "0" ] && printf "%s\n" "> ${ORANGE}warning:${NC} preferences error, using defaults. consider reset to defaults with '-d' flag"
 
 else
 	printf "%s\n" "> default behavior preferences file created. please customize to your needs." 
