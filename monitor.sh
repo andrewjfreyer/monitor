@@ -589,8 +589,6 @@ perform_complete_scan () {
 
 	#PUBLISH END OF COOPERATIVE SCAN
 	[ "$PREF_MQTT_REPORT_SCAN_MESSAGES" == true ] && publish_cooperative_scan_message "$transition_type/end"
-
-
 }
 
 # ----------------------------------------------------------------------------------------
@@ -622,11 +620,9 @@ perform_departure_scan () {
 		#HERE A DEPART SCAN IS ACTIVE; ENQUEUE ANOTHER DEPART SCAN AFTER 15-second delay 
 		[ "$scan_type" == "0" ] && sleep 5 && printf "ENQUdepart\n" > main_pipe & 	
 	fi
-
 }
 
 perform_arrival_scan () {
-
 	#SET SCAN TYPE
  	local arrive_list
  	arrive_list=$(scannable_devices_with_state 0)
@@ -829,6 +825,7 @@ while true; do
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$data]}"
 			expected_name="${known_public_device_name[$mac]}"
+			(2>&1 echo "$echo $LINENO" )
 
 			#IF WE HAVE A NAME; UNSEAT FROM RANDOM AND ADD TO STATIC
 			#THIS IS A BIT OF A FUDGE, A RANDOM DEVICE WITH A LOCAL 
@@ -1078,12 +1075,6 @@ while true; do
 				#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
 				[ -z "$last_seen" ] && continue 
 
-				#GET EXPECTED NAME
-				expected_name="$(determine_name "$key")"
-
-				#determine manufacturer
-				local_manufacturer="$(determine_manufacturer "$key")"
-
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
 					#REMOVE FROM EXPIRING DEVICE LOG
@@ -1292,6 +1283,7 @@ while true; do
 
 				#DO WE HAVE A NAME?
 				expected_name="$(determine_name "$mac")"
+				(2>&1 echo "$echo $LINENO" )
 
 				#DETERMINE MOTION DIRECTION
 				motion_direction="depart"
@@ -1335,6 +1327,8 @@ while true; do
 			#PRINTING FORMATING
 			debug_name="$name"
 			expected_name="$(determine_name "$mac")"
+			(2>&1 echo "$echo $LINENO" )
+
 			current_state="${known_public_device_log[$mac]}"
 
 			#IF NAME IS NOT PREVIOUSLY SEEN, THEN WE SET THE STATIC DEVICE DATABASE NAME
