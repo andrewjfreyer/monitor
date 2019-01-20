@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.856
+export version=0.1.857
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -43,7 +43,7 @@ REPEAT=$'\e[1A'
 
 printf "\n\n${RED}===================================================${NC}\n"
 
-printf "\n\n      ${RED}!!! THIS IS A ${PURPLE} BETA ${RED} TEST RELEASE !!!${NC}      \n\n"
+printf "\n\n      ${RED}!!! THIS IS A${PURPLE} BETA ${RED}TEST RELEASE !!!${NC}      \n\n"
 
 printf "${RED}===================================================${NC}\n\n"
 

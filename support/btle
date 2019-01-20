@@ -236,7 +236,7 @@ btle_text_listener () {
 			else 		
 				packet="$packet|$line" 
 			fi
-		done < <(timeout --signal SIGINT 90 stdbuf -o0 btmon 2>&1)
+		done < <(timeout --signal SIGINT 90 stdbuf -oL -eL btmon 2>&1)
 
 		#PREVENT LOOPING
 		sleep 1
@@ -281,7 +281,7 @@ btle_listener () {
 					packet=""
 				fi 
 			fi
-		done < <(timeout --signal SIGINT 90 stdbuf -o0 hcidump -i $PREF_HCI_DEVICE --raw)
+		done < <(timeout --signal SIGINT 90 stdbuf -oL -eL hcidump -i $PREF_HCI_DEVICE --raw)
 
 		#PREVENT INFINITE LOOPING
 		sleep 1
