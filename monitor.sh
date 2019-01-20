@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.877
+export version=0.1.878
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1377,19 +1377,16 @@ while true; do
 			#PROVIDE USEFUL LOGGING
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
 
-				#FIND NAME
-				expected_name="$(determine_name "$mac" "$uuid_reference")"
-
 				#REMOVE 
 				[ -n "${expiring_device_log[$data]}" ] && unset "expiring_device_log[$data]"
 
 				#LOG
-				log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC}"
+				log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$name${NC}"
 				
 				publish_presence_message  \
 				"id=$uuid_reference" \
 				"confidence=100" \
-				"name=$expected_name" \
+				"name=$name" \
 				"type=$beacon_type" \
 				"rssi=$rssi" \
 				"power=$power" \
@@ -1406,12 +1403,12 @@ while true; do
 				expected_name="$(determine_name "$mac")"
 
 
-				log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
+				log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
 				
 				publish_presence_message \
 				"id=$mac" \
 				"confidence=100" \
-				"name=$expected_name" \
+				"name=$name" \
 				"manufacturer=$manufacturer" \
 				"type=$beacon_type" \
 				"rssi=$rssi" \
