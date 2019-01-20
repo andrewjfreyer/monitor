@@ -1253,6 +1253,8 @@ while true; do
 
 			beacon_private_address_log["$uuid_reference"]="$mac"
 
+			log ">>> SETTING $uuid_reference to $mac"
+
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			data="$uuid_reference"
 
