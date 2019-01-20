@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.870
+export version=0.1.873
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -662,17 +662,29 @@ determine_name () {
 	local address
 	address="$1"
 
+	#RETURN ADDRESS
 	[ -z "$address" ] && return 0
+
+	#ALTERNATIVE ADDRESS 
+	local alternate_address
+	alternate_address="$2"
+	alternate_address=${alternate_address:-Unknown}
 	
 	#IF IS NEW AND IS PUBLIC, SHOULD CHECK FOR NAME
 	local expected_name
 	expected_name="${known_public_device_name[$address]}"
-	
+
+	#ALTERNATE NAME? 
+	[ -z "$expected_name" ]	&& expected_name="${known_public_device_name[$alternate_address]}"
+
 	#FIND PERMANENT DEVICE NAME OF PUBLIC DEVICE
 	if [ -z "$expected_name" ]; then 
 
 		#CHECK CACHE
 		expected_name=$(grep "$address" < "$base_directory/.public_name_cache" | awk -F "\t" '{print $2}')
+
+		#ALTERNATE NAME? 
+		[ -z "$expected_name" ]	&& expected_name=$(grep "$alternate_address" < "$base_directory/.public_name_cache" | awk -F "\t" '{print $2}')
 
 		#IF CACHE DOES NOT EXIST, TRY TO SCAN
 		if [ -z "$expected_name" ]; then 
@@ -681,10 +693,13 @@ determine_name () {
 			kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
 
 		 	#ONLY SCAN IF WE ARE NOT OTHERWISE SCANNING; NAME FOR THIS DEVICE IS NOT IMPORTANT
-		 	if [ "$scan_active" == false ] && [ -n "$2" ] ; then 
+		 	if [ "$scan_active" == false ] ; then 
 
 				#FIND NAME OF THIS DEVICE
 				expected_name=$(hcitool -i "$PREF_HCI_DEVICE" name "$address" 2>/dev/null)
+
+				#ALTERNATE?
+				[ -z "$expected_name" ]	&& expected_name=$(hcitool -i "$PREF_HCI_DEVICE" name "$alternate_address" 2>/dev/null) && address=$alternate_address
 
 				#IS THE EXPECTED NAME BLANK? 
 				if [ -n "$expected_name" ]; then 
@@ -1349,19 +1364,25 @@ while true; do
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
 		
+
 		elif [ "$cmd" == "BEAC" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$rssi_updated" == true ]; then 
 		
 			#PROVIDE USEFUL LOGGING
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
 
+				#FIND NAME
+				expected_name="$(determine_name "$mac" "$uuid_reference")"
+
 				#REMOVE 
 				[ -n "${expiring_device_log[$data]}" ] && unset "expiring_device_log[$data]"
 
+				#LOG
 				log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$expected_name${NC}"
 				
 				publish_presence_message  \
-				"id=$uuid-$major-$minor" \
+				"id=$uuid_reference" \
 				"confidence=100" \
+				"rand_mac=$mac" \				
 				"name=$expected_name" \
 				"type=$beacon_type" \
 				"rssi=$rssi" \
@@ -1374,6 +1395,10 @@ while true; do
 			#PUBLISH PRESENCE MESSAGE FOR BEACON
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
 				[ -n "${expiring_device_log[$data]}" ] && unset "expiring_device_log[$data]" 
+
+				#FIND NAME
+				expected_name="$(determine_name "$mac")"
+
 
 				log "${PURPLE}[CMD-$cmd]${NC}	$data $pdu_header ${GREEN}$expected_name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
 				
