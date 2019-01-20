@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.863
+export version=0.1.864
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -785,6 +785,7 @@ while true; do
 		minor=""
 		uuid=""
 		beacon_type="GENERIC_BEACON"
+		beacon_last_seen=""
 
 		#PROCEED BASED ON COMMAND TYPE
 		if [ "$cmd" == "ENQU" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
@@ -1042,6 +1043,31 @@ while true; do
 
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen=${public_device_log[$key]}
+
+				#RSSI
+				latest_rssi="${rssi_log[$key]}" 
+
+				#ADJUST FOR BEACON?
+				is_beacon=false
+
+				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
+				for beacon_key in "${!beacon_private_address_log[@]}"; do
+					if [ "$beacon_key" == "$key" ]; then 
+						
+						#BEACON SEEN MORE RECENTLY?
+						beacon_last_seen=${public_device_log[$beacon_key]}
+						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen
+
+						#RSSI
+						latest_rssi="${rssi_log[$beacon_key]}" 
+
+						#SET THE BEACON KEY
+						key=$beacon_key
+						continue 
+					fi 
+				done
+
+				#DETERMINE DIFFERENCE
 				difference=$((timestamp - last_seen))
 
 				#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
@@ -1052,9 +1078,6 @@ while true; do
 
 				#determine manufacturer
 				local_manufacturer="$(determine_manufacturer "$key")"
-
-				#RSSI
-				latest_rssi="${rssi_log[$key]}" 
 
 				#TIMEOUT AFTER 120 SECONDS
 				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
@@ -1211,8 +1234,6 @@ while true; do
 
 			#UPDATE PRIVATE ADDRESS
 			beacon_private_address_log["$uuid_reference"]="$mac"
-
-			log ">>> ASSOCIATING $mac WITH $uuid_reference"
 
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			data="$uuid_reference"
