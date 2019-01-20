@@ -1241,7 +1241,7 @@ while true; do
 				previous_association=${beacon_private_address_log[$uuid_reference]}
 
 				#ONLY IF THE ADDRESS HAS CHANGED
-				if [ "$previous_association" -ne "$mac" ]; then  
+				if [ ! "$previous_association" == "$mac" ]; then  
 
 					#REMOVE THIS FROM PUBLIC RECORDS
 					unset "random_device_log[$previous_association]"
