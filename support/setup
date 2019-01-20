@@ -27,11 +27,11 @@ git_path=$(which git)
 
 #error CHECKING FOR MOSQUITTO PUBLICATION 
 should_exit=false
-[ -z "$mosquitto_pub_path" ] && printf "%s\n" "error: required package 'mosquitto_pub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
-[ -z "$mosquitto_sub_path" ] && printf "%s\n" "error: required package 'mosquitto_sub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
-[ -z "$btmon_path" ] && printf "%s\n" "error: required package 'btmon' not found. please install 'btmon'." && should_exit=true
-[ -z "$hcidump_path" ] && printf "%s\n" "error: required package 'hcidump' not found. please install 'bluez-hcidump' (e.g., sudo apt-get install bluez-hcidump)." && should_exit=true
-[ -z "$bc_path" ] && printf "%s\n" "error: required package 'bc' not found. please install 'bc' (e.g., apt-get install bc)" && should_exit=true
+[ -z "$mosquitto_pub_path" ] && printf "%s\n" "${RED}error:${NC} required package 'mosquitto_pub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
+[ -z "$mosquitto_sub_path" ] && printf "%s\n" "${RED}error:${NC} required package 'mosquitto_sub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
+[ -z "$btmon_path" ] && printf "%s\n" "${RED}error:${NC} required package 'btmon' not found. please install 'btmon'." && should_exit=true
+[ -z "$hcidump_path" ] && printf "%s\n" "${RED}error:${NC} required package 'hcidump' not found. please install 'bluez-hcidump' (e.g., sudo apt-get install bluez-hcidump)." && should_exit=true
+[ -z "$bc_path" ] && printf "%s\n" "${RED}error:${NC} required package 'bc' not found. please install 'bc' (e.g., apt-get install bc)" && should_exit=true
 [ -z "$git_path" ] && printf "%s\n" "warning: Recommended package 'git' not found. please consider installing for regular updates."
 [ ! -f /.dockerenv  ] && [ ! -z "$(which systemctl)" ] && [ ! -e "$service_path" ] && printf "%s\n" "warning: monitor.service not installed. Install service? (y/n)" && read should_install
 
@@ -58,11 +58,11 @@ if [ -f $MQTT_CONFIG ] ; then
 	source $MQTT_CONFIG
 
 	#errorS
-	[ "$mqtt_address" == "0.0.0.0" ] && printf "%s\n" "error: please customize mqtt broker address in: mqtt_preferences" && should_exit=true
+	[ "$mqtt_address" == "0.0.0.0" ] && printf "%s\n" "${RED}error:${NC} please customize mqtt broker address in: mqtt_preferences" && should_exit=true
 	[ "$mqtt_user" == "username" ] && printf "%s\n" "warning: for security purposes, please consider changing 'username' in: mqtt_preferences"
 	[ "$mqtt_password" == "password" ]&& printf "%s\n" "warning: for security purposes, please consider changing 'password' in: mqtt_preferences"
-	[ "$mqtt_version" == "" ]&& printf "%s\n" "> preference: using default mqtt protocol version" || printf "%s\n" "> preference: using mqtt protocol version $mqtt_version"
-	[ ! -f "$mqtt_certificate_path" ] && [ ! -z "$mqtt_certificate_path" ] && printf "%s\n" "error: please check mqtt certificate path in mqtt_preferences" && should_exit=true
+	[ "$mqtt_version" == "" ]&& printf "%s\n" "> ${BLUE}preference:${NC} using default mqtt protocol version" || printf "%s\n" "> ${BLUE}preference:${NC} using mqtt protocol version $mqtt_version"
+	[ ! -f "$mqtt_certificate_path" ] && [ ! -z "$mqtt_certificate_path" ] && printf "%s\n" "${RED}error:${NC} please check mqtt certificate path in mqtt_preferences" && should_exit=true
 
 	#warningS
 	[ -z "$mqtt_port" ] && printf "%s\n" "warning: variable mqtt_port does not appear in mqtt_preferences. using default port 1883". && mqtt_port="1883"
@@ -127,7 +127,7 @@ PUB_CONFIG="$base_directory/known_static_addresses"
 
 if [ -f "$PUB_CONFIG" ]; then 
 	#DOUBLECHECKS 
-	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && printf "%s\n" " - error: please customize public mac addresses in: known_static_addresses" && should_exit=true
+	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && printf "%s\n" " - ${RED}error:${NC} please customize public mac addresses in: known_static_addresses" && should_exit=true
 else
 	printf "%s\n" "> public MAC address list file created. please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
@@ -154,7 +154,7 @@ BEAC_CONFIG="$base_directory/known_beacon_addresses"
 
 if [ -f "$BEAC_CONFIG" ]; then 
 	#DOUBLECHECKS 
-	[ ! -z "$(cat "$BEAC_CONFIG" | grep "^00:00:00:00:00:00")" ] && printf "%s\n" " - error: please customize beacon mac addresses in: known_beacon_addresses" && should_exit=true
+	[ ! -z "$(cat "$BEAC_CONFIG" | grep "^00:00:00:00:00:00")" ] && printf "%s\n" " - ${RED}error:${NC} please customize beacon mac addresses in: known_beacon_addresses" && should_exit=true
 else
 	printf "%s\n" "> beacon MAC address list file created. please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
@@ -226,20 +226,20 @@ PREF_CONFIG="$base_directory/behavior_preferences"
 if [ -f "$PREF_CONFIG" ]; then 
 	source "$PREF_CONFIG"
 
-	preferences=$(printf "%s\n" "> preference: delay between scans = $PREF_INTERSCAN_DELAY
-> preference: flag arrival filter (regex) = $PREF_ARRIVE_TRIGGER_FLAG_FILTER
-> preference: manufacturer arrival filter (regex) = $PREF_ARRIVE_TRIGGER_MFCG_FILTER
-> preference: max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS
-> preference: max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
-> preference: random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL
-> preference: rssi threshold for triggering arrival = $PREF_RSSI_IGNORE_BELOW
-> preference: interval until beacon is considered expired = $PREF_BEACON_EXPIRATION
-> preference: trigger a departure scan at other nodes when below [x] confidence = $PREF_COOPERATIVE_SCAN_THRESHOLD
-> preference: preferred HCI device = $PREF_HCI_DEVICE
-> preference: minimum time between the same type of scan = $PREF_MINIMUM_TIME_BETWEEN_SCANS
-> preference: mqtt scan start/end reporting = $PREF_MQTT_REPORT_SCAN_MESSAGES
+	preferences=$(printf "%s\n" "> ${BLUE}preference:${NC} delay between scans = $PREF_INTERSCAN_DELAY
+> ${BLUE}preference:${NC} flag arrival filter (regex) = $PREF_ARRIVE_TRIGGER_FLAG_FILTER
+> ${BLUE}preference:${NC} manufacturer arrival filter (regex) = $PREF_ARRIVE_TRIGGER_MFCG_FILTER
+> ${BLUE}preference:${NC} max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS
+> ${BLUE}preference:${NC} max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
+> ${BLUE}preference:${NC} random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL
+> ${BLUE}preference:${NC} rssi threshold for triggering arrival = $PREF_RSSI_IGNORE_BELOW
+> ${BLUE}preference:${NC} interval until beacon is considered expired = $PREF_BEACON_EXPIRATION
+> ${BLUE}preference:${NC} trigger a departure scan at other nodes when below [x] confidence = $PREF_COOPERATIVE_SCAN_THRESHOLD
+> ${BLUE}preference:${NC} preferred HCI device = $PREF_HCI_DEVICE
+> ${BLUE}preference:${NC} minimum time between the same type of scan = $PREF_MINIMUM_TIME_BETWEEN_SCANS
+> ${BLUE}preference:${NC} mqtt scan start/end reporting = $PREF_MQTT_REPORT_SCAN_MESSAGES
 > mqtt trigger: $mqtt_topicpath/scan/ARRIVE
-> mqtt trigger: $mqtt_topicpath/scan/DEPART" | sed 's/= $/= error\!/g')
+> mqtt trigger: $mqtt_topicpath/scan/DEPART" | sed 's/= $/= ${RED}error${NC}\!/g')
 	printf "%s\n" "$preferences"
 
 	#DEFAULTS
