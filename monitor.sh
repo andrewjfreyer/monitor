@@ -1212,6 +1212,8 @@ while true; do
 			#UPDATE PRIVATE ADDRESS
 			beacon_private_address_log["$uuid_reference"]="$mac"
 
+			log ">>> ASSOCIATING $mac WITH $uuid_reference"
+
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			data="$uuid_reference"
 
