@@ -184,9 +184,6 @@ publish_cooperative_scan_message () {
 	mqtt_announce_online
 
 	if [ -n "$1" ] && [ -z "$2" ]; then 
-		#DEBUGGING 
-		(>&2 log "${PURPLE}$mqtt_topicpath/scan/$1${NC}")
-
 		#POST TO MQTT
 		$mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
@@ -200,9 +197,6 @@ publish_cooperative_scan_message () {
 		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1 
 
 	elif [ -n "$1" ] && [ -n "$2" ]; then 
-
-		(>&2 log "${PURPLE}$mqtt_topicpath/$2/$1${NC}")
-
 		#POST TO MQTT
 		$mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
@@ -216,8 +210,7 @@ publish_cooperative_scan_message () {
 		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1 
 
 	else 
-		(>&2 log "${PURPLE}$mqtt_topicpath/scan${NC}")
-
+		
 		$mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
