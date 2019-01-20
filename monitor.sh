@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.876
+export version=0.1.877
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1114,8 +1114,10 @@ while true; do
 						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
 						if [[ "$key" != *$purged_devices* ]]; then 
 							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "65" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" && expiring_device_log[$key]='true'
+							purged_devices="$purged_devices $key"
+						else 
+							log "$key is not within [$purged_devices]"
 						fi 
-						purged_devices="$purged_devices $key"
 					fi  
 
 				fi 
