@@ -239,7 +239,7 @@ if [ -f "$PREF_CONFIG" ]; then
 > ${BLUE}preference:${NC} minimum time between the same type of scan = $PREF_MINIMUM_TIME_BETWEEN_SCANS
 > ${BLUE}preference:${NC} mqtt scan start/end reporting = $PREF_MQTT_REPORT_SCAN_MESSAGES
 > mqtt trigger: $mqtt_topicpath/scan/ARRIVE
-> mqtt trigger: $mqtt_topicpath/scan/DEPART" | sed 's/= $/= ${RED}error${NC}\!/g')
+> mqtt trigger: $mqtt_topicpath/scan/DEPART" | sed 's/= $/= '${RED}'error'${NC}'\!/g')
 	printf "%s\n" "$preferences"
 
 	#DEFAULTS
