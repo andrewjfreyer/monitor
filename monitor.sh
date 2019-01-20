@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.866
+export version=0.1.867
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1162,7 +1162,7 @@ while true; do
 			done
 
 			#OK, WE HAVE A BEACON - SWITCH UP THE HANDLING OF IT BACK TO BEACON
-			[ -n "$associated_beacon" ] && beacon_type="APPLE_IBEACON" && cmd="BEAC"
+			[ -n "$associated_beacon" ] && beacon_type="APPLE_IBEACON" && cmd="SKIP"
 
 			#SET NAME 
 			[ -n "$name" ] && known_public_device_name[$mac]="$name"
@@ -1249,14 +1249,10 @@ while true; do
 					#REMOVE THIS FROM PUBLIC RECORDS
 					unset "random_device_log[$previous_association]"
 					unset "public_device_log[$previous_association]"
-
-					log ">>> RESETTING $uuid_reference association from $previous_association to $mac"
 				fi 
 			fi 
 
 			beacon_private_address_log["$uuid_reference"]="$mac"
-
-			log ">>> SETTING $uuid_reference to $mac"
 
 			#KEY DEFINED AS UUID-MAJOR-MINOR
 			data="$uuid_reference"
