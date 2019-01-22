@@ -51,6 +51,8 @@ printf "${RED}===================================================${NC}\n\n"
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
 
+echo "$RUNTIME_ARGS"
+
 #LOG DELIMITER
 echo "====================== DEBUG ======================"
 
