@@ -1271,6 +1271,8 @@ while true; do
 			#FIND NAME OF BEACON
 			[ -z "$name" ] && name="$(determine_name "$mac" "$data")"
 
+			(2>&1 echo "name of beacon $uuid is $name")
+
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$data]}" 
 			[ -z "${public_device_log[$data]}" ] && is_new=true
