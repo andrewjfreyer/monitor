@@ -251,6 +251,8 @@ connectable_present_devices () {
 			known_device_rssi=$(expr $rssi_rolling_average_string)
 			known_device_rssi=$(( known_device_rssi / operations ))
 
+			echo "$rssi_rolling_average_string / $operations = $known_device_rssi"
+
 			#PUBLISH MESSAGE TO RSSI SENSOR 
 			publish_rssi_message \
 			"$known_addr" \
