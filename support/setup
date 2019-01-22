@@ -173,7 +173,7 @@ fi
 # ----------------------------------------------------------------------------------------
 
 #FILTER THE ARGV FROM THE PARENT SCRIPT TO REMOVE ONE-TIME USE VARIABLES
-FILTERED_ARGS=$(printf '%s\n' "$(IFS=,; echo "${RUNTIME_ARGS[*]}")" | sed 's/ \?-d//g;s/ \?-u//g;s/  */ /g')
+FILTERED_ARGS=$(printf '%s\n' "$(IFS=' '; echo "${RUNTIME_ARGS[*]}")" | sed 's/ \?-d//g;s/ \?-u//g;s/  */ /g')
 
 echo "[$RUNTIME_ARGS]"
 

@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.879
+export version=0.1.880
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -50,8 +50,6 @@ printf "${RED}===================================================${NC}\n\n"
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
-
-echo "$RUNTIME_ARGS"
 
 #LOG DELIMITER
 echo "====================== DEBUG ======================"
