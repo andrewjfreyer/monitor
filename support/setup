@@ -175,6 +175,8 @@ fi
 #FILTER THE ARGV FROM THE PARENT SCRIPT TO REMOVE ONE-TIME USE VARIABLES
 FILTERED_ARGS=$(echo "$RUNTIME_ARGS" | sed 's/ \?-d//g;s/ \?-u//g;s/  */ /g')
 
+echo "[$RUNTIME_ARGS]"
+
 #CHECK FOR CORRECT SERVICE; 
 if [ "$should_install" == "y" ] || [ "$PREF_UPDATE_SERVICE" == true ] ; then
 	#REMOVE ALL INSTANCES
