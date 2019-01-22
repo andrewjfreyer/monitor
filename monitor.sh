@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.882
+export version=0.1.883
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -222,7 +222,6 @@ connectable_present_devices () {
 		
 		#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
 		this_state="${known_public_device_log[$known_addr]}"
-
 		this_state=${this_state:-0}
 
 		#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
@@ -242,7 +241,7 @@ connectable_present_devices () {
 			#IF WE HAVE MORE THAN 5 HERE, THEN THE LAST ONE SHOULD BE TRIMMED
 			if [ "$operations" -gt "5" ]; then 
 				#TRIM THE LAST ADDITION OPERATION 
-				rssi_rolling_average_string="${rssi_rolling_average_string% + *}"
+				rssi_rolling_average_string=${rssi_rolling_average_string% + *}
 			fi 
 
 			#CLEAN THE AVERAGE STRING
