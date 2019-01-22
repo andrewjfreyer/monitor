@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.886
+export version=0.1.887
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -94,7 +94,6 @@ trap "clean" EXIT
 hciconfig "$PREF_HCI_DEVICE" down && sleep 3 && hciconfig "$PREF_HCI_DEVICE" up
 
 #STOP OTHER INSTANCES OF MONITOR WITHOUT STOPPING THIS ONE
-echo "> stopping other instances of 'monitor.sh'"
 for pid in $(pidof -x "$(basename "$0")"); do
     if [ "$pid" != $$ ]; then
         kill -9 "$pid"
@@ -673,15 +672,11 @@ determine_name () {
 	#ALTERNATE NAME? 
 	[ -z "$expected_name" ]	&& expected_name="${known_public_device_name[$alternate_address]}"
 
-	(1>&2 echo "$LINENO - $expected_name")
-
 	#FIND PERMANENT DEVICE NAME OF PUBLIC DEVICE
 	if [ -z "$expected_name" ]; then 
 
 		#CHECK CACHE
 		expected_name=$(grep "$address" < "$base_directory/.public_name_cache" | awk -F "\t" '{print $2}')
-
-		(1>&2 echo "$LINENO - $expected_name from $address")
 
 		#ALTERNATE NAME? 
 		[ -z "$expected_name" ]	&& expected_name=$(grep "$alternate_address" < "$base_directory/.public_name_cache" | awk -F "\t" '{print $2}')
@@ -701,8 +696,6 @@ determine_name () {
 				#ALTERNATE?
 				[ -z "$expected_name" ]	&& expected_name=$(hcitool -i "$PREF_HCI_DEVICE" name "$alternate_address" 2>/dev/null) && address=$alternate_address
 
-		(1>&2 echo "$LINENO - $expected_name from $address")
-
 				#IS THE EXPECTED NAME BLANK? 
 				if [ -n "$expected_name" ]; then 
 
@@ -716,8 +709,6 @@ determine_name () {
 		else
 			#WE HAVE A CACHED NAME, ADD IT BACK TO THE PUBLIC DEVICE ARRAY 
 			known_public_device_name[$address]="$expected_name"
-
-		(1>&2 echo "$LINENO - $expected_name from $address")
 		fi
 	fi 
 
