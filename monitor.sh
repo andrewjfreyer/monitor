@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.880
+export version=0.1.882
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -137,6 +137,7 @@ last_rssi_scan=""
 last_arrival_scan=$((now - 25))
 last_depart_scan=$((now - 25))
 first_arrive_scan=true
+rssi_rolling_average_string=""
 
 # ----------------------------------------------------------------------------------------
 # POPULATE THE ASSOCIATIVE ARRAYS THAT INCLUDE INFORMATION ABOUT THE STATIC DEVICES
@@ -213,6 +214,7 @@ connectable_present_devices () {
 	local known_device_rssi
 	local avg_total
 	local scan_result
+	local operations
 
 	#ITERATE THROUGH THE KNOWN DEVICES 
 	local known_addr
@@ -228,10 +230,27 @@ connectable_present_devices () {
 				
 			#CREATE CONNECTION AND DETERMINE RSSI 
 			#AVERAGE OVER THREE CYCLES; IF BLANK GIVE VALUE OF 100
-			known_device_rssi=$(hcitool cc $known_addr; avg_total=""; for i in 1 2 3; do scan_result=$(hcitool rssi $known_addr 2>&1); scan_result=${scan_result//[^0-9]/}; [[ "$scan_result" = "0" ]] && scan_result=100; counter=$((counter+1)); avg_total=$((avg_total + scan_result )); sleep 0.5; done; printf "$(( avg_total / counter ))" )
+			known_device_rssi=$(hcitool cc $known_addr; avg_total=""; for i in 1 2 3; do scan_result=$(hcitool rssi $known_addr 2>&1); scan_result=${scan_result//[^0-9]/}; [[ "$scan_result" = "0" ]] && scan_result=30; counter=$((counter+1)); avg_total=$((avg_total + scan_result )); sleep 0.5; done; printf "$(( avg_total / counter ))" )
 
-			#IF NO NUMBERS, WE HAVE A HARDWARE FAULT
-			[ -z "$known_device_rssi" ] && continue 
+			#ADD TO ROLLING AVERAGE STRING
+			rssi_rolling_average_string="$known_device_rssi + $rssi_rolling_average_string"
+
+			#FIND TOTAL DDITIONS
+			operations=${rssi_rolling_average_string//[^+]/}
+			operations=${#operations}
+
+			#IF WE HAVE MORE THAN 5 HERE, THEN THE LAST ONE SHOULD BE TRIMMED
+			if [ "$operations" -gt "5" ]; then 
+				#TRIM THE LAST ADDITION OPERATION 
+				rssi_rolling_average_string="${rssi_rolling_average_string% + *}"
+			fi 
+
+			#CLEAN THE AVERAGE STRING
+			rssi_rolling_average_string=${rssi_rolling_average_string% + }
+
+			#EXPR FOR THE ROLLING AVERAGE
+			known_device_rssi=$(expr $rssi_rolling_average_string)
+			known_device_rssi=$(( known_device_rssi / operations ))
 
 			#PUBLISH MESSAGE TO RSSI SENSOR 
 			publish_rssi_message \
