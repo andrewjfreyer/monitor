@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.887
+export version=0.1.888
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1012,20 +1012,34 @@ while true; do
 			#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
 			for key in "${!random_device_log[@]}"; do
 
+				#FIND WHEN THIS KEYW AS LAST SEEN? 
+				last_seen=${random_device_log[$key]}
+
 				is_beacon=false
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_key in "${!beacon_private_address_log[@]}"; do
-					if [ "$beacon_key" == "$key" ]; then 
-						is_beacon=true
+					
+					#FIND ASSOCIATED BEACON
+					associated_beacon="${beacon_private_address_log[$beacon_key]}"
+
+					#COMPARE TO CURRENT KEY
+					if [ "$associated_beacon" == "$key" ]; then 
+						
+						#BEACON SEEN MORE RECENTLY?
+						beacon_last_seen=${public_device_log[$beacon_key]}
+						[ -z "$beacon_last_seen "] && beacon_last_seen=0
+						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen
+
+						#RSSI
+						latest_rssi="${rssi_log[$beacon_key]}" 
+
+						#SET THE BEACON KEY
+						key=$beacon_key
 						continue 
 					fi 
 				done
 
-				#IF THIS IS ASSOCIATED WITH A BEACON, WE SKIP IT. 
-				[ "$is_beacon" == true ] && continue 
-
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-				last_seen=${random_device_log[$key]}
 				difference=$((timestamp - last_seen))
 
 				#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
@@ -1071,6 +1085,7 @@ while true; do
 						
 						#BEACON SEEN MORE RECENTLY?
 						beacon_last_seen=${public_device_log[$beacon_key]}
+						[ -z "$beacon_last_seen "] && beacon_last_seen=0
 						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen
 
 						#RSSI
@@ -1108,9 +1123,7 @@ while true; do
 						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence"  && expiring_device_log[$key]='true'
 					else 
 						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
-						if [[ "$key"  =~ $purged_devices ]]; then 
-							log "$key is within [$purged_devices]"
-						else 
+						if ! [[ "$key"  =~ $purged_devices ]]; then 
 							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "65" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" && expiring_device_log[$key]='true'
 							purged_devices="$purged_devices $key"
 							
