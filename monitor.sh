@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.890
+export version=0.1.892
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -43,7 +43,7 @@ REPEAT=$'\e[1A'
 
 printf "\n\n${RED}===================================================${NC}\n"
 
-printf "\n\n      ${RED}!!! THIS IS A${PURPLE} BETA ${RED}TEST RELEASE !!!${NC}      \n\n"
+printf "\n\n      ${RED}*** THIS IS A${PURPLE} BETA ${RED}TEST RELEASE ***${NC}      \n\n"
 
 printf "${RED}===================================================${NC}\n\n"
 
@@ -1028,7 +1028,7 @@ while true; do
 						
 						#BEACON SEEN MORE RECENTLY?
 						beacon_last_seen="${public_device_log[$beacon_key]}"
-						[ -z "$beacon_last_seen "] && beacon_last_seen=0
+						[ -z "$beacon_last_seen " ] && beacon_last_seen=0
 						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen
 
 						#RSSI
@@ -1090,7 +1090,7 @@ while true; do
 						
 						#BEACON SEEN MORE RECENTLY?
 						beacon_last_seen="${public_device_log[$beacon_key]}"
-						[ -z "$beacon_last_seen "] && beacon_last_seen=0
+						[ -z "$beacon_last_seen " ] && beacon_last_seen=0
 						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen
 
 						#RSSI
