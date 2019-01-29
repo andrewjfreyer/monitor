@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.905
+export version=0.1.906
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1117,7 +1117,7 @@ while true; do
 					[ -n "${expiring_device_log[$key]}" ] && unset "expiring_device_log[$key]"
 
 					unset "public_device_log[$key]"
-					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}BEAC $key expired after $difference seconds ${NC}"
+					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL $key expired after $difference seconds ${NC}"
 
 					#IS BEACON?
 					if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
@@ -1316,8 +1316,8 @@ while true; do
 			[ -z "${public_device_log[$uuid_reference]}" ] && is_new=true
 
 			#RECORD 
-			public_device_log[$data]="$timestamp"	
-			rssi_log[$data]="$rssi"		
+			public_device_log[$uuid_reference]="$timestamp"	
+			rssi_log[$uuid_reference]="$rssi"		
 		fi
 
 		#**********************************************************************
@@ -1419,7 +1419,7 @@ while true; do
 				[ -n "${expiring_device_log[$mac]}" ] && unset "expiring_device_log[$mac]"
 
 				#LOG
-				log "${GREEN}[CMD-$cmd]	${NC}$uuid_reference ${GREEN}$uuid $major $minor ${NC}$name${NC}"
+				log "${GREEN}[CMD-$cmd]	${NC}$mac ${GREEN}$uuid $major $minor ${NC}$name${NC}"
 				
 				publish_presence_message  \
 				"id=$uuid_reference" \
