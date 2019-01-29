@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.904
+export version=0.1.905
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1302,7 +1302,11 @@ while true; do
 				fi 
 			fi 
 
+			#SAVE BEACON ADDRESS LOG
 			beacon_private_address_log["$uuid_reference"]="$mac"
+
+			#DATA SET
+			data="$mac"
 
 			#FIND NAME OF BEACON
 			[ -z "$name" ] && name="$(determine_name "$mac" "$data")"
@@ -1361,7 +1365,7 @@ while true; do
 				[ "$rssi_latest" == "-200" ] && change_type="stationary" && motion_direction="" && rssi_updated=true
 
 				#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$data ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && rssi_updated=true
+				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && rssi_updated=true
 			fi
 		fi 
 
@@ -1408,13 +1412,14 @@ while true; do
 		elif [ "$cmd" == "BEAC" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$rssi_updated" == true ]; then 
 		
 			#PROVIDE USEFUL LOGGING
-			if [ -z "${blacklisted_devices[$data]}" ]; then 
+			if [ -z "${blacklisted_devices[$uuid_reference]}" ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
 
 				#REMOVE 
-				[ -n "${expiring_device_log[$data]}" ] && unset "expiring_device_log[$data]"
+				[ -n "${expiring_device_log[$uuid_reference]}" ] && unset "expiring_device_log[$uuid_reference]"
+				[ -n "${expiring_device_log[$mac]}" ] && unset "expiring_device_log[$mac]"
 
 				#LOG
-				log "${GREEN}[CMD-$cmd]	${NC}$data ${GREEN}$uuid $major $minor ${NC}$name${NC}"
+				log "${GREEN}[CMD-$cmd]	${NC}$uuid_reference ${GREEN}$uuid $major $minor ${NC}$name${NC}"
 				
 				publish_presence_message  \
 				"id=$uuid_reference" \
