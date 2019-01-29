@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.889
+export version=0.1.890
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1288,7 +1288,7 @@ while true; do
 			#FIND NAME OF BEACON
 			[ -z "$name" ] && name="$(determine_name "$mac" "$data")"
 
-			(2>&1 echo "name of beacon $uuid is $name")
+			(2>&1 echo "name of beacon $uuid with $mac / $data is $name")
 
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$data]}" 
