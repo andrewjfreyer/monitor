@@ -1119,7 +1119,7 @@ while true; do
 					fi 
 
 					#REPORT PRESENCE OF DEVICE
-					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" 
+					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" "mac=$key"
 
 				else 
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
