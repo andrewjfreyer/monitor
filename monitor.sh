@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.888
+export version=0.1.889
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -179,7 +179,7 @@ for addr in "${known_static_addresses[@]}"; do
 	[[ $previously_connected_devices =~ .*$addr.* ]] && is_connected="previously connected"
 
 	#FOR DEBUGGING
-	printf "%s\n" "> ${GREEN}$addr${NC} will publish updates to: $pub_topic (has $is_connected to $PREF_HCI_DEVICE)"
+	printf "%s\n" "> ${GREEN}$addr${NC} publishes to: $pub_topic (has $is_connected to $PREF_HCI_DEVICE)"
 done
 
 # ----------------------------------------------------------------------------------------
@@ -199,7 +199,7 @@ for addr in "${known_static_beacons[@]}"; do
 	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { id: $addr ... }"
 
 	#FOR DBUGGING
-	echo "> known beacon: $addr will publish to: $pub_topic"
+	echo "> known beacon: $addr publishes to: $pub_topic"
 done
 
 # ----------------------------------------------------------------------------------------
@@ -1016,6 +1016,7 @@ while true; do
 				last_seen=${random_device_log[$key]}
 
 				is_beacon=false
+
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_key in "${!beacon_private_address_log[@]}"; do
 					
@@ -1026,12 +1027,15 @@ while true; do
 					if [ "$associated_beacon" == "$key" ]; then 
 						
 						#BEACON SEEN MORE RECENTLY?
-						beacon_last_seen=${public_device_log[$beacon_key]}
+						beacon_last_seen="${public_device_log[$beacon_key]}"
 						[ -z "$beacon_last_seen "] && beacon_last_seen=0
 						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen
 
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_key]}" 
+
+						#SET WHETHER IS BEACON
+						is_beacon=true
 
 						#SET THE BEACON KEY
 						key=$beacon_key
@@ -1060,6 +1064,7 @@ while true; do
 			#RANDOM DEVICE EXPIRATION SHOULD TRIGGER DEPARTURE SCAN
 			[ "$should_scan" == true ] && [ "$PREF_TRIGGER_MODE_DEPART" == false ] && perform_departure_scan
 
+			#THIS IS A LIST OF ALL DEVIES PURGED FROM THE RECORDS; MAY INCLUDE BEACONS
 			purged_devices="purgelist"
 
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
@@ -1084,7 +1089,7 @@ while true; do
 					if [ "$associated_beacon" == "$key" ]; then 
 						
 						#BEACON SEEN MORE RECENTLY?
-						beacon_last_seen=${public_device_log[$beacon_key]}
+						beacon_last_seen="${public_device_log[$beacon_key]}"
 						[ -z "$beacon_last_seen "] && beacon_last_seen=0
 						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen
 
