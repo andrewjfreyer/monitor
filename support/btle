@@ -19,7 +19,7 @@
 btle_scanner () {
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
-		local hcitool_raw=$(timeout --signal SIGINT 60 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
+		local hcitool_raw=$(timeout --signal SIGINT 30 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
 
 		#FIND ERROR VALUES 
 		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error|network')
@@ -41,7 +41,7 @@ btle_scanner () {
 		printf "BOFF\n" > main_pipe 
 
 		#NEED DELAY TO BE SURE WE'RE NOT RESTARTING HARDWARE TOO QUICKLY
-		sleep 5
+		sleep 3
 	done
 
 	#REPORT ERROR
@@ -210,6 +210,8 @@ btle_text_processor () {
 					#REPORT TO MAIN LOOP
 					printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe
 				fi 
+			else 
+				(2>&1 printf "[rejecting] $tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data")
 			fi 
 		fi 
 	fi
@@ -281,7 +283,7 @@ btle_listener () {
 					packet=""
 				fi 
 			fi
-		done < <(timeout --signal SIGINT 90 stdbuf -oL -eL hcidump -i $PREF_HCI_DEVICE --raw)
+		done < <(timeout --signal SIGINT 120 stdbuf -oL -eL hcidump -i $PREF_HCI_DEVICE --raw)
 
 		#PREVENT INFINITE LOOPING
 		sleep 1

@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.903
+export version=0.1.904
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -773,7 +773,7 @@ while true; do
 
 		#CLEAR DATA IN NONLOCAL VARS
 		manufacturer="Unknown"
-		associated_beacon_mac_address=""
+		current_associated_beacon_mac_address=""
 		name=""
 		expected_name=""
 		mac=""
@@ -787,7 +787,7 @@ while true; do
 		beacon_type="GENERIC_BEACON"
 		beacon_last_seen=""
 		uuid_reference=""
-		beacon_key=""
+		beacon_uuid_key=""
 
 		#PROCEED BASED ON COMMAND TYPE
 		if [ "$cmd" == "ENQU" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
@@ -987,7 +987,7 @@ while true; do
 			difference_last_rssi=$((timestamp - last_rssi_scan))
 
 			#ONLY EVER 5 MINUTES
-			if [ "$difference_last_rssi" -gt "100" ] || [ -z "$last_rssi_scan" ] ; then 
+			if [ "$difference_last_rssi" -gt "300" ] || [ -z "$last_rssi_scan" ] ; then 
 				connectable_present_devices
 				last_rssi_scan=$(date +%s)
 			fi 
@@ -1003,40 +1003,42 @@ while true; do
 
 			#DID ANY DEVICE EXPIRE? 
 			should_scan=false
+			last_seen=""
+			key=""
 			
 			#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
 			for key in "${!random_device_log[@]}"; do
 
 				#FIND WHEN THIS KEYW AS LAST SEEN? 
-				last_seen=${random_device_log[$key]}
+				last_seen="${random_device_log[$key]}"
 
 				#RESET BEACON
 				is_beacon=false
-				beacon_key=""
+				beacon_uuid_key=""
 
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
-				for beacon_key in "${!beacon_private_address_log[@]}"; do
+				for beacon_uuid_key in "${!beacon_private_address_log[@]}"; do
 					
 					#FIND ASSOCIATED BEACON
-					associated_beacon_mac_address="${beacon_private_address_log[$beacon_key]}"
+					current_associated_beacon_mac_address="${beacon_private_address_log[$beacon_uuid_key]}"
 
 					#COMPARE TO CURRENT KEY
-					if [ "$associated_beacon_mac_address" == "$key" ]; then 
+					if [ "$current_associated_beacon_mac_address" == "$key" ]; then 
 						
 						#BEACON SEEN MORE RECENTLY?
-						beacon_last_seen="${public_device_log[$beacon_key]}"
+						beacon_last_seen="${public_device_log[$beacon_uuid_key]}"
 						[ -z "$beacon_last_seen" ] && beacon_last_seen=0
 						[ -z "$last_seen" ] && last_seen=0
 						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen
 
 						#RSSI
-						latest_rssi="${rssi_log[$beacon_key]}" 
+						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
 
 						#SET WHETHER IS BEACON
 						is_beacon=true
 
 						#SET THE BEACON KEY
-						key=$beacon_key
+						key=$beacon_uuid_key
 						continue 
 					fi 
 				done
@@ -1065,6 +1067,9 @@ while true; do
 			#THIS IS A LIST OF ALL DEVIES PURGED FROM THE RECORDS; MAY INCLUDE BEACONS
 			purged_devices="purgelist"
 
+			#RESET VARIABLES
+			last_seen=""
+			key=""
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
 
@@ -1078,24 +1083,24 @@ while true; do
 				is_beacon=false
 
 				#RESET BEACON KEY
-				beacon_key=""
+				beacon_uuid_key=""
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
-				for beacon_key in "${!beacon_private_address_log[@]}"; do
+				for beacon_uuid_key in "${!beacon_private_address_log[@]}"; do
 					
 					#FIND ASSOCIATED BEACON
-					associated_beacon_mac_address="${beacon_private_address_log[$beacon_key]}"
+					current_associated_beacon_mac_address="${beacon_private_address_log[$beacon_uuid_key]}"
 
 					#COMPARE TO CURRENT KEY
-					if [ "$associated_beacon_mac_address" == "$key" ]; then 
+					if [ "$current_associated_beacon_mac_address" == "$key" ]; then 
 						
 						#BEACON SEEN MORE RECENTLY?
-						beacon_last_seen="${public_device_log[$beacon_key]}"
+						beacon_last_seen="${public_device_log[$beacon_uuid_key]}"
 						[ -z "$beacon_last_seen" ] && beacon_last_seen=0
 						[ -z "$last_seen" ] && last_seen=0
 						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen
 
 						#RSSI
-						latest_rssi="${rssi_log[$beacon_key]}" 
+						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
 						continue 
 					fi 
 				done
@@ -1116,8 +1121,8 @@ while true; do
 
 					#IS BEACON?
 					if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
-						unset "public_device_log[$beacon_key]"
-						[ -z "${blacklisted_devices[$beacon_key]}" ] && log "${BLUE}[DEL-BEAC]	${NC}BEAC $key expired after $difference seconds ${NC}"
+						unset "public_device_log[$beacon_uuid_key]"
+						[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && log "${BLUE}[DEL-BEAC]	${NC}BEAC $key expired after $difference seconds ${NC}"
 					fi 
 
 					#REPORT PRESENCE OF DEVICE
@@ -1133,8 +1138,8 @@ while true; do
 
 						#IS BEACON?
 						if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
-							unset "public_device_log[$beacon_key]"
-							[ -z "${blacklisted_devices[$beacon_key]}" ] && publish_presence_message "id=$beacon_key" "confidence=$percent_confidence"  && expiring_device_log[$beacon_key]='true'
+							unset "public_device_log[$beacon_uuid_key]"
+							[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && publish_presence_message "id=$beacon_uuid_key" "confidence=$percent_confidence"  && expiring_device_log[$beacon_uuid_key]='true'
 						fi 
 					else 
 						#PREFERENCE THRESHOLD
@@ -1147,7 +1152,7 @@ while true; do
 
 							#IS BEACON? 
 							if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
-								[ -z "${blacklisted_devices[$beacon_key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$beacon_key" "confidence=$percent_confidence" "mac=$key" && expiring_device_log[$beacon_key]='true'
+								[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$beacon_uuid_key" "confidence=$percent_confidence" "mac=$key" && expiring_device_log[$beacon_uuid_key]='true'
 							fi 
 						fi 
 					fi  
@@ -1197,16 +1202,16 @@ while true; do
 			beacon_type="GENERIC_BEACON_PUBLIC"
 
 			#DETERMINE WHETHER THIS DEVICE IS ASSOCIATED WITH AN IBEACON
-			associated_beacon_mac_address=""
-			for beacon_key in "${!beacon_private_address_log[@]}"; do
-				associated_beacon_mac_address="${beacon_private_address_log[$beacon_key]}"
-				if [ "$associated_beacon_mac_address" == "$mac" ]; then 
+			current_associated_beacon_mac_address=""
+			for beacon_uuid_key in "${!beacon_private_address_log[@]}"; do
+				current_associated_beacon_mac_address="${beacon_private_address_log[$beacon_uuid_key]}"
+				if [ "$current_associated_beacon_mac_address" == "$mac" ]; then 
 					break
 				fi 
 			done
 
 			#OK, WE HAVE A BEACON - SWITCH UP THE HANDLING OF IT BACK TO BEACON
-			[ -n "$associated_beacon_mac_address" ] && beacon_type="APPLE_IBEACON" && cmd="SKIP"
+			[ -n "$current_associated_beacon_mac_address" ] && beacon_type="APPLE_IBEACON" && cmd="SKIP"
 
 			#SET NAME 
 			[ -n "$name" ] && known_public_device_name[$mac]="$name"
@@ -1234,17 +1239,17 @@ while true; do
 				[ -z "$cached_name" ] && echo "$data	$name" >> .public_name_cache
 
 				#IS THIS ASSOCITED WITH A BEACON? 
-				if [ -n "$associated_beacon_mac_address" ]; then 
+				if [ -n "$current_associated_beacon_mac_address" ]; then 
 				
 					#IF THIS IS AN IBEACON, WE ADD THE NAME TO THAT ARRAY TOO
-					known_public_device_name[$associated_beacon_mac_address]="$name"
+					known_public_device_name[$current_associated_beacon_mac_address]="$name"
 
 					#GET NAME FROM CACHE
 					cached_name=""
-					cached_name=$(grep "$associated_beacon_mac_address" < ".public_name_cache" | awk -F "\t" '{print $2}')
+					cached_name=$(grep "$current_associated_beacon_mac_address" < ".public_name_cache" | awk -F "\t" '{print $2}')
 
 					#ECHO TO CACHE IF DOES NOT EXIST
-					[ -z "$cached_name" ] && echo "$associated_beacon_mac_address	$name" >> .public_name_cache
+					[ -z "$cached_name" ] && echo "$current_associated_beacon_mac_address	$name" >> .public_name_cache
 				fi 
 			fi 
 
@@ -1253,8 +1258,8 @@ while true; do
 			rssi_log[$data]="$rssi"
 
 			#IF BEACON
-			[ -n "$associated_beacon_mac_address" ] && public_device_log[$associated_beacon_mac_address]="$timestamp"	
-			[ -n "$associated_beacon_mac_address" ] && rssi_log[$associated_beacon_mac_address]="$rssi"		
+			[ -n "$current_associated_beacon_mac_address" ] && public_device_log[$current_associated_beacon_mac_address]="$timestamp"	
+			[ -n "$current_associated_beacon_mac_address" ] && rssi_log[$current_associated_beacon_mac_address]="$rssi"		
 
 			#MANUFACTURER
 			[ -z "$manufacturer" ] && manufacturer="$(determine_manufacturer "$data")"
@@ -1299,15 +1304,12 @@ while true; do
 
 			beacon_private_address_log["$uuid_reference"]="$mac"
 
-			#KEY DEFINED AS UUID-MAJOR-MINOR
-			data="$uuid_reference"
-
 			#FIND NAME OF BEACON
 			[ -z "$name" ] && name="$(determine_name "$mac" "$data")"
 
 			#GET LAST RSSI
-			rssi_latest="${rssi_log[$data]}" 
-			[ -z "${public_device_log[$data]}" ] && is_new=true
+			rssi_latest="${rssi_log[$uuid_reference]}" 
+			[ -z "${public_device_log[$uuid_reference]}" ] && is_new=true
 
 			#RECORD 
 			public_device_log[$data]="$timestamp"	
@@ -1445,7 +1447,6 @@ while true; do
 				"type=$beacon_type" \
 				"rssi=$rssi" \
 				"flags=$flags" \
-				"oem=$oem_data" \
 				"movement=$change_type"
 			fi 
 
