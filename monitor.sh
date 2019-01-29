@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.898
+export version=0.1.899
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -787,6 +787,7 @@ while true; do
 		beacon_type="GENERIC_BEACON"
 		beacon_last_seen=""
 		uuid_reference=""
+		beacon_key=""
 
 		#PROCEED BASED ON COMMAND TYPE
 		if [ "$cmd" == "ENQU" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
@@ -1091,9 +1092,6 @@ while true; do
 
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_key]}" 
-
-						#SET THE BEACON KEY
-						key=$beacon_key
 						continue 
 					fi 
 				done
@@ -1110,7 +1108,13 @@ while true; do
 					[ -n "${expiring_device_log[$key]}" ] && unset "expiring_device_log[$key]"
 
 					unset "public_device_log[$key]"
-					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL/BEAC $key expired after $difference seconds ${NC}"
+					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}BEAC $key expired after $difference seconds ${NC}"
+
+					#IS BEACON?
+					if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
+						unset "public_device_log[$beacon_key]"
+						[ -z "${blacklisted_devices[$beacon_key]}" ] && log "${BLUE}[DEL-BEAC]	${NC}BEAC $key expired after $difference seconds ${NC}"
+					fi 
 
 					#REPORT PRESENCE OF DEVICE
 					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" 
@@ -1122,15 +1126,24 @@ while true; do
 					if [ "$PREF_REPORT_ALL_MODE" == true ]; then						
 						#REPORTING ALL 						
 						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence"  && expiring_device_log[$key]='true'
+
+						#IS BEACON?
+						if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
+							unset "public_device_log[$beacon_key]"
+							[ -z "${blacklisted_devices[$beacon_key]}" ] && publish_presence_message "id=$beacon_key" "confidence=$percent_confidence"  && expiring_device_log[$beacon_key]='true'
+						fi 
 					else 
 						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
 						if ! [[ "$key"  =~ $purged_devices ]]; then 
 							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "65" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" && expiring_device_log[$key]='true'
 							purged_devices="$purged_devices $key"
-							
+
+							#IS BEACON? 
+							if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
+								[ -z "${blacklisted_devices[$beacon_key]}" ] && [ "$percent_confidence" -lt "65" ] && publish_presence_message "id=$beacon_key" "confidence=$percent_confidence" && expiring_device_log[$beacon_key]='true'
+							fi 
 						fi 
 					fi  
-
 				fi 
 			done
 
