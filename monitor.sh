@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.907
+export version=0.1.908
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -786,6 +786,7 @@ while true; do
 		uuid=""
 		beacon_type="GENERIC_BEACON"
 		beacon_last_seen=""
+		key_last_seen=""
 		uuid_reference=""
 		beacon_uuid_key=""
 
@@ -1066,7 +1067,7 @@ while true; do
 			[ "$should_scan" == true ] && [ "$PREF_TRIGGER_MODE_DEPART" == false ] && perform_departure_scan
 
 			#THIS IS A LIST OF ALL DEVIES PURGED FROM THE RECORDS; MAY INCLUDE BEACONS
-			purged_devices="purgelist"
+			notification_sent="purgelist"
 
 			#RESET VARIABLES
 			last_seen=""
@@ -1085,6 +1086,7 @@ while true; do
 
 				#RESET BEACON KEY
 				beacon_uuid_key=""
+				
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_uuid_key in "${!beacon_private_address_log[@]}"; do
 					
@@ -1094,7 +1096,7 @@ while true; do
 					#COMPARE TO CURRENT KEY
 					if [ "$current_associated_beacon_mac_address" == "$key" ]; then 
 						
-						#BEACON SEEN MORE RECENTLY?
+						#SET THE LAST SEEN BASED ON THE BEACON REPORT IN THIS CASE
 						beacon_last_seen="${public_device_log[$beacon_uuid_key]}"
 						[ -z "$beacon_last_seen" ] && beacon_last_seen=0
 						[ -z "$last_seen" ] && last_seen=0
@@ -1102,7 +1104,24 @@ while true; do
 
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
-						continue 
+						continue
+					
+					elif [ "$beacon_uuid_key" == "$key" ]; then 
+						#WE HAVE A BEACON IN THE PUBLIC ADDRESS ARRAY
+
+						#SET THE ASSOCIATED KEY BACK 
+						key="$current_associated_beacon_mac_address"
+
+						#SET THE LAST SEEN BASED ON THE MAC ADDRESS IN THIS CASE
+						key_last_seen="${public_device_log[$current_associated_beacon_mac_address]}"
+						[ -z "$key_last_seen" ] && key_last_seen=0
+						[ -z "$last_seen" ] && last_seen=0
+						[ "$key_last_seen" -gt "$last_seen" ] && last_seen=$key_last_seen
+						
+						#RSSI
+						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
+						continue
+
 					fi 
 				done
 
@@ -1120,17 +1139,16 @@ while true; do
 					unset "public_device_log[$key]"
 					unset "rssi_log[$key]"
 					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL $key expired after $difference seconds ${NC}"
-
+					
+					#REPORT PRESENCE OF DEVICE
+					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" 
+				
 					#IS BEACON?
 					if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
 						unset "public_device_log[$beacon_uuid_key]"
 						unset "rssi_log[$beacon_uuid_key]"
-						[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && log "${BLUE}[DEL-BEAC]	${NC}BEAC $key expired after $difference seconds ${NC}"
+						[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && log "${BLUE}[DEL-BEAC]	${NC}BEAC $beacon_uuid_key expired after $difference seconds ${NC}"
 					fi 
-
-					#REPORT PRESENCE OF DEVICE
-					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" "mac=$key"
-
 				else 
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
 					percent_confidence=$(( 100 - difference * 100 / PREF_BEACON_EXPIRATION )) 
@@ -1141,20 +1159,19 @@ while true; do
 
 						#IS BEACON?
 						if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
-							[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && publish_presence_message "id=$beacon_uuid_key" "confidence=$percent_confidence"  && expiring_device_log[$beacon_uuid_key]='true'
+							[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && publish_presence_message "id=$beacon_uuid_key" "confidence=$percent_confidence" "mac=$key" && expiring_device_log[$beacon_uuid_key]='true'
 						fi 
 					else 
 						#PREFERENCE THRESHOLD
 						PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD=65
 
 						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
-						if ! [[ "$key"  =~ $purged_devices ]]; then 
-							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "mac=$key" && expiring_device_log[$key]='true'
-							purged_devices="$purged_devices $key"
+						if ! [[ "$key"  =~ $notification_sent ]]; then 
+							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" && expiring_device_log[$key]='true' && notification_sent="$notification_sent $key"
 
 							#IS BEACON? 
 							if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
-								[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$beacon_uuid_key" "confidence=$percent_confidence" "mac=$key" && expiring_device_log[$beacon_uuid_key]='true'
+								[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$beacon_uuid_key" "confidence=$percent_confidence" "mac=$key" && expiring_device_log[$beacon_uuid_key]='true' && notification_sent="$notification_sent $beacon_uuid_key"
 							fi 
 						fi 
 					fi  
