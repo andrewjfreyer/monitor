@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.896
+export version=0.1.897
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1258,6 +1258,7 @@ while true; do
 			mac=$(echo "$data" | awk -F "|" '{print $6}')
 			pdu_header=$(echo "$data" | awk -F "|" '{print $7}')
 			beacon_type="APPLE_IBEACON"
+			name=""
 
 			#GET MAC AND PDU HEADER
 			uuid_reference="$uuid-$major-$minor"
