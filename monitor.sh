@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.906
+export version=0.1.907
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1054,6 +1054,7 @@ while true; do
 					
 					#REMOVE FROM RANDOM DEVICE LOG
 					unset "random_device_log[$key]"
+					unset "rssi_log[$key]"
 					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-RAND]	${NC}RAND $key expired after $difference seconds ${NC}"
 			
 					#AT LEAST ONE DEVICE EXPIRED
@@ -1117,11 +1118,13 @@ while true; do
 					[ -n "${expiring_device_log[$key]}" ] && unset "expiring_device_log[$key]"
 
 					unset "public_device_log[$key]"
+					unset "rssi_log[$key]"
 					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL $key expired after $difference seconds ${NC}"
 
 					#IS BEACON?
 					if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
 						unset "public_device_log[$beacon_uuid_key]"
+						unset "rssi_log[$beacon_uuid_key]"
 						[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && log "${BLUE}[DEL-BEAC]	${NC}BEAC $key expired after $difference seconds ${NC}"
 					fi 
 
@@ -1138,7 +1141,6 @@ while true; do
 
 						#IS BEACON?
 						if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
-							unset "public_device_log[$beacon_uuid_key]"
 							[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && publish_presence_message "id=$beacon_uuid_key" "confidence=$percent_confidence"  && expiring_device_log[$beacon_uuid_key]='true'
 						fi 
 					else 
@@ -1315,9 +1317,12 @@ while true; do
 			rssi_latest="${rssi_log[$uuid_reference]}" 
 			[ -z "${public_device_log[$uuid_reference]}" ] && is_new=true
 
-			#RECORD 
+			#RECORD BASED ON UUID AND MAC ADDRESS
 			public_device_log[$uuid_reference]="$timestamp"	
-			rssi_log[$uuid_reference]="$rssi"		
+			public_device_log[$mac]="$timestamp"	
+			rssi_log[$uuid_reference]="$rssi"
+			rssi_log[$mac]="$rssi"		
+	
 		fi
 
 		#**********************************************************************
