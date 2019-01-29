@@ -109,6 +109,7 @@ usage:
 
 #REMOVE MANUFACTURER CACHE AND PUBLIC NAME CACHE FROM PREVIOUS SESSION 
 (&>/dev/null rm ".manufacturer_cache") && printf "%s\n" "> removing web request caches"
+(&>/dev/null rm ".public_name_cache") && printf "%s\n" "> removing public name cache"
 
 #PROCESS ARGV OPTIONS
 OPTIND=1

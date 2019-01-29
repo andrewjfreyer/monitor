@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.895
+export version=0.1.896
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -678,9 +678,6 @@ determine_name () {
 		#CHECK CACHE
 		expected_name=$(grep "$address" < "$base_directory/.public_name_cache" | awk -F "\t" '{print $2}')
 
-		#ALTERNATE NAME? 
-		[ -z "$expected_name" ]	&& expected_name=$(grep "$alternate_address" < "$base_directory/.public_name_cache" | awk -F "\t" '{print $2}')
-
 		#IF CACHE DOES NOT EXIST, TRY TO SCAN
 		if [ -z "$expected_name" ]; then 
 
@@ -692,9 +689,6 @@ determine_name () {
 
 				#FIND NAME OF THIS DEVICE
 				expected_name=$(hcitool -i "$PREF_HCI_DEVICE" name "$address" 2>/dev/null)
-
-				#ALTERNATE?
-				[ -z "$expected_name" ]	&& expected_name=$(hcitool -i "$PREF_HCI_DEVICE" name "$alternate_address" 2>/dev/null) && address=$alternate_address
 
 				#IS THE EXPECTED NAME BLANK? 
 				if [ -n "$expected_name" ]; then 
