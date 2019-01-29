@@ -88,9 +88,7 @@ btle_packet_processor () {
 
         #CLEAR PACKET
         packet=""
-
-        (2>&1 printf "%s\n" "beacon received!")
-
+        
 		#SEND TO MAIN LOOP
 		[ -n "$UUID" ] && printf "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address\n" > main_pipe 
 	fi
