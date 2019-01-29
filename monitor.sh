@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.894
+export version=0.1.895
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1028,7 +1028,7 @@ while true; do
 						
 						#BEACON SEEN MORE RECENTLY?
 						beacon_last_seen="${public_device_log[$beacon_key]}"
-						[ -z "$beacon_last_seen " ] && beacon_last_seen=0
+						[ -z "$beacon_last_seen" ] && beacon_last_seen=0
 						[ -z "$last_seen" ] && last_seen=0
 						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen
 
@@ -1093,7 +1093,7 @@ while true; do
 						
 						#BEACON SEEN MORE RECENTLY?
 						beacon_last_seen="${public_device_log[$beacon_key]}"
-						[ -z "$beacon_last_seen " ] && beacon_last_seen=0
+						[ -z "$beacon_last_seen" ] && beacon_last_seen=0
 						[ -z "$last_seen" ] && last_seen=0
 						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen
 
