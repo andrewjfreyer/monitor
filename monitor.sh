@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.901
+export version=0.1.902
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1010,7 +1010,9 @@ while true; do
 				#FIND WHEN THIS KEYW AS LAST SEEN? 
 				last_seen=${random_device_log[$key]}
 
+				#RESET BEACON
 				is_beacon=false
+				beacon_key=""
 
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_key in "${!beacon_private_address_log[@]}"; do
@@ -1075,6 +1077,8 @@ while true; do
 				#ADJUST FOR BEACON?
 				is_beacon=false
 
+				#RESET BEACON KEY
+				beacon_key=""
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_key in "${!beacon_private_address_log[@]}"; do
 					
