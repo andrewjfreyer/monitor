@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.899
+export version=0.1.900
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1133,14 +1133,17 @@ while true; do
 							[ -z "${blacklisted_devices[$beacon_key]}" ] && publish_presence_message "id=$beacon_key" "confidence=$percent_confidence"  && expiring_device_log[$beacon_key]='true'
 						fi 
 					else 
+						#PREFERENCE THRESHOLD
+						PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD=65
+
 						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
 						if ! [[ "$key"  =~ $purged_devices ]]; then 
-							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "65" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" && expiring_device_log[$key]='true'
+							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "mac=$key" && expiring_device_log[$key]='true'
 							purged_devices="$purged_devices $key"
 
 							#IS BEACON? 
 							if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
-								[ -z "${blacklisted_devices[$beacon_key]}" ] && [ "$percent_confidence" -lt "65" ] && publish_presence_message "id=$beacon_key" "confidence=$percent_confidence" && expiring_device_log[$beacon_key]='true'
+								[ -z "${blacklisted_devices[$beacon_key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$beacon_key" "confidence=$percent_confidence" "mac=$key" && expiring_device_log[$beacon_key]='true'
 							fi 
 						fi 
 					fi  
