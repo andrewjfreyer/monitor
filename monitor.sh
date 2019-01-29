@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.897
+export version=0.1.898
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1026,8 +1026,6 @@ while true; do
 						[ -z "$last_seen" ] && last_seen=0
 						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen
 
-						(2>&1 printf "%s\n" "$beacon_last_seen $last_seen" )
-
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_key]}" 
 
@@ -1090,8 +1088,6 @@ while true; do
 						[ -z "$beacon_last_seen" ] && beacon_last_seen=0
 						[ -z "$last_seen" ] && last_seen=0
 						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen
-
-						(2>&1 printf "%s\n" "$beacon_last_seen $last_seen" )
 
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_key]}" 
@@ -1288,8 +1284,6 @@ while true; do
 
 			#FIND NAME OF BEACON
 			[ -z "$name" ] && name="$(determine_name "$mac" "$data")"
-
-			(2>&1 echo "name of beacon $uuid with $mac / $data is $name")
 
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$data]}" 
