@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.902
+export version=0.1.903
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1099,8 +1099,6 @@ while true; do
 						continue 
 					fi 
 				done
-
-				(2>&1 printf "%s\n" "beacon_key: $beacon_key; key=$key; associated_beacon_mac_address=$associated_beacon_mac_address")
 
 				#DETERMINE DIFFERENCE
 				difference=$((timestamp - last_seen))
