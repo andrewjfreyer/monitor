@@ -1513,7 +1513,7 @@ while true; do
 		fi 
 
 		#DEBUGGING
-		log "${RED}[CMD-$cmd]${NC}	$data $beacon_uuid_key"
+		log "${RED}[CMD-$cmd]${NC}	${BLUE}[DEBUG]${NC} $data $beacon_uuid_key"
 
 		#SHOUD WE PERFORM AN ARRIVAL SCAN AFTER THIS FIRST LOOP?
 		if [ "$first_arrive_scan" == true ] && [ "$uptime" -lt "$PREF_STARTUP_SETTLE_TIME" ] ; then 
