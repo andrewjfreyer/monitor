@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.913
+export version=0.1.914
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1510,8 +1510,10 @@ while true; do
 
 				continue
 			fi 
-		
 		fi 
+
+		#DEBUGGING
+		log "${RED}[CMD-$cmd]${NC}	$data $beacon_uuid_key"
 
 		#SHOUD WE PERFORM AN ARRIVAL SCAN AFTER THIS FIRST LOOP?
 		if [ "$first_arrive_scan" == true ] && [ "$uptime" -lt "$PREF_STARTUP_SETTLE_TIME" ] ; then 
