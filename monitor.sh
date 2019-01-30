@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.918
+export version=0.1.919
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -793,6 +793,7 @@ while true; do
 		key_last_seen=""
 		uuid_reference=""
 		beacon_uuid_key=""
+		instruction_timestamp=""
 
 		#PROCEED BASED ON COMMAND TYPE
 		if [ "$cmd" == "ENQU" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
@@ -830,6 +831,7 @@ while true; do
 			device_type=$(echo "$data" | awk -F "|" '{print $7}')
 			flags=$(echo "$data" | awk -F "|" '{print $8}')
 			oem_data=$(echo "$data" | awk -F "|" '{print $9}')
+			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $10}')
 
 			data="$mac"
 
@@ -1231,6 +1233,7 @@ while true; do
 			device_type=$(echo "$data" | awk -F "|" '{print $7}')
 			flags=$(echo "$data" | awk -F "|" '{print $8}')
 			oem_data=$(echo "$data" | awk -F "|" '{print $9}')
+			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $10}')
 
 			data="$mac"
 			beacon_type="GENERIC_BEACON_PUBLIC"
@@ -1313,6 +1316,7 @@ while true; do
 			pdu_header=$(echo "$data" | awk -F "|" '{print $7}')
 			beacon_type="APPLE_IBEACON"
 			name=""
+			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $8}')
 
 			#GET MAC AND PDU HEADER
 			uuid_reference="$uuid-$major-$minor"

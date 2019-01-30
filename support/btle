@@ -86,11 +86,10 @@ btle_packet_processor () {
 		RSSI=$(echo "ibase=16; $RSSI" | bc)
 		RSSI=$((RSSI - 256))
 
-        #CLEAR PACKET
-        packet=""
-        
+        timestamp=$(date +%s)
+
 		#SEND TO MAIN LOOP
-		[ -n "$UUID" ] && printf "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address\n" > main_pipe 
+		[ -n "$UUID" ] && printf "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address|$timestamp\n" > main_pipe 
 	fi
 }
 
@@ -192,9 +191,13 @@ btle_text_processor () {
 			oem_data=${BASH_REMATCH[1]}
 		fi 
 
+		local timestamp
+		timestamp=$(date +%s)
+
+
 		if [ "$tx_type" == "PUBL" ]; then 
 			#PRINT ALL PUBLIC BEACONS
-			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe
+			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data|$timestamp" > main_pipe
 
 		elif [ "$tx_type" == "RAND" ]; then
 		 
@@ -208,10 +211,10 @@ btle_text_processor () {
 
 				if [ "$should_ignore" == false ]; then 
 					#REPORT TO MAIN LOOP
-					printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data" > main_pipe
+					printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data$|$timestamp" > main_pipe
 				fi 
 			else 
-				(2>&1 printf "[rejecting] $tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data")
+				(2>&1 printf "[rejecting] $tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data|$timestamp")
 			fi 
 		fi 
 	fi
