@@ -1234,6 +1234,7 @@ while true; do
 			flags=$(echo "$data" | awk -F "|" '{print $8}')
 			oem_data=$(echo "$data" | awk -F "|" '{print $9}')
 			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $10}')
+			beacon_uuid_key=""
 
 			data="$mac"
 			beacon_type="GENERIC_BEACON_PUBLIC"
@@ -1246,6 +1247,7 @@ while true; do
 				if [ "$current_associated_beacon_mac_address" == "$mac" ]; then 
 					break
 				fi 
+				beacon_uuid_key=""
 			done
 
 			#SET NAME 
