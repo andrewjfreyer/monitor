@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.911
+export version=0.1.912
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1170,11 +1170,12 @@ while true; do
 						PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD=90
 
 						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
-						if ! [[ "$key"  =~ $notification_sent ]]; then 
-							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "line=$LINENO" && expiring_device_log[$key]='true' && notification_sent="$notification_sent $key"
+						if ! [[ $notification_sent  =~ $key ]]; then 
+							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "line=$LINENO" && expiring_device_log[$key]='true'
+							notification_sent="$notification_sent $key"
 
 							#IS BEACON? 
-							if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
+							if ! [[ $notification_sent =~ $beacon_uuid_key ]] && [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
 
 								[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$beacon_uuid_key" "confidence=$percent_confidence" "mac=$key" "line=$LINENO" && expiring_device_log[$beacon_uuid_key]='true' && notification_sent="$notification_sent $beacon_uuid_key"
 
