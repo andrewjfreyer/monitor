@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.920
+export version=0.1.921
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -989,6 +989,8 @@ while true; do
 			fi
 		elif [ "$cmd" == "BOFF" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
 			
+			(2>&1 printf "-----------------\n")
+
 			#FIND RSSI OF KNOWN DEVICES PREVIOUSLY CONNECTED WHILE HICTOOL IS NOT 
 			#SCANNING			
 			difference_last_rssi=$((timestamp - last_rssi_scan))
