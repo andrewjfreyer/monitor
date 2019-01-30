@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.917
+export version=0.1.918
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1044,7 +1044,7 @@ while true; do
 
 						#SET THE BEACON KEY
 						key=$beacon_uuid_key
-						continue 
+						break 
 					fi 
 					beacon_uuid_key=""
 				done
@@ -1112,7 +1112,7 @@ while true; do
 
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
-						continue
+						break
 					
 					elif [ "$beacon_uuid_key" == "$key" ]; then 
 						#WE HAVE A BEACON IN THE PUBLIC ADDRESS ARRAY
@@ -1131,7 +1131,7 @@ while true; do
 						
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
-						continue
+						break
 					fi 
 					beacon_uuid_key=""
 				done
@@ -1190,7 +1190,7 @@ while true; do
 				fi 
 			done
 
-			#
+			beacon_uuid_key=""
 			continue
 
 		elif [ "$cmd" == "NAME" ]; then 
