@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.921
+export version=0.1.922
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -987,10 +987,9 @@ while true; do
 				#RESTART SYSTEM
 				systemctl restart monitor.service				
 			fi
+
 		elif [ "$cmd" == "BOFF" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
 			
-			(2>&1 printf "%s\n" "-----------------")
-
 			#FIND RSSI OF KNOWN DEVICES PREVIOUSLY CONNECTED WHILE HICTOOL IS NOT 
 			#SCANNING			
 			difference_last_rssi=$((timestamp - last_rssi_scan))
@@ -1174,6 +1173,7 @@ while true; do
 
 						#IS BEACON?
 						if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
+							log "${BLUE}[DEL-UPDA]	${NC}BEAC $beacon_uuid_key ${NC}"
 							[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && publish_presence_message "id=$beacon_uuid_key" "confidence=$percent_confidence" "mac=$key" "last_seen=$last_seen" && expiring_device_log[$beacon_uuid_key]='true'
 						fi 
 					else 
