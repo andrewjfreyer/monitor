@@ -1241,9 +1241,6 @@ while true; do
 				fi 
 			done
 
-			#OK, WE HAVE A BEACON - SWITCH UP THE HANDLING OF IT BACK TO BEACON
-			[ -n "$current_associated_beacon_mac_address" ] && beacon_type="APPLE_IBEACON" && cmd="SKIP"
-
 			#SET NAME 
 			[ -n "$name" ] && known_public_device_name[$mac]="$name"
 			[ -z "$name" ] && name="$(determine_name "$data")"
