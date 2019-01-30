@@ -1518,7 +1518,7 @@ while true; do
 		fi 
 
 		#DEBUGGING
-		printf "%s\n" "$event"
+		printf "\n%s\n" "$event"
 		log "${RED}[CMD-$cmd]${NC}	${BLUE}[DEBUG]${NC} $data $beacon_uuid_key"
 
 		#SHOUD WE PERFORM AN ARRIVAL SCAN AFTER THIS FIRST LOOP?
