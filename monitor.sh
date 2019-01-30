@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.922
+export version=0.1.923
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1500,6 +1500,11 @@ while true; do
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
 			
+			#REJECTION FILTER
+			if [[ $flags =~ $PREF_REJECT_FLAG_FILTER ]] || [[ $manufacturer =~ $PREF_REJECT_MFCG_FILTER ]]; then 
+				continue
+			fi 
+
 			#FLAG AND MFCG FILTER
 			if [[ $flags =~ $PREF_ARRIVE_TRIGGER_FLAG_FILTER ]] && [[ $manufacturer =~ $PREF_ARRIVE_TRIGGER_MFCG_FILTER ]]; then 
 				#PROVIDE USEFUL LOGGING
