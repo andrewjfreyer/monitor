@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.924
+export version=0.1.925
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1177,7 +1177,7 @@ while true; do
 						fi 
 					else 
 						#PREFERENCE THRESHOLD
-						PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD=90
+						PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD=72
 
 						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
 						if ! [[ $notification_sent  =~ $key ]]; then 
