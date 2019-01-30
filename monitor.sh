@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.915
+export version=0.1.916
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1173,7 +1173,7 @@ while true; do
 						fi 
 					else 
 						#PREFERENCE THRESHOLD
-						PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD=70
+						PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD=90
 
 						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
 						if ! [[ $notification_sent  =~ $key ]]; then 
@@ -1188,6 +1188,9 @@ while true; do
 					fi  
 				fi 
 			done
+
+			#
+			continue
 
 		elif [ "$cmd" == "NAME" ]; then 
 			#DATA IS DELIMITED BY VERTICAL PIPE
