@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.910
+export version=0.1.911
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1225,7 +1225,7 @@ while true; do
 
 			data="$mac"
 			beacon_type="GENERIC_BEACON_PUBLIC"
-			beacon_uuid_key=""
+			beacon_uuid_key="Default"
 			
 			#DETERMINE WHETHER THIS DEVICE IS ASSOCIATED WITH AN IBEACON
 			current_associated_beacon_mac_address=""
