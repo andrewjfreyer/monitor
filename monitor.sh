@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.914
+export version=0.1.915
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1230,7 +1230,7 @@ while true; do
 
 			data="$mac"
 			beacon_type="GENERIC_BEACON_PUBLIC"
-			beacon_uuid_key="Default"
+			beacon_uuid_key=""
 			
 			#DETERMINE WHETHER THIS DEVICE IS ASSOCIATED WITH AN IBEACON
 			current_associated_beacon_mac_address=""
@@ -1250,7 +1250,7 @@ while true; do
 
 			#HAS THIS DEVICE BEEN MARKED AS EXPIRING SOON? IF SO, SHOULD REPORT 100 AGAIN
 			[ -n "${expiring_device_log[$data]}" ] && rssi_updated=true
-			[ -n "${expiring_device_log[$beacon_uuid_key]}" ] && rssi_updated=true
+			[ -n "$beacon_uuid_key" ] && [ -n "${expiring_device_log[$beacon_uuid_key]}" ] && rssi_updated=true
 
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$data]}" 
