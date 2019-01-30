@@ -1177,7 +1177,7 @@ while true; do
 						fi 
 					else 
 						#PREFERENCE THRESHOLD
-						PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD=65
+						PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD=90
 
 						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
 						if ! [[ $notification_sent  =~ $key ]]; then 
@@ -1357,7 +1357,9 @@ while true; do
 
 			#RECORD BASED ON UUID AND MAC ADDRESS
 			public_device_log[$uuid_reference]="$timestamp"	
-			public_device_log[$mac]="$timestamp"	
+			public_device_log[$mac]="$timestamp"
+
+			#RSSI LOGS
 			rssi_log[$uuid_reference]="$rssi"
 			rssi_log[$mac]="$rssi"		
 	
