@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.916
+export version=0.1.917
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1046,6 +1046,7 @@ while true; do
 						key=$beacon_uuid_key
 						continue 
 					fi 
+					beacon_uuid_key=""
 				done
 
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
@@ -1131,8 +1132,8 @@ while true; do
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
 						continue
-
 					fi 
+					beacon_uuid_key=""
 				done
 
 				#DETERMINE DIFFERENCE
