@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.908
+export version=0.1.909
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -698,6 +698,10 @@ determine_name () {
 
 					#ADD TO CACHE
 					echo "$data	$expected_name" >> .public_name_cache
+				else
+					#ADD TO CACHE TO PREVENT RE-SCANNING
+					echo "$data	Undeterminable" >> .public_name_cache
+
 				fi 
 			fi 
 		else
@@ -1067,7 +1071,7 @@ while true; do
 			[ "$should_scan" == true ] && [ "$PREF_TRIGGER_MODE_DEPART" == false ] && perform_departure_scan
 
 			#THIS IS A LIST OF ALL DEVIES PURGED FROM THE RECORDS; MAY INCLUDE BEACONS
-			notification_sent="purgelist"
+			notification_sent="____ "
 
 			#RESET VARIABLES
 			last_seen=""
@@ -1163,7 +1167,7 @@ while true; do
 						fi 
 					else 
 						#PREFERENCE THRESHOLD
-						PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD=65
+						PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD=90
 
 						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
 						if ! [[ "$key"  =~ $notification_sent ]]; then 
@@ -1171,7 +1175,9 @@ while true; do
 
 							#IS BEACON? 
 							if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
+
 								[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$beacon_uuid_key" "confidence=$percent_confidence" "mac=$key" && expiring_device_log[$beacon_uuid_key]='true' && notification_sent="$notification_sent $beacon_uuid_key"
+
 							fi 
 						fi 
 					fi  
@@ -1219,7 +1225,8 @@ while true; do
 
 			data="$mac"
 			beacon_type="GENERIC_BEACON_PUBLIC"
-
+			beacon_uuid_key=""
+			
 			#DETERMINE WHETHER THIS DEVICE IS ASSOCIATED WITH AN IBEACON
 			current_associated_beacon_mac_address=""
 			for beacon_uuid_key in "${!beacon_private_address_log[@]}"; do
@@ -1241,6 +1248,7 @@ while true; do
 
 			#HAS THIS DEVICE BEEN MARKED AS EXPIRING SOON? IF SO, SHOULD REPORT 100 AGAIN
 			[ -n "${expiring_device_log[$data]}" ] && rssi_updated=true
+			[ -n "${expiring_device_log[$beacon_uuid_key]}" ] && rssi_updated=true
 
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$data]}" 
