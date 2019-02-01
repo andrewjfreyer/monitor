@@ -1060,7 +1060,9 @@ while true; do
 				[ -z "$last_seen" ] && continue
 
 				#IS THIS A BEACON??
-				if [ "$is_beacon" == true ]; then 
+				if [ "$is_beacon" == true ]; then
+
+					log "Beacon: $key beacon_uuid_key $difference" 
 
 					#HAS THIS BEACON ADDRESS EXPIRED?!
 					if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
@@ -1119,6 +1121,7 @@ while true; do
 					continue
 
 					#IF NOT BEACON, PROCESS AS NORMAL RANDOM DEVICE
+					
 				elif [ "$difference" -gt "$PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" ]; then 
 					
 					#REMOVE FROM RANDOM DEVICE LOG
