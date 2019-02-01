@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.933
+export version=0.1.934
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1104,7 +1104,7 @@ while true; do
 
 						[ -z "$key_last_seen" ] && key_last_seen=0
 						[ -z "$last_seen" ] && last_seen=0
-						[ "$key_last_seen" -gt "$last_seen" ] && last_seen=$key_last_seen && log "$LINENO: $beacon_last_seen > $last_seen"
+						[ "$key_last_seen" -gt "$last_seen" ] && last_seen=$key_last_seen && log "$LINENO: $key_last_seen > $last_seen"
 						
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
