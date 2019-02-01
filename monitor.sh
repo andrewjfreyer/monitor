@@ -1059,15 +1059,14 @@ while true; do
 			last_seen=""
 			key=""
 
-			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-			last_seen="${public_device_log[$key]}"
-
 			#TEMP VAR
 			most_recent_beacon=""
 
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
 
+				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
+				last_seen="${public_device_log[$key]}"
 
 				#RSSI
 				latest_rssi="${rssi_log[$key]}" 
