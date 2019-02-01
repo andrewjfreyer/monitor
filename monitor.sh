@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.925
+export version=0.1.926
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1013,6 +1013,8 @@ while true; do
 			should_scan=false
 			last_seen=""
 			key=""
+
+			log "[CMD-INFO]	Checking RAND beacon devices for expiration(s)..."
 			
 			#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
 			for key in "${!random_device_log[@]}"; do
@@ -1080,6 +1082,9 @@ while true; do
 			#RESET VARIABLES
 			last_seen=""
 			key=""
+
+			log "[CMD-INFO]	Checking PUBL/BEAC beacon devices for expiration(s)..."
+
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
