@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.930
+export version=0.1.931
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1013,44 +1013,12 @@ while true; do
 			should_scan=false
 			last_seen=""
 			key=""
-
-			log "[CMD-INFO]	Checking RAND beacon devices for expiration(s)..."
 			
 			#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
 			for key in "${!random_device_log[@]}"; do
 
 				#FIND WHEN THIS KEYW AS LAST SEEN? 
 				last_seen="${random_device_log[$key]}"
-
-				#RESET BEACON
-				is_beacon=false
-				beacon_uuid_key=""
-
-				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
-				for beacon_uuid_key in "${!beacon_private_address_log[@]}"; do
-					
-					#FIND ASSOCIATED BEACON
-					current_associated_beacon_mac_address="${beacon_private_address_log[$beacon_uuid_key]}"
-
-					#COMPARE TO CURRENT KEY
-					if [ "$current_associated_beacon_mac_address" == "$key" ]; then 
-						
-						#BEACON SEEN MORE RECENTLY?
-						beacon_last_seen="${public_device_log[$beacon_uuid_key]}"
-						[ -z "$beacon_last_seen" ] && beacon_last_seen=0
-						[ -z "$last_seen" ] && last_seen=0
-						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen
-
-						#RSSI
-						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
-
-						#SET WHETHER IS BEACON
-						is_beacon=true
-
-						#SET THE BEACON KEY
-						break 
-					fi 
-				done
 
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				difference=$((timestamp - last_seen))
@@ -1081,8 +1049,6 @@ while true; do
 			last_seen=""
 			key=""
 
-			log "[CMD-INFO]	Checking PUBL/BEAC beacon devices for expiration(s)..."
-
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
@@ -1099,7 +1065,6 @@ while true; do
 				
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_uuid_key in "${!beacon_private_address_log[@]}"; do
-
 
 					#FIND ASSOCIATED BEACON
 					current_associated_beacon_mac_address="${beacon_private_address_log[$beacon_uuid_key]}"
@@ -1137,12 +1102,17 @@ while true; do
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
 						break
-					fi 
+					fi
+
 					beacon_uuid_key=""
 				done
 
+
 				#DETERMINE DIFFERENCE
 				difference=$((timestamp - last_seen))
+
+				log "Beacon for $key == $beacon_uuid_key?? ($difference) ($last_seen)"
+
 
 				#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
 				[ -z "$last_seen" ] && continue 
