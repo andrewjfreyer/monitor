@@ -1422,7 +1422,7 @@ while true; do
 				[ "$rssi_latest" == "-200" ] && change_type="stationary" && motion_direction="" && rssi_updated=true
 
 				#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && rssi_updated=true
+				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$CMD $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && rssi_updated=true
 			fi
 		fi 
 
