@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.944
+export version=0.1.945
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1121,7 +1121,7 @@ while true; do
 						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
 
 						#SET BEACON UUID FOUND
-						beacon_uuid_found=beacon_uuid_key
+						beacon_uuid_found=$beacon_uuid_key
 						beacon_mac_found=$key
 					
 					elif [ "$beacon_uuid_key" == "$key" ]; then 
