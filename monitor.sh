@@ -1112,6 +1112,8 @@ while true; do
 
 					#COMPARE TO CURRENT KEY
 					if [ "$current_associated_beacon_mac_address" == "$key" ]; then 
+
+						log "       -> MATCH!"
 						
 						#SET THIS IS A BEACON
 						is_beacon=true
