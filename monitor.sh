@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.928
+export version=0.1.929
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1090,8 +1090,6 @@ while true; do
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen=${public_device_log[$key]}
 
-				log " > PUBL: $key" 
-
 				#RSSI
 				latest_rssi="${rssi_log[$key]}" 
 
@@ -1108,12 +1106,10 @@ while true; do
 					#FIND ASSOCIATED BEACON
 					current_associated_beacon_mac_address="${beacon_private_address_log[$beacon_uuid_key]}"
 
-					log "   -> $beacon_uuid_key == $current_associated_beacon_mac_address"
-
 					#COMPARE TO CURRENT KEY
 					if [ "$current_associated_beacon_mac_address" == "$key" ]; then 
 
-						log "       -> MATCH!"
+						log "       -> MATCH! $key = $beacon_uuid_key"
 						
 						#SET THIS IS A BEACON
 						is_beacon=true
@@ -1422,7 +1418,7 @@ while true; do
 				[ "$rssi_latest" == "-200" ] && change_type="stationary" && motion_direction="" && rssi_updated=true
 
 				#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$CMD $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && rssi_updated=true
+				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && rssi_updated=true
 			fi
 		fi 
 
