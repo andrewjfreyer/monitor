@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.938
+export version=0.1.939
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -772,7 +772,7 @@ while true; do
 		is_new=false
 		should_update=false
 		did_change=false
-		is_beacon=false
+		is_apple_beacon=false
 
 
 		#CLEAR DATA IN NONLOCAL VARS
@@ -1059,19 +1059,29 @@ while true; do
 			last_seen=""
 			key=""
 
+			#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
+			last_seen="${public_device_log[$key]}"
+
+			#TEMP VAR
+			most_recent_beacon=""
+
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
-				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-				last_seen="${public_device_log[$key]}"
+
 
 				#RSSI
 				latest_rssi="${rssi_log[$key]}" 
 
 				#ADJUST FOR BEACON?
-				is_beacon=false
+				is_apple_beacon=false
 
 				#RESET BEACON KEY
-				beacon_uuid_key=""
+				most_recent_beacon="0"
+				beacon_uuid_found=""
+				beacon_mac_found=""
+
+				#THE PROBLEM HEERE IS THAT WE CAN RUN THROUGH THIS AND HIT ONE OR THE OTHER OF MAC OR ADDRESS FIRST; 
+				#THEN WE EXIT
 				
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_uuid_key in "${!beacon_mac_address_log[@]}"; do
@@ -1086,26 +1096,26 @@ while true; do
 					if [ "$current_associated_beacon_mac_address" == "$key" ]; then 
 						
 						#SET THIS IS A BEACON
-						is_beacon=true
+						is_apple_beacon=true
 
 						#SET THE LAST SEEN BASED ON THE BEACON REPORT IN THIS CASE
 						beacon_last_seen=""
 						beacon_last_seen="${public_device_log[$beacon_uuid_key]}"
 
-						log "key = $key ($last_seen); $beacon_uuid_key ($beacon_last_seen)"
-
 						[ -z "$beacon_last_seen" ] && beacon_last_seen=0
-						[ -z "$last_seen" ] && last_seen=0
-						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen 
+						[ "$beacon_last_seen" -gt "$most_recent_beacon" ] && most_recent_beacon=$beacon_last_seen 
 
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
-						break
+
+						#SET BEACON UUID FOUND
+						beacon_uuid_found=beacon_uuid_key
+						beacon_mac_found=$key
 					
 					elif [ "$beacon_uuid_key" == "$key" ]; then 
 
 						#SET THIS IS A BEACON
-						is_beacon=true
+						is_apple_beacon=true
 
 						#SET THE ASSOCIATED KEY BACK 
 						key="$current_associated_beacon_mac_address"
@@ -1114,80 +1124,99 @@ while true; do
 						key_last_seen=""
 						key_last_seen="${public_device_log[$current_associated_beacon_mac_address]}"
 
-						log "key = $key ($key_last_seen); $beacon_uuid_key ($last_seen)"
-
 						[ -z "$key_last_seen" ] && key_last_seen=0
 						[ -z "$last_seen" ] && last_seen=0
-						[ "$key_last_seen" -gt "$last_seen" ] && last_seen=$key_last_seen
+						[ "$key_last_seen" -gt "$most_recent_beacon" ] && most_recent_beacon=$key_last_seen
 						
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
-						break
-					fi
 
-					beacon_uuid_key=""
+						#FILL BEACON UUID FOUND
+						beacon_uuid_found=beacon_uuid_key
+						beacon_mac_found=$current_associated_beacon_mac_address
+					fi
 				done
 
-				#DETERMINE DIFFERENCE
-				difference=$((timestamp - last_seen))
+				#DETERMINE IF THIS WAS A BEACON AND, IF SO, WHETHER THE BEACON IS SEEN MORE RECENTLY 
+				if [ "$is_apple_beacon" == true ]; then 
+					#DETERMINE DIFFERENCE
+					difference=$((timestamp - most_recent_beacon))
 
-				log "Beacon for $key == $beacon_uuid_key?? ($difference) ($timestamp) ($last_seen)"
+					#PRINT LOG
+					log "Beacon for $key == $beacon_uuid_found?? (difference: $difference) (timestamp: $timestamp) (last seen beacon or mac: $most_recent_beacon)"
 
-				#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
-				[ -z "$last_seen" ] && continue 
+				else
+					#DETERMINE DIFFERENCE
+					difference=$((timestamp - last_seen))
 
-				#TIMEOUT AFTER 120 SECONDS
+					#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
+					[ -z "$last_seen" ] && continue 
+				fi 
+
+				#TIMEOUT AFTER [XXX] SECONDS; ALL BEACONS HONOR THE SAME EXPRIATION THRESHOLD INCLUDING IBEACONS
 				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
 					#REMOVE FROM EXPIRING DEVICE LOG
 					[ -n "${expiring_device_log[$key]}" ] && unset "expiring_device_log[$key]"
 
-					unset "public_device_log[$key]"
-					unset "rssi_log[$key]"
-					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL $key expired after $difference seconds ${NC}"
-					
-					#REPORT PRESENCE OF DEVICE
-					[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" "last_seen=$last_seen"
-				
 					#IS BEACON?
-					if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
+					if [ "$is_apple_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
+
 						unset "public_device_log[$beacon_uuid_key]"
 						unset "rssi_log[$beacon_uuid_key]"
-						[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && log "${BLUE}[DEL-BEAC]	${NC}BEAC $beacon_uuid_key expired after $difference seconds ${NC}"
 
-						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && publish_presence_message "id=$beacon_uuid_key" "confidence=0" "last_seen=$last_seen"
+						[ -z "${blacklisted_devices[$beacon_uuid_found]}" ] && log "${BLUE}[DEL-BEAC]	${NC}BEAC $beacon_uuid_found expired after $difference seconds ${NC}"
+						[ -z "${blacklisted_devices[$beacon_mac_found]}" ] && log "${BLUE}[DEL-PUBL]	${NC}BEAC $beacon_mac_found expired after $difference seconds ${NC}"
+
+						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$beacon_uuid_found]}" ] && publish_presence_message "id=$beacon_uuid_found" "confidence=0" "last_seen=$most_recent_beacon"
+						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$beacon_mac_found]}" ] && publish_presence_message "id=$beacon_mac_found" "confidence=0" "last_seen=$most_recent_beacon"
+					
+					else 
+
+						unset "public_device_log[$key]"
+						unset "rssi_log[$key]"
+
+						#LOGGING
+						[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL $key expired after $difference seconds ${NC}"
+						
+						#REPORT PRESENCE OF DEVICE
+						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" "last_seen=$last_seen"
+				
 					fi 
 				else 
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
 					percent_confidence=$(( 100 - difference * 100 / PREF_BEACON_EXPIRATION )) 
 
 					if [ "$PREF_REPORT_ALL_MODE" == true ]; then						
-						#REPORTING ALL 						
-						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "last_seen=$last_seen" && expiring_device_log[$key]='true'
+						#REPORTING ALL 	
+						if [ "$is_apple_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
+							#DEBUG LOGGING
+							log "${BLUE}[DEL-UPDA]	${NC}BEAC $beacon_uuid_found (MAC: $beacon_mac_found) ${NC}"
 
-						#IS BEACON?
-						if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
-							log "${BLUE}[DEL-UPDA]	${NC}BEAC $beacon_uuid_key ${NC}"
-							[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && publish_presence_message "id=$beacon_uuid_key" "confidence=$percent_confidence" "mac=$key" "last_seen=$last_seen" && expiring_device_log[$beacon_uuid_key]='true'
+							[ -z "${blacklisted_devices[$beacon_uuid_found]}" ] && publish_presence_message "id=$beacon_uuid_found" "confidence=$percent_confidence" "mac=$key" "last_seen=$most_recent_beacon" && expiring_device_log[$beacon_uuid_found]='true'
+							[ -z "${blacklisted_devices[$beacon_mac_found]}" ] && publish_presence_message "id=$beacon_mac_found" "confidence=$percent_confidence" "last_seen=$most_recent_beacon" && expiring_device_log[$beacon_mac_found]='true'
+
+						else 
+							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "last_seen=$last_seen" && expiring_device_log[$key]='true'
 						fi 
 					else 
 						#PREFERENCE THRESHOLD
 						PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD=72
 
-						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
-						if ! [[ $notification_sent  =~ $key ]]; then 
-							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "last_seen=$last_seen" && expiring_device_log[$key]='true'
-							notification_sent="$notification_sent $key"
-
-							#IS BEACON? 
-							if ! [[ $notification_sent =~ $beacon_uuid_key ]] && [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
-								[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$beacon_uuid_key" "confidence=$percent_confidence" "mac=$key" "last_seen=$last_seen" && expiring_device_log[$beacon_uuid_key]='true' && notification_sent="$notification_sent $beacon_uuid_key"
+						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY; ALSO DO NOT REPORT DEVICES THAT WE'VE ALREADY REPORTEDI IN THIS LOOP
+						if [ "$is_apple_beacon" == true ]; then 								
+							#IF NOT SEEN AND BELOW THRESHOLD
+							if ! [[ $notification_sent  =~ $key ]] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ]; then 
+								[ -z "${blacklisted_devices[$beacon_uuid_found]}" ] && publish_presence_message "id=$beacon_uuid_found" "confidence=$percent_confidence" "mac=$beacon_mac_found" "last_seen=$most_recent_beacon" && expiring_device_log[$beacon_uuid_found]='true' && notification_sent="$notification_sent $beacon_uuid_found"
+								[ -z "${blacklisted_devices[$beacon_mac_found]}" ] && publish_presence_message "id=$beacon_mac_found" "confidence=$percent_confidence" "last_seen=$most_recent_beacon" && expiring_device_log[$beacon_mac_found]='true' && notification_sent="$notification_sent $beacon_mac_found"
 							fi 
-						fi 
+						else 
+							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "last_seen=$last_seen" && expiring_device_log[$key]='true' && notification_sent="$notification_sent $key"
+							notification_sent="$notification_sent $key"
+						fi
 					fi  
 				fi 
 			done
 
-			beacon_uuid_key=""
 			continue
 
 		elif [ "$cmd" == "NAME" ]; then 
