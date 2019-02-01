@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.945
+export version=0.1.946
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1170,8 +1170,16 @@ while true; do
 					#IS BEACON?
 					if [ "$is_apple_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
 
-						unset "public_device_log[$beacon_uuid_key]"
-						unset "rssi_log[$beacon_uuid_key]"
+						#REMOVE FROM LOGS
+						unset "public_device_log[$beacon_uuid_found]"
+						unset "rssi_log[$beacon_uuid_found]"
+
+						#REMOVE MAC FROM PUBLIC LOG
+						unset "public_device_log[$beacon_mac_found]"
+						unset "rssi_log[$beacon_mac_found]"
+
+						#REMOVE BEACON FROM MAC ADDRESS ARRAY
+						unset "beacon_mac_address_log[$beacon_uuid_found]"
 
 						[ -z "${blacklisted_devices[$beacon_uuid_found]}" ] && log "${BLUE}[DEL-BEAC]	${NC}BEAC $beacon_uuid_found expired after $difference seconds ${NC}"
 						[ -z "${blacklisted_devices[$beacon_mac_found]}" ] && log "${BLUE}[DEL-PUBL]	${NC}BEAC $beacon_mac_found expired after $difference seconds ${NC}"
