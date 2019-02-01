@@ -1154,9 +1154,6 @@ while true; do
 					#DETERMINE DIFFERENCE
 					difference=$((timestamp - most_recent_beacon))
 
-					#PRINT LOG
-					log "Beacon for $key == $beacon_uuid_found?? (difference: $difference) (timestamp: $timestamp) (last seen beacon or mac: $most_recent_beacon)"
-
 				else
 					#DETERMINE DIFFERENCE
 					difference=$((timestamp - last_seen))
