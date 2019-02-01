@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.940
+export version=0.1.941
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -67,6 +67,7 @@ source './support/mqtt'
 source './support/log'
 source './support/data'
 source './support/btle'
+source './support/time'
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -602,7 +603,10 @@ perform_departure_scan () {
 
  	#SCAN ACTIVE?
  	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
-		
+	
+ 	#ADD A FLAG TO SCAN FOR 
+	printf "BEXP\n" > main_pipe & 
+
 	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 	if [ "$scan_active" == false ] ; then 
 		#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
@@ -749,6 +753,11 @@ btle_packet_listener &
 btle_packet_listener_pid="$!"
 echo "> packet listener pid = $btle_packet_listener_pid" >> .pids
 disown "$btle_packet_listener_pid"
+
+beacon_database_expiration_trigger &
+beacon_database_expiration_trigger_pid="$!"
+echo "> beacon database time trigger pid = $beacon_database_expiration_trigger_pid" >> .pids
+disown "$beacon_database_expiration_trigger_pid"
 
 echo "================== BEGIN LOGGING =================="
 
@@ -997,16 +1006,21 @@ while true; do
 				systemctl restart monitor.service				
 			fi
 
-		elif [ "$cmd" == "BOFF" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
-			
-			#FIND RSSI OF KNOWN DEVICES PREVIOUSLY CONNECTED WHILE HICTOOL IS NOT 
-			#SCANNING			
-			difference_last_rssi=$((timestamp - last_rssi_scan))
+		elif [ "$cmd" == "BOFF" ] || [ "$cmd" == "BEXP" ]; then 
 
-			#ONLY EVER 5 MINUTES
-			if [ "$difference_last_rssi" -gt "300" ] || [ -z "$last_rssi_scan" ] ; then 
-				connectable_present_devices
-				last_rssi_scan=$(date +%s)
+			[ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ] && continue
+			
+			#ONLY WHEN BLUETOOTH IS OFF DO WE ATTEMPT TO SCAN FOR RSSI OF KNOWN/CONNECTED DEVICES
+			if [ "$cmd" == "BOFF" ]; then 
+				#FIND RSSI OF KNOWN DEVICES PREVIOUSLY CONNECTED WHILE HICTOOL IS NOT 
+				#SCANNING			
+				difference_last_rssi=$((timestamp - last_rssi_scan))
+
+				#ONLY EVER 5 MINUTES
+				if [ "$difference_last_rssi" -gt "300" ] || [ -z "$last_rssi_scan" ] ; then 
+					connectable_present_devices
+					last_rssi_scan=$(date +%s)
+				fi 
 			fi 
 
 			#**********************************************************************

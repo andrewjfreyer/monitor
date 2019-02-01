@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# ----------------------------------------------------------------------------------------
+# GENERAL INFORMATION
+# ----------------------------------------------------------------------------------------
+#
+# Written by Andrew J Freyer
+# GNU General Public License
+# http://github.com/andrewjfreyer/monitor
+#
+# TIME BASED TRIGGERS
+#
+# ----------------------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------------------
+# PERIODIC TRIGGER TO MAIN LOOP
+# ----------------------------------------------------------------------------------------
+beacon_database_expiration_trigger () {
+	while : ; do 
+		sleep "$(( PREF_BEACON_EXPIRATION / 4 ))"
+		echo "BEXP" > main_pipe
+	done
+}
