@@ -201,8 +201,8 @@ btle_text_processor () {
 
 		elif [ "$tx_type" == "RAND" ]; then
 		 
-		 	pdu_type
-			if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_SCAN_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
+			if [[ $pdu_type =~ $PREF_PASS_FILTER_PDU_TYPE ]] ; then 
+
 				#IF THIS DOES NOT HAVE A UUID, PROCESS AS GENERIC BEACON
 				should_ignore=false 
 				[ "$tx_type" == "RAND" ] && [ -n "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true 
