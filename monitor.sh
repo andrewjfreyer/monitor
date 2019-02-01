@@ -1019,6 +1019,8 @@ while true; do
 			#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
 			for key in "${!random_device_log[@]}"; do
 
+				log " > RAND: $key"
+
 				#FIND WHEN THIS KEYW AS LAST SEEN? 
 				last_seen="${random_device_log[$key]}"
 
@@ -1130,8 +1132,6 @@ while true; do
 
 					#AT LEAST ONE DEVICE EXPIRED
 					should_scan=true 
-				else 
-					log "Nothing to do for $key... $difference $last_seen"
 				fi 
 			done
 
@@ -1151,6 +1151,8 @@ while true; do
 			for key in "${!public_device_log[@]}"; do
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen=${public_device_log[$key]}
+
+				log " > PUBL: $key" 
 
 				#RSSI
 				latest_rssi="${rssi_log[$key]}" 
