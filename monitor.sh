@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.929
+export version=0.1.930
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1019,8 +1019,6 @@ while true; do
 			#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
 			for key in "${!random_device_log[@]}"; do
 
-				log " > RAND: $key"
-
 				#FIND WHEN THIS KEYW AS LAST SEEN? 
 				last_seen="${random_device_log[$key]}"
 
@@ -1108,8 +1106,6 @@ while true; do
 
 					#COMPARE TO CURRENT KEY
 					if [ "$current_associated_beacon_mac_address" == "$key" ]; then 
-
-						log "       -> MATCH! $key = $beacon_uuid_key"
 						
 						#SET THIS IS A BEACON
 						is_beacon=true
@@ -1125,7 +1121,6 @@ while true; do
 						break
 					
 					elif [ "$beacon_uuid_key" == "$key" ]; then 
-						#WE HAVE A BEACON IN THE PUBLIC ADDRESS ARRAY
 
 						#SET THIS IS A BEACON
 						is_beacon=true
@@ -1169,6 +1164,8 @@ while true; do
 						unset "public_device_log[$beacon_uuid_key]"
 						unset "rssi_log[$beacon_uuid_key]"
 						[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && log "${BLUE}[DEL-BEAC]	${NC}BEAC $beacon_uuid_key expired after $difference seconds ${NC}"
+
+						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && publish_presence_message "id=$beacon_uuid_key" "confidence=0" "last_seen=$last_seen"
 					fi 
 				else 
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
