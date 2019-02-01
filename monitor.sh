@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.936
+export version=0.1.937
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1079,7 +1079,7 @@ while true; do
 						is_beacon=true
 
 						#SET THE LAST SEEN BASED ON THE BEACON REPORT IN THIS CASE
-						beacon_last_seen""
+						beacon_last_seen=""
 						beacon_last_seen="${public_device_log[$beacon_uuid_key]}"
 						log "key = $key ($last_seen); $beacon_uuid_key ($beacon_last_seen)"
 
