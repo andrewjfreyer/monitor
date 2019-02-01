@@ -124,7 +124,7 @@ declare -A expiring_device_log
 declare -A known_static_device_scan_log
 declare -A known_public_device_name
 declare -A blacklisted_devices
-declare -A beacon_private_address_log
+declare -A beacon_mac_address_log
 
 #LAST TIME THIS 
 scan_pid=""
@@ -770,7 +770,7 @@ while true; do
 
 		#FLAGS TO DETERMINE FRESHNESS OF DATA
 		is_new=false
-		rssi_updated=false
+		should_update=false
 		did_change=false
 		is_beacon=false
 
@@ -820,6 +820,7 @@ while true; do
 				#TRIGGER 
 				perform_departure_scan
 			fi
+
 		elif [ "$cmd" == "RAND" ]; then 
 			#PARSE RECEIVED DATA
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
@@ -833,13 +834,14 @@ while true; do
 			oem_data=$(echo "$data" | awk -F "|" '{print $9}')
 			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $10}')
 
+			log "[CMD-INFO]	$((timestamp - instruction_timestamp)) seconds delay."
+
 			data="$mac"
 
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$data]}"
 			expected_name="${known_public_device_name[$mac]}"
 			
-
 			#IF WE HAVE A NAME; UNSEAT FROM RANDOM AND ADD TO STATIC
 			#THIS IS A BIT OF A FUDGE, A RANDOM DEVICE WITH A LOCAL 
 			#NAME IS TRACKABLE, SO IT'S UNLIKELY THAT ANY CONSUMER
@@ -866,8 +868,12 @@ while true; do
 				public_device_log[$mac]="$timestamp"
 
 			else
+
 				#IS THIS ALREADY IN THE STATIC LOG? 
-				if [ -n  "${public_device_log[$mac]}" ]; then 
+				if [ -n  "${public_device_log[$mac]}" ]; then
+
+					log "[CMD-INFO]	Converting RAND $mac to PUBL $mac"
+
 					#IS THIS A NEW STATIC DEVICE?
 					public_device_log[$mac]="$timestamp"
 					rssi_log[$mac]="$rssi"
@@ -875,6 +881,7 @@ while true; do
 
 					#BEACON TYPE
 					beacon_type="GENERIC_BEACON_PUBLIC"
+
 				else 
 
 					#DATA IS RANDOM MAC Addr.; ADD TO LOG
@@ -889,11 +896,13 @@ while true; do
 					rssi_log[$mac]="$rssi"
 				fi 
 			fi
+
 		elif [ "$cmd" == "SCAN" ]; then 
 
 			#ADD TO THE SCAN LOG
 			known_static_device_scan_log[$data]=$(date +%s)
 			continue
+
 		elif [ "$cmd" == "DONE" ]; then 
 
 			#SCAN MODE IS COMPLETE
@@ -905,6 +914,7 @@ while true; do
 
 			scan_type=""
 			continue
+
 		elif [ "$cmd" == "MQTT" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
 
 			#GET INSTRUCTION 
@@ -1064,13 +1074,13 @@ while true; do
 				beacon_uuid_key=""
 				
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
-				for beacon_uuid_key in "${!beacon_private_address_log[@]}"; do
+				for beacon_uuid_key in "${!beacon_mac_address_log[@]}"; do
 
 					#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 					last_seen="${public_device_log[$key]}"
 
 					#FIND ASSOCIATED BEACON
-					current_associated_beacon_mac_address="${beacon_private_address_log[$beacon_uuid_key]}"
+					current_associated_beacon_mac_address="${beacon_mac_address_log[$beacon_uuid_key]}"
 
 					#COMPARE TO CURRENT KEY
 					if [ "$current_associated_beacon_mac_address" == "$key" ]; then 
@@ -1081,11 +1091,12 @@ while true; do
 						#SET THE LAST SEEN BASED ON THE BEACON REPORT IN THIS CASE
 						beacon_last_seen=""
 						beacon_last_seen="${public_device_log[$beacon_uuid_key]}"
+
 						log "key = $key ($last_seen); $beacon_uuid_key ($beacon_last_seen)"
 
 						[ -z "$beacon_last_seen" ] && beacon_last_seen=0
 						[ -z "$last_seen" ] && last_seen=0
-						[ "$beacon_last_seen" -gt "$last_seen" ] && log "$LINENO: $beacon_last_seen > $last_seen" && last_seen=$beacon_last_seen 
+						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen 
 
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
@@ -1107,7 +1118,7 @@ while true; do
 
 						[ -z "$key_last_seen" ] && key_last_seen=0
 						[ -z "$last_seen" ] && last_seen=0
-						[ "$key_last_seen" -gt "$last_seen" ]  && log "$LINENO: $key_last_seen > $last_seen" && last_seen=$key_last_seen
+						[ "$key_last_seen" -gt "$last_seen" ] && last_seen=$key_last_seen
 						
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
@@ -1226,8 +1237,8 @@ while true; do
 			
 			#DETERMINE WHETHER THIS DEVICE IS ASSOCIATED WITH AN IBEACON
 			current_associated_beacon_mac_address=""
-			for beacon_uuid_key in "${!beacon_private_address_log[@]}"; do
-				current_associated_beacon_mac_address="${beacon_private_address_log[$beacon_uuid_key]}"
+			for beacon_uuid_key in "${!beacon_mac_address_log[@]}"; do
+				current_associated_beacon_mac_address="${beacon_mac_address_log[$beacon_uuid_key]}"
 				if [ "$current_associated_beacon_mac_address" == "$mac" ]; then 
 					break
 				fi 
@@ -1242,8 +1253,8 @@ while true; do
 			[ -z "${public_device_log[$data]}" ] && is_new=true
 
 			#HAS THIS DEVICE BEEN MARKED AS EXPIRING SOON? IF SO, SHOULD REPORT 100 AGAIN
-			[ -n "${expiring_device_log[$data]}" ] && rssi_updated=true
-			[ -n "$beacon_uuid_key" ] && [ -n "${expiring_device_log[$beacon_uuid_key]}" ] && rssi_updated=true
+			[ -n "${expiring_device_log[$data]}" ] && should_update=true
+			[ -n "$beacon_uuid_key" ] && [ -n "${expiring_device_log[$beacon_uuid_key]}" ] && should_update=true
 
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$data]}" 
@@ -1308,25 +1319,28 @@ while true; do
 			uuid_reference="$uuid-$major-$minor"
 
 			#HAS THIS DEVICE BEEN MARKED AS EXPIRING SOON? IF SO, SHOULD REPORT 100 AGAIN
-			[ -n "${expiring_device_log[$uuid_reference]}" ] && rssi_updated=true && unset "expiring_device_log[$uuid_reference]"
+			[ -n "${expiring_device_log[$uuid_reference]}" ] && should_update=true && unset "expiring_device_log[$uuid_reference]"
 
-			#UPDATE PRIVATE ADDRESS
-			if [ -n "${beacon_private_address_log[$uuid_reference]}" ]; then 
+			#UPDATE MAC ADDRESS OF BEACON 
 
-				#FIND PREVIOUS ASSOCIATION
-				previous_association=${beacon_private_address_log[$uuid_reference]}
+			#FIRST FIND PREVIOUS ASSOCIATION OF MAC ADDRESS TO DETERMINE 
+			#WHETHER THIS ADDRESS HAS BEEN REMOVED BY AN EXPIRATION 
 
-				#ONLY IF THE ADDRESS HAS CHANGED
+			if [ -n "${beacon_mac_address_log[$uuid_reference]}" ]; then 
+
+				#FIND PREVIOUS ASSOCIATION; HAS THIS BEEN REMOVED?
+				previous_association=${beacon_mac_address_log[$uuid_reference]}
+
+				#IF THE ADDRESS HAS CHANGED, THEN WE NEED TO UPDATE THE ADDRESS
 				if [ ! "$previous_association" == "$mac" ]; then  
 
 					#REMOVE THIS FROM PUBLIC RECORDS
-					unset "random_device_log[$previous_association]"
 					unset "public_device_log[$previous_association]"
 				fi 
 			fi 
 
 			#SAVE BEACON ADDRESS LOG
-			beacon_private_address_log["$uuid_reference"]="$mac"
+			beacon_mac_address_log["$uuid_reference"]="$mac"
 
 			#DATA SET
 			data="$mac"
@@ -1390,10 +1404,10 @@ while true; do
 				esac
 
 				#WITHOUT ANY DATA OR INFORMATION, MAKE SURE TO REPORT
-				[ "$rssi_latest" == "-200" ] && change_type="stationary" && motion_direction="" && rssi_updated=true
+				[ "$rssi_latest" == "-200" ] && change_type="stationary" && motion_direction="" && should_update=true
 
 				#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && rssi_updated=true
+				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && should_update=true
 			fi
 		fi 
 
@@ -1437,7 +1451,7 @@ while true; do
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
 		
-		elif [ "$cmd" == "BEAC" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$rssi_updated" == true ]; then 
+		elif [ "$cmd" == "BEAC" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$should_update" == true ]; then 
 		
 			#PROVIDE USEFUL LOGGING
 			if [ -z "${blacklisted_devices[$uuid_reference]}" ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
@@ -1460,7 +1474,7 @@ while true; do
 				"movement=$change_type"
 			fi 
 		
-		elif [ "$cmd" == "PUBL" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$rssi_updated" == true ]; then 
+		elif [ "$cmd" == "PUBL" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$should_update" == true ]; then 
 
 			#PUBLISH PRESENCE MESSAGE FOR BEACON
 			if [ -z "${blacklisted_devices[$data]}" ]; then 
