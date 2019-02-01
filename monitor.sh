@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.934
+export version=0.1.935
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1053,7 +1053,6 @@ while true; do
 			for key in "${!public_device_log[@]}"; do
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen="${public_device_log[$key]}"
-				log "key? $key -- $last_seen"
 
 				#RSSI
 				latest_rssi="${rssi_log[$key]}" 
@@ -1066,6 +1065,9 @@ while true; do
 				
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_uuid_key in "${!beacon_private_address_log[@]}"; do
+
+					#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
+					last_seen="${public_device_log[$key]}"
 
 					#FIND ASSOCIATED BEACON
 					current_associated_beacon_mac_address="${beacon_private_address_log[$beacon_uuid_key]}"
