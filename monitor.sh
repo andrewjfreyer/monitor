@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.926
+export version=0.1.927
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1048,7 +1048,6 @@ while true; do
 						is_beacon=true
 
 						#SET THE BEACON KEY
-						key=$beacon_uuid_key
 						break 
 					fi 
 					beacon_uuid_key=""
@@ -1058,16 +1057,75 @@ while true; do
 				difference=$((timestamp - last_seen))
 
 				#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
-				[ -z "$last_seen" ] && continue 
+				[ -z "$last_seen" ] && continue
 
-				#TIMEOUT AFTER 120 SECONDS
-				if [ "$difference" -gt "$PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" ]; then 
+				#IS THIS A BEACON??
+				if [ "$is_beacon" == true ]; then 
+
+					#HAS THIS BEACON ADDRESS EXPIRED?!
+					if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
+
+						#REMOVE FROM EXPIRING DEVICE LOG
+						[ -n "${expiring_device_log[$key]}" ] && unset "expiring_device_log[$key]"
+
+						#UNSET FROM THE RANDOM ARRAY
+						unset "random_device_log[$key]"
+						unset "rssi_log[$key]"
+			
+						#IS BEACON?
+						if [ "$PREF_BEACON_MODE" == true ] ; then 
+							#LOG
+							[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-RAND]	${NC}RAND $key expired after $difference seconds ${NC}"
+
+							#EXCLUDE BLACKLISTED DEVICES
+							[ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" "last_seen=$last_seen"
+
+							#REMOVE FROM PUBLIC DEVICE LOG
+							unset "public_device_log[$beacon_uuid_key]"
+							unset "rssi_log[$beacon_uuid_key]"
+							[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && log "${BLUE}[DEL-BEAC]	${NC}BEAC $beacon_uuid_key expired after $difference seconds ${NC}"
+						fi
+					else 
+						#SHOULD REPORT A DROP IN CONFIDENCE? 
+						percent_confidence=$(( 100 - difference * 100 / PREF_BEACON_EXPIRATION )) 
+
+						if [ "$PREF_REPORT_ALL_MODE" == true ]; then						
+							#REPORTING ALL 						
+							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "last_seen=$last_seen" && expiring_device_log[$key]='true'
+
+							#IS BEACON?
+							if [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
+								log "${BLUE}[DEL-UPDA]	${NC}BEAC $beacon_uuid_key ${NC}"
+								[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && publish_presence_message "id=$beacon_uuid_key" "confidence=$percent_confidence" "mac=$key" "last_seen=$last_seen" && expiring_device_log[$beacon_uuid_key]='true'
+							fi 
+						else 
+							#PREFERENCE THRESHOLD
+							PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD=72
+
+							#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY
+							if ! [[ $notification_sent  =~ $key ]]; then 
+								[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "last_seen=$last_seen" && expiring_device_log[$key]='true'
+								notification_sent="$notification_sent $key"
+
+								#IS BEACON? 
+								if ! [[ $notification_sent =~ $beacon_uuid_key ]] && [ "$is_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
+									[ -z "${blacklisted_devices[$beacon_uuid_key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$beacon_uuid_key" "confidence=$percent_confidence" "mac=$key" "last_seen=$last_seen" && expiring_device_log[$beacon_uuid_key]='true' && notification_sent="$notification_sent $beacon_uuid_key"
+								fi 
+							fi 
+						fi 
+					fi 
+
+					#SKIP THE REST OF THIS LOOP
+					continue
+
+					#IF NOT BEACON, PROCESS AS NORMAL RANDOM DEVICE
+				elif [ "$difference" -gt "$PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" ]; then 
 					
 					#REMOVE FROM RANDOM DEVICE LOG
 					unset "random_device_log[$key]"
 					unset "rssi_log[$key]"
 					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-RAND]	${NC}RAND $key expired after $difference seconds ${NC}"
-			
+
 					#AT LEAST ONE DEVICE EXPIRED
 					should_scan=true 
 				fi 
