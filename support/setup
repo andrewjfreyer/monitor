@@ -228,20 +228,14 @@ should_restore_defaults=false
 if [ -f "$PREF_CONFIG" ]; then 
 	source "$PREF_CONFIG"
 
-	preferences=$(printf "%s\n" "> ${GREEN}preference:${NC} delay between scans = $PREF_INTERSCAN_DELAY
-> ${GREEN}preference:${NC} flag arrival filter (regex) = $PREF_ARRIVE_TRIGGER_FLAG_FILTER
-> ${GREEN}preference:${NC} manufacturer arrival filter (regex) = $PREF_ARRIVE_TRIGGER_MFCG_FILTER
-> ${GREEN}preference:${NC} flag filter to reject (regex) = $PREF_REJECT_FLAG_FILTER
-> ${GREEN}preference:${NC} manufacturer filter to reject (regex) = $PREF_REJECT_MFCG_FILTER
+	preferences=$(printf "%s\n" "> ${GREEN}preference:${NC} flag arrival filter (regex) = $PREF_PASS_FILTER_ADV_FLAGS_ARRIVE
+> ${GREEN}preference:${NC} manufacturer arrival filter (regex) = $PREF_PASS_FILTER_MANUFACTURER_ARRIVE
+> ${GREEN}preference:${NC} flag filter to reject (regex) = $PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE
+> ${GREEN}preference:${NC} manufacturer filter to reject (regex) = $PREF_FAIL_FILTER_MANUFACTURER_ARRIVE
 > ${GREEN}preference:${NC} max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS
 > ${GREEN}preference:${NC} max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
-> ${GREEN}preference:${NC} random advertisement expiration = $PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL
-> ${GREEN}preference:${NC} rssi threshold for triggering arrival = $PREF_RSSI_IGNORE_BELOW
-> ${GREEN}preference:${NC} interval until beacon is considered expired = $PREF_BEACON_EXPIRATION
-> ${GREEN}preference:${NC} trigger a departure scan at other nodes when below [x] confidence = $PREF_COOPERATIVE_SCAN_THRESHOLD
-> ${GREEN}preference:${NC} preferred HCI device = $PREF_HCI_DEVICE
+> ${GREEN}preference:${NC} preferred HCI device = ${PREF_HCI_DEVICE:-hci0}
 > ${GREEN}preference:${NC} minimum time between the same type of scan = $PREF_MINIMUM_TIME_BETWEEN_SCANS
-> ${GREEN}preference:${NC} mqtt scan start/end reporting = $PREF_MQTT_REPORT_SCAN_MESSAGES
 > ${BLUE}mqtt trigger:${NC} $mqtt_topicpath/scan/ARRIVE
 > ${BLUE}mqtt trigger:${NC} $mqtt_topicpath/scan/DEPART" | sed 's/= $/= '${RED}'error'${NC}'\!/g')
 	printf "%s\n" "$preferences"
@@ -259,22 +253,24 @@ if [ -f "$PREF_CONFIG" ]; then
 	PREF_COOPERATIVE_SCAN_THRESHOLD=${PREF_COOPERATIVE_SCAN_THRESHOLD:-25}
 	PREF_MINIMUM_TIME_BETWEEN_SCANS=${PREF_MINIMUM_TIME_BETWEEN_SCANS:-15}
 	PREF_MQTT_REPORT_SCAN_MESSAGES=${PREF_MQTT_REPORT_SCAN_MESSAGES:-false}
-	PREF_ARRIVE_TRIGGER_FLAG_FILTER=${PREF_ARRIVE_TRIGGER_FLAG_FILTER:-0x1a}
-	PREF_ARRIVE_TRIGGER_MFCG_FILTER=${PREF_ARRIVE_TRIGGER_MFCG_FILTER:-Apple}
+	PREF_PASS_FILTER_ADV_FLAGS_ARRIVE=${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE:-0x1a}
+	PREF_PASS_FILTER_MANUFACTURER_ARRIVE=${PREF_PASS_FILTER_MANUFACTURER_ARRIVE:-Apple}
 
 	#OPTIONAL FILTERS
-	PREF_REJECT_FLAG_FILTER=${PREF_REJECT_FLAG_FILTER:-REJECTION}
-	PREF_REJECT_MFCG_FILTER=${PREF_REJECT_MFCG_FILTER:-REJECTION}
+	PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE=${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE:-REJECTION}
+	PREF_FAIL_FILTER_MANUFACTURER_ARRIVE=${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE:-REJECTION}
 
 	#HIDDEN OR CUSTOM OPTIONS
 	PREF_STARTUP_SETTLE_TIME=${PREF_STARTUP_SETTLE_TIME:-45}
+	PREF_PASS_FILTER_PDU_TYPE=${PREF_PASS_FILTER_PDU_TYPE:-ADV_IND|ADV_SCAN_IND|ADV_NONCONN_IND|SCAN_RSP}
+
 
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
 	[ "$(printf "%s\n" "$preferences" | grep -c "error")" -gt "0" ] && printf "%s\n" "> ${ORANGE}warning:${NC} preferences error, using defaults. reset to defaults? [y/n]" && read -t 10 should_restore_defaults
 
 	#CONVERT TYPED VALUE TO TRUE OR FALSE
-	[[ "${should_restore_defaults,,}" =~ y ]] && should_restore_defaults=true
-	[[ "${should_restore_defaults,,}" =~ n ]] && should_restore_defaults=false
+	[[ "${should_restore_defaults,,}" =~ y|yes ]] && should_restore_defaults=true
+	[[ "${should_restore_defaults,,}" =~ n|no ]] && should_restore_defaults=false
 fi 
 
 #NEED TO RESTORE DEFAULTS? 
@@ -289,46 +285,25 @@ if [ ! -f "$PREF_CONFIG" ] || [ "$should_restore_defaults" == true ] ; then
 #								
 # ---------------------------
 
-#DELAY BETWEEN SCANS OF DEVICES
-PREF_INTERSCAN_DELAY=3
-
 #MAX RETRY ATTEMPTS FOR ARRIVAL
 PREF_ARRIVAL_SCAN_ATTEMPTS=1
 
 #MAX RETRY ATTEMPTS FOR DEPART
 PREF_DEPART_SCAN_ATTEMPTS=2
 
-#DETERMINE NOW OFTEN TO REFRESH DATABASES TO REMOVE EXPIRED DEVICES
-PREF_DATABASE_REFRESH_INTERVAL=45
-
-#PERIOD AFTER WHICH A RANDOM BTLE ADVERTISEMENT IS CONSIDERED EXPIRED AND A DEPART SCAN IS TRIGGERED
-PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL=180
-
 #SECONDS UNTIL A BEACON IS CONSIDERED EXPIRED
 PREF_BEACON_EXPIRATION=180
-
-#PREFERRED HCI DEVICE
-PREF_HCI_DEVICE='hci0'
-
-#COOPERATIVE DEPARTURE SCAN TRIGGER THRESHOLD
-PREF_COOPERATIVE_SCAN_THRESHOLD=80
 
 #MINIMUM TIME BEWTEEN THE SAME TYPE OF SCAN (ARRIVE SCAN, DEPART SCAN)
 PREF_MINIMUM_TIME_BETWEEN_SCANS=15
 
-#SHOULD REPORT START/END OF KNOWN DEVICE SCANS
-PREF_MQTT_REPORT_SCAN_MESSAGES=false
-
-#IGNORE ANY ADVERTISEMENTS BELOW THIS VALUE (NOTE: Negative value in dBm)
-PREF_RSSI_IGNORE_BELOW=-90
-
 #ARRIVE TRIGGER FILTER(S)
-PREF_ARRIVE_TRIGGER_FLAG_FILTER=\"0x1a\"
-PREF_ARRIVE_TRIGGER_MFCG_FILTER=\"Apple\"
+PREF_PASS_FILTER_ADV_FLAGS_ARRIVE=\"0x1a\"
+PREF_PASS_FILTER_MANUFACTURER_ARRIVE=\"Apple\"
 
 #ARRIVE TRIGGER NEGATIVE FILTER(S)
-PREF_REJECT_FLAG_FILTER=\"NONE\" 
-PREF_REJECT_MFCG_FILTER=\"Google|Samsung\"
+PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE=\"NONE\" 
+PREF_FAIL_FILTER_MANUFACTURER_ARRIVE=\"Google|Samsung\"
 
 " > "$PREF_CONFIG"
 
