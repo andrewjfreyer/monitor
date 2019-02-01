@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.932
+export version=0.1.933
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1051,9 +1051,9 @@ while true; do
 
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
-				log "key? $key"
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-				last_seen=${public_device_log[$key]}
+				last_seen="${public_device_log[$key]}"
+				log "key? $key -- $last_seen"
 
 				#RSSI
 				latest_rssi="${rssi_log[$key]}" 
@@ -1083,7 +1083,7 @@ while true; do
 
 						[ -z "$beacon_last_seen" ] && beacon_last_seen=0
 						[ -z "$last_seen" ] && last_seen=0
-						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen
+						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen && log "$LINENO: $beacon_last_seen > $last_seen"
 
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
@@ -1104,7 +1104,7 @@ while true; do
 
 						[ -z "$key_last_seen" ] && key_last_seen=0
 						[ -z "$last_seen" ] && last_seen=0
-						[ "$key_last_seen" -gt "$last_seen" ] && last_seen=$key_last_seen
+						[ "$key_last_seen" -gt "$last_seen" ] && last_seen=$key_last_seen && log "$LINENO: $beacon_last_seen > $last_seen"
 						
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
