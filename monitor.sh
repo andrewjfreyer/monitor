@@ -1083,7 +1083,7 @@ while true; do
 
 						[ -z "$beacon_last_seen" ] && beacon_last_seen=0
 						[ -z "$last_seen" ] && last_seen=0
-						[ "$beacon_last_seen" -gt "$last_seen" ] && last_seen=$beacon_last_seen && log "$LINENO: $beacon_last_seen > $last_seen"
+						[ "$beacon_last_seen" -gt "$last_seen" ] && log "$LINENO: $beacon_last_seen > $last_seen" && last_seen=$beacon_last_seen 
 
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
@@ -1104,7 +1104,7 @@ while true; do
 
 						[ -z "$key_last_seen" ] && key_last_seen=0
 						[ -z "$last_seen" ] && last_seen=0
-						[ "$key_last_seen" -gt "$last_seen" ] && last_seen=$key_last_seen && log "$LINENO: $key_last_seen > $last_seen"
+						[ "$key_last_seen" -gt "$last_seen" ]  && log "$LINENO: $key_last_seen > $last_seen" && last_seen=$key_last_seen
 						
 						#RSSI
 						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
