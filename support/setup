@@ -228,14 +228,14 @@ should_restore_defaults=false
 if [ -f "$PREF_CONFIG" ]; then 
 	source "$PREF_CONFIG"
 
-	preferences=$(printf "%s\n" "> ${GREEN}preference:${NC} flag arrival filter (regex) = $PREF_PASS_FILTER_ADV_FLAGS_ARRIVE
-> ${GREEN}preference:${NC} manufacturer arrival filter (regex) = $PREF_PASS_FILTER_MANUFACTURER_ARRIVE
-> ${GREEN}preference:${NC} flag filter to reject (regex) = $PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE
-> ${GREEN}preference:${NC} manufacturer filter to reject (regex) = $PREF_FAIL_FILTER_MANUFACTURER_ARRIVE
-> ${GREEN}preference:${NC} max arrival scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS
-> ${GREEN}preference:${NC} max depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
-> ${GREEN}preference:${NC} preferred HCI device = ${PREF_HCI_DEVICE:-hci0}
-> ${GREEN}preference:${NC} minimum time between the same type of scan = $PREF_MINIMUM_TIME_BETWEEN_SCANS
+	preferences=$(printf "%s\n" "> ${GREEN}preference:${NC} minimum time between the same type of scan = $PREF_MINIMUM_TIME_BETWEEN_SCANS
+> ${GREEN}preference:${NC} regex filter for flags to accept = $PREF_PASS_FILTER_ADV_FLAGS_ARRIVE
+> ${GREEN}preference:${NC} regex filter for flags to reject = $PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE
+> ${GREEN}preference:${NC} regex filter for manufacturers to accept = $PREF_PASS_FILTER_MANUFACTURER_ARRIVE
+> ${GREEN}preference:${NC} regex filter for manufacturers to reject = $PREF_FAIL_FILTER_MANUFACTURER_ARRIVE
+> ${GREEN}preference:${NC} maximum sequential arrive scan attempts = $PREF_ARRIVE_SCAN_ATTEMPTS
+> ${GREEN}preference:${NC} maximum sequential depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
+> ${GREEN}preference:${NC} selected HCI device = ${PREF_HCI_DEVICE:-hci0}
 > ${BLUE}mqtt trigger:${NC} $mqtt_topicpath/scan/ARRIVE
 > ${BLUE}mqtt trigger:${NC} $mqtt_topicpath/scan/DEPART" | sed 's/= $/= '${RED}'error'${NC}'\!/g')
 	printf "%s\n" "$preferences"
@@ -244,10 +244,9 @@ if [ -f "$PREF_CONFIG" ]; then
 	PREF_INTERSCAN_DELAY=${PREF_INTERSCAN_DELAY:-3}
 	PREF_ARRIVAL_SCAN_ATTEMPTS=${PREF_ARRIVAL_SCAN_ATTEMPTS:-2}
 	PREF_DEPART_SCAN_ATTEMPTS=${PREF_DEPART_SCAN_ATTEMPTS:-3}
-	PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL=${PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL:-45}
+	PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL=${PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL:-90}
 	PREF_RSSI_CHANGE_THRESHOLD=${PREF_RSSI_CHANGE_THRESHOLD:-20}
 	PREF_RSSI_IGNORE_BELOW=${PREF_RSSI_IGNORE_BELOW:--75}
-	PREF_ENVIRONMENTAL_REPORT_INTERVAL=${PREF_ENVIRONMENTAL_REPORT_INTERVAL:-300}
 	PREF_BEACON_EXPIRATION=${PREF_BEACON_EXPIRATION:-145}
 	PREF_HCI_DEVICE=${PREF_HCI_DEVICE:-hci0}
 	PREF_COOPERATIVE_SCAN_THRESHOLD=${PREF_COOPERATIVE_SCAN_THRESHOLD:-25}
@@ -255,6 +254,7 @@ if [ -f "$PREF_CONFIG" ]; then
 	PREF_MQTT_REPORT_SCAN_MESSAGES=${PREF_MQTT_REPORT_SCAN_MESSAGES:-false}
 	PREF_PASS_FILTER_ADV_FLAGS_ARRIVE=${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE:-0x1a}
 	PREF_PASS_FILTER_MANUFACTURER_ARRIVE=${PREF_PASS_FILTER_MANUFACTURER_ARRIVE:-Apple}
+	PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD=${PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD:-59}
 
 	#OPTIONAL FILTERS
 	PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE=${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE:-REJECTION}

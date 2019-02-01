@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.947
+export version=0.1.948
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1217,9 +1217,6 @@ while true; do
 							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "last_seen=$last_seen" && expiring_device_log[$key]='true'
 						fi 
 					else 
-						#PREFERENCE THRESHOLD
-						PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD=72
-
 						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY; ALSO DO NOT REPORT DEVICES THAT WE'VE ALREADY REPORTEDI IN THIS LOOP
 						if [ "$is_apple_beacon" == true ]; then 								
 							#IF NOT SEEN AND BELOW THRESHOLD
