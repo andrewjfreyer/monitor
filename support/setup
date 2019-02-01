@@ -233,7 +233,7 @@ if [ -f "$PREF_CONFIG" ]; then
 > ${GREEN}preference:${NC} regex filter for flags to reject = $PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE
 > ${GREEN}preference:${NC} regex filter for manufacturers to accept = $PREF_PASS_FILTER_MANUFACTURER_ARRIVE
 > ${GREEN}preference:${NC} regex filter for manufacturers to reject = $PREF_FAIL_FILTER_MANUFACTURER_ARRIVE
-> ${GREEN}preference:${NC} maximum sequential arrive scan attempts = $PREF_ARRIVE_SCAN_ATTEMPTS
+> ${GREEN}preference:${NC} maximum sequential arrive scan attempts = $PREF_ARRIVAL_SCAN_ATTEMPTS
 > ${GREEN}preference:${NC} maximum sequential depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
 > ${GREEN}preference:${NC} selected HCI device = ${PREF_HCI_DEVICE:-hci0}
 > ${BLUE}mqtt trigger:${NC} $mqtt_topicpath/scan/ARRIVE
