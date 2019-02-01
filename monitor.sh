@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.942
+export version=0.1.943
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1008,7 +1008,7 @@ while true; do
 
 		elif [ "$cmd" == "BOFF" ] || [ "$cmd" == "BEXP" ]; then 
 
-			[ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ] && continue
+			[ "$uptime" -lt "$PREF_STARTUP_SETTLE_TIME" ] && continue
 			
 			#ONLY WHEN BLUETOOTH IS OFF DO WE ATTEMPT TO SCAN FOR RSSI OF KNOWN/CONNECTED DEVICES
 			if [ "$cmd" == "BOFF" ]; then 
