@@ -1050,7 +1050,6 @@ while true; do
 						#SET THE BEACON KEY
 						break 
 					fi 
-					beacon_uuid_key=""
 				done
 
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
@@ -1121,7 +1120,7 @@ while true; do
 					continue
 
 					#IF NOT BEACON, PROCESS AS NORMAL RANDOM DEVICE
-					
+
 				elif [ "$difference" -gt "$PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" ]; then 
 					
 					#REMOVE FROM RANDOM DEVICE LOG
@@ -1131,6 +1130,8 @@ while true; do
 
 					#AT LEAST ONE DEVICE EXPIRED
 					should_scan=true 
+				else 
+					log "Nothing to do for $key... $difference $last_seen"
 				fi 
 			done
 
