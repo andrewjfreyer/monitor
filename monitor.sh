@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.946
+export version=0.1.947
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -604,11 +604,12 @@ perform_departure_scan () {
  	#SCAN ACTIVE?
  	kill -0 "$scan_pid" >/dev/null 2>&1 && scan_active=true || scan_active=false 
 	
- 	#ADD A FLAG TO SCAN FOR 
-	printf "BEXP\n" > main_pipe & 
-
 	#ONLY ASSEMBLE IF WE NEED TO SCAN FOR ARRIVAL
 	if [ "$scan_active" == false ] ; then 
+
+	 	#ADD A FLAG TO SCAN FOR 
+		[ -n "$depart_list" ] && printf "BEXP\n" > main_pipe & 
+
 		#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 		perform_complete_scan "$depart_list" "$PREF_DEPART_SCAN_ATTEMPTS" "1" & 
 		disown "$!"
