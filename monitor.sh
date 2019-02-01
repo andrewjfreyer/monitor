@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.939
+export version=0.1.940
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -41,7 +41,7 @@ REPEAT=$'\e[1A'
 # BETA WARNING
 # ----------------------------------------------------------------------------------------
 
-printf "\n\n${RED}===================================================${NC}\n"
+printf "\n${RED}===================================================${NC}\n"
 
 printf "\n\n      ${RED}*** THIS IS A${PURPLE} BETA ${RED}TEST RELEASE ***${NC}      \n\n"
 
@@ -794,6 +794,7 @@ while true; do
 		uuid_reference=""
 		beacon_uuid_key=""
 		instruction_timestamp=""
+		instruction_delay=""
 
 		#PROCEED BASED ON COMMAND TYPE
 		if [ "$cmd" == "ENQU" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
@@ -833,9 +834,7 @@ while true; do
 			flags=$(echo "$data" | awk -F "|" '{print $8}')
 			oem_data=$(echo "$data" | awk -F "|" '{print $9}')
 			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $10}')
-
-			log "[CMD-INFO]	$((timestamp - instruction_timestamp)) seconds delay."
-
+			instruction_delay=$((timestamp - instruction_timestamp))
 			data="$mac"
 
 			#GET LAST RSSI
@@ -1257,6 +1256,7 @@ while true; do
 			flags=$(echo "$data" | awk -F "|" '{print $8}')
 			oem_data=$(echo "$data" | awk -F "|" '{print $9}')
 			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $10}')
+			instruction_delay=$((timestamp - instruction_timestamp))
 			beacon_uuid_key=""
 
 			data="$mac"
@@ -1342,6 +1342,7 @@ while true; do
 			beacon_type="APPLE_IBEACON"
 			name=""
 			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $8}')
+			instruction_delay=$((timestamp - instruction_timestamp))
 
 			#GET MAC AND PDU HEADER
 			uuid_reference="$uuid-$major-$minor"
@@ -1498,6 +1499,7 @@ while true; do
 				"type=$beacon_type" \
 				"rssi=$rssi" \
 				"mac=$mac" \
+				"report_delay=$instruction_delay" \
 				"power=$power" \
 				"movement=$change_type"
 			fi 
@@ -1520,6 +1522,7 @@ while true; do
 				"name=$name" \
 				"manufacturer=$manufacturer" \
 				"type=$beacon_type" \
+				"report_delay=$instruction_delay" \
 				"rssi=$rssi" \
 				"flags=$flags" \
 				"movement=$change_type"
@@ -1535,7 +1538,7 @@ while true; do
 			#FLAG AND MFCG FILTER
 			if [[ $flags =~ $PREF_ARRIVE_TRIGGER_FLAG_FILTER ]] && [[ $manufacturer =~ $PREF_ARRIVE_TRIGGER_MFCG_FILTER ]]; then 
 				#PROVIDE USEFUL LOGGING
-				log "${RED}[CMD-$cmd]${NC}	[${GREEN}passed filter${NC}] data: ${BLUE}${data:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${BLUE}${flags:-none}${NC} man: ${BLUE}${manufacturer:-unknown}${NC}"
+				log "${RED}[CMD-$cmd]${NC}	[${GREEN}passed filter${NC}] data: ${BLUE}${data:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${BLUE}${flags:-none}${NC} man: ${BLUE}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
 
 				#WE ARE PERFORMING THE FIRST ARRIVAL SCAN?
 				first_arrive_scan=false
@@ -1546,7 +1549,7 @@ while true; do
 				continue
 			else 
 				#PROVIDE USEFUL LOGGING
-				log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: ${BLUE}${data:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${RED}${flags:-none}${NC} man: ${RED}${manufacturer:-unknown}${NC}"
+				log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: ${BLUE}${data:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${RED}${flags:-none}${NC} man: ${RED}${manufacturer:-unknown}${NC} ${BLUE}${instruction_delay:-UKN}${NC}"
 
 				continue
 			fi 
