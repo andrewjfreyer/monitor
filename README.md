@@ -1,14 +1,79 @@
 monitor (beta)
 =======
-***TL;DR***: Bluetooth-based passive presence detection of beacons, cell phones, and other bluetooth devices. The system is useful for [mqtt-based](http://mqtt.org) home automation, especially when installed on multiple devices. 
+***TL;DR***: Passive bluetooth presence detection of beacons, cell phones, and other bluetooth devices. Useful for [mqtt-based](http://mqtt.org) home automation, especially when the script runs on multiple devices, distrubted throughout a property. 
 
-More specifically, a JSON-formatted MQTT message is reported to a specified broker whenever a specified bluetooth device responds to a `name` query. By default, `name` queries are initiated after receiving an anonymous advertisement from a previously-unknown address.  
+More specifically, a JSON-formatted MQTT message including a confidence value is reported to a specified broker whenever a specified bluetooth device responds to a `name` query. By default, `name` queries are initiated after receiving an anonymous advertisement from a previously-unknown address. 
+
+Example:
+```
+topic: monitor/{{name of monitor install}}/{{mac address}}
+message: {
+    "id":"{{mac address}}",
+    "confidence":"{{ranging from 0-100}}",
+    "name":"{{if available}}",
+    "manufacturer":{{if available}}",
+    "type":"KNOWN_MAC",
+    "retained":"{{message retained?}}",
+    "timestamp":"{{formatted date at which message is sent}}",
+    "version":"{{monitor version}}"
+ }
+```
 
 In addition, optionally, a JSON-formatted MQTT message can be reported to the same broker whenever a publicly-advertising beacon device or an iBeacon device advertises. 
+
+Example:
+
+```
+topic: monitor/{{name of monitor install}}/{{mac address or ibeacon uuid}}
+message: {
+    "id":"{{mac address or ibeacon uuid}}",
+    "report_delay":"{{delay from first detection to this message in seconds}}",
+    "flags":"{{GAP flags}}",
+    "movement":"stationary",
+    "confidence":"{{ranging from 0-100}}",
+    "name":"{{if available}}",
+    "power":"{{if available}}",
+    "rssi":"{{if available}}",
+    "mac":"{{if ibeacon, the current mac address associated with the uuid}}",
+    "manufacturer":{{if available}}",
+    "type":"{{GENERIC_BEACON_PUBLIC or APPLE_IBEACON}},
+    "retained":"{{message retained?}}",
+    "timestamp":"{{formatted date at which message is sent}}",
+    "version":"{{monitor version}}"
+ }
+ ```
 ___
 
+#### *Oversimplified Analogy of the Bluetooth Presence Problem*
 
-#### *Simplified Background on Bluetooth:*
+Imagine you’re blindfolded in a large room with other people. We want to find out who of our friends is there and who of our friends isn't there:
+
+![First Picture](https://i.imgur.com/FOubz6T.png)
+
+Some of the people in the gym periodically make anonymous sounds (e.g., eating a chip, sneeze, cough, etc.), others sit quietly and don’t make a sound unless you specifically ask for them by name, and still others periodically announce their own name out loud at regular intervals whether or not you want them to do that:
+
+![Second Picture](https://i.imgur.com/UwPJIMM.png)
+
+You can’t just shout “WHO’S HERE” because then everyone would say their name at the same time and you couldn’t tell anything apart. So, everyone has agreed to respond only when their own name is called, like taking attendance in a classroom:
+
+![Third Picture](https://i.imgur.com/VCW8AmH.png)
+
+If your friends say their name out loud it’s easy to know if they’re present or absent - all you have to do is listen. For most of your friends though, you need to call them by name one at a time. This is because the other sounds you hear are totally anonymous ... you have no idea who made what sound.
+
+So, one way to check to see whether our friends are in the room is to ask for a friend by name repeatedly. Ask, get a response, wait for a moment, and ask again. Once your friend stops responding, you presume that he or she has left: 
+
+![Simple Loop](https://i.imgur.com/ijGw2qb.png)
+
+There's a problem with that technique, though. You're constantly talking into the room, which means that it's difficult for you to hear and difficult for other people to carry on conversations. A smarter approach is to wait for an anonymous sound, *then* start asking whether your friend is there:
+
+![Complex Loop](https://i.imgur.com/9Ugn27i.png)
+
+This technique is a very simplified description of how `montior` works for devices like cell phones (friends) and beacons (strangers who announce their name out loud). This also gives an idea of how `monitor` uses anonymous sounds to reduce the number of times that it has to send inquiries into the bluetooth environment. 
+
+
+___
+
+#### *Oversimplified Technical Description/Background on Bluetooth*
 
 The BTLE 4.0 spec was designed to make connecting bluetooth devices simpler for the user. No more pin codes, no more code verifications, no more “discovery mode” - for the most part. It was also designed to be much more private than previous bluetooth specs. But it’s hard to maintain privacy when you want to be able to connect to an unknown device without user intervention, so a compromise was made. The following is oversimplified and not technically accurate in most cases, but should give the reader a gist of how `monitor` determines presence. 
 
