@@ -69,21 +69,21 @@ Imagine you’re blindfolded in a large room with other people. We want to find 
 
 ![First Picture](https://i.imgur.com/FOubz6T.png)
 
-Some of the people in the gym periodically make anonymous sounds (e.g., eating a chip, sneeze, cough, etc.), others sit quietly and don’t make a sound unless you specifically ask for them by name, and still others periodically announce their own name out loud at regular intervals whether or not you want them to do that:
+Some of the people in the room periodically make anonymous sounds (e.g., eating a chip, sneeze, cough, etc.), others sit quietly and don’t make a sound unless you specifically ask for them by name, and still others periodically announce their own name out loud at regular intervals whether or not you want them to do that:
 
 ![Second Picture](https://i.imgur.com/UwPJIMM.png)
 
-You can’t just shout “WHO’S HERE” because then everyone would say their name at the same time and you couldn’t tell anything apart. So, everyone has agreed to respond only when their own name is called, like taking attendance in a classroom:
+You can’t just shout “WHO’S HERE” because then everyone would say their name at the same time and you couldn’t tell anything apart. Obviously, we also can ask "WHO ISN'T HERE." So, everyone has agreed to respond only when their own name is called, like taking attendance in a classroom:
 
 ![Third Picture](https://i.imgur.com/VCW8AmH.png)
 
 If your friends say their name out loud it’s easy to know if they’re present or absent - all you have to do is listen. For most of your friends though, you need to call them by name one at a time. This is because the other sounds you hear are totally anonymous ... you have no idea who made what sound.
 
-So, one way to check to see whether our friends are in the room is to ask for a friend by name repeatedly. Ask, get a response, wait for a moment, and ask again. Once your friend stops responding, you presume that he or she has left: 
+So, one way to check to see whether your friends are in the room is to ask for a friend by name, one at a time, repeatedly. Ask, get a response, wait for a moment, and ask again. Once your friend stops responding for some period of time, you presume that he or she has left: 
 
 ![Simple Loop](https://i.imgur.com/ijGw2qb.png)
 
-There's a problem with that technique, though. You're constantly talking into the room, which means that it's difficult for you to hear and difficult for other people to carry on conversations. A smarter approach is to wait for an anonymous sound, *then* start asking whether your friend is there:
+This technique should work just fine, but there's a problem. You're constantly shouting into the room, which means that it's difficult for you to hear quiet responses and it's difficult for other people to carry on conversations. A smarter approach is to wait for an anonymous sound, *then* start asking whether your friend is there:
 
 ![Complex Loop](https://i.imgur.com/9Ugn27i.png)
 
