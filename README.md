@@ -361,7 +361,10 @@ sudo bash monitor.sh -h
 Now the basic setup is complete. Your broker should be receiving messages and the `monitor` service will restart each time the Raspberry Pi boots. As currently configured, you should run `sudo bash monitor.sh` a few times from your command line to get a sense of how the script works. 
 
 
-13. Observe output from `monitor` to tune flags:
+## Fine Tuning
+
+
+1. Observe output from `monitor` to tune filters:
 
 ```bash
 sudo bash monitor.sh 
@@ -399,7 +402,7 @@ PREF_FAIL_FILTER_MANUFACTURER_ARRIVE="Google"
 
 Filters are a great way to minimize the frequency of `name` scanning, which causes 2.4GHz interference and can, if your values are too agressive, dramatically interfere with Wi-Fi and other services. 
 
-14. **Standard configuration options**
+2. **Standard configuration options:**
 
 When monitor is first run, default preferences are created in the `behavior_preferences` file. These preferences can be changed, and in many cases should be changed depending on your Bluetooth environment (how many devices you have around you at any given time). A table below describes what these default variables are:  
 
@@ -413,5 +416,8 @@ When monitor is first run, default preferences are created in the `behavior_pref
 | PREF_PASS_FILTER_MANUFACTURER_ARRIVE | .*            | See above.                                                                                                                                                                                                                                                                           |
 | PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE    | NONE            | See above.                                                                                                                                                                                                                                                                           |
 | PREF_FAIL_FILTER_MANUFACTURER_ARRIVE | NONE            | See above.                                                                                                                                                                                                                                                                           |
+3. **Advanced configuration options:**
+
+***Description coming soon...***
 
 
