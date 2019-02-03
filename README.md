@@ -2,7 +2,30 @@ monitor (beta)
 =======
 ***TL;DR***: Passive bluetooth presence detection of beacons, cell phones, and other bluetooth devices. Useful for [mqtt-based](http://mqtt.org) home automation, especially when the script runs on multiple devices, distrubted throughout a property. 
 
-More specifically, a JSON-formatted MQTT message including a confidence value is reported to a specified broker whenever a specified bluetooth device responds to a `name` query. By default, `name` queries are initiated after receiving an anonymous advertisement from a previously-unknown address. 
+____
+
+### *Table Of Contents*
+
+  * [**Highlights**](#highlights)
+  
+  * [**Summary**](#summary)
+  
+  * [**Background on BTLE**](#background-on-btle) 
+    
+    * [Connectable Devices](#connectable-devices) ***TL;DR***: Some bluetooth devices only advertise an ability to connect, but do not publicly advertise their identity. These devices need to be affirmatively scanned by a host to verify their identity. *Example: bluetooth-enabled phones*
+    
+    * [Beacon Devices](#beacon-devices) ***TL;DR***: Other bluetooth devices advertise both (1) an ability to connect and (2) a unique identifier that can be used to identify a specific device. *Example: BTLE beacons*
+
+    * [Using Advertisements to Trigger "Name" Scans](#using-advertisements-to-trigger-name-scans) ***TL;DR***: We can use a random advertisement (from an unknown device) as a trigger for scanning for a known bluetooth device. Neat!
+
+  * [**Example with Home Assistant**](#example-with-home-assistant) 
+
+  * [**Installing on a Raspberry Pi Zero W**](#installation-instructions-raspbian-lite-stretch) 
+____
+
+# *Highlights*
+
+`monitor` sends a JSON-formatted MQTT message including a confidence value from 0 to 100 to a specified broker when a specified bluetooth device responds to a `name` query. By default, `name` queries are initiated after observing an anonymous advertisement from a previously-unknown anonymous mac address. 
 
 Example:
 ```
@@ -44,7 +67,7 @@ message: {
  ```
 ___
 
-#### *Oversimplified Analogy of the Bluetooth Presence Problem*
+# *Oversimplified Analogy of the Bluetooth Presence Problem*
 
 Imagine you’re blindfolded in a large room with other people. We want to find out who of our friends is there and who of our friends isn't there:
 
@@ -73,23 +96,23 @@ This technique is a very simplified description of how `montior` works for devic
 
 ___
 
-#### *Oversimplified Technical Description/Background on Bluetooth*
+# *Oversimplified Technical Description/Background on Bluetooth*
 
 The BTLE 4.0 spec was designed to make connecting bluetooth devices simpler for the user. No more pin codes, no more code verifications, no more “discovery mode” - for the most part. It was also designed to be much more private than previous bluetooth specs. But it’s hard to maintain privacy when you want to be able to connect to an unknown device without user intervention, so a compromise was made. The following is oversimplified and not technically accurate in most cases, but should give the reader a gist of how `monitor` determines presence. 
 
-##### Name Requests
+## Name Requests
 
 A part of the Blueooth spec is a special function called a `name` request that asks another Bluetooth device to send back a human-readable name of itself. In order to send a `name` request, we need to know a private (unchanging) address of the target device. 
 
 Issuing a `name` request to the same private mac address every few seconds is a reliable - albeit rudamentary - way of detecting whether that device is "**present**" (it responds to the `name` request) or "**absent**" (no response to the `name` request is received). However, issuing `name` requests too frequently (*e.g.*, every few seconds) uses quite a bit of 2.4GHz spectrum, which can cause substantial interference with Wi-Fi or other wireless communications.
 
-##### Connectable Devices
+## Connectable Devices
 
 Blueooth devices that can exchange information with other devices (almost always) advertise a random/anonymous address that other devices can use to negotate a secure connection with that device's real, private, Bluetooth address. 
 
 Using a random address when publicly advertising prevents baddies from tracking people via bluetooth monitoring. Monitoring for anonymous advertisement is not a reliable way to detect whether a device is **present** or **absent**. However, nearly all connectable devices respond to `name` requests if made to the device's private Bluetooth address.
 
-##### Beacon Devices
+## Beacon Devices
 
 The Bluetooth spec has been used by Apple, Google, and others to create additional standards (e.g., iBeacon, Eddystone, and so on). These devices generally don't care to conenct to other devices, so their random/anonymous addresses don't really matter. Instead, these devices encode additional information into each advertisement of an anonymous address. For example, iBeacon devices will broadcast a UUID that conforms to the 8-4-4-4-12 format defined by [IETC RFC4122](http://www.ietf.org/rfc/rfc4122.txt).
 
@@ -97,7 +120,7 @@ Beacons do not respond to `name` requests, even if made to the device's private 
 
 _____
 
-#### *How `monitor` Works:*
+# *How `monitor` Works*
 
 This script combines `name` requests, anonymous advertisements, and beacon advertisements to logically determine (1) *when* to issue a `name` scan to determine whether a device is **present** and (2) *when* to issue a `name` scan to determine whether a device is **absent**. The script also listens for beacons. 
 
@@ -127,11 +150,11 @@ In addition, once installed and run with the `-b` beacon argument, `monitor` lis
 
 Since iBeacons include a UUID and a mac address, two presence messages are reported via mqtt. 
 
-##### Known Beacon Addresses
+## Known Beacon Addresses
 In some cases, certain manufacturers try to get sneaky and cause their beacons to advertise as "anonymous" (or "random") devices, despite that their addresses do not change at all. By default, `monitor` ignores anonymous devices, so to force `monitor` to recognize these devices, we add the "random" address to a file called `known_static_beacons`. After restarting, `monitor` will know that these addresses should be treated like a normal beacon. 
 ___
 
-### Example with Home Assistant
+# Example with Home Assistant
 
 Personally, I have four **raspberry pi zero w**s throughout the house and garage. My family spends most of our time on the first floor, so our main `monitor` node or sensor is on the first floor. Our other 'nodes' on the second and third floor and garage are set up for triggered use only - these will scan for ***ARRIVAL*** and ***DEPART*** only in response to mqtt messages, with option ```-tad```. The first floor node is set up to send mqtt arrive/depart scan instructions to these nodes by including the `-tr` flag ("report" to other nodes when an arrival or depart scan is triggered). 
 
@@ -212,9 +235,10 @@ As an example:
 ```
 
 ___
-<h1>Installation Instructions for Raspberry Pi Zero W:</h1>
 
-<h2>Setup of SD Card</h2>
+# Installation Instructions for Raspberry Pi Zero W
+
+## Setup of SD Card
 
 1. Download latest version of **rasbpian** [here](https://downloads.raspberrypi.org/raspbian_lite_latest)
 
@@ -224,11 +248,11 @@ ___
 
 4. Mount **boot** partition of imaged SD card (unplug it and plug it back in)
 
-5. **[ENABLE SSH]** Create blank file, without any extension, in the root directory called **ssh**
+5. **To enable ssh,** create blank file, without any extension, in the root directory called **ssh**
 
-6. **[SETUP WIFI]** Create **wpa_supplicant.conf** file in root directory and add Wi-Fi details for home Wi-Fi:
+6. **To setup Wi-Fi**, create **wpa_supplicant.conf** file in root directory and add Wi-Fi details for home Wi-Fi:
 
-```
+```bash
 country=US
     ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
     update_config=1
@@ -240,23 +264,23 @@ network={
 }
 ```
 
- 7. **[FIRST STARTUP]** Insert SD card and power on Raspberry Pi Zero W. On first boot, the newly-created **wpa_supplicant.conf** file and **ssh** will be moved to appropriate directories. Find the IP address of the Pi via your router. 
+ 7. **On the first startup,** insert SD card and power on Raspberry Pi Zero W. On first boot, the newly-created **wpa_supplicant.conf** file and **ssh** will be moved to appropriate directories. Find the IP address of the Pi via your router. 
 
-<h2>Configuration and Setup of Raspberry Pi Zero W</h2>
+## Configuration and Setup
 
-1. SSH into the Raspberry Pi (password: raspberry):
-```
+1. SSH into the Raspberry Pi (default password: raspberry):
+```bash
 ssh pi@theipaddress
 ```
 
 2. Change the default password:
-```
+```bash 
 sudo passwd pi
 ```
 
-3. **[PREPARATION]** Update and upgrade:
+3. Update and upgrade:
 
-```
+```bash
 sudo apt-get update
 sudo apt-get upgrade -y
 sudo apt-get dist-upgrade -y
@@ -265,20 +289,20 @@ sudo rpi-update
 sudo reboot
 ```
 
-5. **[BLUETOOTH]** Install Bluetooth Firmware, if necessary:
-```
+5. Install Bluetooth Firmware, if necessary:
+```bash
 #install bluetooth drivers for Pi Zero W
 sudo apt-get install pi-bluetooth
 
 ```
 
-6. **[REBOOT]**
-```
+6. Reboot:
+```bash
 sudo reboot
 ```
 
-7. **[INSTALL MOSQUITTO]**
-```
+7. Install Mosquitto:
+```bash
 
 # get repo key
 wget http://repo.mosquitto.org/debian/mosquitto-repo.gpg.key
@@ -296,8 +320,8 @@ sudo apt-get update
 sudo apt-get install libmosquitto-dev mosquitto mosquitto-clients
 ```
 
-8. **[INSTALL MONITOR]**
-```
+8. Clone `monitor` git:
+```bash
 #install git
 cd ~
 sudo apt-get install git
@@ -313,28 +337,85 @@ git checkout beta
 
 ```
 
-9. **[INITIAL RUN]** run monitor:
+sudo bash monitor.sh```
 
-```sudo bash monitor.sh```
+Conf9. Configure `monitor`:
 
-Configuration files will be created with default preferences. Any executables that are not installed will be reported. All can be installed via ```apt-get intall ...```
+```bash
+iguration files will be created with default preferences. Any executables that are not installed will be reported. All can be installed via `apt-get intall ...`
 
 
-10. **[CONFIGURE MQTT]** edit **mqtt_preferences**:
-```
+10. Edit **mqtt_preferences** file:
+```bash
 sudo nano mqtt_preferences
 ```
 
-11. **[CONFIGURE MONITOR]** edit **known_static_addresses**: 
+11. Edit **known_static_addresses** (phones, laptops, some smartwatches): 
 
-```
+```bash
 sudo nano known_static_addresses
 ```
 
-12. **[READ HELPFILE]**:
+12. Read helpfile:
 
-```
+```bash
 sudo bash monitor.sh -h
 ```
 
-That's it. Your broker should be receiving messages and the monitor service will restart each time the Raspberry Pi boots. As currently configured, you should run `sudo bash monitor.sh` a few times from your command line to get a sense of how the script works. 
+Now the basic setup is complete. Your broker should be receiving messages and the `monitor` service will restart each time the Raspberry Pi boots. As currently configured, you should run `sudo bash monitor.sh` a few times from your command line to get a sense of how the script works. 
+
+
+13. Observe output from `monitor` to tune flags:
+
+```bash
+sudo bash monitor.sh 
+```
+
+Observe the output of the script for debug log [CMD-RAND] lines including [failed filter] or [passed filter]. These lines show what anonymous advertisement `monitor` sees and how `monitor` filters those advertisements. In particular, cycle the bluetooth power on your phone or another device and look at the `flags` value, the `pdu` value, and the `man` (manufacturer) value that appears after you turn Bluetooth power back on. Remember, the address you see in the log will be an anonymous address - ignore it, we're only focused on the values referenced above. 
+
+```
+0.1.xxx 03:25:39 pm [CMD-RAND]  [failed filter] data: 00:11:22:33:44:55 pdu: ADV_NONCONN_IND rssi: -73 dBm flags: 0x1b man: Apple, Inc. delay: 4
+```
+
+If you repeatedly see the same values in one or more of these fields, consider adding a PASS filter condition to the `behavior_preferences` file. This will cause `monitor` to *only* scan in response to an anonymous advertisement that passes the filter condition that you define. For example, if you notice that Apple always shows up as the manufacturer when you cycle the power on you phone, you can create an Apple filter:
+
+```bash
+PREF_PASS_FILTER_MANUFACTURER_ARRIVE="Apple"
+```
+
+If you have two phones, and one is **Apple** and the other is **Google**, create a `bash` or statement in the filter like this: 
+
+```bash
+PREF_PASS_FILTER_MANUFACTURER_ARRIVE="Apple|Google"
+```
+
+If your phone shows as **Unknown**, then it is best to disable the filter entirely - some phones will report a blank manufacturer, others will report a null value... it's much easier to try and filter with another value:
+
+```bash
+PREF_PASS_FILTER_MANUFACTURER_ARRIVE=".*"
+```
+
+Similarly, we can create a negative filter. If you or your neighbors use Google Home, it is likely that you'll see at least some devices manufactured by **Google**. Create a fail filter condition to ignore these advertisements: 
+
+```bash
+PREF_FAIL_FILTER_MANUFACTURER_ARRIVE="Google"
+```
+
+Filters are a great way to minimize the frequency of `name` scanning, which causes 2.4GHz interference and can, if your values are too agressive, dramatically interfere with Wi-Fi and other services. 
+
+14. **Standard configuration options**
+
+When monitor is first run, default preferences are created in the `behavior_preferences` file. These preferences can be changed, and in many cases should be changed depending on your Bluetooth environment (how many devices you have around you at any given time). A table below describes what these default variables are:  
+
+| **Option**                              | **Default Value** | **Description**                                                                                                                                                                                                                                                                          |
+|--------------------------------------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| PREF_ARRIVAL_SCAN_ATTEMPTS           | 1             | This is the number of times that monitor will send a name request before deciding that a device has not yet arrived. The higher the number, the fewer errors on arrival detection but also the longer it may take to recognize all devices are home in a multi-device installation.  |
+| PREF_DEPART_SCAN_ATTEMPTS            | 2             | This is the number of timesthat monitor will send a name request before deciding that a device has not yet departed. The higher the number, the fewer errors on departure detection but also the longer it may take to recognize all devices are awy in a multi-device installation. |
+| PREF_BEACON_EXPIRATION               | 180           | This is the number of seconds without observing an advertisement before a beacon is considered expired.                                                                                                                                                                              |
+| PREF_MINIMUM_TIME_BETWEEN_SCANS      | 15            | This is the minimum number of seconds required between "arrival" scans or between "departure" scans. Increasing the value will decrease interference, but will also increase arrival and departure detection time.                                                                   |
+| PREF_PASS_FILTER_ADV_FLAGS_ARRIVE    | .*            | See above.                                                                                                                                                                                                                                                                           |
+| PREF_PASS_FILTER_MANUFACTURER_ARRIVE | .*            | See above.                                                                                                                                                                                                                                                                           |
+| PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE    | .*            | See above.                                                                                                                                                                                                                                                                           |
+| PREF_FAIL_FILTER_MANUFACTURER_ARRIVE | .*            | See above.                                                                                                                                                                                                                                                                           |
+
+
