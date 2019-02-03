@@ -8,19 +8,15 @@ ____
 
   * [**Highlights**](#highlights)
   
-  * [**Summary**](#summary)
-  
-  * [**Background on BTLE**](#background-on-btle) 
-    
-    * [Connectable Devices](#connectable-devices) ***TL;DR***: Some bluetooth devices only advertise an ability to connect, but do not publicly advertise their identity. These devices need to be affirmatively scanned by a host to verify their identity. *Example: bluetooth-enabled phones*
-    
-    * [Beacon Devices](#beacon-devices) ***TL;DR***: Other bluetooth devices advertise both (1) an ability to connect and (2) a unique identifier that can be used to identify a specific device. *Example: BTLE beacons*
+  * [**Oversimplified Analogy of the Bluetooth Presence Problem**](#oversimplified-analogy-of-the-bluetooth-presence-problem)
 
-    * [Using Advertisements to Trigger "Name" Scans](#using-advertisements-to-trigger-name-scans) ***TL;DR***: We can use a random advertisement (from an unknown device) as a trigger for scanning for a known bluetooth device. Neat!
+  * [**Oversimplified Technical Description**](#oversimplified-technical-description)
+
+  * [**How Monitor Works**](#how-monitor-works)
 
   * [**Example with Home Assistant**](#example-with-home-assistant) 
 
-  * [**Installing on a Raspberry Pi Zero W**](#installation-instructions-raspbian-lite-stretch) 
+  * [**Installing on a Raspberry Pi Zero W**](#installation-instructions-for-raspberry-pi-zero-w) 
 ____
 
 # *Highlights*
@@ -96,7 +92,7 @@ This technique is a very simplified description of how `montior` works for devic
 
 ___
 
-# *Oversimplified Technical Description/Background on Bluetooth*
+# *Oversimplified Technical Description*
 
 The BTLE 4.0 spec was designed to make connecting bluetooth devices simpler for the user. No more pin codes, no more code verifications, no more “discovery mode” - for the most part. It was also designed to be much more private than previous bluetooth specs. But it’s hard to maintain privacy when you want to be able to connect to an unknown device without user intervention, so a compromise was made. The following is oversimplified and not technically accurate in most cases, but should give the reader a gist of how `monitor` determines presence. 
 
