@@ -406,18 +406,31 @@ Filters are a great way to minimize the frequency of `name` scanning, which caus
 
 When monitor is first run, default preferences are created in the `behavior_preferences` file. These preferences can be changed, and in many cases should be changed depending on your Bluetooth environment (how many devices you have around you at any given time). A table below describes what these default variables are:  
 
-| **Option**                              | **Default Value** | **Description**                                                                                                                                                                                                                                                                          |
-|--------------------------------------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| PREF_ARRIVAL_SCAN_ATTEMPTS           | 1             | This is the number of times that monitor will send a name request before deciding that a device has not yet arrived. The higher the number, the fewer errors on arrival detection but also the longer it may take to recognize all devices are home in a multi-device installation.  |
-| PREF_DEPART_SCAN_ATTEMPTS            | 2             | This is the number of timesthat monitor will send a name request before deciding that a device has not yet departed. The higher the number, the fewer errors on departure detection but also the longer it may take to recognize all devices are awy in a multi-device installation. |
-| PREF_BEACON_EXPIRATION               | 180           | This is the number of seconds without observing an advertisement before a beacon is considered expired.                                                                                                                                                                              |
-| PREF_MINIMUM_TIME_BETWEEN_SCANS      | 15            | This is the minimum number of seconds required between "arrival" scans or between "departure" scans. Increasing the value will decrease interference, but will also increase arrival and departure detection time.                                                                   |
-| PREF_PASS_FILTER_ADV_FLAGS_ARRIVE    | .*            | See above.                                                                                                                                                                                                                                                                           |
-| PREF_PASS_FILTER_MANUFACTURER_ARRIVE | .*            | See above.                                                                                                                                                                                                                                                                           |
-| PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE    | NONE            | See above.                                                                                                                                                                                                                                                                           |
-| PREF_FAIL_FILTER_MANUFACTURER_ARRIVE | NONE            | See above.                                                                                                                                                                                                                                                                           |
+| **Option** | **Default Value** | **Description** |
+|-|-|-|
+| PREF_ARRIVAL_SCAN_ATTEMPTS | 1 | This is the number of times that monitor will send a name request before deciding that a device has not yet arrived. The higher the number, the fewer errors on arrival detection but also the longer it may take to recognize all devices are home in a multi-device installation. |
+| PREF_DEPART_SCAN_ATTEMPTS | 2 | This is the number of timesthat monitor will send a name request before deciding that a device has not yet departed. The higher the number, the fewer errors on departure detection but also the longer it may take to recognize all devices are awy in a multi-device installation. |
+| PREF_BEACON_EXPIRATION | 180 | This is the number of seconds without observing an advertisement before a beacon is considered expired. |
+| PREF_MINIMUM_TIME_BETWEEN_SCANS | 15 | This is the minimum number of seconds required between "arrival" scans or between "departure" scans. Increasing the value will decrease interference, but will also increase arrival and departure detection time. |
+| PREF_PASS_FILTER_ADV_FLAGS_ARRIVE | .* | See above. |
+| PREF_PASS_FILTER_MANUFACTURER_ARRIVE | .* | See above. |
+| PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE | NONE | See above. |
+| PREF_FAIL_FILTER_MANUFACTURER_ARRIVE | NONE | See above. |
+
 3. **Advanced configuration options:**
 
-***Description coming soon...***
+In addition to the options described above, there are a number of advanced options that can be set by the user. To modify any of these options, add a line to the `behavior_preferences` file. 
+
+
+| **Option** | **Default Value** | **Description** |
+|-|-|-|
+PREF_INTERSCAN_DELAY|3|This is a fixed delay between `name` scans. Increasing the value will decrease inteference, but will decrease responsiveness. Decreasing the value will risk a Bluetooth hardware fault.|
+PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL|75|This is the interval after which an anonymous advertisement mac address is considered expired. Increasing this value will reduce arrival scan frequency, but will also increase memory footprint (minimal) and will decrease the frequency of depart scans.|
+PREF_RSSI_CHANGE_THRESHOLD|-20|If a beacon's rssi changes by at least this value, then the beacon will be reported again via mqtt.|
+PREF_RSSI_IGNORE_BELOW|-75|If an anonymous advertisement is "farther" away (lower RSSI), ignore the advertisement|
+PREF_HCI_DEVICE|hci0|Select which hci device should be used by `monitor`|
+PREF_COOPERATIVE_SCAN_THRESHOLD|60|Once confidence of a known device falls below this value, send an mqtt message to other `monitor` nodes to begin an arrival scan or a departure scan.|
+PREF_MQTT_REPORT_SCAN_MESSAGES|false|This value is either true or false and determines whether `monitor` publishes when a scan begins and when a scan ends|
+PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD|59|This value defines when a beacon begins reporting a decline in confidence|
 
 
