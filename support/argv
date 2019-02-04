@@ -80,8 +80,6 @@ usage:
 	monitor -S 	silent operation (no logging)
 	monitor -c addr	create connection to bluetooth device
 	monitor -C 	clean retained messages from MQTT broker
-	monitor -E 	report scan status messages:
-				[topic path]/scan/[arrive|depart]/[start|end]
 
 	monitor -v	print version number
 	monitor -d	restore to default behavior settings (mqtt settings and known device settings are not effected)
@@ -99,7 +97,7 @@ usage:
 				a \$mqtt_topicpath/scan/ARRIVE (defined in MQTT preferences file)
 				d \$mqtt_topicpath/scan/DEPART (defined in MQTT preferences file)
 				r send ARRIVE or DEPART messages to trigger other devices to scan 
-	monitor -D[dir] use alternative directory for configuration files
+	monitor -D [dir]	use alternative directory for configuration files
 	"
 }
 

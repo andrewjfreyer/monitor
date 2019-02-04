@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.954
+export version=0.1.955
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1019,7 +1019,7 @@ while true; do
 				difference_last_rssi=$((timestamp - last_rssi_scan))
 
 				#ONLY EVER 5 MINUTES
-				if [ "$difference_last_rssi" -gt "300" ] || [ -z "$last_rssi_scan" ] ; then 
+				if [ "$difference_last_rssi" -gt "90" ] || [ -z "$last_rssi_scan" ] ; then 
 					connectable_present_devices
 					last_rssi_scan=$(date +%s)
 				fi 

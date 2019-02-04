@@ -17,6 +17,8 @@ ____
   * [**Example with Home Assistant**](#example-with-home-assistant) 
 
   * [**Installing on a Raspberry Pi Zero W**](#installation-instructions-for-raspberry-pi-zero-w) 
+
+  * [**FAQs**](#faqs) 
 ____
 
 # *Highlights*
@@ -328,20 +330,16 @@ git clone git://github.com/andrewjfreyer/monitor
 #enter monitor directory
 cd monitor/
 
-#switch to beta branch for latest updates
+#switch to beta branch for latest updates and features (may be instable)
 git checkout beta       
 
 ```
 
-sudo bash monitor.sh```
-
-Conf9. Configure `monitor`:
-
-```bash
-iguration files will be created with default preferences. Any executables that are not installed will be reported. All can be installed via `apt-get intall ...`
+Configuration files will be created with default preferences. Any executables that are not installed will be reported. All can be installed via `apt-get intall ...`
 
 
 10. Edit **mqtt_preferences** file:
+
 ```bash
 sudo nano mqtt_preferences
 ```
@@ -373,7 +371,7 @@ sudo bash monitor.sh
 Observe the output of the script for debug log [CMD-RAND] lines including [failed filter] or [passed filter]. These lines show what anonymous advertisement `monitor` sees and how `monitor` filters those advertisements. In particular, cycle the bluetooth power on your phone or another device and look at the `flags` value, the `pdu` value, and the `man` (manufacturer) value that appears after you turn Bluetooth power back on. Remember, the address you see in the log will be an anonymous address - ignore it, we're only focused on the values referenced above. 
 
 ```
-0.1.xxx 03:25:39 pm [CMD-RAND]  [failed filter] data: 00:11:22:33:44:55 pdu: ADV_NONCONN_IND rssi: -73 dBm flags: 0x1b man: Apple, Inc. delay: 4
+0.1.xxx 03:25:39 pm [CMD-RAND]  [passed filter] data: 00:11:22:33:44:55 pdu: ADV_NONCONN_IND rssi: -73 dBm flags: 0x1b man: Apple, Inc. delay: 4
 ```
 
 If you repeatedly see the same values in one or more of these fields, consider adding a PASS filter condition to the `behavior_preferences` file. This will cause `monitor` to *only* scan in response to an anonymous advertisement that passes the filter condition that you define. For example, if you notice that Apple always shows up as the manufacturer when you cycle the power on you phone, you can create an Apple filter:
@@ -432,5 +430,141 @@ PREF_HCI_DEVICE|hci0|Select which hci device should be used by `monitor`|
 PREF_COOPERATIVE_SCAN_THRESHOLD|60|Once confidence of a known device falls below this value, send an mqtt message to other `monitor` nodes to begin an arrival scan or a departure scan.|
 PREF_MQTT_REPORT_SCAN_MESSAGES|false|This value is either true or false and determines whether `monitor` publishes when a scan begins and when a scan ends|
 PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD|59|This value defines when a beacon begins reporting a decline in confidence|
+PREF_PASS_FILTER_PDU_TYPE|ADV_IND|ADV_SCAN_IND|ADV_NONCONN_IND|SCAN_RSP|These are the PDU types that should be noticed by `monitor`|
+
+
+## RSSI Tracking
+
+This script can also track RSSI changes throughout the day. This can be useful for very rudamentary room-level tracking. Only devices in `known_static_addresses` that have been paired to a `monitor` node can have their RSSI tracked. Here's how to pair: 
+
+1. Stop `monitor` service:
+
+```bash
+sudo systemctl stop monitor
+```
+
+2. Run `monitor` with `-c` flag, followed by the mac address of the known_device to connect:
+
+```bash
+sudo bash monitor.sh -c 00:11:22:33:44:55
+```
+
+After this, follow the prompts given by `monitor` and your device will be connected. That's it. After you restart `monitor` will periodicly (once every ~1.5 minutes) connect to your phone and take three RSSI samples, average the samples, and report a string message to the same path as a confidence report, with the additional path component of */rssi*. So, if a `monitor` node is named 'first floor', an rssi message is reported to:
+
+```bash 
+topic: monitor/first floor/00:11:22:33:44:55/rssi
+message: -99 through 0
+```
+
+If an rssi measurement cannot be obtained, the value of -99 is sent. 
+
+3. Using the rssi data for something:
+
+I strongly recommend using a filter to smooth the rssi data. An example for Home Assistant follows:
+
+
+```yaml
+sensor:
+
+  - platform: mqtt
+    state_topic: 'location/first floor/34:08:BC:15:24:F7/rssi'
+    name: 'Andrew First Floor RSSI raw'
+    unit_of_measurement: 'dBm'
+
+  - platform: filter
+    name: "Andrew First Floor RSSI"
+    entity_id: sensor.andrew_first_floor_rssi_raw
+    filters:
+      - filter: outlier
+        window_size: 2
+        radius: 1.0
+      - filter: lowpass
+        time_constant: 2
+      - filter: time_simple_moving_average
+        window_size: 00:01
+        precision: 1
+```
+
+___
+
+# *FAQs*
+
+### What special app do I need on my phone to get this to work? 
+
+None, except in very rare circumstances. The only requirement is that bluetooth is left on. 
+
+### Does `monitor` reduce battery life for my phone? 
+
+Not noticable in my several years of using techniques similar to this. 
+
+### Does `monitor` interfere with Wi-Fi, Zigbee, or Zwave? 
+
+It can, if it scans too frequently. Try to use all techniques for reducing `name` scans, including using trigger-only depart mode `-tdr`. When in this mode, `monitor` will never scan when all devices are home. Instead, `monitor` will wait until a `monitor/scan/depart` message is sent. 
+
+Personally, I use my front door lock as a depart scan trigger.
+
+### How can I trigger an arrival scan? 
+
+Post a message with blank content to `monitor/scan/arrive`
+
+### How can I trigger an depart scan? 
+
+Post a message with blank content to `monitor/scan/depart`
+
+### How can I trigger an arrive/depart scan from an automation in Home Assistant?
+
+For an automation or script (or other service trigger), use: 
+
+```yaml
+  service: 'mqtt.publish'
+  data: 
+    topic: location/scan/arrive
+```
+
+```yaml
+  service: 'mqtt.publish'
+  data: 
+    topic: location/scan/depart
+```
+### How can I upgrade to the latest version without using ssh? 
+
+Post a message with blank content to `monitor/scan/update` or `monitor/scan/updatebeta` 
+
+
+### How can I restart a `monitor` node? 
+
+Via command line: 
+
+```bash
+sudo systemctl restart monitor
+```
+
+Or, post a message with blank content to `monitor/scan/restart`
+
+
+### Why don't I see RSSI for my iPhone/Andriod/whatever phone? 
+
+See the RSSI section above. You'll have to connect your phone to `monitor` first.  
+
+### How do I force an RSSI update for a known device, like my phone? 
+
+Post a message with blank content to `monitor/scan/rssi`
+
+### I can't do **XYZ**, is `monitor` broken? 
+
+Run via command line and post log output to github. Else, access `journalctl` to show the most recent logs: 
+
+```bash
+journalctl -u monitor -r
+```
+
+### My phone doesn't seem to automatically broadcast an anonymous bluetooth advertisement... what can I do? 
+
+Many phones will only broadcast once they have already connected to *at least one* other bluetooth device. Connect to a speaker, a car, a headset, or `monitor` and try again. 
+
+### I have connected to bluetooth devices but y phone doesn't seem to automatically broadcast an anonymous bluetooth advertisement... what can I do? 
+
+Some android phones just don't seem to advertise... and that's a bummer. There are a number of beacon apps that can be used from the Play Store.
+
 
 
