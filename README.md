@@ -27,7 +27,7 @@ ____
 
 Example:
 ```
-topic: `monitor`/{{name of `monitor` install}}/{{mac address}}
+topic: monitor/{{name of monitor install}}/{{mac address}}
 message: {
     "id":"{{mac address}}",
     "confidence":"{{ranging from 0-100}}",
@@ -36,7 +36,7 @@ message: {
     "type":"KNOWN_MAC",
     "retained":"{{message retained?}}",
     "timestamp":"{{formatted date at which message is sent}}",
-    "version":"{{`monitor` version}}"
+    "version":"{{monitor version}}"
  }
 ```
 
@@ -45,7 +45,7 @@ In addition, optionally, a JSON-formatted MQTT message can be reported to the sa
 Example:
 
 ```
-topic: `monitor`/{{name of `monitor` install}}/{{mac address or ibeacon uuid}}
+topic: monitor/{{name of monitor install}}/{{mac address or ibeacon uuid}}
 message: {
     "id":"{{mac address or ibeacon uuid}}",
     "report_delay":"{{delay from first detection to this message in seconds}}",
@@ -60,7 +60,7 @@ message: {
     "type":"{{GENERIC_BEACON_PUBLIC or APPLE_IBEACON}},
     "retained":"{{message retained?}}",
     "timestamp":"{{formatted date at which message is sent}}",
-    "version":"{{`monitor` version}}"
+    "version":"{{monitor version}}"
  }
  ```
 ___
@@ -337,17 +337,23 @@ cd ~
 sudo apt-get install git
 
 #clone this repo
-git clone git://github.com/andrewjfreyer/`monitor`
+git clone git://github.com/andrewjfreyer/monitor
 
 #enter `monitor` directory
-cd `monitor`/
+cd monitor/
 
 #switch to beta branch for latest updates and features (may be instable)
 git checkout beta       
 
 ```
 
+9. Initial run:
+
 Configuration files will be created with default preferences. Any executables that are not installed will be reported. All can be installed via `apt-get intall ...`
+
+```bash 
+sudo bash monitor.sh
+```
 
 
 10. Edit **mqtt_preferences** file:
@@ -365,10 +371,10 @@ sudo nano known_static_addresses
 12. Read helpfile:
 
 ```bash
-sudo bash `monitor`.sh -h
+sudo bash monitor.sh -h
 ```
 
-Now the basic setup is complete. Your broker should be receiving messages and the `monitor` service will restart each time the Raspberry Pi boots. As currently configured, you should run `sudo bash `monitor`.sh` a few times from your command line to get a sense of how the script works. 
+Now the basic setup is complete. Your broker should be receiving messages and the `monitor` service will restart each time the Raspberry Pi boots. As currently configured, you should run `sudo bash monitor.sh` a few times from your command line to get a sense of how the script works. 
 
 
 ## Fine Tuning
@@ -377,7 +383,7 @@ Now the basic setup is complete. Your broker should be receiving messages and th
 1. Observe output from `monitor` to tune filters:
 
 ```bash
-sudo bash `monitor`.sh 
+sudo bash monitor.sh 
 ```
 
 Observe the output of the script for debug log [CMD-RAND] lines including [failed filter] or [passed filter]. These lines show what anonymous advertisement `monitor` sees and how `monitor` filters those advertisements. In particular, cycle the Bluetooth power on your phone or another device and look at the `flags` value, the `pdu` value, and the `man` (manufacturer) value that appears after you turn Bluetooth power back on. Remember, the address you see in the log will be an anonymous address - ignore it, we're only focused on the values referenced above. 
@@ -458,7 +464,7 @@ sudo systemctl stop `monitor`
 2. Run `monitor` with `-c` flag, followed by the mac address of the known_device to connect:
 
 ```bash
-sudo bash `monitor`.sh -c 00:11:22:33:44:55
+sudo bash monitor.sh -c 00:11:22:33:44:55
 ```
 
 After this, follow the prompts given by `monitor` and your device will be connected. That's it. After you restart `monitor` will periodicly (once every ~1.5 minutes) connect to your phone and take three RSSI samples, average the samples, and report a string message to the same path as a confidence report, with the additional path component of */rssi*. So, if a `monitor` node is named 'first floor', an rssi message is reported to:
