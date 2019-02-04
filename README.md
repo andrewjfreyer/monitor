@@ -509,7 +509,7 @@ ___
 
 ### I'm running 5GHz Wi-Fi, I don't use Bluetooth for anything else, and I don't care whether I interfere with my neighbor's devices. Can't I just issue a name scan every few seconds to get faster arrival and depart detection? 
 
-Not anymore. Periodic scanning has been removed from `monitor`. If you would like to scan every few seconds anyway, despite that you may be causing interference for others, you can use the `presence` project in my repository available [here.](https://github.com/andrewjfreyer/presence). This feature will not be added back into `monitor` in the foreseeable future. 
+Not anymore. Periodic scanning has been removed from `monitor`. If you would like to scan every few seconds anyway, despite that you may be causing interference for others, you can use the `presence` project in my repository available [here](https://github.com/andrewjfreyer/presence). This feature will not be added back into `monitor` in the foreseeable future. 
 
 ### I keep seeing that my Bluetooth hardware is "cycling" in the logs - what does that mean? 
 
