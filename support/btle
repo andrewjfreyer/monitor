@@ -19,18 +19,33 @@
 btle_scanner () {
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
-		local hcitool_raw=$(timeout --signal SIGINT 30 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
+		local hcitool_raw=$(timeout --signal SIGINT 60 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
 
 		#FIND ERROR VALUES 
-		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error')
-
-		#ALL OTHER BEACON DEVICES FILTERED
-		beacons_filtered=$(echo "$hcitool_raw" | grep -Ei "([0-9a-f]{2}:){5}[0-9a-f]{2}" | sort -u)
+		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error|network')
 
 		#PUBLISH ERRORS BACK TO MAIN LOOP
-		[ ! -z "$error" ] && echo "ERRO$error" > main_pipe 
-		sleep 2
+		if [ -n "$error" ]; then 
+
+			(>&2 log "${GREEN}[CMD-INFO]${NC}	Cycling bluetooth hardware on $PREF_HCI_DEVICE. Please wait a moment...")
+
+			#POWER CYCLE
+			hciconfig $PREF_HCI_DEVICE down
+			sleep 5 
+			hciconfig $PREF_HCI_DEVICE up
+
+			continue
+		fi 
+
+		#SEND SIGNAL THAT 
+		printf "BOFF\n" > main_pipe 
+
+		#NEED DELAY TO BE SURE WE'RE NOT RESTARTING HARDWARE TOO QUICKLY
+		sleep 5
 	done
+
+	#REPORT ERROR
+	(>&2 echo "error! irrecoverable btle_scanner error")
 }
 
 # ----------------------------------------------------------------------------------------
@@ -39,14 +54,13 @@ btle_scanner () {
 
 btle_packet_processor () {
 	#POPULATE PACKET 
-	local packet=$(echo "$1" | sed 's/> *//g')
+	local packet=$(echo "$1" | sed 's/> *//g;s/    / /g')
 
 	#BEACON PACKET?
-	if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01 ]]; then
+	if [[ $packet =~ ^04\ 3E\ 2A\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]]; then
 
 		#HARDARE MAC AND PDU HEADER
 		local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
-		local pdu_header=$(pdu_type $(echo "$packet" | awk '{print $6}'))
 
 		#RAW VALUES
 		local UUID=$(echo $packet | sed 's/^.\{69\}\(.\{47\}\).*$/\1/')
@@ -72,100 +86,246 @@ btle_packet_processor () {
 		RSSI=$(echo "ibase=16; $RSSI" | bc)
 		RSSI=$((RSSI - 256))
 
-        #CLEAR PACKET
-        packet=""
+        timestamp=$(date +%s)
 
 		#SEND TO MAIN LOOP
-		[ ! -z "$UUID" ] && echo "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address|$pdu_header" > main_pipe 
-	
-	elif [[ "$packet" =~ ^04\ 3E* ]]; then
+		[ -n "$UUID" ] && printf "BEAC$UUID|$MAJOR|$MINOR|$RSSI|$POWER|$received_mac_address|$timestamp\n" > main_pipe 
+	fi
+}
+
+
+
+#----------------------------------------------------------------------------------------
+# PROCESS BLUETOOTH PACKETS
+# ----------------------------------------------------------------------------------------
+
+trim_whitespace () {
+	[[ "$1" =~ [^[:space:]](.*[^[:space:]])? ]] && printf "%s" "$BASH_REMATCH"
+}
+
+
+btle_text_processor () {
+	local received_mac_address
+	local packet
+	local pdu_type
+	local rssi_value
+	local gap_name_str
+	local should_ignore
+	local manufacturer
+	local flags
+	local device_type
+	local oem_data
+	local version
+
+	#BEACON
+	local uuid
+	local tx_power
+
+
+ 	if [ -n "$1" ]; then 
+ 		#DEFINE PACKET VARIABLE
+ 		packet="$1"
+
+		#RETUREN FROM NAME REQUEST
+		if [[ $packet =~ Event:\ Remote ]]; then 
+			return 0
+		fi
 		
-		#IF IN TRIGGER MODE, IGNORE
-		[ "$PREF_TRIGGER_MODE_ARRIVE" == true ] && packet="" && return 0
-
-		#GET RANDOM ADDRESS; REVERSE FROM BIG ENDIAN
-		local received_mac_address=$(echo "$packet" | awk '{print $13":"$12":"$11":"$10":"$9":"$8}')
-		
-		#VERIFY ADDRESS DOES NOT START WITH 00
-		[[ "$received_mac_address" =~ ^00 ]] && return  0
-
-		#TWO BYTES ARE PDU HEADER
-		local pdu_header=$(echo $packet | awk '{print $7$6}' )
-		local pdu_header_bin=$(echo "ibase=16;obase=2;$pdu_header" | bc | xargs printf "%016d")
-
-		#TxADD
-		local tx_add=${pdu_header_bin:7:1}
-		[[ $tx_add == 0 ]] && tx_add="PUBL" || tx_add="RAND"
-
-		local rx_add=${pdu_header_bin:8:1}
-		[[ $rx_add == 0 ]] && rx_add="PUBL" || rx_add="RAND"
-
-		#BREAKOUT OF PDU HEADER INFORMATION 
-		local pdu_type=$(pdu_type $(echo "ibase=2;${pdu_header_bin:12:4}" | bc ))
-
-		#ADVERTISED DATA
-		local adv_data="$packet"
-
-		#RSSI VALUE
-		local rssi_value_raw="${packet: -3}"
-		local rssi_value=$(echo "ibase=16;$rssi_value_raw" | bc )
-		rssi_value=$((rssi_value - 256))
-
-		local gap_name_str=""
-
-		#IF THIS IS A SCAN RESPONSE, FIND WHETHER WE HAVE USABLE GAP NAME DATA 
-		if [ "$pdu_type" == 'SCAN_RSP' ] || [ "$pdu_type" == "ADV_NONCONN_IND" ]; then 
-			gap_name_str=$(gap_name "$packet")
-        fi
-
-		#FILTER BASED ON RESPONSE/DATA TYPE		
-        if [ "$pdu_type" == "ADV_IND" ] || [ "$pdu_type" == "ADV_NONCONN_IND" ] || [ "$pdu_type" == "SCAN_RSP" ] ; then 
-			#SEND TO MAIN LOOP
-			echo "$tx_add$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data" > main_pipe
+		#------------ MAC ADDRESS
+		if [[ $packet =~ Address:\ ([^|\(]*)\  ]]; then 
+			received_mac_address=${BASH_REMATCH[1]}
+			received_mac_address=${received_mac_address^^}
+		else 
+			return 0
 		fi 
 
-	#NAME REQUEST RESPONSES
-	elif [[ "$packet" =~ ^04\ 07* ]]; then
+		#------------ PDU TYPE
+		if [[ $packet =~ Event\ type:\ ([^|\(]*)\  ]]; then 
+			pdu_type=${BASH_REMATCH[1]}
+			pdu_type=${pdu_type##* }
+		else 
+			return 0
+		fi 
 
-		return 0
-		
-	else 
-		#SEND UNKNOWN PACKET
-		echo "UKNO$packet" > main_pipe		
+		#------------ ADVERTISEMENT TYPE
+		if [[ $packet =~ Random ]] || [[ $packet =~ Public ]]; then 
+			tx_type=${BASH_REMATCH^^}
+			tx_type=${tx_type:0:4}
+		fi 
+
+		#------------ RSSI 
+		if [[ $packet =~ RSSI[^:]*?:([^|\(]*) ]]; then 
+			rssi_value=${BASH_REMATCH[1]}
+			rssi_value=${rssi_value//[^-0-9]/}
+		fi 
+
+		#------------ NAME
+		if [[ $packet =~ Name[^:]{0,}:\ {0,}([^|\(]*)\ {0,}(\||$|\() ]]; then 
+			gap_name_str=${BASH_REMATCH[1]}
+			gap_name_str=$(trim_whitespace "$gap_name_str")
+		fi 
+
+		#------------ MANUFACTURER OF RADIO
+		if [[ $packet =~ Company:\ {0,}([^|\(]*)\ {0,}(\||$|\() ]]; then 
+			manufacturer=${BASH_REMATCH[1]}
+			manufacturer=$(trim_whitespace "$manufacturer")
+		fi 
+
+		#------------ ADVERTISEMENT
+		if [[ $packet =~ Data:\ {0,}([^|\(]*)\ {0,}(\||$|\() ]]; then 
+			adv_data=${BASH_REMATCH[1]}
+		fi 
+
+		#------------ DEVICE TYPE
+		if [[ $packet =~ Type:\ {0,}([^|\(]*)\ (\||$|\() ]]; then 
+			device_type=${BASH_REMATCH[1]}
+		fi 
+
+		#------------ FLAGS 
+		if [[ $packet =~ Flags:\ {0,}([^|\(]*)(\||$|\() ]]; then 
+			flags=${BASH_REMATCH[1]}
+		fi 
+
+		#------------ OEM DATA 
+		if [[ $packet =~ 1\ entry\ {0,}([^|\(]*)(\||$|\() ]]; then 
+			oem_data=${BASH_REMATCH[1]}
+		fi 
+
+		local timestamp
+		timestamp=$(date +%s)
+
+
+		if [ "$tx_type" == "PUBL" ]; then 
+			#PRINT ALL PUBLIC BEACONS
+			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data|$timestamp" > main_pipe
+
+		elif [ "$tx_type" == "RAND" ]; then
+		 
+			if [[ $pdu_type =~ $PREF_PASS_FILTER_PDU_TYPE ]] ; then 
+
+				#IF THIS DOES NOT HAVE A UUID, PROCESS AS GENERIC BEACON
+				should_ignore=false 
+				[ "$tx_type" == "RAND" ] && [ -n "$rssi_value" ] && [[ "$PREF_RSSI_IGNORE_BELOW" -gt "$rssi_value" ]] && should_ignore=true 
+
+				#IF WE HAVE A NAME, DEFINITELY REPORT
+				[ -n "$gap_name_str" ] && should_ignore=false 
+
+				if [ "$should_ignore" == false ]; then 
+					#REPORT TO MAIN LOOP
+					printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data|$timestamp" > main_pipe
+				fi 
+			fi 
+		fi 
 	fi
 }
 
 # ----------------------------------------------------------------------------------------
 # BLUETOOTH LE RAW PACKET ANALYSIS
 # ----------------------------------------------------------------------------------------
-btle_listener () {	
-	#DEFINE VARAIBLES
-	local packet=""
-	local complete_packet_str_length=0
-	while read line; do
-		# packets start with ">" or "<"
-		if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
-			# process the completed packet (unless this is the first time through)
-			if [ "$packet" ] && [[ $packet =~ ^\> ]]; then
-				btle_packet_processor "$packet"
-			fi
-			# start the new packet
-			packet=$line
-			complete_packet_str_length=0
+btle_text_listener () {
+    #LOCAL VALUES 
+	local packet
+	local line 
 
-			if [[ "$packet" =~ ^\>\ 04\ 3E* ]]; then
-				local packet_len=$(echo $packet | awk '{print "ibase=16;"$4}' | bc )
-				complete_packet_str_length=$((( packet_len + 3) * 3  + 1))
-			fi 
-		else
-			# continue building the packet
-			packet="$packet $line"
-
-			#PROCESS A PACKET WHEN IT IS COMPLETE
-			if [ "$complete_packet_str_length" == "${#packet}" ]; then 
-				btle_packet_processor "$packet"
+    while true; do 
+		#DEFINE VARAIBLES
+		while IFS= read -r line; do
+			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]] || [[ $line =~ RSSI ]]; then
+				[[ $line =~ RSSI ]] && packet="$packet|$line"
+				if [[ $packet =~ ^\> ]]; then 
+					printf "%s\n" "1$packet" > packet_pipe
+				fi 
 				packet=""
-			fi 
-		fi
-	done < <(hcidump -i $PREF_HCI_DEVICE --raw)
+				packet=$line
+			else 		
+				packet="$packet|$line" 
+			fi
+		done < <(timeout --signal SIGINT 90 stdbuf -oL -eL btmon 2>&1)
+
+		#PREVENT LOOPING
+		sleep 1
+	done 
+	#REPORT ERROR
+	(>&2 echo "error! irrecoverable btle_text_listener error")
 }
+
+# ----------------------------------------------------------------------------------------
+# BLUETOOTH LE RAW PACKET ANALYSIS
+# ----------------------------------------------------------------------------------------
+btle_listener () {	
+ 	while true; do 
+		#LOCAL VALUES 
+		local packet
+		local line
+		local complete_packet_str_length
+ 		complete_packet_str_length=0
+	
+		while IFS= read -r line; do
+			# packets start with ">" or "<"
+			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]]; then
+				# process the completed packet (unless this is the first time through)
+				if [ "$packet" ] && [[ $packet =~ ^\> ]]; then
+					printf "%s\n" "0$packet" > packet_pipe
+				fi
+				# start the new packet
+				packet=$line
+				complete_packet_str_length=0
+
+				if [[ "$packet" =~ ^\>\ 04\ 3E* ]]; then
+					local packet_len=$(echo $packet | awk '{print "ibase=16;"$4}' | bc )
+					complete_packet_str_length=$((( packet_len + 3) * 3  + 1))
+				fi 
+			else
+				# continue building the packet
+				packet="$packet $line"
+
+				#PROCESS A PACKET WHEN IT IS COMPLETE
+				if [ "$complete_packet_str_length" == "${#packet}" ]; then 
+					printf "%s\n" "0$packet" > packet_pipe
+					packet=""
+				fi 
+			fi
+		done < <(timeout --signal SIGINT 120 stdbuf -oL -eL hcidump -i $PREF_HCI_DEVICE --raw)
+
+		#PREVENT INFINITE LOOPING
+		sleep 1
+	done
+}
+
+
+# ----------------------------------------------------------------------------------------
+# BLUETOOTH PACKET PROCESSING 
+# ----------------------------------------------------------------------------------------
+btle_packet_listener () {
+	local cmd
+	local data 	
+	local event
+
+	#LOOPER
+	while true; do 
+		cmd=""
+		data=""
+		
+		#READ FROM THE MAIN PIPE
+		while read -r event; do 
+			#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
+			cmd="${event:0:1}"
+			data="${event:1}"
+
+			if [ "$cmd" == "0" ]; then
+				#RAW DATA PROCESSING 
+				btle_packet_processor "$data"
+
+			elif [ "$cmd" == "1" ]; then
+
+				#TEXT DATA PROCESSING				
+				btle_text_processor "$data"
+			fi  
+
+		done < packet_pipe
+	done
+
+	#REPORT ERROR
+	(>&2 echo "error! irrecoverable btle_packet_listener error")
+}
+
