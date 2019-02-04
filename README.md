@@ -1,4 +1,4 @@
-monitor (beta)
+monitor
 =======
 ***TL;DR***: Passive bluetooth presence detection of beacons, cell phones, and other bluetooth devices. Useful for [mqtt-based](http://mqtt.org) home automation, especially when the script runs on multiple devices, distrubted throughout a property. 
 
@@ -591,3 +591,4 @@ Some android phones just don't seem to advertise... and that's a bummer. There a
 
 
 
+Anything else? Post a [question.](https://github.com/andrewjfreyer/monitor/issues)
