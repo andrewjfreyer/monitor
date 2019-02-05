@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.958
+export version=0.1.959
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -137,7 +137,6 @@ last_rssi_scan=""
 last_arrival_scan=$((now - 25))
 last_depart_scan=$((now - 25))
 first_arrive_scan=true
-rssi_rolling_average_string=""
 
 # ----------------------------------------------------------------------------------------
 # POPULATE THE ASSOCIATIVE ARRAYS THAT INCLUDE INFORMATION ABOUT THE STATIC DEVICES
@@ -228,7 +227,7 @@ connectable_present_devices () {
 				
 			#CREATE CONNECTION AND DETERMINE RSSI 
 			#AVERAGE OVER THREE CYCLES; IF BLANK GIVE VALUE OF 100
-			known_device_rssi=$(hcitool cc $known_addr; avg_total=""; for i in 1 2 3; do scan_result=$(hcitool rssi $known_addr 2>&1); scan_result=${scan_result//[^0-9]/}; [[ "$scan_result" = "0" ]] && scan_result=30; counter=$((counter+1)); avg_total=$((avg_total + scan_result )); sleep 0.5; done; printf "$(( avg_total / counter ))" )
+			known_device_rssi=$(hcitool cc $known_addr; avg_total=""; for i in 1 2 3; do scan_result=$(hcitool rssi $known_addr 2>&1); scan_result=${scan_result//[^0-9]/}; [[ "$scan_result" == "0" ]] && scan_result=30; counter=$((counter+1)); avg_total=$((avg_total + scan_result )); sleep 0.5; done; printf "$(( avg_total / counter ))" )
 
 			#PUBLISH MESSAGE TO RSSI SENSOR 
 			publish_rssi_message \
