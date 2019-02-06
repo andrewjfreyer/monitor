@@ -135,7 +135,7 @@ publish_presence_message () {
 
 	    #ALIASES? 
 	    if [ "$PREF_MQTT_TOPIC_ALIAS" == true ]; then 
-	    	existing_alias="${mqtt_aliases[$isolated_address]}"
+	    	existing_alias="${mqtt_aliases["$isolated_address"]}"
 	    	isolated_address=${existing_alias:-isolated_address}
 	    fi 
 
