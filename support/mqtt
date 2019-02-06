@@ -129,6 +129,7 @@ publish_presence_message () {
 		local isolated_address
 		local retain_flag
 		local message
+		local existing_alias
 
 		#SET ISOLATED ADDRESS
 	    isolated_address="${1##*=}"
@@ -136,7 +137,7 @@ publish_presence_message () {
 	    #ALIASES? 
 	    if [ "$PREF_MQTT_TOPIC_ALIAS" == true ]; then 
 	    	if [[ " ${mqtt_aliases[*]} " == *"$isolated_address"* ]]; then 
-		    	existing_alias=${mqtt_aliases["$isolated_address"]}
+		    	existing_alias=${mqtt_aliases['$isolated_address']}
 		    	isolated_address=${existing_alias:-isolated_address}
 		    fi 
 	    fi 
