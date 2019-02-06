@@ -25,9 +25,6 @@ btmon_path=$(which btmon)
 bc_path=$(which bc)
 git_path=$(which git)
 
-#MQTT ALIAS FILE
-ALIAS_CONFIG="$base_directory/mqtt_aliases"
-
 #error CHECKING FOR MOSQUITTO PUBLICATION 
 should_exit=false
 [ -z "$mosquitto_pub_path" ] && printf "%s\n" "${RED}error:${NC} required package 'mosquitto_pub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
@@ -49,6 +46,9 @@ base_directory=$(dirname "$(readlink -f "$0")")
 
 #BLACKLISTED ADDRESSES
 ADDRESS_BLACKLIST="$base_directory/address_blacklist"
+
+#MQTT ALIAS FILE
+ALIAS_CONFIG="$base_directory/mqtt_aliases"
 
 #----------------------------------------------------------------------------------------
 # CHECK MQTT CONFIGURATION FILES
