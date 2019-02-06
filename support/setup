@@ -25,6 +25,9 @@ btmon_path=$(which btmon)
 bc_path=$(which bc)
 git_path=$(which git)
 
+#MQTT ALIAS FILE
+ALIAS_CONFIG="$base_directory/mqtt_aliases"
+
 #error CHECKING FOR MOSQUITTO PUBLICATION 
 should_exit=false
 [ -z "$mosquitto_pub_path" ] && printf "%s\n" "${RED}error:${NC} required package 'mosquitto_pub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
@@ -264,6 +267,8 @@ if [ -f "$PREF_CONFIG" ]; then
 	PREF_STARTUP_SETTLE_TIME=${PREF_STARTUP_SETTLE_TIME:-45}
 	PREF_PASS_FILTER_PDU_TYPE=${PREF_PASS_FILTER_PDU_TYPE:-ADV_IND|ADV_SCAN_IND|ADV_NONCONN_IND|SCAN_RSP}
 
+	#MQTT USE ALIAS
+	PREF_MQTT_TOPIC_ALIAS=${PREF_MQTT_TOPIC_ALIAS:-false}
 
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
 	[ "$(printf "%s\n" "$preferences" | grep -c "error")" -gt "0" ] && printf "%s\n" "> ${ORANGE}warning:${NC} preferences error, using defaults. reset to defaults? [y/n]" && read -t 10 should_restore_defaults

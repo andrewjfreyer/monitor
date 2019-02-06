@@ -12,6 +12,8 @@
 #
 # ----------------------------------------------------------------------------------------
 
+mapfile -t mqtt_aliases < <(sed 's/#.\{0,\}//g' < "$ALIAS_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
+
 # ----------------------------------------------------------------------------------------
 # UTILITY FUNCTION FOR JOINING STRINGS
 # ----------------------------------------------------------------------------------------
@@ -130,6 +132,12 @@ publish_presence_message () {
 
 		#SET ISOLATED ADDRESS
 	    isolated_address="${1##*=}"
+
+	    #ALIASES? 
+	    if [ "$PREF_MQTT_TOPIC_ALIAS" == true ]; then 
+	    	existing_alias="${mqtt_aliases[${isolated_address^^}]}"
+	    	isolated_address=${existing_alias:-isolated_address}
+	    fi 
 
 		#SET TIMESTAMP
 		stamp=$(date "+%a %b %d %Y %H:%M:%S GMT%z (%Z)")
