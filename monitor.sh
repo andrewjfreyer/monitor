@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.977
+export version=0.1.978
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -871,9 +871,6 @@ while true; do
 		elif [ "$cmd" == "RAND" ]; then 
 			#PARSE RECEIVED DATA
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
-
-			log "[CMD-TEST]	RAND: $mac"
-
 			pdu_header=$(echo "$data" | awk -F "|" '{print $2}')
 			name=$(echo "$data" | awk -F "|" '{print $3}')
 			rssi=$(echo "$data" | awk -F "|" '{print $4}')
@@ -904,7 +901,7 @@ while true; do
 				cmd="PUBL"
 				unset "random_device_log[$mac]"
 
-				log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
+				#log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
 
 				#BEACON TYPE
 				beacon_type="GENERIC_BEACON_RANDOM"
@@ -922,7 +919,7 @@ while true; do
 				#IS THIS ALREADY IN THE STATIC LOG? 
 				if [ ${public_device_log[$mac]+true} ]; then
 					
-					log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
+					#log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
 
 					#IS THIS A NEW STATIC DEVICE?
 					public_device_log[$mac]="$timestamp"
