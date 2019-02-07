@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.962
+export version=0.1.963
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -38,10 +38,10 @@ CYAN=$'\e[1;36m'
 REPEAT=$'\e[1A'
 
 # ----------------------------------------------------------------------------------------
-# BETA WARNING
+# BETA WARNING ONLY IF ON THE BETA CHANNEL
 # ----------------------------------------------------------------------------------------
 
-if [[ $(git status | head -1) =~ .*beta.* ]]; then 
+if [[ $(git status) =~ .*beta.* ]]; then 
 
 	printf "\n${RED}===================================================${NC}\n"
 
@@ -123,13 +123,8 @@ declare -A random_device_log
 declare -A rssi_log
 
 #STATIC DEVICE ASSOCIATIVE ARRAYS
-declare -A known_public_device_log
-declare -A expiring_device_log
-declare -A known_static_device_scan_log
-declare -A known_public_device_name
-declare -A blacklisted_devices
-declare -A mqtt_topic_path_aliases
-declare -A beacon_mac_address_log
+declare -A known_public_device_log expiring_device_log known_static_device_scan_log known_public_device_name 
+declare -A blacklisted_devices mqtt_topic_path_aliases beacon_mac_address_log
 
 #LAST TIME THIS 
 scan_pid=""
@@ -153,7 +148,7 @@ mapfile -t known_static_addresses < <(sed 's/#.\{0,\}//g' < "$PUB_CONFIG" | awk 
 mapfile -t address_blacklist < <(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
 
 #MQTT ALIASES
-mapfile -t mqtt_alias_addresses < <(sed 's/#.\{0,\}//g' < "$ALIAS_CONFIG" | awk '{print $1" "$2}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
+mapfile -t mqtt_alias_addresses < <(sed 's/#.\{0,\}//g' < "$ALIAS_CONFIG" | awk '{print $1"="$2}' )
 
 #ASSEMBLE COMMENT-CLEANED BLACKLIST INTO BLACKLIST ARRAY
 for addr in "${address_blacklist[@]}"; do 
@@ -163,7 +158,7 @@ done
 
 for addr in "${mqtt_alias_addresses[@]}"; do 
 	
-	printf "%s\n" "$addr = ${mqtt_alias_addresses[$addr]}"
+	printf "%s\n" "$addr"
 
 done 
 
