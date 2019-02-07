@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.961
+export version=0.1.962
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -41,12 +41,15 @@ REPEAT=$'\e[1A'
 # BETA WARNING
 # ----------------------------------------------------------------------------------------
 
-printf "\n${RED}===================================================${NC}\n"
+if [ "$(git status | head -1)" =~ .*beta.* ]; then 
 
-printf "\n\n      ${RED}*** THIS IS A${PURPLE} BETA ${RED}TEST RELEASE ***${NC}      \n\n"
+	printf "\n${RED}===================================================${NC}\n"
 
-printf "${RED}===================================================${NC}\n\n"
+	printf "\n\n      ${RED}*** THIS IS A${PURPLE} BETA ${RED}TEST RELEASE ***${NC}      \n\n"
 
+	printf "${RED}===================================================${NC}\n\n"
+
+fi 
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
