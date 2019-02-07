@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.966
+export version=0.1.967
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -160,9 +160,10 @@ for addr in "${address_blacklist[@]}"; do
 	printf "%s\n" "> ${RED}blacklisted device:${NC} $addr"
 done 
 
-for addr in "${mqtt_alias_addresses[@]}"; do 
-	
-	printf "%s\n" "${addr##* }=${addr *}"
+for line in "${mqtt_alias_addresses[@]}"; do 
+	key=${line%%=*}
+   	value=${line#*=}
+	printf "%s\n" "$key --> $value"
 
 done 
 
