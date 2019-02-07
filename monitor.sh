@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.964
+export version=0.1.965
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -123,8 +123,13 @@ declare -A random_device_log
 declare -A rssi_log
 
 #STATIC DEVICE ASSOCIATIVE ARRAYS
-declare -A known_public_device_log known_static_device_scan_log known_public_device_name expiring_device_log
-declare -A blacklisted_devices mqtt_topic_path_aliases beacon_mac_address_log
+declare -A known_public_device_log
+declare -A expiring_device_log
+declare -A known_static_device_scan_log
+declare -A known_public_device_name
+declare -A blacklisted_devices
+declare -A beacon_mac_address_log
+declare -A mqtt_alias_addresses
 
 #LAST TIME THIS 
 scan_pid=""
@@ -158,7 +163,7 @@ done
 
 for addr in "${mqtt_alias_addresses[@]}"; do 
 	
-	printf "%s\n" "$addr"
+	printf "%s\n" "${addr##* }=${addr *}"
 
 done 
 
