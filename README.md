@@ -449,7 +449,7 @@ PREF_COOPERATIVE_SCAN_THRESHOLD|60|Once confidence of a known device falls below
 PREF_MQTT_REPORT_SCAN_MESSAGES|false|This value is either true or false and determines whether `monitor` publishes when a scan begins and when a scan ends|
 PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD|59|This value defines when a beacon begins reporting a decline in confidence|
 PREF_PASS_FILTER_PDU_TYPE|ADV_IND|ADV_SCAN_IND|ADV_NONCONN_IND|SCAN_RSP|These are the PDU types that should be noticed by `monitor`|
-
+PREF_MQTT_TOPIC_ALIAS|false|This value is either true or false and determines whether `monitor` publishes an alias (true) or a mac address (false)
 
 ## RSSI Tracking
 
@@ -654,6 +654,8 @@ So, if you have a known device with the mac address of 00:11:22:33:44:55 that yo
 ```bash
 00:11:22:33:44:55 Andrew's iPhone
 ```
+
+You also have to add PREF_MQTT_TOPIC_ALIAS=true to the `behavior_preferences` file. 
 
 Then restart the `monitor` service. The script will now use "andrew_s_iphone" as the final mqtt topic path component. Important: 
 
