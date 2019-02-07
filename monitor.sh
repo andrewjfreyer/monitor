@@ -129,7 +129,6 @@ declare -A known_static_device_scan_log
 declare -A known_public_device_name
 declare -A blacklisted_devices
 declare -A beacon_mac_address_log
-declare -A mqtt_alias_addresses
 
 #LAST TIME THIS 
 scan_pid=""
@@ -154,8 +153,6 @@ mapfile -t address_blacklist < <(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | aw
 
 #MQTT ALIASES
 mapfile -t mqtt_alias_addresses < <(sed 's/#.\{0,\}//g' < "$ALIAS_CONFIG" | awk '{print $1"="$2}' )
- cat "$ALIAS_CONFIG"
-
 
 #ASSEMBLE COMMENT-CLEANED BLACKLIST INTO BLACKLIST ARRAY
 for addr in "${address_blacklist[@]}"; do 
