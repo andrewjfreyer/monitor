@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.963
+export version=0.1.964
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -123,7 +123,7 @@ declare -A random_device_log
 declare -A rssi_log
 
 #STATIC DEVICE ASSOCIATIVE ARRAYS
-declare -A known_public_device_log expiring_device_log known_static_device_scan_log known_public_device_name 
+declare -A known_public_device_log known_static_device_scan_log known_public_device_name expiring_device_log
 declare -A blacklisted_devices mqtt_topic_path_aliases beacon_mac_address_log
 
 #LAST TIME THIS 
@@ -148,7 +148,7 @@ mapfile -t known_static_addresses < <(sed 's/#.\{0,\}//g' < "$PUB_CONFIG" | awk 
 mapfile -t address_blacklist < <(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
 
 #MQTT ALIASES
-mapfile -t mqtt_alias_addresses < <(sed 's/#.\{0,\}//g' < "$ALIAS_CONFIG" | awk '{print $1"="$2}' )
+mapfile -t mqtt_alias_addresses < <(sed 's/#.\{0,\}//g' < "$ALIAS_CONFIG")
 
 #ASSEMBLE COMMENT-CLEANED BLACKLIST INTO BLACKLIST ARRAY
 for addr in "${address_blacklist[@]}"; do 
