@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.976
+export version=0.1.977
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -904,6 +904,8 @@ while true; do
 				cmd="PUBL"
 				unset "random_device_log[$mac]"
 
+				log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
+
 				#BEACON TYPE
 				beacon_type="GENERIC_BEACON_RANDOM"
 
@@ -918,9 +920,9 @@ while true; do
 			else
 
 				#IS THIS ALREADY IN THE STATIC LOG? 
-				if [ -n  "${public_device_log[$mac]}" ]; then
-
-					log "[CMD-INFO]	Converting RAND $mac to PUBL $mac"
+				if [ ${public_device_log[$mac]+true} ]; then
+					
+					log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
 
 					#IS THIS A NEW STATIC DEVICE?
 					public_device_log[$mac]="$timestamp"
