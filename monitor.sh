@@ -161,8 +161,8 @@ for addr in "${address_blacklist[@]}"; do
 done 
 
 for line in "${mqtt_alias_addresses[@]}"; do 
-	key=${line%%=*}
-   	value=${line#*=}
+	key=${line%% *}
+   	value=${line#* }
 	printf "%s\n" "$key --> $value"
 
 done 
