@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.971
+export version=0.1.973
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -153,7 +153,29 @@ mapfile -t known_static_addresses < <(sed 's/#.\{0,\}//g' < "$PUB_CONFIG" | awk 
 mapfile -t address_blacklist < <(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
 
 #MQTT ALIASES
-mapfile -t mqtt_alias_addresses < <(sed 's/#.\{0,\}//g' < "$ALIAS_CONFIG")
+if [ -f "$ALIAS_CONFIG" ]; then 
+
+	mapfile -t mqtt_alias_addresses < <(sed 's/#.\{0,\}//g' < "$ALIAS_CONFIG")
+
+	#MQTT ALIASES 
+	for line in "${mqtt_alias_addresses[@]}"; do 
+		key=${line%% *}
+	   	value=${line#* }
+
+	   	#IF THE VALUE DOES NOT EXIST, USE THE KEY (MAC ADDRESS INSTEAD)
+	   	value=${value//[^A-Za-z0-9]/_}
+
+	   	#LOWERCASE
+	  	value=${value,,}
+
+	  	#DEFAULT
+	   	value=${value:-key}
+
+	   	#ALIASES
+	   	mqtt_aliases[$key]="$value" 
+	done 
+
+fi 
 
 #ASSEMBLE COMMENT-CLEANED BLACKLIST INTO BLACKLIST ARRAY
 for addr in "${address_blacklist[@]}"; do 
@@ -161,24 +183,6 @@ for addr in "${address_blacklist[@]}"; do
 	printf "%s\n" "> ${RED}blacklisted device:${NC} $addr"
 done 
 
-
-#MQTT ALIASES 
-for line in "${mqtt_alias_addresses[@]}"; do 
-	key=${line%% *}
-   	value=${line#* }
-
-   	#IF THE VALUE DOES NOT EXIST, USE THE KEY (MAC ADDRESS INSTEAD)
-   	value=${value//[^A-Za-z0-9]/_}
-
-   	#LOWERCASE
-  	value=${value,,}
-
-  	#DEFAULT
-   	value=${value:-key}
-
-   	#ALIASES
-   	mqtt_aliases[$key]="$value" 
-done 
 
 # ----------------------------------------------------------------------------------------
 # POPULATE MAIN DEVICE ARRAY
