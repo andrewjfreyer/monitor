@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.973
+export version=0.1.974
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -172,7 +172,7 @@ if [ -f "$ALIAS_CONFIG" ]; then
 	   	value=${value:-key}
 
 	   	#ALIASES
-	   	mqtt_aliases[$key]="$value" 
+	   	[ -n "$key" ] && [ -n "$value" ] && mqtt_aliases[$key]="$value" 
 	done 
 
 fi 
