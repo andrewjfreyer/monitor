@@ -638,6 +638,11 @@ ____
 
 Some android phones just don't seem to advertise... and that's a bummer. There are a number of beacon apps that can be used from the Play Store.
 
+____
+### My Android phone doesn't seem to send any anonymous advertisements, no matter what I do. Is there any solution?  
 
+Some phones, like the LG ThinQ G7 include an option in settings to enable file sharing via bluetooth. As resported by Home Assistant forum user @jusdwy, access this option via Settings >Connected Devices > File Sharing > File Sharing ON.
+
+For other android phones, an app like [Beacon Simulator](https://play.google.com/store/apps/details?id=net.alea.beaconsimulator&hl=en_US) may be a good option. You may also be able to see more information about bluetooth on your phone using [nRF Connect](https://play.google.com/store/apps/details?id=no.nordicsemi.android.mcp&hl=en_US).
 
 Anything else? Post a [question.](https://github.com/andrewjfreyer/`monitor`/issues)
