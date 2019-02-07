@@ -632,7 +632,6 @@ ____
 
 Many phones will only broadcast once they have already connected to *at least one* other Bluetooth device. Connect to a speaker, a car, a headset, or `monitor` and try again. 
 
-
 ____
 ### I have connected to Bluetooth devices but my phone doesn't seem to automatically broadcast an anonymous Bluetooth advertisement... what can I do? 
 
@@ -644,5 +643,25 @@ ____
 Some phones, like the LG ThinQ G7 include an option in settings to enable file sharing via bluetooth. As resported by Home Assistant forum user @jusdwy, access this option via Settings >Connected Devices > File Sharing > File Sharing ON.
 
 For other android phones, an app like [Beacon Simulator](https://play.google.com/store/apps/details?id=net.alea.beaconsimulator&hl=en_US) may be a good option. You may also be able to see more information about bluetooth on your phone using [nRF Connect](https://play.google.com/store/apps/details?id=no.nordicsemi.android.mcp&hl=en_US).
+
+____
+### It's annoying to have to keep track of mac addresses. Can't I just use an alias for the mac addresses for MQTT topics? 
+
+Yes! Create a file called `mqtt_aliases` in the configuration directory, and then add a line for each mac address of a known device that you'd like to create a alias. Comments starting with a pound/hash sign will be ignored. 
+
+So, if you have a known device with the mac address of 00:11:22:33:44:55 that you would like to call "Andrew's Phone", add one line to the `mqtt_aliases`:
+
+```bash
+00:11:22:33:44:55 Andrew's iPhone
+```
+
+Then restart the `monitor` service. The script will now use "andrew_s_iphone" as the final mqtt topic path component. Important: 
+
+* any entry will be made **lowercase**
+
+* any non-digit or non-decimal character will be replaced with an underscore
+
+That's it!
+
 
 Anything else? Post a [question.](https://github.com/andrewjfreyer/`monitor`/issues)
