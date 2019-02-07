@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.968
+export version=0.1.969
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -129,6 +129,7 @@ declare -A known_static_device_scan_log
 declare -A known_public_device_name
 declare -A blacklisted_devices
 declare -A beacon_mac_address_log
+declare -A mqtt_aliases
 
 #LAST TIME THIS 
 scan_pid=""
@@ -168,10 +169,15 @@ for line in "${mqtt_alias_addresses[@]}"; do
 
    	#IF THE VALUE DOES NOT EXIST, USE THE KEY (MAC ADDRESS INSTEAD)
    	value=${value//[^A-Za-z0-9]/_}
+
+   	#LOWERCASE
+  	value=${value,,}
+
+  	#DEFAULT
    	value=${value:-key}
 
-	printf "%s\n" "$key --> $value"
-
+   	#ALIASES
+   	mqtt_aliases[$key]="$value" 
 done 
 
 # ----------------------------------------------------------------------------------------
@@ -190,13 +196,17 @@ for addr in "${known_static_addresses[@]}"; do
 	#IF WE FOUND A NAME, RECORD IT
 	[ -n "$known_name" ] && known_public_device_name[$addr]="$known_name"
 
-	#PUBLICATION TOPIC 
-	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$addr"
-	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { id: $addr ... }"
-
 	#CONNECTED?
 	is_connected="not previously connected"
 	[[ $previously_connected_devices =~ .*$addr.* ]] && is_connected="previously connected"
+
+	#CORRECT 
+	mqtt_topic_branch=${mqtt_aliases[$addr]:-addr}
+
+	#PUBLICATION TOPIC 
+	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch"
+	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { id: $addr ... }"
+
 
 	#FOR DEBUGGING
 	printf "%s\n" "> ${GREEN}$addr${NC} publishes to: $pub_topic (has $is_connected to $PREF_HCI_DEVICE)"
