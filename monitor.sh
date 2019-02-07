@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.957
+export version=0.1.971
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -36,6 +36,20 @@ PURPLE=$'\e[1;35m'
 BLUE=$'\e[1;34m'
 CYAN=$'\e[1;36m'
 REPEAT=$'\e[1A'
+
+# ----------------------------------------------------------------------------------------
+# BETA WARNING ONLY IF ON THE BETA CHANNEL
+# ----------------------------------------------------------------------------------------
+
+if [[ $(git status) =~ .*beta.* ]]; then 
+
+	printf "\n${RED}===================================================${NC}\n"
+
+	printf "\n\n      ${RED}*** THIS IS A${PURPLE} BETA ${RED}TEST RELEASE ***${NC}      \n\n"
+
+	printf "${RED}===================================================${NC}\n\n"
+
+fi 
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
@@ -115,6 +129,7 @@ declare -A known_static_device_scan_log
 declare -A known_public_device_name
 declare -A blacklisted_devices
 declare -A beacon_mac_address_log
+declare -A mqtt_aliases
 
 #LAST TIME THIS 
 scan_pid=""
@@ -126,7 +141,6 @@ last_rssi_scan=""
 last_arrival_scan=$((now - 25))
 last_depart_scan=$((now - 25))
 first_arrive_scan=true
-rssi_rolling_average_string=""
 
 # ----------------------------------------------------------------------------------------
 # POPULATE THE ASSOCIATIVE ARRAYS THAT INCLUDE INFORMATION ABOUT THE STATIC DEVICES
@@ -138,10 +152,32 @@ mapfile -t known_static_beacons < <(sed 's/#.\{0,\}//g' < "$BEAC_CONFIG" | awk '
 mapfile -t known_static_addresses < <(sed 's/#.\{0,\}//g' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
 mapfile -t address_blacklist < <(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
 
+#MQTT ALIASES
+mapfile -t mqtt_alias_addresses < <(sed 's/#.\{0,\}//g' < "$ALIAS_CONFIG")
+
 #ASSEMBLE COMMENT-CLEANED BLACKLIST INTO BLACKLIST ARRAY
 for addr in "${address_blacklist[@]}"; do 
 	blacklisted_devices["$addr"]=1
 	printf "%s\n" "> ${RED}blacklisted device:${NC} $addr"
+done 
+
+
+#MQTT ALIASES 
+for line in "${mqtt_alias_addresses[@]}"; do 
+	key=${line%% *}
+   	value=${line#* }
+
+   	#IF THE VALUE DOES NOT EXIST, USE THE KEY (MAC ADDRESS INSTEAD)
+   	value=${value//[^A-Za-z0-9]/_}
+
+   	#LOWERCASE
+  	value=${value,,}
+
+  	#DEFAULT
+   	value=${value:-key}
+
+   	#ALIASES
+   	mqtt_aliases[$key]="$value" 
 done 
 
 # ----------------------------------------------------------------------------------------
@@ -160,13 +196,16 @@ for addr in "${known_static_addresses[@]}"; do
 	#IF WE FOUND A NAME, RECORD IT
 	[ -n "$known_name" ] && known_public_device_name[$addr]="$known_name"
 
-	#PUBLICATION TOPIC 
-	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$addr"
-	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { id: $addr ... }"
-
 	#CONNECTED?
 	is_connected="not previously connected"
 	[[ $previously_connected_devices =~ .*$addr.* ]] && is_connected="previously connected"
+
+	#CORRECT 
+	mqtt_topic_branch=${mqtt_aliases[$addr]:-$addr}
+
+	#PUBLICATION TOPIC 
+	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch"
+	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { id: $addr ... }"
 
 	#FOR DEBUGGING
 	printf "%s\n" "> ${GREEN}$addr${NC} publishes to: $pub_topic (has $is_connected to $PREF_HCI_DEVICE)"
@@ -184,8 +223,11 @@ for addr in "${known_static_beacons[@]}"; do
 	#IF WE FOUND A NAME, RECORD IT
 	[ -n "$known_name" ] && known_public_device_name[$addr]="$known_name"
 
+	#CORRECT 
+	mqtt_topic_branch=${mqtt_aliases[$addr]:-$addr}
+
 	#PUBLICATION TOPIC 
-	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$addr"
+	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch"
 	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { id: $addr ... }"
 
 	#FOR DBUGGING
@@ -217,7 +259,7 @@ connectable_present_devices () {
 				
 			#CREATE CONNECTION AND DETERMINE RSSI 
 			#AVERAGE OVER THREE CYCLES; IF BLANK GIVE VALUE OF 100
-			known_device_rssi=$(hcitool cc $known_addr; avg_total=""; for i in 1 2 3; do scan_result=$(hcitool rssi $known_addr 2>&1); scan_result=${scan_result//[^0-9]/}; [[ "$scan_result" = "0" ]] && scan_result=30; counter=$((counter+1)); avg_total=$((avg_total + scan_result )); sleep 0.5; done; printf "$(( avg_total / counter ))" )
+			known_device_rssi=$(hcitool cc $known_addr; avg_total=""; for i in 1 2 3; do scan_result=$(hcitool rssi $known_addr 2>&1); scan_result=${scan_result//[^0-9]/}; [[ "$scan_result" == "0" ]] && scan_result=30; counter=$((counter+1)); avg_total=$((avg_total + scan_result )); sleep 0.5; done; printf "$(( avg_total / counter ))" )
 
 			#PUBLISH MESSAGE TO RSSI SENSOR 
 			publish_rssi_message \
