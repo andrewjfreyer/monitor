@@ -661,6 +661,8 @@ Then restart the `monitor` service. The script will now use "andrew_s_iphone" as
 
 * any non-digit or non-decimal character will be replaced with an underscore
 
+The same is true for beacons as well. 
+
 That's it!
 
 

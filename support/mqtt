@@ -94,12 +94,20 @@ publish_rssi_message () {
 		local stamp
 		local address
 		local message
+		local mqtt_topic_branch
 
 		#SET ISOLATED ADDRESS
 	    address="$1"
 		message="$2"
+
+		mqtt_topic_branch="$address"
+
+	    #ALIASES? 
+	    if [ "$PREF_MQTT_TOPIC_ALIAS" == true ]; then 
+	    	mqtt_topic_branch=${mqtt_aliases[$isolated_address]:-$isolated_address}
+	    fi 
 		
-		local topic="$mqtt_topicpath/$mqtt_publisher_identity/$address/rssi"
+		local topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch/rssi"
 
 		#POST TO MQTT
 		$mosquitto_pub_path \
