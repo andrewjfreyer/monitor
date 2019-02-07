@@ -201,7 +201,7 @@ for addr in "${known_static_addresses[@]}"; do
 	[[ $previously_connected_devices =~ .*$addr.* ]] && is_connected="previously connected"
 
 	#CORRECT 
-	mqtt_topic_branch=${mqtt_aliases[$addr]:-addr}
+	mqtt_topic_branch=${mqtt_aliases[$addr]:-$addr}
 
 	#PUBLICATION TOPIC 
 	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch"
