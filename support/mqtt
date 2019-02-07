@@ -103,9 +103,7 @@ publish_rssi_message () {
 		mqtt_topic_branch="$address"
 
 	    #ALIASES? 
-    	if [ "${mqtt_aliases[$isolated_address]+abc}" ]; then 
-    		mqtt_topic_branch=${mqtt_aliases[$isolated_address]:-$isolated_address}
-    	fi 
+   		[ "${mqtt_aliases[$address]+abc}" ] && mqtt_topic_branch=${mqtt_aliases[$address]:-$address}
 		
 		local topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch/rssi"
 
