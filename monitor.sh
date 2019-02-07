@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.960
+export version=0.1.961
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -125,6 +125,7 @@ declare -A expiring_device_log
 declare -A known_static_device_scan_log
 declare -A known_public_device_name
 declare -A blacklisted_devices
+declare -A mqtt_topic_path_aliases
 declare -A beacon_mac_address_log
 
 #LAST TIME THIS 
@@ -148,10 +149,19 @@ mapfile -t known_static_beacons < <(sed 's/#.\{0,\}//g' < "$BEAC_CONFIG" | awk '
 mapfile -t known_static_addresses < <(sed 's/#.\{0,\}//g' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
 mapfile -t address_blacklist < <(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
 
+#MQTT ALIASES
+mapfile -t mqtt_alias_addresses < <(sed 's/#.\{0,\}//g' < "$ALIAS_CONFIG" | awk '{print $1" "$2}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
+
 #ASSEMBLE COMMENT-CLEANED BLACKLIST INTO BLACKLIST ARRAY
 for addr in "${address_blacklist[@]}"; do 
 	blacklisted_devices["$addr"]=1
 	printf "%s\n" "> ${RED}blacklisted device:${NC} $addr"
+done 
+
+for addr in "${mqtt_alias_addresses[@]}"; do 
+	
+	printf "%s\n" "$addr = ${mqtt_alias_addresses[$addr]}"
+
 done 
 
 # ----------------------------------------------------------------------------------------
