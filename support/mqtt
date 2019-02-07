@@ -128,17 +128,16 @@ publish_presence_message () {
 		local retain_flag
 		local message
 		local existing_alias
+		local mqtt_topic_branch
 
 		#SET ISOLATED ADDRESS
 	    isolated_address="${1##*=}"
+		mqtt_topic_branch="$isolated_address"
 
 	    #ALIASES? 
-	    #if [ "$PREF_MQTT_TOPIC_ALIAS" == true ]; then 
-	    	#if [[ " ${mqtt_aliases[*]} " == *"$isolated_address"* ]]; then 
-		    # 	existing_alias=${mqtt_aliases[isolated_address]}
-		    #	isolated_address="${existing_alias:-isolated_address}"
-		    #fi 
-	    #fi 
+	    if [ "$PREF_MQTT_TOPIC_ALIAS" == true ]; then 
+	    	mqtt_topic_branch=${mqtt_aliases[$isolated_address]:-$isolated_address}
+	    fi 
 
 		#SET TIMESTAMP
 		stamp=$(date "+%a %b %d %Y %H:%M:%S GMT%z (%Z)")
@@ -159,7 +158,7 @@ publish_presence_message () {
 		)
 
 		#DEFINE THE TOPIC
-		local topic="$mqtt_topicpath/$mqtt_publisher_identity/$isolated_address"
+		local topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch"
 		[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && topic="$mqtt_topicpath/$mqtt_publisher_identity"
 
 		#SHOULD FORMAT AS LETTERS/NUMBERS

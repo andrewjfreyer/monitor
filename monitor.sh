@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.969
+export version=0.1.970
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -207,7 +207,6 @@ for addr in "${known_static_addresses[@]}"; do
 	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch"
 	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { id: $addr ... }"
 
-
 	#FOR DEBUGGING
 	printf "%s\n" "> ${GREEN}$addr${NC} publishes to: $pub_topic (has $is_connected to $PREF_HCI_DEVICE)"
 done
@@ -224,8 +223,11 @@ for addr in "${known_static_beacons[@]}"; do
 	#IF WE FOUND A NAME, RECORD IT
 	[ -n "$known_name" ] && known_public_device_name[$addr]="$known_name"
 
+	#CORRECT 
+	mqtt_topic_branch=${mqtt_aliases[$addr]:-$addr}
+
 	#PUBLICATION TOPIC 
-	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$addr"
+	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch"
 	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { id: $addr ... }"
 
 	#FOR DBUGGING
