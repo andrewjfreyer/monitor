@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.975
+export version=0.1.976
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -871,6 +871,9 @@ while true; do
 		elif [ "$cmd" == "RAND" ]; then 
 			#PARSE RECEIVED DATA
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
+
+			log "[CMD-TEST]	RAND: $mac"
+
 			pdu_header=$(echo "$data" | awk -F "|" '{print $2}')
 			name=$(echo "$data" | awk -F "|" '{print $3}')
 			rssi=$(echo "$data" | awk -F "|" '{print $4}')
