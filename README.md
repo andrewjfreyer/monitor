@@ -661,7 +661,14 @@ Then restart the `monitor` service. The script will now use "andrew_s_iphone" as
 
 * any non-digit or non-decimal character will be replaced with an underscore
 
-The same is true for beacons as well. 
+The same is true for beacons as well:
+
+```bash 
+09876543-3333-2222-1111-000000000000-9-10000 Doggo's Collar
+```
+
+
+
 
 That's it!
 

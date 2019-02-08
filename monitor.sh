@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.983
+export version=0.1.984
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -169,7 +169,7 @@ if [ -f "$ALIAS_CONFIG" ]; then
 	  	value=${value,,}
 
 	  	#REMOVE FINAL UNDERSCORES SHOUDL THERE BE
-	   	value=$(echo "$value" | sed 's/[^0-9a-z]\{1,\}$//g')
+	   	value=$(echo "$value" | sed 's/[^0-9a-z]\{1,\}$//g;s/^[^0-9a-z]\{1,\}//g;s/__*/_/g')
 
 	  	#DEFAULT
 	   	value=${value:-key}
