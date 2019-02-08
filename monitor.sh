@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.981
+export version=0.1.985
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -167,6 +167,9 @@ if [ -f "$ALIAS_CONFIG" ]; then
 
 	   	#LOWERCASE
 	  	value=${value,,}
+
+	  	#REMOVE FINAL UNDERSCORES SHOUDL THERE BE
+	   	value=$(echo "$value" | sed 's/[^0-9a-z]\{1,\}$//g;s/^[^0-9a-z]\{1,\}//g;s/__*/_/g')
 
 	  	#DEFAULT
 	   	value=${value:-key}
@@ -1220,8 +1223,8 @@ while true; do
 						#REMOVE BEACON FROM MAC ADDRESS ARRAY
 						unset "beacon_mac_address_log[$beacon_uuid_found]"
 
-						[ -z "${blacklisted_devices[$beacon_uuid_found]}" ] && log "${BLUE}[DEL-BEAC]	${NC}BEAC $beacon_uuid_found expired after $difference seconds ${NC}"
-						[ -z "${blacklisted_devices[$beacon_mac_found]}" ] && log "${BLUE}[DEL-PUBL]	${NC}BEAC $beacon_mac_found expired after $difference seconds ${NC}"
+						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$beacon_uuid_found]}" ] && log "${BLUE}[DEL-BEAC]	${NC}BEAC $beacon_uuid_found expired after $difference seconds ${NC}"
+						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$beacon_mac_found]}" ] && log "${BLUE}[DEL-PUBL]	${NC}BEAC $beacon_mac_found expired after $difference seconds ${NC}"
 
 						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$beacon_uuid_found]}" ] && publish_presence_message "id=$beacon_uuid_found" "confidence=0" "last_seen=$most_recent_beacon"
 						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$beacon_mac_found]}" ] && publish_presence_message "id=$beacon_mac_found" "confidence=0" "last_seen=$most_recent_beacon"
@@ -1232,7 +1235,7 @@ while true; do
 						unset "rssi_log[$key]"
 
 						#LOGGING
-						[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL $key expired after $difference seconds ${NC}"
+						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL $key expired after $difference seconds ${NC}"
 						
 						#REPORT PRESENCE OF DEVICE
 						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" "last_seen=$last_seen"
@@ -1259,8 +1262,8 @@ while true; do
 						if [ "$is_apple_beacon" == true ]; then 								
 							#IF NOT SEEN AND BELOW THRESHOLD
 							if ! [[ $notification_sent  =~ $key ]] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ]; then 
-								[ -z "${blacklisted_devices[$beacon_uuid_found]}" ] && publish_presence_message "id=$beacon_uuid_found" "confidence=$percent_confidence" "mac=$beacon_mac_found" "last_seen=$most_recent_beacon" && expiring_device_log[$beacon_uuid_found]='true' && notification_sent="$notification_sent $beacon_uuid_found"
-								[ -z "${blacklisted_devices[$beacon_mac_found]}" ] && publish_presence_message "id=$beacon_mac_found" "confidence=$percent_confidence" "last_seen=$most_recent_beacon" && expiring_device_log[$beacon_mac_found]='true' && notification_sent="$notification_sent $beacon_mac_found"
+								[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$beacon_uuid_found]}" ] && publish_presence_message "id=$beacon_uuid_found" "confidence=$percent_confidence" "mac=$beacon_mac_found" "last_seen=$most_recent_beacon" && expiring_device_log[$beacon_uuid_found]='true' && notification_sent="$notification_sent $beacon_uuid_found"
+								[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$beacon_mac_found]}" ] && publish_presence_message "id=$beacon_mac_found" "confidence=$percent_confidence" "last_seen=$most_recent_beacon" && expiring_device_log[$beacon_mac_found]='true' && notification_sent="$notification_sent $beacon_mac_found"
 							fi 
 						else 
 							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "last_seen=$last_seen" && expiring_device_log[$key]='true' && notification_sent="$notification_sent $key"

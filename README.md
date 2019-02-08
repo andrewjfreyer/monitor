@@ -448,7 +448,7 @@ PREF_HCI_DEVICE|hci0|Select which hci device should be used by `monitor`|
 PREF_COOPERATIVE_SCAN_THRESHOLD|60|Once confidence of a known device falls below this value, send an mqtt message to other `monitor` nodes to begin an arrival scan or a departure scan.|
 PREF_MQTT_REPORT_SCAN_MESSAGES|false|This value is either true or false and determines whether `monitor` publishes when a scan begins and when a scan ends|
 PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD|59|This value defines when a beacon begins reporting a decline in confidence|
-PREF_PASS_FILTER_PDU_TYPE|"ADV_IND\|ADV_SCAN_IND\|ADV_NONCONN_IND\|SCAN_RSP"|These are the PDU types that should be noticed by `monitor`|
+PREF_PASS_FILTER_PDU_TYPE|ADV_IND\|ADV_SCAN_IND\|ADV_NONCONN_IND\|SCAN_RSP|These are the PDU types that should be noticed by `monitor`|
 
 
 ## RSSI Tracking
@@ -661,7 +661,14 @@ Then restart the `monitor` service. The script will now use "andrew_s_iphone" as
 
 * any non-digit or non-decimal character will be replaced with an underscore
 
-The same is true for beacons as well. 
+The same is true for beacons as well:
+
+```bash 
+09876543-3333-2222-1111-000000000000-9-10000 Doggo's Collar
+```
+
+
+
 
 That's it!
 
