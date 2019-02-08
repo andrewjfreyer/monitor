@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.981
+export version=0.1.982
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -167,6 +167,9 @@ if [ -f "$ALIAS_CONFIG" ]; then
 
 	   	#LOWERCASE
 	  	value=${value,,}
+
+	  	#REMOVE FINAL UNDERSCORES SHOUDL THERE BE
+		value=${value%_*}
 
 	  	#DEFAULT
 	   	value=${value:-key}
