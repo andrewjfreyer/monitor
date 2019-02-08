@@ -169,7 +169,7 @@ if [ -f "$ALIAS_CONFIG" ]; then
 	  	value=${value,,}
 
 	  	#REMOVE FINAL UNDERSCORES SHOUDL THERE BE
-		value=${value%_*}
+	   	value=${value//[^a-z0-9]$/}
 
 	  	#DEFAULT
 	   	value=${value:-key}
