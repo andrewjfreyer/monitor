@@ -67,38 +67,37 @@ ___
 
 # *Oversimplified Analogy of the Bluetooth Presence Problem*
 
-Imagine you’re blindfolded in a large room with other people. We want to find out who of our friends is there and who of our friends isn't there:
+Imagine you’re blindfolded in a large room with other people. We want to find out who of your friends **is** there and who of your friends **isn't** there:
 
 ![First Picture](https://i.imgur.com/FOubz6T.png)
 
-Some of the people in the room periodically make anonymous sounds (e.g., eating a chip, sneeze, cough, etc.), others sit quietly and don’t make a sound unless you specifically ask for them by name, and still others periodically announce their own name out loud at regular intervals whether or not you want them to do that:
+Some of the people in the room periodically make sounds (e.g., eating a chip, sneeze, cough, etc.), others sit quietly and don’t make a sound unless you specifically ask for them by name, and still others periodically announce their own name out loud at regular intervals whether or not you want them to do that:
 
 ![Second Picture](https://i.imgur.com/UwPJIMM.png)
 
-You can’t just shout “WHO’S HERE” because then everyone would say their name at the same time and you couldn’t tell anything apart. Obviously, we also can ask "WHO ISN'T HERE." So, everyone has agreed to respond only when their own name is shouted, like taking attendance in a large classroom. 
+Here's the problem. You can’t just shout “WHO’S HERE” because then everyone would say their name at the same time and you couldn’t tell anything apart. That won't work. Obviously, you also can't simply ask "WHO ISN'T HERE." That's a pretty foolish suggestion...
 
-Also, you have to shout these names loudly because, quite frankly, we don't want our friends to not hear their name being called, and also becaonse don't know how big the room is - asking quietly simply won't do:
+So, what about taking attendance like in a classroom? Great idea! Everyone in the room agrees beforehand to respond to an attendance call **only** when their own name is shouted. That way you can actually hear whether someone responds. Neat! 
+
+Since you're blindfolded, you don't know how big the room is. That means you have take attendance loudly because we don't want our friends to not hear their name being called - taking attendance quietly simply won't do.
 
 ![Third Picture](https://i.imgur.com/VCW8AmH.png)
 
-Ok, now how can you figure out if your friends are in the room? If your friends say their name out loud it’s easy to know if they’re present or absent - all you have to do is listen for them. 
+Ok, now how can you figure out which of your friends are in the room? If your friends say a name out loud randomly ("[Alan!](https://www.youtube.com/watch?v=RFhNJ8ozDBk)") it’s easy to know if they’re present or absent - all you have to do is listen for them in the din of the crowd. For most of your friends though, you need to take attendance from a list shouting names one at a time. All other sounds you hear in the room are totally anonymous ... you have no idea who made what sound.
 
-For most of your friends though, you need to shout name by name one at a time. This is because the other sounds you hear are totally anonymous ... you have no idea who made what sound.
+So, one way to take attendance is to shout for each friend on a list by name, one at a time, repeatedly. Shout, get a response, wait for a moment, and ask again. 
 
-One way to check to see whether your friends are in the room is to shout for each friend by name, one at a time, repeatedly. 
-
-Shout, get a response, wait for a moment, and ask again. 
-
-Once a friend stops responding for some period of time, you presume that he or she has left: 
+Once a friend stops responding (for some period of time), you presume that he or she has left: 
 
 ![Simple Loop](https://i.imgur.com/ijGw2qb.png)
 
-This technique should work just fine, but there's a problem. You're constantly shouting into the room, which means that it's difficult for you to hear quiet responses and it's difficult for other people to carry on conversations. A smarter approach is to wait for an anonymous sound, *then* start asking whether your friend is there:
+This technique should work just fine, but there's a problem. You're constantly shouting into the room, which means that it's difficult for you to hear quiet responses and it's difficult for other people to carry on conversations. What else can we do? 
+
+A smarter approach is to wait for an anonymous sound, *then* start asking whether your friend is there:
 
 ![Complex Loop](https://i.imgur.com/9Ugn27i.png)
 
-This technique is a very simplified description of how `montior` works for devices like cell phones (friends) and beacons (strangers who announce their name out loud). This also gives an idea of how `monitor` uses anonymous sounds to reduce the number of times that it has to send inquiries into the Bluetooth environment. 
-
+This technique is a very simplified description of how `montior` works for devices like cell phones (friends on a list) and beacons (announce a name out loud). This also gives an idea of how `monitor` uses anonymous sounds to reduce the number of times that it has to send inquiries into the Bluetooth environment. 
 
 ___
 
@@ -679,6 +678,11 @@ PREF_PASS_FILTER_MANUFACTURER_ARRIVE=\"Apple\"
 PREF_FAIL_FILTER_MANUFACTURER_ARRIVE=\"Google|Samsung\"
 PREF_FAIL_FILTER_MANUFACTURER_ARRIVE=\"NONE\"
 ```
+____
+
+### Why does my broker show connection and disconnction so often? 
+
+This is normal behavior for `mosquitto_pub` - nothing to worry about. 
 
 
 Anything else? Post a [question.](https://github.com/andrewjfreyer/`monitor`/issues)

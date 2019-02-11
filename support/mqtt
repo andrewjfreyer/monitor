@@ -108,7 +108,7 @@ publish_rssi_message () {
 		local topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch/rssi"
 
 		#POST TO MQTT
-		$mosquitto_pub_path \
+		($mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
@@ -116,7 +116,7 @@ publish_rssi_message () {
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
 		-t "$topic" \
-		-m "$message" 2>&1
+		-m "$message" 2>&1)
 	fi
 }
 
@@ -175,7 +175,7 @@ publish_presence_message () {
 		mqtt_announce_online
 
 		#POST TO MQTT
-		$mosquitto_pub_path \
+		($mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$should_retain \
 		$mqtt_version_append \
@@ -184,7 +184,7 @@ publish_presence_message () {
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
 		-t "$topic" \
-		-m "$message" 2>&1 
+		-m "$message" 2>&1)
 	fi
 }
 
@@ -195,7 +195,7 @@ publish_cooperative_scan_message () {
 
 	if [ -n "$1" ] && [ -z "$2" ]; then 
 		#POST TO MQTT
-		$mosquitto_pub_path \
+		($mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
@@ -203,11 +203,11 @@ publish_cooperative_scan_message () {
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
 		-t "$mqtt_topicpath/scan/$1" \
-		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1 
+		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1)
 
 	elif [ -n "$1" ] && [ -n "$2" ]; then 
 		#POST TO MQTT
-		$mosquitto_pub_path \
+		($mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
@@ -215,11 +215,11 @@ publish_cooperative_scan_message () {
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
 		-t "$mqtt_topicpath/$2/$1" \
-		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1 
+		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1)
 
 	else 
 		
-		$mosquitto_pub_path \
+		($mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
@@ -227,7 +227,7 @@ publish_cooperative_scan_message () {
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
 		-t "$mqtt_topicpath/scan" \
-		-m "{\"identity\":\"$mqtt_publisher_identity\"}" 2>&1 
+		-m "{\"identity\":\"$mqtt_publisher_identity\"}" 2>&1)
 	fi 
 }
 
