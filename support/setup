@@ -84,9 +84,7 @@ if [ -f $MQTT_CONFIG ] ; then
 	fi
 
 	#CREDENTIALS AS AN APPEND VALUE 
-	mqtt_credential_append="-P \"$mqtt_password\" -u \"$mqtt_user\""
-
-	printf "%s\n" "$mqtt_credential_append"
+	mqtt_credential_append="-P $mqtt_password -u $mqtt_user"
 
 	#DEFINE PASSWORD APPEND
 	if [ -z "$mqtt_user" ] || [ -z "$mqtt_password" ]; then 
