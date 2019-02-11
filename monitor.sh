@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.987
+export version=0.1.988
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -58,12 +58,18 @@ export RUNTIME_ARGS=("$@")
 echo "====================== DEBUG ======================"
 
 # ----------------------------------------------------------------------------------------
-# KILL OTHER SCRIPTS RUNNING
+# SOURCES
 # ----------------------------------------------------------------------------------------
-
 #SOURCE SETUP AND ARGV FILES
-source "./support/*"
+source './support/argv'
+source './support/setup'
 
+#SOURCE FUNCTIONS
+source './support/mqtt'
+source './support/log'
+source './support/data'
+source './support/btle'
+source './support/time'
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
 # ----------------------------------------------------------------------------------------
