@@ -52,7 +52,7 @@ mqtt_broker_clean (){
 		#PUBLISH CLEARING MESSAGE
 		$mosquitto_pub_path $mqtt_version_append $mqtt_ca_file_append -r -n -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$topic" 2>&1 
 
-	done < <($(which mosquitto_sub) -I "$mqtt_publisher_identity" $mqtt_version_append $mqtt_ca_file_append -v -W 1 -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/#" 2>&1 ) 
+	done < <($(which mosquitto_sub) -I "$mqtt_publisher_identity" $mqtt_version_append $mqtt_ca_file_append -v -W 1 -h "$mqtt_address" -p "$mqtt_port" $mqtt_credential_append -t "$mqtt_topicpath/#" 2>&1 ) 
 }
 
 # ----------------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ mqtt_broker_clean (){
 # ----------------------------------------------------------------------------------------
 mqtt_announce_online(){
 	#ANNOUCEE HEALTH 
-	$mosquitto_pub_path -I "$mqtt_publisher_identity" $mqtt_version_append $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/$mqtt_publisher_identity/status" -m "online" 2>&1 
+	$mosquitto_pub_path -I "$mqtt_publisher_identity" $mqtt_version_append $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" $mqtt_credential_append -t "$mqtt_topicpath/$mqtt_publisher_identity/status" -m "online" 2>&1 
 }
 
 # ----------------------------------------------------------------------------------------
@@ -74,7 +74,7 @@ mqtt_listener (){
 		#MQTT LOOP
 		while read instruction; do 
 			printf "MQTT$instruction\n" > main_pipe 
-		done < <($(which mosquitto_sub) -I "$mqtt_publisher_identity" $mqtt_version_append $mqtt_ca_file_append -v -h "$mqtt_address" -p "$mqtt_port" -u "$mqtt_user" -P "$mqtt_password" -t "$mqtt_topicpath/scan/#" --will-topic "$mqtt_topicpath/$mqtt_publisher_identity/status" --will-payload "offline" 2>&1 ) 
+		done < <($(which mosquitto_sub) -I "$mqtt_publisher_identity" $mqtt_version_append $mqtt_ca_file_append -v -h "$mqtt_address" -p "$mqtt_port" $mqtt_credential_append -t "$mqtt_topicpath/scan/#" --will-topic "$mqtt_topicpath/$mqtt_publisher_identity/status" --will-payload "offline" 2>&1 ) 
 
 		#LOG ERROR
 		log "[ERROR]	mqtt broker went offline. attempting subscribe in 10 seconds."
@@ -112,10 +112,9 @@ publish_rssi_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
+		$mqtt_credential_append \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
-		-u "$mqtt_user" \
-		-P "$mqtt_password" \
 		-t "$topic" \
 		-m "$message" 2>&1
 	fi
@@ -181,10 +180,9 @@ publish_presence_message () {
 		$should_retain \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
+		$mqtt_credential_append \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
-		-u "$mqtt_user" \
-		-P "$mqtt_password" \
 		-t "$topic" \
 		-m "$message" 2>&1 
 	fi
@@ -201,10 +199,9 @@ publish_cooperative_scan_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
+		$mqtt_credential_append \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
-		-u "$mqtt_user" \
-		-P "$mqtt_password" \
 		-t "$mqtt_topicpath/scan/$1" \
 		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1 
 
@@ -214,10 +211,9 @@ publish_cooperative_scan_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
+		$mqtt_credential_append \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
-		-u "$mqtt_user" \
-		-P "$mqtt_password" \
 		-t "$mqtt_topicpath/$2/$1" \
 		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1 
 
@@ -227,10 +223,9 @@ publish_cooperative_scan_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
+		$mqtt_credential_append \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
-		-u "$mqtt_user" \
-		-P "$mqtt_password" \
 		-t "$mqtt_topicpath/scan" \
 		-m "{\"identity\":\"$mqtt_publisher_identity\"}" 2>&1 
 	fi 

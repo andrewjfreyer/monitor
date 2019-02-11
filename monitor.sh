@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.985
+export version=0.1.987
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -62,15 +62,7 @@ echo "====================== DEBUG ======================"
 # ----------------------------------------------------------------------------------------
 
 #SOURCE SETUP AND ARGV FILES
-source './support/argv'
-source './support/setup'
-
-#SOURCE FUNCTIONS
-source './support/mqtt'
-source './support/log'
-source './support/data'
-source './support/btle'
-source './support/time'
+source './support/*'
 
 # ----------------------------------------------------------------------------------------
 # CLEANUP ROUTINE 
@@ -823,7 +815,6 @@ while true; do
 		did_change=false
 		is_apple_beacon=false
 
-
 		#CLEAR DATA IN NONLOCAL VARS
 		manufacturer="Unknown"
 		current_associated_beacon_mac_address=""
@@ -921,9 +912,7 @@ while true; do
 
 				#IS THIS ALREADY IN THE STATIC LOG? 
 				if [ ${public_device_log[$mac]+true} ]; then
-					
-					#log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
-
+				
 					#IS THIS A NEW STATIC DEVICE?
 					public_device_log[$mac]="$timestamp"
 					rssi_log[$mac]="$rssi"
@@ -1314,7 +1303,12 @@ while true; do
 			flags=$(echo "$data" | awk -F "|" '{print $8}')
 			oem_data=$(echo "$data" | awk -F "|" '{print $9}')
 			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $10}')
+			
+			#DEFAULT?
+			instruction_timestamp=${instruction_timestamp:-timestamp}
 			instruction_delay=$((timestamp - instruction_timestamp))
+
+			#RESET BEACON UUID
 			beacon_uuid_key=""
 
 			data="$mac"
@@ -1333,7 +1327,7 @@ while true; do
 
 			#SET NAME 
 			[ -n "$name" ] && known_public_device_name[$mac]="$name"
-			[ -z "$name" ] && name="$(determine_name "$data")"
+			[ -z "$name" ] && name="$(determine_name "$mac")"
 
 			#DATA IS PUBLIC MAC Addr.; ADD TO LOG
 			[ -z "${public_device_log[$data]}" ] && is_new=true
@@ -1400,6 +1394,10 @@ while true; do
 			beacon_type="APPLE_IBEACON"
 			name=""
 			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $8}')
+
+			#DEFAULT?
+			instruction_timestamp=${instruction_timestamp:-timestamp}
+
 			instruction_delay=$((timestamp - instruction_timestamp))
 
 			#GET MAC AND PDU HEADER

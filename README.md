@@ -666,11 +666,19 @@ The same is true for beacons as well:
 ```bash 
 09876543-3333-2222-1111-000000000000-9-10000 Doggo's Collar
 ```
+____
+### What filters do you personally use? 
 
+```bash 
 
+#ARRIVE TRIGGER FILTER(S)
+PREF_PASS_FILTER_ADV_FLAGS_ARRIVE=\"0x1a\"
+PREF_PASS_FILTER_MANUFACTURER_ARRIVE=\"Apple\"
 
-
-That's it!
+#ARRIVE TRIGGER NEGATIVE FILTER(S)
+PREF_FAIL_FILTER_MANUFACTURER_ARRIVE=\"Google|Samsung\"
+PREF_FAIL_FILTER_MANUFACTURER_ARRIVE=\"NONE\"
+```
 
 
 Anything else? Post a [question.](https://github.com/andrewjfreyer/`monitor`/issues)
