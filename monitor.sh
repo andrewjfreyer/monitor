@@ -173,7 +173,7 @@ if [ -f "$ALIAS_CONFIG" ]; then
 	   	value=${value:-key}
 
 	   	#ALIASES
-	   	[ -n "$key" ] && [ -n "$value" ] && mqtt_aliases[$key]="$value" 
+	   	[ -n "$key" ] && [ -n "$value" ] && mqtt_aliases["$key"]="$value" 
 	done 
 
 fi 
@@ -199,14 +199,14 @@ for addr in "${known_static_addresses[@]}"; do
 	known_name=$(grep "$addr" "$PUB_CONFIG" | tr "\\t" " " | sed 's/  */ /g;s/#.\{0,\}//g' | sed "s/$addr //g;s/  */ /g" )
 
 	#IF WE FOUND A NAME, RECORD IT
-	[ -n "$known_name" ] && known_public_device_name[$addr]="$known_name"
+	[ -n "$known_name" ] && known_public_device_name["$addr"]="$known_name"
 
 	#CONNECTED?
 	is_connected="not previously connected"
 	[[ $previously_connected_devices =~ .*$addr.* ]] && is_connected="previously connected"
 
 	#CORRECT 
-	mqtt_topic_branch=${mqtt_aliases[$addr]:-$addr}
+	mqtt_topic_branch=${mqtt_aliases["$addr"]:-$addr}
 
 	#PUBLICATION TOPIC 
 	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch"
@@ -226,10 +226,10 @@ for addr in "${known_static_beacons[@]}"; do
 	known_name=$(grep "$addr" "$BEAC_CONFIG" | tr "\\t" " " | sed 's/  */ /g;s/#.\{0,\}//g' | sed "s/$addr //g;s/  */ /g" )
 
 	#IF WE FOUND A NAME, RECORD IT
-	[ -n "$known_name" ] && known_public_device_name[$addr]="$known_name"
+	[ -n "$known_name" ] && known_public_device_name["$addr"]="$known_name"
 
 	#CORRECT 
-	mqtt_topic_branch=${mqtt_aliases[$addr]:-$addr}
+	mqtt_topic_branch=${mqtt_aliases["$addr"]:-$addr}
 
 	#PUBLICATION TOPIC 
 	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch"
@@ -256,7 +256,7 @@ connectable_present_devices () {
 	for known_addr in "${known_static_addresses[@]}"; do 
 		
 		#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
-		this_state="${known_public_device_log[$known_addr]}"
+		this_state="${known_public_device_log["$known_addr"]}"
 		this_state=${this_state:-0}
 
 		#TEST IF THIS DEVICE MATCHES THE TARGET SCAN STATE
@@ -275,7 +275,7 @@ connectable_present_devices () {
 			log "${CYAN}[CMD-RSSI]	${NC}$known_addr ${GREEN}$cmd ${NC}RSSI: -$known_device_rssi dBm ${NC}"
 
 			#SET RSSI LOG
-			rssi_log[$known_addr]="$known_device_rssi"
+			rssi_log["$known_addr"]="$known_device_rssi"
 		fi 
 	done
 }
@@ -319,7 +319,7 @@ scannable_devices_with_state () {
 	for known_addr in "${known_static_addresses[@]}"; do 
 		
 		#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
-		this_state="${known_public_device_log[$known_addr]}"
+		this_state="${known_public_device_log["$known_addr"]}"
 
 		#IF WE HAVE NEVER SCANNED THIS DEVICE BEFORE, WE MARK AS 
 		#SCAN STATE [X]; THIS ALLOWS A FIRST SCAN TO PROGRESS TO 
@@ -328,7 +328,7 @@ scannable_devices_with_state () {
 
 
 		#FIND LAST TIME THIS DEVICE WAS SCANNED
-		last_scan="${known_static_device_scan_log[$known_addr]}"
+		last_scan="${known_static_device_scan_log["$known_addr"]}"
 		time_diff=$((timestamp - last_scan))
 
 		#SCAN IF DEVICE HAS NOT BEEN SCANNED 
@@ -709,7 +709,7 @@ determine_name () {
 	
 	#IF IS NEW AND IS PUBLIC, SHOULD CHECK FOR NAME
 	local expected_name
-	expected_name="${known_public_device_name[$address]}"
+	expected_name="${known_public_device_name["$address"]}"
 
 	#ALTERNATE NAME? 
 	[ -z "$expected_name" ]	&& expected_name="${known_public_device_name[$alternate_address]}"
@@ -736,7 +736,7 @@ determine_name () {
 				if [ -n "$expected_name" ]; then 
 
 					#ADD TO SESSION ARRAY
-					known_public_device_name[$address]="$expected_name"
+					known_public_device_name["$address"]="$expected_name"
 
 					#ADD TO CACHE
 					echo "$data	$expected_name" >> .public_name_cache
@@ -748,7 +748,7 @@ determine_name () {
 			fi 
 		else
 			#WE HAVE A CACHED NAME, ADD IT BACK TO THE PUBLIC DEVICE ARRAY 
-			known_public_device_name[$address]="$expected_name"
+			known_public_device_name["$address"]="$expected_name"
 		fi
 	fi 
 
@@ -884,8 +884,8 @@ while true; do
 			data="$mac"
 
 			#GET LAST RSSI
-			rssi_latest="${rssi_log[$mac]}"
-			expected_name="${known_public_device_name[$mac]}"
+			rssi_latest="${rssi_log["$mac"]}"
+			expected_name="${known_public_device_name["$mac"]}"
 			
 			#IF WE HAVE A NAME; UNSEAT FROM RANDOM AND ADD TO STATIC
 			#THIS IS A BIT OF A FUDGE, A RANDOM DEVICE WITH A LOCAL 
@@ -899,7 +899,7 @@ while true; do
 			if [ -n "$name" ] || [ -n "$expected_name" ]; then 
 				#RESET COMMAND
 				cmd="PUBL"
-				unset "random_device_log[$mac]"
+				unset "random_device_log["$mac"]"
 
 				#log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
 
@@ -907,21 +907,21 @@ while true; do
 				beacon_type="GENERIC_BEACON_RANDOM"
 
 				#SAVE THE NAME
-				known_public_device_name[$mac]="$name"
-				rssi_log[$mac]="$rssi"
+				known_public_device_name["$mac"]="$name"
+				rssi_log["$mac"]="$rssi"
 
 				#IS THIS A NEW STATIC DEVICE?
-				[ -z "${public_device_log[$mac]}" ] && is_new=true
-				public_device_log[$mac]="$timestamp"
+				[ -z "${public_device_log["$mac"]}" ] && is_new=true
+				public_device_log["$mac"]="$timestamp"
 
 			else
 
 				#IS THIS ALREADY IN THE STATIC LOG? 
-				if [ -n "${public_device_log[$mac]}" ]; then
+				if [ -n "${public_device_log["$mac"]}" ]; then
 				
 					#IS THIS A NEW STATIC DEVICE?
-					public_device_log[$mac]="$timestamp"
-					rssi_log[$mac]="$rssi"
+					public_device_log["$mac"]="$timestamp"
+					rssi_log["$mac"]="$rssi"
 					cmd="PUBL"
 
 					#log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
@@ -932,15 +932,15 @@ while true; do
 				else 
 
 					#DATA IS RANDOM MAC Addr.; ADD TO LOG
-					[ -z "${random_device_log[$mac]}" ] && is_new=true
+					[ -z "${random_device_log["$mac"]}" ] && is_new=true
 
 					#CALCULATE INTERVAL
-					last_appearance=${random_device_log[$mac]}
+					last_appearance=${random_device_log["$mac"]}
 					rand_interval=$((timestamp - last_appearance))	
 
 					#ONLY ADD THIS TO THE DEVICE LOG 
-					random_device_log[$mac]="$timestamp"
-					rssi_log[$mac]="$rssi"
+					random_device_log["$mac"]="$timestamp"
+					rssi_log["$mac"]="$rssi"
 				fi 
 			fi
 
@@ -949,7 +949,7 @@ while true; do
 			mac=$data
 
 			#ADD TO THE SCAN LOG
-			known_static_device_scan_log[$mac]=$(date +%s)
+			known_static_device_scan_log["$mac"]=$(date +%s)
 			continue
 
 		elif [ "$cmd" == "DONE" ]; then 
@@ -1082,7 +1082,7 @@ while true; do
 			for key in "${!random_device_log[@]}"; do
 
 				#FIND WHEN THIS KEYW AS LAST SEEN? 
-				last_seen="${random_device_log[$key]}"
+				last_seen="${random_device_log["$key"]}"
 
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				difference=$((timestamp - last_seen))
@@ -1096,7 +1096,7 @@ while true; do
 					#REMOVE FROM RANDOM DEVICE LOG
 					unset "random_device_log[$key]"
 					unset "rssi_log[$key]"
-					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-RAND]	${NC}RAND $key expired after $difference seconds ${NC}"
+					[ -z "${blacklisted_devices["$key"]}" ] && log "${BLUE}[DEL-RAND]	${NC}RAND $key expired after $difference seconds ${NC}"
 
 					#AT LEAST ONE DEVICE EXPIRED
 					should_scan=true 
@@ -1120,10 +1120,10 @@ while true; do
 			for key in "${!public_device_log[@]}"; do
 
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-				last_seen="${public_device_log[$key]}"
+				last_seen="${public_device_log["$key"]}"
 
 				#RSSI
-				latest_rssi="${rssi_log[$key]}" 
+				latest_rssi="${rssi_log["$key"]}" 
 
 				#ADJUST FOR BEACON?
 				is_apple_beacon=false
@@ -1140,7 +1140,7 @@ while true; do
 				for beacon_uuid_key in "${!beacon_mac_address_log[@]}"; do
 
 					#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-					last_seen="${public_device_log[$key]}"
+					last_seen="${public_device_log["$key"]}"
 
 					#FIND ASSOCIATED BEACON
 					current_associated_beacon_mac_address="${beacon_mac_address_log[$beacon_uuid_key]}"
@@ -1206,7 +1206,7 @@ while true; do
 				#TIMEOUT AFTER [XXX] SECONDS; ALL BEACONS HONOR THE SAME EXPRIATION THRESHOLD INCLUDING IBEACONS
 				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
 					#REMOVE FROM EXPIRING DEVICE LOG
-					[ -n "${expiring_device_log[$key]}" ] && unset "expiring_device_log[$key]"
+					[ -n "${expiring_device_log["$key"]}" ] && unset "expiring_device_log["$key"]"
 
 					#IS BEACON?
 					if [ "$is_apple_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
@@ -1229,14 +1229,14 @@ while true; do
 					
 					else 
 
-						unset "public_device_log[$key]"
-						unset "rssi_log[$key]"
+						unset "public_device_log["$key"]"
+						unset "rssi_log["$key"]"
 
 						#LOGGING
-						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL $key expired after $difference seconds ${NC}"
+						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices["$key"]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL $key expired after $difference seconds ${NC}"
 						
 						#REPORT PRESENCE OF DEVICE
-						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" "last_seen=$last_seen"
+						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices["$key"]}" ] && publish_presence_message "id=$key" "confidence=0" "last_seen=$last_seen"
 				
 					fi 
 				else 
@@ -1253,7 +1253,7 @@ while true; do
 							[ -z "${blacklisted_devices[$beacon_mac_found]}" ] && publish_presence_message "id=$beacon_mac_found" "confidence=$percent_confidence" "last_seen=$most_recent_beacon" && expiring_device_log[$beacon_mac_found]='true'
 
 						else 
-							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "last_seen=$last_seen" && expiring_device_log[$key]='true'
+							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices["$key"]}" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "last_seen=$last_seen" && expiring_device_log["$key"]='true'
 						fi 
 					else 
 						#REPORT PRESENCE OF DEVICE ONLY IF IT IS ABOUT TO BE AWAY; ALSO DO NOT REPORT DEVICES THAT WE'VE ALREADY REPORTEDI IN THIS LOOP
@@ -1264,7 +1264,7 @@ while true; do
 								[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$beacon_mac_found]}" ] && publish_presence_message "id=$beacon_mac_found" "confidence=$percent_confidence" "last_seen=$most_recent_beacon" && expiring_device_log[$beacon_mac_found]='true' && notification_sent="$notification_sent $beacon_mac_found"
 							fi 
 						else 
-							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "last_seen=$last_seen" && expiring_device_log[$key]='true' && notification_sent="$notification_sent $key"
+							[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices["$key"]}" ] && [ "$percent_confidence" -lt "$PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD" ] && publish_presence_message "id=$key" "confidence=$percent_confidence" "last_seen=$last_seen" && expiring_device_log["$key"]='true' && notification_sent="$notification_sent $key"
 							notification_sent="$notification_sent $key"
 						fi
 					fi  
@@ -1278,10 +1278,10 @@ while true; do
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			name=$(echo "$data" | awk -F "|" '{print $2}')
 			data="$mac"
-			rssi_latest="${rssi_log[$mac]}"
+			rssi_latest="${rssi_log["$mac"]}"
 
 			#PREVIOUS STATE; SET DEFAULT TO UNKNOWN
-			previous_state="${known_public_device_log[$mac]}"
+			previous_state="${known_public_device_log["$mac"]}"
 			previous_state=${previous_state:--1}
 
 			#GET MANUFACTURER INFORMATION
@@ -1289,10 +1289,10 @@ while true; do
 
 			#IF NAME IS DISCOVERED, PRESUME HOME
 			if [ -n "$name" ]; then 
-				known_public_device_log[$mac]=1
+				known_public_device_log["$mac"]=1
 				[ "$previous_state" != "1" ] && did_change=true
 			else
-				known_public_device_log[$mac]=0
+				known_public_device_log["$mac"]=0
 				[ "$previous_state" != "0" ] && did_change=true
 			fi 
 		fi 
@@ -1337,25 +1337,25 @@ while true; do
 			#log "[CMD-INFO]	PUBL $mac $matching_beacon_uuid_key ($LINENO)"
 
 			#SET NAME 
-			[ -n "$name" ] && known_public_device_name[$mac]="$name"
+			[ -n "$name" ] && known_public_device_name["$mac"]="$name"
 			[ -z "$name" ] && name="$(determine_name "$mac")"
 
 			#DATA IS PUBLIC MAC Addr.; ADD TO LOG
-			[ -z "${public_device_log[$mac]}" ] && is_new=true
+			[ -z "${public_device_log["$mac"]}" ] && is_new=true
 
 			#HAS THIS DEVICE BEEN MARKED AS EXPIRING SOON? IF SO, SHOULD REPORT 100 AGAIN
-			[ -n "${expiring_device_log[$mac]}" ] && should_update=true
+			[ -n "${expiring_device_log["$mac"]}" ] && should_update=true
 			[ -n "$matching_beacon_uuid_key" ] && [ -n "${expiring_device_log[$matching_beacon_uuid_key]}" ] && should_update=true
 
 			#GET LAST RSSI
-			rssi_latest="${rssi_log[$mac]}" 
+			rssi_latest="${rssi_log["$mac"]}" 
 			[ -z "$rssi_latest" ] && [ -n "$matching_beacon_uuid_key" ] && rssi_latest="${rssi_log[$matching_beacon_uuid_key]}" 
 
 			#IF NOT IN DATABASE, BUT FOUND HERE
 			if [ -n "$name" ]; then
 
 				#FIND PUBLIC NAME 
-				known_public_device_name[$mac]="$name"
+				known_public_device_name["$mac"]="$name"
 
 				#GET NAME FROM CACHE
 				cached_name=$(grep "$mac" < ".public_name_cache" | awk -F "\t" '{print $2}')
@@ -1379,8 +1379,8 @@ while true; do
 			fi 
 
 			#STATIC DEVICE DATABASE AND RSSI DATABASE
-			public_device_log[$mac]="$timestamp"
-			rssi_log[$mac]="$rssi"
+			public_device_log["$mac"]="$timestamp"
+			rssi_log["$mac"]="$rssi"
 
 			#IF BEACON
 			[ -n "$matching_beacon_uuid_key" ] && public_device_log[$matching_beacon_uuid_key]="$timestamp"	
@@ -1418,17 +1418,17 @@ while true; do
 			uuid_reference="$uuid-$major-$minor"
 
 			#HAS THIS DEVICE BEEN MARKED AS EXPIRING SOON? IF SO, SHOULD REPORT 100 AGAIN
-			[ -n "${expiring_device_log[$uuid_reference]}" ] && should_update=true && unset "expiring_device_log[$uuid_reference]"
+			[ -n "${expiring_device_log["$uuid_reference"]}" ] && should_update=true && unset "expiring_device_log["$uuid_reference"]"
 
 			#UPDATE MAC ADDRESS OF BEACON 
 
 			#FIRST FIND PREVIOUS ASSOCIATION OF MAC ADDRESS TO DETERMINE 
 			#WHETHER THIS ADDRESS HAS BEEN REMOVED BY AN EXPIRATION 
 
-			if [ -n "${beacon_mac_address_log[$uuid_reference]}" ]; then 
+			if [ -n "${beacon_mac_address_log["$uuid_reference"]}" ]; then 
 
 				#FIND PREVIOUS ASSOCIATION; HAS THIS BEEN REMOVED?
-				previous_association=${beacon_mac_address_log[$uuid_reference]}
+				previous_association=${beacon_mac_address_log["$uuid_reference"]}
 
 				#IF THE ADDRESS HAS CHANGED, THEN WE NEED TO UPDATE THE ADDRESS
 				if [ ! "$previous_association" == "$mac" ]; then  
@@ -1448,21 +1448,21 @@ while true; do
 			[ -z "$name" ] && name="$(determine_name "$mac")"
 
 			#GET LAST RSSI
-			rssi_latest="${rssi_log[$uuid_reference]}" 
-			[ -z "$rssi_latest" ] && rssi_latest="${rssi_log[$mac]}" 
+			rssi_latest="${rssi_log["$uuid_reference"]}" 
+			[ -z "$rssi_latest" ] && rssi_latest="${rssi_log["$mac"]}" 
 
 			#IS THIS A NEW DEVICE? 
-			[ -z "${public_device_log[$uuid_reference]}" ] && is_new=true
+			[ -z "${public_device_log["$uuid_reference"]}" ] && is_new=true
 
 			#RECORD BASED ON UUID AND MAC ADDRESS
-			public_device_log[$uuid_reference]="$timestamp"	
-			public_device_log[$mac]="$timestamp"
+			public_device_log["$uuid_reference"]="$timestamp"	
+			public_device_log["$mac"]="$timestamp"
 
 			#RSSI LOGS
-			rssi_log[$uuid_reference]="$rssi"
-			rssi_log[$mac]="$rssi"
+			rssi_log["$uuid_reference"]="$rssi"
+			rssi_log["$mac"]="$rssi"
 
-			[ -z "$rssi_latest" ] && log "[CND-INFO]	No previous rssi known for: $mac or $uuid_reference; rssi_log[mac]=${rssi_log[$mac]}  rssi_log[uuid_reference]=${rssi_log[$uuid_reference]}"		
+			[ -z "$rssi_latest" ] && log "[CND-INFO]	No previous rssi known for: $mac or $uuid_reference; rssi_log[mac]=${rssi_log["$mac"]}  rssi_log[uuid_reference]=${rssi_log["$uuid_reference"]}"		
 		fi
 
 		#**********************************************************************
@@ -1510,7 +1510,7 @@ while true; do
 				[ "$rssi_latest" == "-200" ] && change_type="stationary" && motion_direction="" && should_update=true
 
 				#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && should_update=true
+				[ -z "${blacklisted_devices["$mac"]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && should_update=true
 			fi
 		fi 
 
@@ -1530,10 +1530,10 @@ while true; do
 			expected_name="$(determine_name "$mac")"
 			
 
-			current_state="${known_public_device_log[$mac]}"
+			current_state="${known_public_device_log["$mac"]}"
 
 			#IF NAME IS NOT PREVIOUSLY SEEN, THEN WE SET THE STATIC DEVICE DATABASE NAME
-			[ -z "$expected_name" ] && [ -n "$name" ] && known_public_device_name[$mac]="$name" 
+			[ -z "$expected_name" ] && [ -n "$name" ] && known_public_device_name["$mac"]="$name" 
 			[ -n "$expected_name" ] && [ -z "$name" ] && name="$expected_name"
 
 			#OVERWRITE WITH EXPECTED NAME
@@ -1557,11 +1557,11 @@ while true; do
 		elif [ "$cmd" == "BEAC" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$should_update" == true ]; then 
 		
 			#PROVIDE USEFUL LOGGING
-			if [ -z "${blacklisted_devices[$uuid_reference]}" ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
+			if [ -z "${blacklisted_devices["$uuid_reference"]}" ] && [ -z "${blacklisted_devices["$mac"]}" ]; then 
 
 				#REMOVE 
-				[ -n "${expiring_device_log[$uuid_reference]}" ] && unset "expiring_device_log[$uuid_reference]"
-				[ -n "${expiring_device_log[$mac]}" ] && unset "expiring_device_log[$mac]"
+				[ -n "${expiring_device_log["$uuid_reference"]}" ] && unset "expiring_device_log["$uuid_reference"]"
+				[ -n "${expiring_device_log["$mac"]}" ] && unset "expiring_device_log["$mac"]"
 
 				#LOG
 				log "${GREEN}[CMD-$cmd]	${NC}$mac ${GREEN}$uuid $major $minor ${NC}$name${NC}"
@@ -1595,8 +1595,8 @@ while true; do
 		elif [ "$cmd" == "PUBL" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$should_update" == true ]; then 
 
 			#PUBLISH PRESENCE MESSAGE FOR BEACON
-			if [ -z "${blacklisted_devices[$mac]}" ]; then 
-				[ -n "${expiring_device_log[$mac]}" ] && unset "expiring_device_log[$mac]" 
+			if [ -z "${blacklisted_devices["$mac"]}" ]; then 
+				[ -n "${expiring_device_log["$mac"]}" ] && unset "expiring_device_log["$mac"]" 
 
 				#FIND NAME
 				expected_name="$(determine_name "$mac")"
@@ -1616,7 +1616,7 @@ while true; do
 				"movement=$change_type"
 			fi 
 
-		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
+		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] && [ -z "${blacklisted_devices["$mac"]}" ]; then 
 			
 			#REJECTION FILTER
 			if [[ $flags =~ $PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE ]] || [[ $manufacturer =~ $PREF_FAIL_FILTER_MANUFACTURER_ARRIVE ]]; then 
