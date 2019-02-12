@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.996
+export version=0.1.997
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1350,6 +1350,7 @@ while true; do
 
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$mac]}" 
+			[ -z "$rssi_latest" ] && [ -n "$matching_beacon_uuid_key" ] && rssi_latest="${rssi_log[$matching_beacon_uuid_key]}" 
 
 			#IF NOT IN DATABASE, BUT FOUND HERE
 			if [ -n "$name" ]; then
@@ -1384,7 +1385,7 @@ while true; do
 
 			#IF BEACON
 			[ -n "$matching_beacon_uuid_key" ] && public_device_log[$matching_beacon_uuid_key]="$timestamp"	
-			[ -n "$matching_beacon_uuid_key" ] && rssi_log[$matching_beacon_uuid_key]="$rssi"		
+			[ -n "$matching_beacon_uuid_key" ] && rssi_log[$matching_beacon_uuid_key]="$rssi"	
 
 			#MANUFACTURER
 			[ -z "$manufacturer" ] && manufacturer="$(determine_manufacturer "$data")"
