@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.993
+export version=0.1.994
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -947,7 +947,7 @@ while true; do
 		elif [ "$cmd" == "SCAN" ]; then 
 
 			#ADD TO THE SCAN LOG
-			known_static_device_scan_log[$data]=$(date +%s)
+			known_static_device_scan_log[$mac]=$(date +%s)
 			continue
 
 		elif [ "$cmd" == "DONE" ]; then 
@@ -1277,7 +1277,7 @@ while true; do
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			name=$(echo "$data" | awk -F "|" '{print $2}')
 			data="$mac"
-			rssi_latest="${rssi_log[$data]}"
+			rssi_latest="${rssi_log[$mac]}"
 
 			#PREVIOUS STATE; SET DEFAULT TO UNKNOWN
 			previous_state="${known_public_device_log[$mac]}"
@@ -1321,19 +1321,19 @@ while true; do
 
 			data="$mac"
 			beacon_type="GENERIC_BEACON_PUBLIC"
-			beacon_uuid_key=""
+			matching_beacon_uuid_key=""
 			
 			#DETERMINE WHETHER THIS DEVICE IS ASSOCIATED WITH AN IBEACON
 			current_associated_beacon_mac_address=""
 			for beacon_uuid_key in "${!beacon_mac_address_log[@]}"; do
 				current_associated_beacon_mac_address="${beacon_mac_address_log[$beacon_uuid_key]}"
 				if [ "$current_associated_beacon_mac_address" == "$mac" ]; then 
+					matching_beacon_uuid_key="$beacon_uuid_key"
 					break
 				fi 
-				beacon_uuid_key=""
 			done
 
-			log "[CMD-INFO]	PUBL $mac $current_associated_beacon_mac_address ($LINENO)"
+			log "[CMD-INFO]	PUBL $mac $matching_beacon_uuid_key ($LINENO)"
 
 
 			#SET NAME 
@@ -1341,49 +1341,49 @@ while true; do
 			[ -z "$name" ] && name="$(determine_name "$mac")"
 
 			#DATA IS PUBLIC MAC Addr.; ADD TO LOG
-			[ -z "${public_device_log[$data]}" ] && is_new=true
+			[ -z "${public_device_log[$mac]}" ] && is_new=true
 
 			#HAS THIS DEVICE BEEN MARKED AS EXPIRING SOON? IF SO, SHOULD REPORT 100 AGAIN
-			[ -n "${expiring_device_log[$data]}" ] && should_update=true
-			[ -n "$beacon_uuid_key" ] && [ -n "${expiring_device_log[$beacon_uuid_key]}" ] && should_update=true
+			[ -n "${expiring_device_log[$mac]}" ] && should_update=true
+			[ -n "$matching_beacon_uuid_key" ] && [ -n "${expiring_device_log[$matching_beacon_uuid_key]}" ] && should_update=true
 
 			#GET LAST RSSI
-			rssi_latest="${rssi_log[$data]}" 
+			rssi_latest="${rssi_log[$mac]}" 
 
 			#IF NOT IN DATABASE, BUT FOUND HERE
 			if [ -n "$name" ]; then
 
 				#FIND PUBLIC NAME 
-				known_public_device_name[$data]="$name"
+				known_public_device_name[$mac]="$name"
 
 				#GET NAME FROM CACHE
-				cached_name=$(grep "$data" < ".public_name_cache" | awk -F "\t" '{print $2}')
+				cached_name=$(grep "$mac" < ".public_name_cache" | awk -F "\t" '{print $2}')
 
 				#ECHO TO CACHE IF DOES NOT EXIST
-				[ -z "$cached_name" ] && echo "$data	$name" >> .public_name_cache
+				[ -z "$cached_name" ] && echo "$mac	$name" >> .public_name_cache
 
 				#IS THIS ASSOCITED WITH A BEACON? 
-				if [ -n "$current_associated_beacon_mac_address" ]; then 
+				if [ -n "$matching_beacon_uuid_key" ]; then 
 				
 					#IF THIS IS AN IBEACON, WE ADD THE NAME TO THAT ARRAY TOO
-					known_public_device_name[$current_associated_beacon_mac_address]="$name"
+					known_public_device_name[$matching_beacon_uuid_key]="$name"
 
 					#GET NAME FROM CACHE
 					cached_name=""
-					cached_name=$(grep "$current_associated_beacon_mac_address" < ".public_name_cache" | awk -F "\t" '{print $2}')
+					cached_name=$(grep "$matching_beacon_uuid_key" < ".public_name_cache" | awk -F "\t" '{print $2}')
 
 					#ECHO TO CACHE IF DOES NOT EXIST
-					[ -z "$cached_name" ] && echo "$current_associated_beacon_mac_address	$name" >> .public_name_cache
+					[ -z "$cached_name" ] && echo "$matching_beacon_uuid_key	$name" >> .public_name_cache
 				fi 
 			fi 
 
 			#STATIC DEVICE DATABASE AND RSSI DATABASE
-			public_device_log[$data]="$timestamp"
-			rssi_log[$data]="$rssi"
+			public_device_log[$mac]="$timestamp"
+			rssi_log[$mac]="$rssi"
 
 			#IF BEACON
-			[ -n "$current_associated_beacon_mac_address" ] && public_device_log[$current_associated_beacon_mac_address]="$timestamp"	
-			[ -n "$current_associated_beacon_mac_address" ] && rssi_log[$current_associated_beacon_mac_address]="$rssi"		
+			[ -n "$matching_beacon_uuid_key" ] && public_device_log[$matching_beacon_uuid_key]="$timestamp"	
+			[ -n "$matching_beacon_uuid_key" ] && rssi_log[$matching_beacon_uuid_key]="$rssi"		
 
 			#MANUFACTURER
 			[ -z "$manufacturer" ] && manufacturer="$(determine_manufacturer "$data")"
@@ -1404,6 +1404,8 @@ while true; do
 			pdu_header=$(echo "$data" | awk -F "|" '{print $7}')
 			beacon_type="APPLE_IBEACON"
 			name=""
+
+			#FIND INSTRUCTION TIMESTAMP
 			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $8}')
 
 			#DEFAULT?
@@ -1526,7 +1528,7 @@ while true; do
 			current_state="${known_public_device_log[$mac]}"
 
 			#IF NAME IS NOT PREVIOUSLY SEEN, THEN WE SET THE STATIC DEVICE DATABASE NAME
-			[ -z "$expected_name" ] && [ -n "$name" ] && known_public_device_name[$data]="$name" 
+			[ -z "$expected_name" ] && [ -n "$name" ] && known_public_device_name[$mac]="$name" 
 			[ -n "$expected_name" ] && [ -z "$name" ] && name="$expected_name"
 
 			#OVERWRITE WITH EXPECTED NAME
@@ -1588,8 +1590,8 @@ while true; do
 		elif [ "$cmd" == "PUBL" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$should_update" == true ]; then 
 
 			#PUBLISH PRESENCE MESSAGE FOR BEACON
-			if [ -z "${blacklisted_devices[$data]}" ]; then 
-				[ -n "${expiring_device_log[$data]}" ] && unset "expiring_device_log[$data]" 
+			if [ -z "${blacklisted_devices[$mac]}" ]; then 
+				[ -n "${expiring_device_log[$mac]}" ] && unset "expiring_device_log[$mac]" 
 
 				#FIND NAME
 				expected_name="$(determine_name "$mac")"
