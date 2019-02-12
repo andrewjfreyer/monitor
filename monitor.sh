@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.998
+export version=0.1.999
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1461,8 +1461,6 @@ while true; do
 			#RSSI LOGS
 			[ -n "$rssi" ] && rssi_log["$uuid_reference"]="$rssi"
 			[ -n "$rssi" ] && rssi_log["$mac"]="$rssi"
-
-			[ -z "$rssi_latest" ] && log "[CND-INFO]	No previous rssi known for: $mac or $uuid_reference; rssi_log[mac]=${rssi_log["$mac"]}  rssi_log[uuid_reference]=${rssi_log["$uuid_reference"]}"		
 		fi
 
 		#**********************************************************************
