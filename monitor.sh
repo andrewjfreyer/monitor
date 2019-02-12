@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.999
+export version=0.2.000
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1509,6 +1509,7 @@ while true; do
 
 				#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
 				[ -z "${blacklisted_devices["$mac"]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && should_update=true
+				[ -z "${blacklisted_devices["$mac"]}" ] && [ "$abs_rssi_change" -gt "0" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}"
 			fi
 		fi 
 
