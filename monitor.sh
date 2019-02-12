@@ -945,6 +945,8 @@ while true; do
 			fi
 
 		elif [ "$cmd" == "SCAN" ]; then 
+			#SET MAC = DATA
+			mac=$data
 
 			#ADD TO THE SCAN LOG
 			known_static_device_scan_log[$mac]=$(date +%s)
