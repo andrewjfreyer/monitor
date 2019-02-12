@@ -1095,7 +1095,7 @@ while true; do
 					
 					#REMOVE FROM RANDOM DEVICE LOG
 					unset "random_device_log[$key]"
-					unset "rssi_log[$key]"
+					unset "rssi_log[$key]" && log "[CMD-DEBUG]	Removing $key at $LINENO"
 					[ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-RAND]	${NC}RAND $key expired after $difference seconds ${NC}"
 
 					#AT LEAST ONE DEVICE EXPIRED
@@ -1212,12 +1212,11 @@ while true; do
 					if [ "$is_apple_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
 
 						#REMOVE FROM LOGS
-
-						unset "rssi_log[$beacon_uuid_found]"
+						unset "rssi_log[$beacon_uuid_found]" && log "[CMD-DEBUG]	Removing $key at $LINENO"
 
 						#REMOVE MAC FROM PUBLIC LOG
 						unset "public_device_log[$beacon_mac_found]"
-						unset "rssi_log[$beacon_mac_found]"
+						unset "rssi_log[$beacon_mac_found]" && log "[CMD-DEBUG]	Removing $key at $LINENO"
 
 						#REMOVE BEACON FROM MAC ADDRESS ARRAY
 						unset "beacon_mac_address_log[$beacon_uuid_found]"
@@ -1231,7 +1230,7 @@ while true; do
 					else 
 
 						unset "public_device_log[$key]"
-						unset "rssi_log[$key]"
+						unset "rssi_log[$key]" && log "[CMD-DEBUG]	Removing $key at $LINENO"
 
 						#LOGGING
 						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL $key expired after $difference seconds ${NC}"
