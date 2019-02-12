@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.990
+export version=0.1.991
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -884,7 +884,7 @@ while true; do
 			data="$mac"
 
 			#GET LAST RSSI
-			rssi_latest="${rssi_log[$data]}"
+			rssi_latest="${rssi_log[$mac]}"
 			expected_name="${known_public_device_name[$mac]}"
 			
 			#IF WE HAVE A NAME; UNSEAT FROM RANDOM AND ADD TO STATIC
@@ -901,7 +901,7 @@ while true; do
 				cmd="PUBL"
 				unset "random_device_log[$mac]"
 
-				#log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
+				log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
 
 				#BEACON TYPE
 				beacon_type="GENERIC_BEACON_RANDOM"
@@ -924,10 +924,16 @@ while true; do
 					rssi_log[$mac]="$rssi"
 					cmd="PUBL"
 
+					log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
+
+
 					#BEACON TYPE
 					beacon_type="GENERIC_BEACON_PUBLIC"
 
 				else 
+
+					log "[CMD-RAND]	RAND $mac is not convertable to PUBL ($LINENO)"
+
 
 					#DATA IS RANDOM MAC Addr.; ADD TO LOG
 					[ -z "${random_device_log[$mac]}" ] && is_new=true
