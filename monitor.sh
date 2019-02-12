@@ -1446,7 +1446,7 @@ while true; do
 			data="$mac"
 
 			#FIND NAME OF BEACON
-			[ -z "$name" ] && name="$(determine_name "$mac" "$data")"
+			[ -z "$name" ] && name="$(determine_name "$mac")"
 
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$uuid_reference]}" 
@@ -1461,7 +1461,9 @@ while true; do
 
 			#RSSI LOGS
 			rssi_log[$uuid_reference]="$rssi"
-			rssi_log[$mac]="$rssi"		
+			rssi_log[$mac]="$rssi"
+
+			[ -z "$rssi_latest" ] && log "[CND-INFO]	No previous rssi known for: $mac or $uuid_reference"		
 	
 		fi
 
