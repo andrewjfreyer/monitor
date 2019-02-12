@@ -917,7 +917,7 @@ while true; do
 			else
 
 				#IS THIS ALREADY IN THE STATIC LOG? 
-				if [ "${public_device_log[$mac]+true}" ]; then
+				if [ -n "${public_device_log[$mac]}" ]; then
 				
 					#IS THIS A NEW STATIC DEVICE?
 					public_device_log[$mac]="$timestamp"
@@ -926,14 +926,10 @@ while true; do
 
 					log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
 
-
 					#BEACON TYPE
 					beacon_type="GENERIC_BEACON_PUBLIC"
 
 				else 
-
-					log "[CMD-RAND]	RAND $mac is not convertable to PUBL ($LINENO)"
-
 
 					#DATA IS RANDOM MAC Addr.; ADD TO LOG
 					[ -z "${random_device_log[$mac]}" ] && is_new=true
@@ -1336,6 +1332,9 @@ while true; do
 				fi 
 				beacon_uuid_key=""
 			done
+
+			log "[CMD-INFO]	PUBL $mac $current_associated_beacon_mac_address ($LINENO)"
+
 
 			#SET NAME 
 			[ -n "$name" ] && known_public_device_name[$mac]="$name"
