@@ -908,7 +908,7 @@ while true; do
 
 				#SAVE THE NAME
 				known_public_device_name["$mac"]="$name"
-				rssi_log["$mac"]="$rssi"
+				[ -z "$rssi" ] && rssi_log["$mac"]="$rssi"
 
 				#IS THIS A NEW STATIC DEVICE?
 				[ -z "${public_device_log["$mac"]}" ] && is_new=true
@@ -921,7 +921,7 @@ while true; do
 				
 					#IS THIS A NEW STATIC DEVICE?
 					public_device_log["$mac"]="$timestamp"
-					rssi_log["$mac"]="$rssi"
+					[ -z "$rssi" ] && rssi_log["$mac"]="$rssi"
 					cmd="PUBL"
 
 					#log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
@@ -940,7 +940,7 @@ while true; do
 
 					#ONLY ADD THIS TO THE DEVICE LOG 
 					random_device_log["$mac"]="$timestamp"
-					rssi_log["$mac"]="$rssi"
+					[ -z "$rssi" ] && rssi_log["$mac"]="$rssi"
 				fi 
 			fi
 
@@ -1380,11 +1380,11 @@ while true; do
 
 			#STATIC DEVICE DATABASE AND RSSI DATABASE
 			public_device_log["$mac"]="$timestamp"
-			rssi_log["$mac"]="$rssi"
+			[ -z "$rssi" ] && rssi_log["$mac"]="$rssi"
 
 			#IF BEACON
 			[ -n "$matching_beacon_uuid_key" ] && public_device_log[$matching_beacon_uuid_key]="$timestamp"	
-			[ -n "$matching_beacon_uuid_key" ] && rssi_log[$matching_beacon_uuid_key]="$rssi"	
+			[ -n "$matching_beacon_uuid_key" ] && [ -z "$rssi" ] && rssi_log[$matching_beacon_uuid_key]="$rssi"	
 
 			#MANUFACTURER
 			[ -z "$manufacturer" ] && manufacturer="$(determine_manufacturer "$data")"
@@ -1459,8 +1459,8 @@ while true; do
 			public_device_log["$mac"]="$timestamp"
 
 			#RSSI LOGS
-			rssi_log["$uuid_reference"]="$rssi"
-			rssi_log["$mac"]="$rssi"
+			[ -z "$rssi" ] && rssi_log["$uuid_reference"]="$rssi"
+			[ -z "$rssi" ] && rssi_log["$mac"]="$rssi"
 
 			[ -z "$rssi_latest" ] && log "[CND-INFO]	No previous rssi known for: $mac or $uuid_reference; rssi_log[mac]=${rssi_log["$mac"]}  rssi_log[uuid_reference]=${rssi_log["$uuid_reference"]}"		
 		fi
