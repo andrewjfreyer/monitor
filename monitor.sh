@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.991
+export version=0.1.992
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1569,6 +1569,20 @@ while true; do
 				"mac=$mac" \
 				"report_delay=$instruction_delay" \
 				"power=$power" \
+				"movement=$change_type"
+
+				#LOG
+				log "${PURPLE}[CMD-PUBL]${NC}	$data $pdu_header ${GREEN}$name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
+				
+				publish_presence_message \
+				"id=$mac" \
+				"confidence=100" \
+				"name=$name" \
+				"manufacturer=$manufacturer" \
+				"type=GENERIC_BEACON_PUBLIC" \
+				"report_delay=$instruction_delay" \
+				"rssi=$rssi" \
+				"flags=$flags" \
 				"movement=$change_type"
 			fi 
 		
