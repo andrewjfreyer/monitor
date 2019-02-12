@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.994
+export version=0.1.995
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -901,7 +901,7 @@ while true; do
 				cmd="PUBL"
 				unset "random_device_log[$mac]"
 
-				log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
+				#log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
 
 				#BEACON TYPE
 				beacon_type="GENERIC_BEACON_RANDOM"
@@ -924,7 +924,7 @@ while true; do
 					rssi_log[$mac]="$rssi"
 					cmd="PUBL"
 
-					log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
+					#log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
 
 					#BEACON TYPE
 					beacon_type="GENERIC_BEACON_PUBLIC"
@@ -1335,8 +1335,7 @@ while true; do
 				fi 
 			done
 
-			log "[CMD-INFO]	PUBL $mac $matching_beacon_uuid_key ($LINENO)"
-
+			#log "[CMD-INFO]	PUBL $mac $matching_beacon_uuid_key ($LINENO)"
 
 			#SET NAME 
 			[ -n "$name" ] && known_public_device_name[$mac]="$name"
