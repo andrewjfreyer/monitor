@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.992
+export version=0.1.993
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -917,7 +917,7 @@ while true; do
 			else
 
 				#IS THIS ALREADY IN THE STATIC LOG? 
-				if [ ${public_device_log[$mac]+true} ]; then
+				if [ "${public_device_log[$mac]+true}" ]; then
 				
 					#IS THIS A NEW STATIC DEVICE?
 					public_device_log[$mac]="$timestamp"
