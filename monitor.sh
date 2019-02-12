@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.000
+export version=0.2.001
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1402,12 +1402,11 @@ while true; do
 			rssi=$(echo "$data" | awk -F "|" '{print $4}')
 			power=$(echo "$data" | awk -F "|" '{print $5}')
 			mac=$(echo "$data" | awk -F "|" '{print $6}')
-			pdu_header=$(echo "$data" | awk -F "|" '{print $7}')
 			beacon_type="APPLE_IBEACON"
 			name=""
 
 			#FIND INSTRUCTION TIMESTAMP
-			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $8}')
+			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $7}')
 
 			#DEFAULT?
 			instruction_timestamp=${instruction_timestamp:-timestamp}
@@ -1509,7 +1508,7 @@ while true; do
 
 				#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
 				[ -z "${blacklisted_devices["$mac"]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && should_update=true
-				[ -z "${blacklisted_devices["$mac"]}" ] && [ "$abs_rssi_change" -gt "0" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}"
+				[ -z "${blacklisted_devices["$mac"]}" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}"
 			fi
 		fi 
 
