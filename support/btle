@@ -17,6 +17,17 @@
 # BLUETOOTH LE BACKGROUND SCANNING
 # ----------------------------------------------------------------------------------------
 btle_scanner () {
+
+	#PREVENT BLUETOOTH SCANNING IF IN TRIGGER-ONLY MODE
+	if [ "$PREF_TRIGGER_MODE_ARRIVE" == true ] && [ "$PREF_TRIGGER_MODE_DEPART" == true ]; then 
+		return 0
+	fi 
+
+	#IF TRIGGER ONLY MODE FOR ARRIVE AND BEACONS DISABLED
+	if [ "$PREF_TRIGGER_MODE_ARRIVE" == true ] && [ "$PREF_BEACON_MODE" == false ]; then 
+		return 0
+	fi 
+
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
 		local hcitool_raw=$(timeout --signal SIGINT 60 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
@@ -223,6 +234,17 @@ btle_text_processor () {
 # BLUETOOTH LE RAW PACKET ANALYSIS
 # ----------------------------------------------------------------------------------------
 btle_text_listener () {
+
+	#PREVENT BLUETOOTH SCANNING IF IN TRIGGER-ONLY MODE
+	if [ "$PREF_TRIGGER_MODE_ARRIVE" == true ] && [ "$PREF_TRIGGER_MODE_DEPART" == true ]; then 
+		return 0
+	fi 
+
+	#IF TRIGGER ONLY MODE FOR ARRIVE AND BEACONS DISABLED
+	if [ "$PREF_TRIGGER_MODE_ARRIVE" == true ] && [ "$PREF_BEACON_MODE" == false ]; then 
+		return 0
+	fi 
+
     #LOCAL VALUES 
 	local packet
 	local line 
@@ -253,6 +275,17 @@ btle_text_listener () {
 # BLUETOOTH LE RAW PACKET ANALYSIS
 # ----------------------------------------------------------------------------------------
 btle_listener () {	
+
+	#PREVENT BLUETOOTH SCANNING IF IN TRIGGER-ONLY MODE
+	if [ "$PREF_TRIGGER_MODE_ARRIVE" == true ] && [ "$PREF_TRIGGER_MODE_DEPART" == true ]; then 
+		return 0
+	fi 
+
+	#IF TRIGGER ONLY MODE FOR ARRIVE AND BEACONS DISABLED
+	if [ "$PREF_TRIGGER_MODE_ARRIVE" == true ] && [ "$PREF_BEACON_MODE" == false ]; then 
+		return 0
+	fi 
+
  	while true; do 
 		#LOCAL VALUES 
 		local packet
@@ -300,6 +333,16 @@ btle_packet_listener () {
 	local cmd
 	local data 	
 	local event
+
+	#PREVENT BLUETOOTH SCANNING IF IN TRIGGER-ONLY MODE
+	if [ "$PREF_TRIGGER_MODE_ARRIVE" == true ] && [ "$PREF_TRIGGER_MODE_DEPART" == true ]; then 
+		return 0
+	fi 
+
+	#IF TRIGGER ONLY MODE FOR ARRIVE AND BEACONS DISABLED
+	if [ "$PREF_TRIGGER_MODE_ARRIVE" == true ] && [ "$PREF_BEACON_MODE" == false ]; then 
+		return 0
+	fi 
 
 	#LOOPER
 	while true; do 

@@ -2,7 +2,7 @@
 =======
 ***TL;DR***: Passive Bluetooth presence detection of beacons, cell phones, and other Bluetooth devices. Useful for [mqtt-based](http://mqtt.org) home automation, especially when the script runs on multiple devices, distrubted throughout a property. 
 
-![version](https://img.shields.io/badge/beta-0.1.995-blue.svg?maxAge=2592000)
+![version](https://img.shields.io/badge/beta-0.1.996-blue.svg?maxAge=2592000)
 ____
 
 ### *Table of Contents*

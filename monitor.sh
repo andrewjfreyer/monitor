@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.1.995
+export version=0.1.996
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1212,7 +1212,7 @@ while true; do
 					if [ "$is_apple_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
 
 						#REMOVE FROM LOGS
-						unset "public_device_log[$beacon_uuid_found]"
+
 						unset "rssi_log[$beacon_uuid_found]"
 
 						#REMOVE MAC FROM PUBLIC LOG
