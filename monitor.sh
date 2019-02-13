@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.000
+export version=0.2.001
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1402,12 +1402,11 @@ while true; do
 			rssi=$(echo "$data" | awk -F "|" '{print $4}')
 			power=$(echo "$data" | awk -F "|" '{print $5}')
 			mac=$(echo "$data" | awk -F "|" '{print $6}')
-			pdu_header=$(echo "$data" | awk -F "|" '{print $7}')
 			beacon_type="APPLE_IBEACON"
 			name=""
 
 			#FIND INSTRUCTION TIMESTAMP
-			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $8}')
+			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $7}')
 
 			#DEFAULT?
 			instruction_timestamp=${instruction_timestamp:-timestamp}
@@ -1435,7 +1434,7 @@ while true; do
 
 					#REMOVE THIS FROM PUBLIC RECORDS
 					unset "public_device_log[$previous_association]"
-				fi 
+				fi
 			fi 
 
 			#SAVE BEACON ADDRESS LOG
