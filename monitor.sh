@@ -1434,7 +1434,7 @@ while true; do
 
 					#REMOVE THIS FROM PUBLIC RECORDS
 					unset "public_device_log[$previous_association]"
-				fi 
+				fi
 			fi 
 
 			#SAVE BEACON ADDRESS LOG
@@ -1508,7 +1508,7 @@ while true; do
 
 				#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
 				[ -z "${blacklisted_devices["$mac"]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && should_update=true
-				[ -z "${blacklisted_devices["$mac"]}" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}"
+				[ -z "${blacklisted_devices["$mac"]}" ] && [ "$abs_rssi_change" -gt "0" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}"
 			fi
 		fi 
 
