@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.003
+export version=0.2.004
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -968,7 +968,7 @@ while true; do
 
 			#GET INSTRUCTION 
 			topic_path_of_instruction=$(echo "$data"  | sed 's/ {.*//')
-			data_of_instruction=$(echo "$data" | sed 's/.* {//;s/^/{/g')
+			data_of_instruction=$(echo "$data" | sed 's/.* \[{(\]//;s/^/{/g')
 
 			log "[CMD-DEBUG]	mqtt instruction $topic_path_of_instruction == $data_of_instruction"
 
