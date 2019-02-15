@@ -67,7 +67,7 @@ mqtt_broker_clean (){
 		-P "$mqtt_password" \
 		-t "$topic" 2>&1 
 
-	done < <($(which mosquitto_sub) -I "$mqtt_publisher_identity" $mqtt_version_append $mqtt_ca_file_append -W 1 -h "$mqtt_address" -p "$mqtt_port" $mqtt_credential_append -t "$mqtt_topicpath/#" 2>&1 ) 
+	done < <($(which mosquitto_sub) -I "$mqtt_publisher_identity" -v $mqtt_version_append $mqtt_ca_file_append -W 1 -h "$mqtt_address" -p "$mqtt_port" $mqtt_credential_append -t "$mqtt_topicpath/#" 2>&1 ) 
 }
 
 # ----------------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ mqtt_listener (){
 		while read instruction; do 
 
 			#EXTRACT THE TOPIC PATH WITHOUT RELYING ON FORMAT FLAG
-			topic_data=$(echo "$instruction" | sed 's/^'$mqtt_topicpath'\/scan\/[A-Za-z]\{2,\} //g')
+			topic_data=$(echo "$instruction" | sed 's/^'$mqtt_topicpath'\/scan\/[A-Za-z]\{4,\} //g')
 			topic_path=${instruction%%$topic_data*}
 
 			#PRINT THE INSTRUCTION BACK TO THE MAIN THREAD
@@ -104,6 +104,7 @@ mqtt_listener (){
 			$mqtt_ca_file_append \
 			-h "$mqtt_address" \
 			-p "$mqtt_port" \
+			-v \
 			$mqtt_credential_append \
 			-t "$mqtt_topicpath/scan/#" \
 			--will-topic "$mqtt_topicpath/$mqtt_publisher_identity/status" \

@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.008
+export version=0.2.009
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -969,6 +969,8 @@ while true; do
 			#GET INSTRUCTION 
 			topic_path_of_instruction="${data%%|*}"
 			data_of_instruction="${data##*|}"
+
+			log "${GREEN}[CMD-INFO]	${NC}mqtt instruction: [$topic_path_of_instruction] [$data_of_instruction]"
 
 			#IGNORE INSTRUCTION FROM SELF
 			if [[ $data_of_instruction =~ .*$mqtt_publisher_identity.* ]]; then 
