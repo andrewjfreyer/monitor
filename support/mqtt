@@ -53,7 +53,7 @@ mqtt_broker_clean (){
 		
 		#EXTRACT THE TOPIC PATH WITHOUT RELYING ON FORMAT FLAG
 		topic_data=$(echo "$instruction" | sed 's/^'$mqtt_topicpath'\/scan\/[A-Za-z]\{2,\} //g')
-		topic=${instruction%%$topic_data*}
+		topic=$(echo "$instruction" | sed 's/'$topic_data'$//g')
 
 		#PUBLISH CLEARING MESSAGE
 		$mosquitto_pub_path \
