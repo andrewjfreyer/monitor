@@ -38,7 +38,7 @@ btle_scanner () {
 		#PUBLISH ERRORS BACK TO MAIN LOOP
 		if [ -n "$error" ]; then 
 
-			(>&2 log "${GREEN}[CMD-INFO]${NC}	Cycling bluetooth hardware on $PREF_HCI_DEVICE. Please wait a moment...")
+			(>&2 log "${GREEN}[CMD-INFO]${NC}	cycling bluetooth hardware on $PREF_HCI_DEVICE. Please wait a moment...")
 
 			#POWER CYCLE
 			hciconfig $PREF_HCI_DEVICE down

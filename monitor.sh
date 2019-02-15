@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.007
+export version=0.2.015
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -970,8 +970,10 @@ while true; do
 			topic_path_of_instruction="${data%%|*}"
 			data_of_instruction="${data##*|}"
 
+
 			#IGNORE INSTRUCTION FROM SELF
 			if [[ $data_of_instruction =~ .*$mqtt_publisher_identity.* ]]; then 
+				log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
 				continue
 			fi 
 
@@ -986,8 +988,10 @@ while true; do
 				#IGNORE OR PASS MQTT INSTRUCTION?
 				scan_type_diff=$((timestamp - last_arrival_scan))
 				if [ "$scan_type_diff" -gt "$PREF_MINIMUM_TIME_BETWEEN_SCANS" ]; then 
-					log "${GREEN}[INSTRUCT] ${NC}mqtt trigger arrive ${NC}"
+					log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] arrive scan requested ${NC}"
 					perform_arrival_scan
+				else
+					log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] arrive scan rejected due to recent scan ${NC}"
 				fi 
 				
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
@@ -995,29 +999,34 @@ while true; do
 				#IGNORE OR PASS MQTT INSTRUCTION?
 				scan_type_diff=$((timestamp - last_depart_scan))
 				if [ "$scan_type_diff" -gt "$PREF_MINIMUM_TIME_BETWEEN_SCANS" ]; then 
-					log "${GREEN}[INSTRUCT] ${NC}mqtt trigger depart ${NC}"
+					log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] depart scan requested ${NC}"
 					perform_departure_scan
+				else
+					log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] depart scan rejected due to recent scan ${NC}"
 				fi 	
 
 			elif [[ $mqtt_topic_branch =~ .*RSSI.* ]]; then 
-				log "${GREEN}[INSTRUCT] ${NC}mqtt RSSI update  ${NC}"
 				
 				#SCAN FOR RSSI
 				difference_last_rssi=$((timestamp - last_rssi_scan))
 
 				#ONLY EVER 5 MINUTES
 				if [ "$difference_last_rssi" -gt "100" ] || [ -z "$last_rssi_scan" ] ; then 
+					log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] rssi update scan requested ${NC}"
 					connectable_present_devices
 					last_rssi_scan=$(date +%s)
+				else
+					log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] rssi update scan rejected due to recent scan ${NC}"
 				fi 
+
 			elif [[ $mqtt_topic_branch =~ .*RESTART.* ]]; then 
-				log "${GREEN}[INSTRUCT] ${NC}mqtt restart  ${NC}"
+				log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] service restart requested ${NC}"
 				
 				#RESTART SYSTEM
 				systemctl restart monitor.service		
 
 			elif [[ $mqtt_topic_branch =~ .*UPDATEBETA.* ]]; then 
-				log "${GREEN}[INSTRUCT] ${NC}mqtt update beta branch ${NC}"
+				log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] beta update requested ${NC}"				
 				
 				#GIT FETCH
 				git fetch
@@ -1032,7 +1041,7 @@ while true; do
 				systemctl restart monitor.service	
 				
 			elif [[ $mqtt_topic_branch =~ .*UPDATE.* ]]; then 
-				log "${GREEN}[INSTRUCT] ${NC}mqtt update master branch ${NC}"
+				log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] update requested ${NC}"				
 				
 				#GIT FETCH
 				git fetch
@@ -1045,6 +1054,27 @@ while true; do
 
 				#RESTART SYSTEM
 				systemctl restart monitor.service				
+			
+			else
+				#LOG THE OUTPU
+				log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
+
+				#DO A LITTLE SPELL CHECKING HERE
+				if [[ $mqtt_topic_branch =~ .*ARR.* ]]; then 
+					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}arrive${NC}? ${NC}"
+
+				elif [[ $mqtt_topic_branch =~ .*DEP.* ]]; then 
+					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}depart${NC}? ${NC}"
+				elif [[ $mqtt_topic_branch =~ .*BET.* ]]; then 
+					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}updatebeta${NC}? ${NC}"
+				elif [[ $mqtt_topic_branch =~ .*RSS.* ]]; then 
+					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}rssi${NC}? ${NC}"
+				elif [[ $mqtt_topic_branch =~ .*STAR.* ]]; then 
+					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}restart${NC}? ${NC}"
+				elif [[ $mqtt_topic_branch =~ .*DAT.* ]]; then 
+					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}update${NC} or .../scan/${RED}updatebeta${NC}? ${NC}"
+				fi 
+
 			fi
 
 		elif [ "$cmd" == "BOFF" ] || [ "$cmd" == "BEXP" ]; then 
