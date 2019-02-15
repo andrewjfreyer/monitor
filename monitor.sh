@@ -1061,7 +1061,7 @@ while true; do
 
 				#DO A LITTLE SPELL CHECKING HERE
 				if [[ $mqtt_topic_branch =~ .*ARR.* ]]; then 
-					log "${GREEN}[CMD-SUGG]	${NC}${RED}fail mqtt${NC} did you mean .../scan/${RED}arrive${NC}? ${NC}"
+					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}arrive${NC}? ${NC}"
 
 				elif [[ $mqtt_topic_branch =~ .*DEP.* ]]; then 
 					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}depart${NC}? ${NC}"
