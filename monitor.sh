@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.011
+export version=0.2.013
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1054,6 +1054,9 @@ while true; do
 
 				#RESTART SYSTEM
 				systemctl restart monitor.service				
+			
+			else 
+				log "${GREEN}[CMD-INST]	${NC}${RED}fail mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
 			fi
 
 		elif [ "$cmd" == "BOFF" ] || [ "$cmd" == "BEXP" ]; then 
