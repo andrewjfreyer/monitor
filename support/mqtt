@@ -104,7 +104,7 @@ mqtt_listener (){
 			$mqtt_ca_file_append \
 			-h "$mqtt_address" \
 			-p "$mqtt_port" \
-			$mqtt_credential_append \ 
+			$mqtt_credential_append \
 			-t "$mqtt_topicpath/scan/#" \
 			--will-topic "$mqtt_topicpath/$mqtt_publisher_identity/status" \
 			--will-payload "offline" 2>&1 ) 
