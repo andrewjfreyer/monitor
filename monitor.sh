@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.013
+export version=0.2.014
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1055,8 +1055,26 @@ while true; do
 				#RESTART SYSTEM
 				systemctl restart monitor.service				
 			
-			else 
+			else
+				#LOG THE OUTPU
 				log "${GREEN}[CMD-INST]	${NC}${RED}fail mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
+
+				#DO A LITTLE SPELL CHECKING HERE
+				if [[ $mqtt_topic_branch =~ .*ARR.* ]]; then 
+					log "${GREEN}[CMD-SUGG]	${NC}${RED}fail mqtt${NC} did you mean .../scan/${RED}arrive${NC}? ${NC}"
+
+				elif [[ $mqtt_topic_branch =~ .*DEP.* ]]; then 
+					log "${GREEN}[CMD-SUGG]	${NC}${RED}fail mqtt${NC} did you mean .../scan/${RED}depart${NC}? ${NC}"
+				elif [[ $mqtt_topic_branch =~ .*BET.* ]]; then 
+					log "${GREEN}[CMD-SUGG]	${NC}${RED}fail mqtt${NC} did you mean .../scan/${RED}updatebeta${NC}? ${NC}"
+				elif [[ $mqtt_topic_branch =~ .*RSS.* ]]; then 
+					log "${GREEN}[CMD-SUGG]	${NC}${RED}fail mqtt${NC} did you mean .../scan/${RED}rssi${NC}? ${NC}"
+				elif [[ $mqtt_topic_branch =~ .*STAR.* ]]; then 
+					log "${GREEN}[CMD-SUGG]	${NC}${RED}fail mqtt${NC} did you mean .../scan/${RED}restart${NC}? ${NC}"
+				elif [[ $mqtt_topic_branch =~ .*DAT.* ]]; then 
+					log "${GREEN}[CMD-SUGG]	${NC}${RED}fail mqtt${NC} did you mean .../scan/${RED}update${NC} or .../scan/${RED}updatebeta${NC}? ${NC}"
+				fi 
+
 			fi
 
 		elif [ "$cmd" == "BOFF" ] || [ "$cmd" == "BEXP" ]; then 
