@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.005
+export version=0.2.006
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -967,8 +967,8 @@ while true; do
 		elif [ "$cmd" == "MQTT" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
 
 			#GET INSTRUCTION 
-			topic_path_of_instruction=$(echo "$data"  | sed 's/ [{()].*//')
-			data_of_instruction=$(echo "$data" | sed 's/.* [{(]//')
+			topic_path_of_instruction="${data%%|*}"
+			data_of_instruction="${data##*|}"
 
 			log "[CMD-DEBUG]	mqtt instruction [$topic_path_of_instruction] == [$data_of_instruction]"
 
