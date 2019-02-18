@@ -698,6 +698,4 @@ ____
 Many Bluetooth dongles do not properly filter out duplicate advertisements, so `monitor` gets overwhelmed trying to filter out hundreds of reports, when it expects dozens. I'm workingo on a solution, but for now the best option is to switch to internal Bluetooth or, alternatively, you can try another Bluetooth dongle. 
 
 
-
-
-Anything else? Post a [question.](https://github.com/andrewjfreyer/`monitor`/issues)
+Anything else? Post a [question.](https://github.com/andrewjfreyer/monitor/issues/new)
