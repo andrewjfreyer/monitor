@@ -279,6 +279,9 @@ if [ -f "$PREF_CONFIG" ]; then
 	PREF_STARTUP_SETTLE_TIME=${PREF_STARTUP_SETTLE_TIME:-45}
 	PREF_PASS_FILTER_PDU_TYPE=${PREF_PASS_FILTER_PDU_TYPE:-ADV_IND|ADV_SCAN_IND|ADV_NONCONN_IND|SCAN_RSP}
 
+	#SHOULD REPORT DEVICE_TRACKER MQTT MESSAGES
+	PREF_DEVICE_TRACKER_REPORT=${PREF_DEVICE_TRACKER_REPORT:-false}
+
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
 	[ "$(printf "%s\n" "$preferences" | grep -c "error")" -gt "0" ] && printf "%s\n" "> ${ORANGE}warning:${NC} preferences error, using defaults. reset to defaults? [y/n]" && read -t 10 should_restore_defaults
 
