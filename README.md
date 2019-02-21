@@ -446,7 +446,8 @@ PREF_HCI_DEVICE|hci0|Select which hci device should be used by `monitor`|
 PREF_COOPERATIVE_SCAN_THRESHOLD|60|Once confidence of a known device falls below this value, send an mqtt message to other `monitor` nodes to begin an arrival scan or a departure scan.|
 PREF_MQTT_REPORT_SCAN_MESSAGES|false|This value is either true or false and determines whether `monitor` publishes when a scan begins and when a scan ends|
 PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD|59|This value defines when a beacon begins reporting a decline in confidence|
-PREF_PASS_FILTER_PDU_TYPE|ADV_IND\|ADV_SCAN_IND\|ADV_NONCONN_IND\|SCAN_RSP|These are the PDU types that should be noticed by `monitor`|
+PREF_PASS_FILTER_PDU_TYPE|*Various. See FAQ.*|These are the PDU types that should be noticed by `monitor`|
+PREF_DEVICE_TRACKER_REPORT|false|If true, this value will cause `monitor` to report a 'home' or 'away' message conforming to device_tracker mqtt protocol. 
 
 
 ## RSSI Tracking
@@ -695,5 +696,20 @@ ____
 
 Many Bluetooth dongles do not properly filter out duplicate advertisements, so `monitor` gets overwhelmed trying to filter out hundreds of reports, when it expects dozens. I'm workingo on a solution, but for now the best option is to switch to internal Bluetooth or, alternatively, you can try another Bluetooth dongle. 
 
+____
+
+### What are the default filters for the PDU filter option? 
+
+```ADV_IND|ADV_SCAN_IND|ADV_NONCONN_IND|SCAN_RSP```
+
+____
+
+### How do I use this as a device_tracker, instead of just confidence? 
+
+Set the option `PREF_DEVICE_TRACKER_REPORT` in your `behavior_preferences` file to true. If it's not there, add a line like this: 
+
+```bash
+PREF_DEVICE_TRACKER_REPORT=true
+```
 
 Anything else? Post a [question.](https://github.com/andrewjfreyer/monitor/issues/new)

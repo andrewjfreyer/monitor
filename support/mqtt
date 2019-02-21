@@ -41,6 +41,15 @@ function json_format (){
 }
 
 # ----------------------------------------------------------------------------------------
+# MQTT ANNOUNCE ONLINE
+# ----------------------------------------------------------------------------------------
+mqtt_announce_online(){
+	#ANNOUCEE HEALTH 
+	$mosquitto_pub_path -I "$mqtt_publisher_identity" $mqtt_version_append $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" $mqtt_credential_append -t "$mqtt_topicpath/$mqtt_publisher_identity/status" -m "online" 2>&1 
+}
+
+
+# ----------------------------------------------------------------------------------------
 # CLEAR RETAINED 
 # ----------------------------------------------------------------------------------------
 mqtt_broker_clean (){
@@ -75,6 +84,7 @@ mqtt_broker_clean (){
 # ----------------------------------------------------------------------------------------
 mqtt_listener (){
 	#ANNOUNCE ONLINE PRESENCE
+	mqtt_announce_online
 	local topic_data
 	local topic_path
 
@@ -186,7 +196,10 @@ publish_presence_message () {
 
 		#DEFINE THE TOPIC
 		local topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch"
-		[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && topic="$mqtt_topicpath/$mqtt_publisher_identity"
+		[ "$PREF_DEVICE_TRACKER_REPORT" == false ] && [ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && topic="$mqtt_topicpath/$mqtt_publisher_identity"
+
+		#NEED TO GET CONFIDENCE FROM MESSAGE
+
 
 		#SHOULD FORMAT AS LETTERS/NUMBERS
 		[ "$PREF_FORMAT_MQTT" == true ] && topic=$(echo "$topic" | sed 's/[^A-Z0-9a-z/]//g') 
@@ -195,6 +208,23 @@ publish_presence_message () {
 		printf "%s\n" "${PURPLE}$topic${NC}"
 		printf "%s\n" "${PURPLE}$(json_unformat "$message")${NC}"
 
+		#ANNOUNCE ONLINE
+		mqtt_announce_online
+
+		#SHOULD WE BE REPORTING AS A DEVICE TRACKER? 
+		if [ "$PREF_DEVICE_TRACKER_REPORT" == true ]; then 
+			if [[ $message =~ \"confidence\":\"100\" ]]; then 
+				#OVERRIDE MESSAGE
+				message="home"
+			elif [[ $message =~ \"confidence\":\"0\" ]]; then 
+				#OVERRIDE MESSAGE
+ 				message="away"
+ 			else 
+ 				#NO MQTT MESSAGES IF NOT ZERO OR 100
+ 				return 0
+ 			fi
+ 		fi 
+ 		
 		#POST TO MQTT
 		($mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
@@ -205,11 +235,14 @@ publish_presence_message () {
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
 		-t "$topic" \
-		-m "$message" 2>&1)
+		-m "$message" 2>&1)  	
 	fi
 }
 
 publish_cooperative_scan_message () {
+
+	#ANNOUNCE ONLINE
+	mqtt_announce_online
 
 	if [ -n "$1" ] && [ -z "$2" ]; then 
 		#POST TO MQTT
