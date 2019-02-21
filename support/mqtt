@@ -71,19 +71,10 @@ mqtt_broker_clean (){
 }
 
 # ----------------------------------------------------------------------------------------
-# MQTT ANNOUNCE ONLINE
-# ----------------------------------------------------------------------------------------
-mqtt_announce_online(){
-	#ANNOUCEE HEALTH 
-	$mosquitto_pub_path -I "$mqtt_publisher_identity" $mqtt_version_append $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" $mqtt_credential_append -t "$mqtt_topicpath/$mqtt_publisher_identity/status" -m "online" 2>&1 
-}
-
-# ----------------------------------------------------------------------------------------
 # MQTT LISTENER
 # ----------------------------------------------------------------------------------------
 mqtt_listener (){
 	#ANNOUNCE ONLINE PRESENCE
-	mqtt_announce_online
 	local topic_data
 	local topic_path
 
@@ -203,9 +194,6 @@ publish_presence_message () {
 		#DEBUGGING WITH SIMPLE
 		printf "%s\n" "${PURPLE}$topic${NC}"
 		printf "%s\n" "${PURPLE}$(json_unformat "$message")${NC}"
-		
-		#POST VERIFICATION THAT WE ARE STILL ONLINE; CURES AN ISSUE OF HOMEASSISTANT RESTARTING
-		mqtt_announce_online
 
 		#POST TO MQTT
 		($mosquitto_pub_path \
@@ -222,9 +210,6 @@ publish_presence_message () {
 }
 
 publish_cooperative_scan_message () {
-
-	#POST VERIFICATION THAT WE ARE STILL ONLINE; CURES AN ISSUE OF HOMEASSISTANT RESTARTING
-	mqtt_announce_online
 
 	if [ -n "$1" ] && [ -z "$2" ]; then 
 		#POST TO MQTT

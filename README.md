@@ -228,7 +228,7 @@ As an example:
       entity_id: sensor.home_occupancy_confidence
       above: 10
   action:
-    - service: homeassistant.turn_on
+    - service: input_boolean.turn_on
       data:
         entity_id: input_boolean.occupancy
 
@@ -239,7 +239,7 @@ As an example:
       entity_id: sensor.home_occupancy_confidence
       below: 10
   action:
-    - service: homeassistant.turn_off
+    - service: input_boolean.turn_off
       data:
         entity_id: input_boolean.occupancy
 ```
@@ -294,15 +294,13 @@ sudo passwd pi
 sudo apt-get update
 sudo apt-get upgrade -y
 sudo apt-get dist-upgrade -y
-sudo apt-get install rpi-update
-sudo rpi-update
 sudo reboot
 ```
 
 5. Install Bluetooth Firmware, if necessary:
 ```bash
 #install Bluetooth drivers for Pi Zero W
-sudo apt-get install pi-Bluetooth
+sudo apt-get install pi-bluetooth
 
 ```
 
