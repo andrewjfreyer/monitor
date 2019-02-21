@@ -204,10 +204,6 @@ publish_presence_message () {
 		#SHOULD FORMAT AS LETTERS/NUMBERS
 		[ "$PREF_FORMAT_MQTT" == true ] && topic=$(echo "$topic" | sed 's/[^A-Z0-9a-z/]//g') 
 
-		#DEBUGGING WITH SIMPLE
-		printf "%s\n" "${PURPLE}$topic${NC}"
-		printf "%s\n" "${PURPLE}$(json_unformat "$message")${NC}"
-
 		#ANNOUNCE ONLINE
 		mqtt_announce_online
 
@@ -224,7 +220,11 @@ publish_presence_message () {
  				return 0
  			fi
  		fi 
- 		
+
+		#DEBUGGING WITH SIMPLE
+		printf "%s\n" "${PURPLE}$topic${NC}"
+		printf "%s\n" "${PURPLE}$(json_unformat "$message")${NC}"
+
 		#POST TO MQTT
 		($mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
