@@ -61,7 +61,7 @@ mqtt_broker_clean (){
 	while read instruction; do 
 		
 		#EXTRACT THE TOPIC PATH WITHOUT RELYING ON FORMAT FLAG
-		topic_data=$(echo "$instruction" | sed 's/'$mqtt_topicpath'\/'$mqtt_publisher_identity'\/[0-9_:a-z]\{2,\}//gi')
+		topic_data=$(echo "$instruction" | sed 's/'"$mqtt_topicpath"'\/'"$mqtt_publisher_identity"'\/[0-9_:a-z]\{2,\}//gi')
 		topic_path=$(echo "$instruction" | sed 's/'"$topic_data"'$//g')
 
 		(2>&1 echo "TOPIC - $topic_data")
@@ -96,7 +96,7 @@ mqtt_listener (){
 		while read instruction; do 
 
 			#EXTRACT THE TOPIC PATH WITHOUT RELYING ON FORMAT FLAG
-			topic_data=$(echo "$instruction" | sed 's/^'$mqtt_topicpath'\/scan\/[A-Za-z]\{4,\} //g')
+			topic_data=$(echo "$instruction" | sed 's/^'"$mqtt_topicpath"'\/scan\/[A-Za-z]\{4,\} //g')
 			topic_path=$(echo "$instruction" | sed 's/ '"$topic_data"'$//g')
 
 			#PRINT THE INSTRUCTION BACK TO THE MAIN THREAD
