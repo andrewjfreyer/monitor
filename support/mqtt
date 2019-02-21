@@ -222,8 +222,8 @@ publish_presence_message () {
  		fi 
 
 		#DEBUGGING WITH SIMPLE
-		printf "%s\n" "${PURPLE}$topic${NC}"
-		[ "$PREF_DEVICE_TRACKER_REPORT" == false ] && printf "%s\n" "${PURPLE}$(json_unformat "$message")${NC}" || printf "%s\n" "${PURPLE}$message${NC}"
+		[ "$PREF_DEVICE_TRACKER_REPORT" == false ] && printf "%s\n" "${PURPLE}$topic${NC}" || printf "%s\n" "${PURPLE}$topic $message${NC}"
+		[ "$PREF_DEVICE_TRACKER_REPORT" == false ] && printf "%s\n" "${PURPLE}$(json_unformat "$message")${NC}" 
 
 		#POST TO MQTT
 		($mosquitto_pub_path \
