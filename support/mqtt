@@ -61,7 +61,7 @@ mqtt_broker_clean (){
 	while read instruction; do 
 		
 		#EXTRACT THE TOPIC PATH WITHOUT RELYING ON FORMAT FLAG
-		topic_data=$(echo "$instruction" | sed 's/^'$mqtt_topicpath'\/scan\/[A-Za-z]\{2,\} //g')
+		topic_data=$(echo "$instruction" | sed 's/^'$mqtt_topicpath'\/'$mqtt_publisher_identity'\/[0-9_:A-a-z]\{2,\} //g')
 		topic_path=$(echo "$instruction" | sed 's/ '"$topic_data"'$//g')
 
 		#PUBLISH CLEARING MESSAGE
@@ -76,7 +76,7 @@ mqtt_broker_clean (){
 		-P "$mqtt_password" \
 		-t "$topic_path" 2>&1 
 
-	done < <($(which mosquitto_sub) -I "$mqtt_publisher_identity" -v $mqtt_version_append $mqtt_ca_file_append -W 1 -h "$mqtt_address" -p "$mqtt_port" $mqtt_credential_append -t "$mqtt_topicpath/#" 2>&1 ) 
+	done < <($(which mosquitto_sub) -I "$mqtt_publisher_identity" -v $mqtt_version_append $mqtt_ca_file_append -W 1 -h "$mqtt_address" -p "$mqtt_port" $mqtt_credential_append -t "$mqtt_topicpath/$mqtt_publisher_identity/#" 2>&1 ) 
 }
 
 # ----------------------------------------------------------------------------------------
@@ -223,7 +223,7 @@ publish_presence_message () {
 
 		#DEBUGGING WITH SIMPLE
 		printf "%s\n" "${PURPLE}$topic${NC}"
-		printf "%s\n" "${PURPLE}$(json_unformat "$message")${NC}"
+		[ "$PREF_DEVICE_TRACKER_REPORT" == false ] && printf "%s\n" "${PURPLE}$(json_unformat "$message")${NC}" || printf "%s\n" "${PURPLE}$message${NC}"
 
 		#POST TO MQTT
 		($mosquitto_pub_path \
