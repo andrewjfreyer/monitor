@@ -214,7 +214,7 @@ publish_presence_message () {
 				message="home"
 			elif [[ $message =~ \"confidence\":\"0\" ]]; then 
 				#OVERRIDE MESSAGE
- 				message="away"
+ 				message="not_home"
  			else 
  				#NO MQTT MESSAGES IF NOT ZERO OR 100
  				return 0
