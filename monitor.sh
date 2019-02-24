@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.027
+export version=0.2.028
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -970,9 +970,8 @@ while true; do
 			topic_path_of_instruction="${data%%|*}"
 			data_of_instruction="${data##*|}"
 
-
 			#IGNORE INSTRUCTION FROM SELF
-			if [[ $data_of_instruction =~ .*$mqtt_publisher_identity.* ]]; then 
+			if [[ ${data_of_instruction^^} =~ .*${mqtt_publisher_identity^^}.* ]]; then 
 				#log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
 				continue
 			fi 
@@ -1055,14 +1054,10 @@ while true; do
 				#RESTART SYSTEM
 				systemctl restart monitor.service	
 
-			elif [[ ${mqtt_topic_branch^^} =~ .*ARRIVAL/START.* ]] || [[ ${mqtt_topic_branch^^} =~ .*ARRIVAL/END.* ]]; then 
+			elif [[ ${mqtt_topic_branch^^} =~ .*START.* ]] || [[ ${mqtt_topic_branch^^} =~ .*END.* ]]; then 
 				#IGNORE ERRORS
 				continue
 
-			elif [[ ${mqtt_topic_branch^^} =~ .*DEPARTURE/START.* ]] || [[ ${mqtt_topic_branch^^} =~ .*DEPARTURE/END.* ]]; then 
-				#IGNORE ERRORS
-				continue
-			
 			else
 
 				#LOG THE OUTPU
