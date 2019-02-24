@@ -226,7 +226,7 @@ publish_presence_message () {
  			#A COMPLETE CONFIDENCE MESSAGE
  			if [ -n "$device_tracker_message" ]; then 
 	 			#PRINT FOR DEVICE TRACKER
-	 			printf "%s\n" "${PURPLE}$topic 	$device_tracker_message${NC}"
+	 			printf "%s\n" "${PURPLE}$topic/device_tracker $device_tracker_message${NC}"
 
 	 			#POST TO MQTT
 				($mosquitto_pub_path \

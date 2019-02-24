@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.026
+export version=0.2.027
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -973,7 +973,7 @@ while true; do
 
 			#IGNORE INSTRUCTION FROM SELF
 			if [[ $data_of_instruction =~ .*$mqtt_publisher_identity.* ]]; then 
-				log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
+				#log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
 				continue
 			fi 
 
@@ -1053,25 +1053,33 @@ while true; do
 				git pull
 
 				#RESTART SYSTEM
-				systemctl restart monitor.service				
+				systemctl restart monitor.service	
+
+			elif [[ ${mqtt_topic_branch^^} =~ .*ARRIVAL/START.* ]] || [[ ${mqtt_topic_branch^^} =~ .*ARRIVAL/END.* ]]; then 
+				#IGNORE ERRORS
+				continue
+
+			elif [[ ${mqtt_topic_branch^^} =~ .*DEPARTURE/START.* ]] || [[ ${mqtt_topic_branch^^} =~ .*DEPARTURE/END.* ]]; then 
+				#IGNORE ERRORS
+				continue
 			
 			else
+
 				#LOG THE OUTPU
 				log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
 
 				#DO A LITTLE SPELL CHECKING HERE
-				if [[ $mqtt_topic_branch =~ .*ARR.* ]]; then 
+				if [[ ${mqtt_topic_branch^^} =~ .*ARR.* ]]; then 
 					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}arrive${NC}? ${NC}"
-
-				elif [[ $mqtt_topic_branch =~ .*DEP.* ]]; then 
+				elif [[ ${mqtt_topic_branch^^} =~ .*DEP.* ]]; then 
 					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}depart${NC}? ${NC}"
-				elif [[ $mqtt_topic_branch =~ .*BET.* ]]; then 
+				elif [[ ${mqtt_topic_branch^^} =~ .*BET.* ]]; then 
 					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}updatebeta${NC}? ${NC}"
-				elif [[ $mqtt_topic_branch =~ .*RSS.* ]]; then 
+				elif [[ ${mqtt_topic_branch^^} =~ .*RSS.* ]]; then 
 					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}rssi${NC}? ${NC}"
-				elif [[ $mqtt_topic_branch =~ .*STAR.* ]]; then 
+				elif [[ ${mqtt_topic_branch^^} =~ .*STAR.* ]]; then 
 					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}restart${NC}? ${NC}"
-				elif [[ $mqtt_topic_branch =~ .*DAT.* ]]; then 
+				elif [[ ${mqtt_topic_branch^^} =~ .*DAT.* ]]; then 
 					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}update${NC} or .../scan/${RED}updatebeta${NC}? ${NC}"
 				fi 
 
@@ -1585,7 +1593,7 @@ while true; do
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
 		
-		elif [ "$cmd" == "BEAC" ] && [ "$PREF_BEACON_MODE" == true ] && [ "$should_update" == true ]; then 
+		elif [ "$cmd" == "BEAC" ] && [ "$PREF_BEACON_MODE" == true ] && ([ "$should_update" == true ] || [ "$is_new" == true ]); then 
 		
 			#PROVIDE USEFUL LOGGING
 			if [ -z "${blacklisted_devices[$uuid_reference]}" ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
