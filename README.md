@@ -447,7 +447,7 @@ PREF_COOPERATIVE_SCAN_THRESHOLD|60|Once confidence of a known device falls below
 PREF_MQTT_REPORT_SCAN_MESSAGES|false|This value is either true or false and determines whether `monitor` publishes when a scan begins and when a scan ends|
 PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD|59|This value defines when a beacon begins reporting a decline in confidence|
 PREF_PASS_FILTER_PDU_TYPE|*Various. See FAQ.*|These are the PDU types that should be noticed by `monitor`|
-PREF_DEVICE_TRACKER_REPORT|false|If true, this value will cause `monitor` to report a 'home' or 'away' message conforming to device_tracker mqtt protocol. 
+PREF_DEVICE_TRACKER_REPORT|false|If true, this value will cause `monitor` to report a 'home' or 'not_home' message to `... /device_tracker` conforming to device_tracker mqtt protocol. 
 
 
 ## RSSI Tracking
@@ -713,5 +713,19 @@ Set the option `PREF_DEVICE_TRACKER_REPORT` in your `behavior_preferences` file 
 ```bash
 PREF_DEVICE_TRACKER_REPORT=true
 ```
+
+Then, an additional mqtt message will be posted to the topic branch ending in  `/device_tracker`
+
+So, as an example for a `monitor` node named "first floor", a device tracker configuration for Home Assistant can look like: 
+
+```yaml
+
+device_tracker:
+  - platform: mqtt
+    devices:
+      andrew_first_floor: 'monitor/first floor/[device address or alias]/device_tracker'
+```
+
+The standard confidence reprot will also send. 
 
 Anything else? Post a [question.](https://github.com/andrewjfreyer/monitor/issues/new)
