@@ -170,6 +170,7 @@ publish_presence_message () {
 		local message
 		local existing_alias
 		local mqtt_topic_branch
+		local device_tracker_message
 
 		#SET ISOLATED ADDRESS
 	    isolated_address="${1##*=}"
@@ -198,10 +199,7 @@ publish_presence_message () {
 
 		#DEFINE THE TOPIC
 		local topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch"
-		[ "$PREF_DEVICE_TRACKER_REPORT" == false ] && [ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && topic="$mqtt_topicpath/$mqtt_publisher_identity"
-
-		#NEED TO GET CONFIDENCE FROM MESSAGE
-
+		[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && topic="$mqtt_topicpath/$mqtt_publisher_identity"
 
 		#SHOULD FORMAT AS LETTERS/NUMBERS
 		[ "$PREF_FORMAT_MQTT" == true ] && topic=$(echo "$topic" | sed 's/[^A-Z0-9a-z/]//g') 
@@ -211,21 +209,42 @@ publish_presence_message () {
 
 		#SHOULD WE BE REPORTING AS A DEVICE TRACKER? 
 		if [ "$PREF_DEVICE_TRACKER_REPORT" == true ]; then 
+
 			if [[ $message =~ \"confidence\":\"100\" ]]; then 
 				#OVERRIDE MESSAGE
-				message="home"
+				device_tracker_message="home"
 			elif [[ $message =~ \"confidence\":\"0\" ]]; then 
 				#OVERRIDE MESSAGE
- 				message="not_home"
+ 				device_tracker_message="not_home"
  			else 
  				#NO MQTT MESSAGES IF NOT ZERO OR 100
- 				return 0
+ 				device_tracker_message=""
  			fi
+
+
+ 			#ONLY POST A MESSAGE TO DEVICE TRACKER BOARD IF WE HAVE 
+ 			#A COMPLETE CONFIDENCE MESSAGE
+ 			if [ -n "$device_tracker_message" ]; then 
+	 			#PRINT FOR DEVICE TRACKER
+	 			printf "%s\n" "${PURPLE}$topic 	$device_tracker_message${NC}"
+
+	 			#POST TO MQTT
+				($mosquitto_pub_path \
+				-I "$mqtt_publisher_identity" \
+				$should_retain \
+				$mqtt_version_append \
+				$mqtt_ca_file_append \
+				$mqtt_credential_append \
+				-h "$mqtt_address" \
+				-p "$mqtt_port" \
+				-t "$topic/device_tracker" \
+				-m "$message" 2>&1)
+			fi
  		fi 
 
 		#DEBUGGING WITH SIMPLE
-		[ "$PREF_DEVICE_TRACKER_REPORT" == false ] && printf "%s\n" "${PURPLE}$topic${NC}" || printf "%s\n" "${PURPLE}$topic $message${NC}"
-		[ "$PREF_DEVICE_TRACKER_REPORT" == false ] && printf "%s\n" "${PURPLE}$(json_unformat "$message")${NC}" 
+		printf "%s\n" "${PURPLE}$topic${NC}"
+		printf "%s\n" "${PURPLE}$(json_unformat "$message")${NC}" 
 
 		#POST TO MQTT
 		($mosquitto_pub_path \
