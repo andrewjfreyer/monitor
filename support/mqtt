@@ -45,7 +45,7 @@ function json_format (){
 # ----------------------------------------------------------------------------------------
 mqtt_announce_online(){
 	#ANNOUCEE HEALTH 
-	$mosquitto_pub_path -I "$mqtt_publisher_identity" $mqtt_version_append $mqtt_ca_file_append -h "$mqtt_address" -p "$mqtt_port" $mqtt_credential_append -t "$mqtt_topicpath/$mqtt_publisher_identity/status" -m "online" 2>&1 
+	$mosquitto_pub_path -I "$mqtt_publisher_identity" $mqtt_version_append $mqtt_ca_file_append $mqtt_credential_append -h "$mqtt_address" -p "$mqtt_port" -t "$mqtt_topicpath/$mqtt_publisher_identity/status" -m "online" 2>&1 
 }
 
 
@@ -114,6 +114,7 @@ mqtt_listener (){
 
 		#LOG ERROR
 		log "[CMD-ERRO]	${RED}mqtt broker went offline.${NC} attempting subscribe in 10 seconds..."
+		
 		sleep 10
 	done 
 }

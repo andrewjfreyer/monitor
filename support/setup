@@ -86,6 +86,10 @@ if [ -f $MQTT_CONFIG ] ; then
 	#CREDENTIALS AS AN APPEND VALUE 
 	mqtt_credential_append="-P '$mqtt_password' -u '$mqtt_user'"
 
+
+	#TESTING
+	$mosquitto_pub_path -I "$mqtt_publisher_identity" $mqtt_version_append $mqtt_ca_file_append $mqtt_credential_append -h "$mqtt_address" -p "$mqtt_port" -t "$mqtt_topicpath/$mqtt_publisher_identity/status" -m "online" 2>&1 
+
 	#DEFINE PASSWORD APPEND
 	if [ -z "$mqtt_user" ] || [ -z "$mqtt_password" ]; then 
 		#DEFINE APPEND TO USE FOR MQTT
