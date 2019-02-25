@@ -67,6 +67,9 @@ mqtt_broker_clean (){
 
 	#MQTT LOOP
 	while read instruction; do 
+
+		#ERROR HANDLING
+		[[ ${instruction^^} =~ .*REFUSED.* ]] && return 0
 		
 		#EXTRACT THE TOPIC PATH WITHOUT RELYING ON FORMAT FLAG
 		topic_data=$(echo "$instruction" | sed 's/'"$mqtt_topicpath"'\/'"$mqtt_publisher_identity"'\/[0-9_:a-z-]\{2,\}//gi')
@@ -110,6 +113,10 @@ mqtt_listener (){
 		#MQTT LOOP
 		while read instruction; do 
 
+			#ERROR HANDLING
+			[[ ${instruction^^} =~ .*REFUSED.* ]] && break
+
+
 			#EXTRACT THE TOPIC PATH WITHOUT RELYING ON FORMAT FLAG
 			topic_data=$(echo "$instruction" | sed 's/'"$mqtt_topicpath"'\/scan\/[0-9_:a-z/-]\{2,\} \?//gi')
 			topic_path=$(echo "$instruction" | sed 's/ '"$topic_data"'$//g')
@@ -124,13 +131,13 @@ mqtt_listener (){
 			-h "$mqtt_address" \
 			-p "$mqtt_port" \
 			-v \
-			$mqtt_credential_append \
+			-P "$mqtt_password" -u "$mqtt_user" \
 			-t "$mqtt_topicpath/scan/#" \
 			--will-topic "$mqtt_topicpath/$mqtt_publisher_identity/status" \
 			--will-payload "offline" 2>&1 ) 
 
 		#LOG ERROR
-		log "[CMD-ERRO]	${RED}mqtt broker went offline.${NC} attempting subscribe in 10 seconds..."
+		log "[CMD-ERRO]	${RED}mqtt broker went offline, or a password/username combination was rejected.${NC} attempting subscribe in 10 seconds..."
 		
 		sleep 10
 	done 
