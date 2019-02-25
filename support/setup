@@ -83,14 +83,8 @@ if [ -f $MQTT_CONFIG ] ; then
 		mqtt_version_append="-V $mqtt_version"
 	fi
 
-	#CREDENTIALS AS AN APPEND VALUE 
-	mqtt_credential_append="-P $mqtt_password -u $mqtt_user"
-
 	#DEFINE PASSWORD APPEND
 	if [ -z "$mqtt_user" ] || [ -z "$mqtt_password" ]; then 
-		#DEFINE APPEND TO USE FOR MQTT
-		mqtt_credential_append=""
-
 		#WARNING 
 		printf "%s\n" "${ORANGE}warning:${NC} operating in anonymous and unprotected mode for mqtt broker at $mqtt_address"
 	fi
