@@ -246,12 +246,12 @@ publish_presence_message () {
 		printf "%s\n" "${PURPLE}$(json_unformat "$message")${NC}" 
 
 		#POST TO MQTT
-		(echo $mosquitto_pub_path \
+		($mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$should_retain \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		$mqtt_credential_append \
+		"$mqtt_credential_append" \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
 		-t "$topic" \
