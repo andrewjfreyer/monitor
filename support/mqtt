@@ -45,7 +45,15 @@ function json_format (){
 # ----------------------------------------------------------------------------------------
 mqtt_announce_online(){
 	#ANNOUCEE HEALTH 
-	$mosquitto_pub_path -I "$mqtt_publisher_identity" $mqtt_version_append $mqtt_ca_file_append $mqtt_credential_append -h "$mqtt_address" -p "$mqtt_port" -t "$mqtt_topicpath/$mqtt_publisher_identity/status" -m "online" 2>&1 
+	$mosquitto_pub_path \
+	-I "$mqtt_publisher_identity" \
+	$mqtt_version_append \
+	$mqtt_ca_file_append \
+	-P "$mqtt_password" -u "$mqtt_user" \
+	-h "$mqtt_address" \
+	-p "$mqtt_port" \
+	-t "$mqtt_topicpath/$mqtt_publisher_identity/status" \
+	-m "online" 2>&1 
 }
 
 
@@ -70,14 +78,23 @@ mqtt_broker_clean (){
 		$mosquitto_pub_path \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		$mqtt_credential_append \
+		-P "$mqtt_password" -u "$mqtt_user" \
 		-r \
 		-n \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
 		-t "$topic_path" 2>&1 
 
-	done < <($(which mosquitto_sub) -I "$mqtt_publisher_identity" -v $mqtt_version_append $mqtt_ca_file_append -W 1 -h "$mqtt_address" -p "$mqtt_port" $mqtt_credential_append -t "$mqtt_topicpath/$mqtt_publisher_identity/#" 2>&1 ) 
+	done < <($(which mosquitto_sub) \
+		-I "$mqtt_publisher_identity" \
+		-v $mqtt_version_append \
+		$mqtt_ca_file_append \
+		-W 1 \
+		-h "$mqtt_address" \
+		-p "$mqtt_port" \
+		-P "$mqtt_password" \
+		-u "$mqtt_user" \
+		-t "$mqtt_topicpath/$mqtt_publisher_identity/#" 2>&1 ) 
 }
 
 # ----------------------------------------------------------------------------------------
@@ -148,7 +165,7 @@ publish_rssi_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		$mqtt_credential_append \
+		-P "$mqtt_password" -u "$mqtt_user" \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
 		-t "$topic" \
@@ -234,7 +251,7 @@ publish_presence_message () {
 				$should_retain \
 				$mqtt_version_append \
 				$mqtt_ca_file_append \
-				$mqtt_credential_append \
+				-P "$mqtt_password" -u "$mqtt_user" \
 				-h "$mqtt_address" \
 				-p "$mqtt_port" \
 				-t "$topic/device_tracker" \
@@ -248,7 +265,7 @@ publish_presence_message () {
 
 		#POST TO MQTT
 		($mosquitto_pub_path \
-		$mqtt_credential_append \
+		-P "$mqtt_password" -u "$mqtt_user" \
 		-I "$mqtt_publisher_identity" \
 		$should_retain \
 		$mqtt_version_append \
@@ -271,7 +288,7 @@ publish_cooperative_scan_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		$mqtt_credential_append \
+		-P "$mqtt_password" -u "$mqtt_user" \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
 		-t "$mqtt_topicpath/scan/$1" \
@@ -283,7 +300,7 @@ publish_cooperative_scan_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		$mqtt_credential_append \
+		-P "$mqtt_password" -u "$mqtt_user" \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
 		-t "$mqtt_topicpath/$2/$1" \
@@ -295,7 +312,7 @@ publish_cooperative_scan_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		$mqtt_credential_append \
+		-P "$mqtt_password" -u "$mqtt_user" \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
 		-t "$mqtt_topicpath/scan" \
