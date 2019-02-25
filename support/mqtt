@@ -262,7 +262,7 @@ publish_presence_message () {
 				-h "$mqtt_address" \
 				-p "$mqtt_port" \
 				-t "$topic/device_tracker" \
-				-m "$message" 2>&1)
+				-m "$device_tracker_message" 2>&1)
 			fi
  		fi 
 
