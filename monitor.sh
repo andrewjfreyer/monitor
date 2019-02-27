@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.036
+export version=0.2.037
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -275,7 +275,6 @@ connectable_present_devices () {
 				[[ "$scan_result" == "0" ]] && scan_result=99; \
 				counter=$((counter+1)); \
 				avg_total=$((avg_total + scan_result )); \
-				echo "avg: $avg_total\ncounter: $counter"; \
 				sleep 0.5; \
 				done; \
 				printf "$(( avg_total / counter ))")
