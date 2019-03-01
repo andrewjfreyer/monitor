@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.037
+export version=0.2.039
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -752,10 +752,10 @@ determine_name () {
 					known_public_device_name[$address]="$expected_name"
 
 					#ADD TO CACHE
-					echo "$data	$expected_name" >> .public_name_cache
+					echo "$address	$expected_name" >> .public_name_cache
 				else
 					#ADD TO CACHE TO PREVENT RE-SCANNING
-					echo "$data	Undeterminable" >> .public_name_cache
+					echo "$address	Undeterminable" >> .public_name_cache
 
 				fi 
 			fi 
@@ -894,7 +894,6 @@ while true; do
 			oem_data=$(echo "$data" | awk -F "|" '{print $9}')
 			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $10}')
 			instruction_delay=$((timestamp - instruction_timestamp))
-			data="$mac"
 
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$mac]}"
@@ -985,7 +984,6 @@ while true; do
 
 			#IGNORE INSTRUCTION FROM SELF
 			if [[ ${data_of_instruction^^} =~ .*${mqtt_publisher_identity^^}.* ]]; then 
-				#log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
 				continue
 			fi 
 
@@ -1323,7 +1321,6 @@ while true; do
 			#DATA IS DELIMITED BY VERTICAL PIPE
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			name=$(echo "$data" | awk -F "|" '{print $2}')
-			data="$mac"
 			rssi_latest="${rssi_log[$mac]}"
 
 			#PREVIOUS STATE; SET DEFAULT TO UNKNOWN
@@ -1331,7 +1328,7 @@ while true; do
 			previous_state=${previous_state:--1}
 
 			#GET MANUFACTURER INFORMATION
-			manufacturer="$(determine_manufacturer "$data")"
+			manufacturer="$(determine_manufacturer "$mac")"
 
 			#IF NAME IS DISCOVERED, PRESUME HOME
 			if [ -n "$name" ]; then 
@@ -1366,7 +1363,7 @@ while true; do
 			#RESET BEACON UUID
 			beacon_uuid_key=""
 
-			data="$mac"
+			#SET TYPE
 			beacon_type="GENERIC_BEACON_PUBLIC"
 			matching_beacon_uuid_key=""
 			
@@ -1433,13 +1430,9 @@ while true; do
 			[ -n "$matching_beacon_uuid_key" ] && [ -n "$rssi" ] && rssi_log[$matching_beacon_uuid_key]="$rssi"	
 
 			#MANUFACTURER
-			[ -z "$manufacturer" ] && manufacturer="$(determine_manufacturer "$data")"
-		fi
-
-		#NEED TO VERIFY WHETHER WE HAVE TO UPDATE INFORMATION FOR A PUBLIC BEACON THAT IS 
-		#ACTUALLY A BEACON
-
-		if [ "$cmd" == "BEAC" ]; then 
+			[ -z "$manufacturer" ] && manufacturer="$(determine_manufacturer "$mac")"
+		
+		elif [ "$cmd" == "BEAC" ]; then 
 
 			#DATA IS DELIMITED BY VERTICAL PIPE
 			uuid=$(echo "$data" | awk -F "|" '{print $1}')
@@ -1488,9 +1481,6 @@ while true; do
 
 			#SAVE BEACON ADDRESS LOG
 			beacon_mac_address_log[$uuid_reference]="$mac"
-
-			#DATA SET
-			data="$mac"
 
 			#FIND NAME OF BEACON
 			[ -z "$name" ] && name="$(determine_name "$mac")"
@@ -1599,7 +1589,7 @@ while true; do
 			[ "$did_change" == true ] && [ "$current_state" == "1" ] && [ "$PREF_TRIGGER_MODE_REPORT_OUT" == true ] && publish_cooperative_scan_message "arrive"
 
 			#PRINT RAW COMMAND; DEBUGGING
-			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
+			log "${CYAN}[CMD-$cmd]	${NC}$mac ${GREEN}$debug_name ${NC} $manufacturer${NC}"
 		
 		elif [ "$cmd" == "BEAC" ] && [ "$PREF_BEACON_MODE" == true ] && ([ "$should_update" == true ] || [ "$is_new" == true ]); then 
 		
@@ -1625,7 +1615,7 @@ while true; do
 				"movement=$change_type"
 
 				#LOG
-				log "${PURPLE}[CMD-PUBL]${NC}	$data ${GREEN}$name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
+				log "${PURPLE}[CMD-PUBL]${NC}	$mac ${GREEN}$name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
 				
 				publish_presence_message \
 				"id=$mac" \
@@ -1649,7 +1639,7 @@ while true; do
 				expected_name="$(determine_name "$mac")"
 
 
-				log "${PURPLE}[CMD-$cmd]${NC}	$data ${GREEN}$name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
+				log "${PURPLE}[CMD-$cmd]${NC}	$mac ${GREEN}$name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
 				
 				publish_presence_message \
 				"id=$mac" \
