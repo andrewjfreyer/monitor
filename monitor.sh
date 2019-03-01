@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.043
+export version=0.2.044
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1033,7 +1033,10 @@ while true; do
 				log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] service restart requested ${NC}"
 				
 				#RESTART SYSTEM
-				systemctl restart monitor.service		
+				systemctl restart monitor.service	
+
+				#exit
+				exit 0	
 
 			elif [[ $mqtt_topic_branch =~ .*UPDATEBETA.* ]]; then 
 				log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] beta update requested ${NC}"				
@@ -1049,6 +1052,9 @@ while true; do
 
 				#RESTART SYSTEM
 				systemctl restart monitor.service	
+
+				#exit
+				exit 0
 				
 			elif [[ $mqtt_topic_branch =~ .*UPDATE.* ]]; then 
 				log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] update requested ${NC}"				
@@ -1064,6 +1070,9 @@ while true; do
 
 				#RESTART SYSTEM
 				systemctl restart monitor.service	
+
+				#exit
+				exit 0
 
 			elif [[ ${mqtt_topic_branch^^} =~ .*START.* ]] || [[ ${mqtt_topic_branch^^} =~ .*END.* ]]; then 
 				#IGNORE ERRORS
