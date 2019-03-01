@@ -1543,7 +1543,7 @@ while true; do
 				esac
 
 				#WITHOUT ANY DATA OR INFORMATION, MAKE SURE TO REPORT
-				[ "$rssi_latest" == "-200" ] && change_type="stationary" && motion_direction="" && should_update=true
+				[ "$rssi_latest" == "-200" ] && change_type="initial reading" && motion_direction="" && should_update=true
 
 				#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
 				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && should_update=true
