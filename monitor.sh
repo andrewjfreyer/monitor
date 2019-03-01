@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.039
+export version=0.2.040
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1663,7 +1663,7 @@ while true; do
 			#FLAG AND MFCG FILTER
 			if [[ $flags =~ $PREF_PASS_FILTER_ADV_FLAGS_ARRIVE ]] && [[ $manufacturer =~ $PREF_PASS_FILTER_MANUFACTURER_ARRIVE ]]; then 
 				#PROVIDE USEFUL LOGGING
-				log "${RED}[CMD-$cmd]${NC}	[${GREEN}passed filter${NC}] data: ${BLUE}${data:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${BLUE}${flags:-none}${NC} man: ${BLUE}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
+				log "${RED}[CMD-$cmd]${NC}	[${GREEN}passed filter${NC}] data: ${BLUE}${mac:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${BLUE}${flags:-none}${NC} man: ${BLUE}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
 
 				#WE ARE PERFORMING THE FIRST ARRIVAL SCAN?
 				first_arrive_scan=false
@@ -1674,7 +1674,7 @@ while true; do
 				continue
 			else 
 				#PROVIDE USEFUL LOGGING
-				log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: ${BLUE}${data:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${RED}${flags:-none}${NC} man: ${RED}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
+				log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: ${BLUE}${mac:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${RED}${flags:-none}${NC} man: ${RED}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
 
 				continue
 			fi 
