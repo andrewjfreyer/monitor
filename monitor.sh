@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.040
+export version=0.2.041
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1510,7 +1510,7 @@ while true; do
 		#**********************************************************************
 
 		#REPORT RSSI CHANGES
-		if [ -n "$rssi" ]; then 
+		if [ -n "$rssi" ] && [ "$uptime" -lt "$PREF_STARTUP_SETTLE_TIME" ]; then 
 
 			#ONLY FOR PUBLIC OR BEAON DEVICES
 			if [ "$cmd" == "PUBL" ] || [ "$cmd" == "BEAC" ]; then 
@@ -1546,7 +1546,7 @@ while true; do
 				[ "$rssi_latest" == "-200" ] && change_type="initial reading" && motion_direction="" && should_update=true
 
 				#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && should_update=true
+				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type by $abs_rssi_change dBm) ${NC}" && should_update=true
 				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "0" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}"
 			fi
 		fi 
