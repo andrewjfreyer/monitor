@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.042
+export version=0.2.043
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1535,7 +1535,10 @@ while true; do
 						change_type="moderate $motion_direction"
 						;;
 					$(( abs_rssi_change >= 10)) )
-						change_type="slow movement"
+						change_type="slow movement $motion_direction"
+						;;
+					$(( abs_rssi_change >= 3)) )
+						change_type="drifting"
 						;;			
 					*)
 						change_type="stationary"
@@ -1543,11 +1546,11 @@ while true; do
 				esac
 
 				#WITHOUT ANY DATA OR INFORMATION, MAKE SURE TO REPORT
-				[ "$rssi_latest" == "-200" ] && change_type="initial reading" && motion_direction="" && should_update=true
+				[ "$rssi_latest" == "-200" ] && change_type="initial reading" && should_update=true
 
 				#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
 				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type by $abs_rssi_change dBm) ${NC}" && should_update=true
-				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "0" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}"
+				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "2" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI LOG: ${rssi:-100} dBm ($change_type) ${NC}"
 			fi
 		fi 
 
