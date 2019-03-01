@@ -673,7 +673,7 @@ ____
 ```bash 
 
 #ARRIVE TRIGGER FILTER(S)
-PREF_PASS_FILTER_ADV_FLAGS_ARRIVE=\"0x1a\"
+PREF_PASS_FILTER_ADV_FLAGS_ARRIVE=\"0x1a|0x1b\"
 PREF_PASS_FILTER_MANUFACTURER_ARRIVE=\"Apple\"
 
 #ARRIVE TRIGGER NEGATIVE FILTER(S)
@@ -727,5 +727,12 @@ device_tracker:
 ```
 
 The standard confidence reprot will also send. 
+
+____
+
+### I don't care about a few devices that are reporting. Can I block them? 
+
+Yes. Create a file called `address_blacklist` in your configuration directory and add the mac addresses you'd like to block (or uuid-major-minor for iBeacons) one at a time. 
+
 
 Anything else? Post a [question.](https://github.com/andrewjfreyer/monitor/issues/new)
