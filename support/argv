@@ -161,7 +161,7 @@ while getopts "h?vfbut:EgSRCmsadxD:c:" opt; do
 			sleep 5
 
 			#CREATE CONNECTION
-			return_data=$(sudo hcitool cc $target_mac 2>&1 && sudo hcitool auth $target_mac 2>&1 && sudo hcitool dc $target_mac 2>&1)
+			return_data=$(hcitool cc $target_mac 2>&1 && hcitool auth $target_mac 2>&1 && hcitool dc $target_mac 2>&1)
 
 			#ERROR REPORTING
 			[[ $return_data =~ .*error.* ]] && printf "%s\n" "> ${RED}error: ${NC}connection to $target_mac failed" || printf "%s\n" "> connection created to $target_mac"

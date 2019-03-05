@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.044
+export version=0.2.046
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -266,10 +266,10 @@ connectable_present_devices () {
 			#AVERAGE OVER THREE CYCLES; IF BLANK GIVE VALUE OF 100
 			known_device_rssi=$(counter=0; \
 				avg_total=0; \
-				sudo hcitool cc $known_addr; \
+				hcitool cc $known_addr; \
 				avg_total=""; \
 				for i in 1 2 3; \
-				do scan_result=$(sudo hcitool rssi $known_addr 2>&1); \
+				do scan_result=$(hcitool rssi $known_addr 2>&1); \
 				scan_result=${scan_result//[^0-9]/}; \
 				scan_result=${scan_result:-99}; \
 				[[ "$scan_result" == "0" ]] && scan_result=99; \
@@ -1076,6 +1076,8 @@ while true; do
 
 			elif [[ ${mqtt_topic_branch^^} =~ .*START.* ]] || [[ ${mqtt_topic_branch^^} =~ .*END.* ]]; then 
 				#IGNORE ERRORS
+				log "${GREEN}[CMD-SCAN]	${NC}[${RED}ignore mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
+
 				continue
 
 			else
