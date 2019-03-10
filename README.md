@@ -768,4 +768,40 @@ ____
 Yes. Create a file called `address_blacklist` in your configuration directory and add the mac addresses you'd like to block (or uuid-major-minor for iBeacons) one at a time. 
 
 
+____
+
+### I can't use the `device_tracker` platform with the default status strings of `home` and `not_home` with my home automation software. What can I do? 
+
+Set these options in `behavior_preferences`: 
+
+```bash
+PREF_DEVICE_TRACKER_HOME_STRING='this_is_what_home_status_is' 
+PREF_DEVICE_TRACKER_AWAY_STRING='this_is_what_away_status_is'
+```
+
+Examples:
+
+* Home Assisant (default): 
+
+```bash
+PREF_DEVICE_TRACKER_HOME_STRING='home' 
+PREF_DEVICE_TRACKER_AWAY_STRING='not_home'
+```
+
+
+* SmartThings: 
+
+```bash
+PREF_DEVICE_TRACKER_HOME_STRING='present' 
+PREF_DEVICE_TRACKER_AWAY_STRING='not present'
+```
+
+* Generic: 
+
+```bash
+PREF_DEVICE_TRACKER_HOME_STRING='home' 
+PREF_DEVICE_TRACKER_AWAY_STRING='away'
+```
+
+
 Anything else? Post a [question.](https://github.com/andrewjfreyer/monitor/issues/new)
