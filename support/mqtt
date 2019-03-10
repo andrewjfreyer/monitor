@@ -236,11 +236,11 @@ publish_presence_message () {
 
 			if [[ $message =~ \"confidence\":\"100\" ]]; then 
 				#OVERRIDE MESSAGE
-				device_tracker_message="home"
+				device_tracker_message="$PREF_DEVICE_TRACKER_HOME_STRING"
 				
 			elif [[ $message =~ \"confidence\":\"0\" ]]; then 
 				#OVERRIDE MESSAGE
- 				device_tracker_message="not_home"
+ 				device_tracker_message="$PREF_DEVICE_TRACKER_AWAY_STRING"
  			else 
  				#NO MQTT MESSAGES IF NOT ZERO OR 100
  				device_tracker_message=""
