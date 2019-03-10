@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.035
+export version=0.2.048
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -264,7 +264,20 @@ connectable_present_devices () {
 				
 			#CREATE CONNECTION AND DETERMINE RSSI 
 			#AVERAGE OVER THREE CYCLES; IF BLANK GIVE VALUE OF 100
-			known_device_rssi=$(hcitool cc $known_addr; avg_total=""; for i in 1 2 3; do scan_result=$(hcitool rssi $known_addr 2>&1); scan_result=${scan_result//[^0-9]/}; [[ "$scan_result" == "0" ]] && scan_result=30; counter=$((counter+1)); avg_total=$((avg_total + scan_result )); sleep 0.5; done; printf "$(( avg_total / counter ))" )
+			known_device_rssi=$(counter=0; \
+				avg_total=0; \
+				hcitool cc $known_addr; \
+				avg_total=""; \
+				for i in 1 2 3; \
+				do scan_result=$(hcitool rssi $known_addr 2>&1); \
+				scan_result=${scan_result//[^0-9]/}; \
+				scan_result=${scan_result:-99}; \
+				[[ "$scan_result" == "0" ]] && scan_result=99; \
+				counter=$((counter+1)); \
+				avg_total=$((avg_total + scan_result )); \
+				sleep 0.5; \
+				done; \
+				printf "$(( avg_total / counter ))")
 
 			#PUBLISH MESSAGE TO RSSI SENSOR 
 			publish_rssi_message \
@@ -739,10 +752,10 @@ determine_name () {
 					known_public_device_name[$address]="$expected_name"
 
 					#ADD TO CACHE
-					echo "$data	$expected_name" >> .public_name_cache
+					echo "$address	$expected_name" >> .public_name_cache
 				else
 					#ADD TO CACHE TO PREVENT RE-SCANNING
-					echo "$data	Undeterminable" >> .public_name_cache
+					echo "$address	Undeterminable" >> .public_name_cache
 
 				fi 
 			fi 
@@ -881,7 +894,6 @@ while true; do
 			oem_data=$(echo "$data" | awk -F "|" '{print $9}')
 			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $10}')
 			instruction_delay=$((timestamp - instruction_timestamp))
-			data="$mac"
 
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$mac]}"
@@ -972,7 +984,6 @@ while true; do
 
 			#IGNORE INSTRUCTION FROM SELF
 			if [[ ${data_of_instruction^^} =~ .*${mqtt_publisher_identity^^}.* ]]; then 
-				#log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
 				continue
 			fi 
 
@@ -1022,7 +1033,10 @@ while true; do
 				log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] service restart requested ${NC}"
 				
 				#RESTART SYSTEM
-				systemctl restart monitor.service		
+				systemctl restart monitor.service	
+
+				#exit
+				exit 0	
 
 			elif [[ $mqtt_topic_branch =~ .*UPDATEBETA.* ]]; then 
 				log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] beta update requested ${NC}"				
@@ -1038,6 +1052,9 @@ while true; do
 
 				#RESTART SYSTEM
 				systemctl restart monitor.service	
+
+				#exit
+				exit 0
 				
 			elif [[ $mqtt_topic_branch =~ .*UPDATE.* ]]; then 
 				log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] update requested ${NC}"				
@@ -1054,8 +1071,13 @@ while true; do
 				#RESTART SYSTEM
 				systemctl restart monitor.service	
 
+				#exit
+				exit 0
+
 			elif [[ ${mqtt_topic_branch^^} =~ .*START.* ]] || [[ ${mqtt_topic_branch^^} =~ .*END.* ]]; then 
 				#IGNORE ERRORS
+				log "${GREEN}[CMD-SCAN]	${NC}[${RED}ignore mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
+
 				continue
 
 			else
@@ -1310,7 +1332,6 @@ while true; do
 			#DATA IS DELIMITED BY VERTICAL PIPE
 			mac=$(echo "$data" | awk -F "|" '{print $1}')
 			name=$(echo "$data" | awk -F "|" '{print $2}')
-			data="$mac"
 			rssi_latest="${rssi_log[$mac]}"
 
 			#PREVIOUS STATE; SET DEFAULT TO UNKNOWN
@@ -1318,7 +1339,7 @@ while true; do
 			previous_state=${previous_state:--1}
 
 			#GET MANUFACTURER INFORMATION
-			manufacturer="$(determine_manufacturer "$data")"
+			manufacturer="$(determine_manufacturer "$mac")"
 
 			#IF NAME IS DISCOVERED, PRESUME HOME
 			if [ -n "$name" ]; then 
@@ -1353,7 +1374,7 @@ while true; do
 			#RESET BEACON UUID
 			beacon_uuid_key=""
 
-			data="$mac"
+			#SET TYPE
 			beacon_type="GENERIC_BEACON_PUBLIC"
 			matching_beacon_uuid_key=""
 			
@@ -1420,13 +1441,9 @@ while true; do
 			[ -n "$matching_beacon_uuid_key" ] && [ -n "$rssi" ] && rssi_log[$matching_beacon_uuid_key]="$rssi"	
 
 			#MANUFACTURER
-			[ -z "$manufacturer" ] && manufacturer="$(determine_manufacturer "$data")"
-		fi
-
-		#NEED TO VERIFY WHETHER WE HAVE TO UPDATE INFORMATION FOR A PUBLIC BEACON THAT IS 
-		#ACTUALLY A BEACON
-
-		if [ "$cmd" == "BEAC" ]; then 
+			[ -z "$manufacturer" ] && manufacturer="$(determine_manufacturer "$mac")"
+		
+		elif [ "$cmd" == "BEAC" ]; then 
 
 			#DATA IS DELIMITED BY VERTICAL PIPE
 			uuid=$(echo "$data" | awk -F "|" '{print $1}')
@@ -1476,9 +1493,6 @@ while true; do
 			#SAVE BEACON ADDRESS LOG
 			beacon_mac_address_log[$uuid_reference]="$mac"
 
-			#DATA SET
-			data="$mac"
-
 			#FIND NAME OF BEACON
 			[ -z "$name" ] && name="$(determine_name "$mac")"
 
@@ -1507,7 +1521,7 @@ while true; do
 		#**********************************************************************
 
 		#REPORT RSSI CHANGES
-		if [ -n "$rssi" ]; then 
+		if [ -n "$rssi" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
 
 			#ONLY FOR PUBLIC OR BEAON DEVICES
 			if [ "$cmd" == "PUBL" ] || [ "$cmd" == "BEAC" ]; then 
@@ -1532,7 +1546,10 @@ while true; do
 						change_type="moderate $motion_direction"
 						;;
 					$(( abs_rssi_change >= 10)) )
-						change_type="slow movement"
+						change_type="slow movement $motion_direction"
+						;;
+					$(( abs_rssi_change >= 3)) )
+						change_type="drifting"
 						;;			
 					*)
 						change_type="stationary"
@@ -1540,11 +1557,11 @@ while true; do
 				esac
 
 				#WITHOUT ANY DATA OR INFORMATION, MAKE SURE TO REPORT
-				[ "$rssi_latest" == "-200" ] && change_type="stationary" && motion_direction="" && should_update=true
+				[ "$rssi_latest" == "-200" ] && change_type="initial reading" && should_update=true
 
 				#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}" && should_update=true
-				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "0" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type) ${NC}"
+				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type by $abs_rssi_change dBm) ${NC}" && should_update=true
+				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "2" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI LOG: ${rssi:-100} dBm ($change_type) ${NC}"
 			fi
 		fi 
 
@@ -1586,7 +1603,7 @@ while true; do
 			[ "$did_change" == true ] && [ "$current_state" == "1" ] && [ "$PREF_TRIGGER_MODE_REPORT_OUT" == true ] && publish_cooperative_scan_message "arrive"
 
 			#PRINT RAW COMMAND; DEBUGGING
-			log "${CYAN}[CMD-$cmd]	${NC}$data ${GREEN}$debug_name ${NC} $manufacturer${NC}"
+			log "${CYAN}[CMD-$cmd]	${NC}$mac ${GREEN}$debug_name ${NC} $manufacturer${NC}"
 		
 		elif [ "$cmd" == "BEAC" ] && [ "$PREF_BEACON_MODE" == true ] && ([ "$should_update" == true ] || [ "$is_new" == true ]); then 
 		
@@ -1612,7 +1629,7 @@ while true; do
 				"movement=$change_type"
 
 				#LOG
-				log "${PURPLE}[CMD-PUBL]${NC}	$data ${GREEN}$name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
+				log "${PURPLE}[CMD-PUBL]${NC}	$mac ${GREEN}$name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
 				
 				publish_presence_message \
 				"id=$mac" \
@@ -1636,7 +1653,7 @@ while true; do
 				expected_name="$(determine_name "$mac")"
 
 
-				log "${PURPLE}[CMD-$cmd]${NC}	$data ${GREEN}$name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
+				log "${PURPLE}[CMD-$cmd]${NC}	$mac ${GREEN}$name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
 				
 				publish_presence_message \
 				"id=$mac" \
@@ -1660,7 +1677,7 @@ while true; do
 			#FLAG AND MFCG FILTER
 			if [[ $flags =~ $PREF_PASS_FILTER_ADV_FLAGS_ARRIVE ]] && [[ $manufacturer =~ $PREF_PASS_FILTER_MANUFACTURER_ARRIVE ]]; then 
 				#PROVIDE USEFUL LOGGING
-				log "${RED}[CMD-$cmd]${NC}	[${GREEN}passed filter${NC}] data: ${BLUE}${data:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${BLUE}${flags:-none}${NC} man: ${BLUE}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
+				log "${RED}[CMD-$cmd]${NC}	[${GREEN}passed filter${NC}] data: ${BLUE}${mac:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${BLUE}${flags:-none}${NC} man: ${BLUE}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
 
 				#WE ARE PERFORMING THE FIRST ARRIVAL SCAN?
 				first_arrive_scan=false
@@ -1671,7 +1688,7 @@ while true; do
 				continue
 			else 
 				#PROVIDE USEFUL LOGGING
-				log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: ${BLUE}${data:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${RED}${flags:-none}${NC} man: ${RED}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
+				log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: ${BLUE}${mac:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${RED}${flags:-none}${NC} man: ${RED}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
 
 				continue
 			fi 

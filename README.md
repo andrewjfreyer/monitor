@@ -244,6 +244,39 @@ As an example:
         entity_id: input_boolean.occupancy
 ```
 
+If you prefer to use the `device_tracker` platform in Home Assistant, a unique solution is to use the undocumented `device_tracker.see` service:
+
+As an example:
+
+```
+- alias: Andrew Occupancy On
+  hide_entity: true
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.andrew_occupancy_confidence
+      above: 10
+  action:
+    - service: device_tracker.see
+      data:
+        dev_id: device_tracker.andrew
+  location_name: home
+
+- alias: Andrew Occupancy Off
+  hide_entity: true
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.andrew_occupancy_confidence
+      below: 10
+  action:
+    - service: device_tracker.see
+      data:
+        dev_id: device_tracker.andrew
+  location_name: not_home
+
+```
+
+For more information, see [here](https://community.home-assistant.io/t/device-tracker-from-script/97295/7) and [here](https://github.com/andrewjfreyer/monitor/issues/138).
+
 ___
 
 # Installation Instructions for Raspberry Pi Zero W
@@ -673,7 +706,7 @@ ____
 ```bash 
 
 #ARRIVE TRIGGER FILTER(S)
-PREF_PASS_FILTER_ADV_FLAGS_ARRIVE=\"0x1a\"
+PREF_PASS_FILTER_ADV_FLAGS_ARRIVE=\"0x1a|0x1b\"
 PREF_PASS_FILTER_MANUFACTURER_ARRIVE=\"Apple\"
 
 #ARRIVE TRIGGER NEGATIVE FILTER(S)
@@ -696,7 +729,7 @@ ____
 
 ### I use a Bluetooth dongle, and `monitor` seems to become non-responsive after a while - what's going on? 
 
-Many Bluetooth dongles do not properly filter out duplicate advertisements, so `monitor` gets overwhelmed trying to filter out hundreds of reports, when it expects dozens. I'm workingo on a solution, but for now the best option is to switch to internal Bluetooth or, alternatively, you can try another Bluetooth dongle. 
+Many Bluetooth dongles do not properly filter out duplicate advertisements, so `monitor` gets overwhelmed trying to filter out hundreds of reports, when it expects dozens. I'm working on a solution, but for now the best option is to switch to internal Bluetooth or, alternatively, you can try another Bluetooth dongle. 
 
 ____
 
@@ -727,5 +760,12 @@ device_tracker:
 ```
 
 The standard confidence reprot will also send. 
+
+____
+
+### I don't care about a few devices that are reporting. Can I block them? 
+
+Yes. Create a file called `address_blacklist` in your configuration directory and add the mac addresses you'd like to block (or uuid-major-minor for iBeacons) one at a time. 
+
 
 Anything else? Post a [question.](https://github.com/andrewjfreyer/monitor/issues/new)

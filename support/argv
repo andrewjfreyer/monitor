@@ -107,7 +107,9 @@ usage:
 
 #REMOVE MANUFACTURER CACHE AND PUBLIC NAME CACHE FROM PREVIOUS SESSION 
 (&>/dev/null rm ".manufacturer_cache") && printf "%s\n" "> removing web request caches"
-(&>/dev/null rm ".public_name_cache") && printf "%s\n" "> removing public name cache"
+
+#NO LONGER REQUIRED; NAME CACHING SHOULD BE STICKY
+#(&>/dev/null rm ".public_name_cache") && printf "%s\n" "> removing public name cache"
 
 #PROCESS ARGV OPTIONS
 OPTIND=1
@@ -159,7 +161,7 @@ while getopts "h?vfbut:EgSRCmsadxD:c:" opt; do
 			sleep 5
 
 			#CREATE CONNECTION
-			return_data=$(sudo hcitool cc $target_mac 2>&1 && sudo hcitool auth $target_mac 2>&1 && sudo hcitool dc $target_mac 2>&1)
+			return_data=$(hcitool cc $target_mac 2>&1 && hcitool auth $target_mac 2>&1 && hcitool dc $target_mac 2>&1)
 
 			#ERROR REPORTING
 			[[ $return_data =~ .*error.* ]] && printf "%s\n" "> ${RED}error: ${NC}connection to $target_mac failed" || printf "%s\n" "> connection created to $target_mac"
