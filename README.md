@@ -244,6 +244,39 @@ As an example:
         entity_id: input_boolean.occupancy
 ```
 
+If you prefer to use the `device_tracker` platform in Home Assistant, a unique solution is to use the undocumented `device_tracker.see` service:
+
+As an example:
+
+```
+- alias: Andrew Occupancy On
+  hide_entity: true
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.andrew_occupancy_confidence
+      above: 10
+  action:
+    - service: device_tracker.see
+      data:
+        dev_id: device_tracker.andrew
+  location_name: home
+
+- alias: Andrew Occupancy Off
+  hide_entity: true
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.andrew_occupancy_confidence
+      below: 10
+  action:
+    - service: device_tracker.see
+      data:
+        dev_id: device_tracker.andrew
+  location_name: not_home
+
+```
+
+For more information, see [here](https://community.home-assistant.io/t/device-tracker-from-script/97295/7) and [here](https://github.com/andrewjfreyer/monitor/issues/138).
+
 ___
 
 # Installation Instructions for Raspberry Pi Zero W
