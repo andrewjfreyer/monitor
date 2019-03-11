@@ -481,6 +481,9 @@ PREF_MQTT_REPORT_SCAN_MESSAGES|false|This value is either true or false and dete
 PREF_PERCENT_CONFIDENCE_REPORT_THRESHOLD|59|This value defines when a beacon begins reporting a decline in confidence|
 PREF_PASS_FILTER_PDU_TYPE|*Various. See FAQ.*|These are the PDU types that should be noticed by `monitor`|
 PREF_DEVICE_TRACKER_REPORT|false|If true, this value will cause `monitor` to report a 'home' or 'not_home' message to `... /device_tracker` conforming to device_tracker mqtt protocol. 
+PREF_DEVICE_TRACKER_HOME_STRING|home|If `PREF_DEVICE_TRACKER_REPORT` is true, this is the string that is reported to the device_tracker when the device is home.
+PREF_DEVICE_TRACKER_AWAY_STRING|not_home|If `PREF_DEVICE_TRACKER_REPORT` is true, this is the string that is reported to the device_tracker when the device is not home.
+PREF_DEVICE_TRACKER_TOPIC_BRANCH|device_tracker|If `PREF_DEVICE_TRACKER_REPORT` is true, this is last path element of the mqtt topic path that will be used to publish the device tracker message.
 
 
 ## RSSI Tracking
@@ -775,8 +778,9 @@ ____
 Set these options in `behavior_preferences`: 
 
 ```bash
-PREF_DEVICE_TRACKER_HOME_STRING='this_is_what_home_status_is' 
-PREF_DEVICE_TRACKER_AWAY_STRING='this_is_what_away_status_is'
+PREF_DEVICE_TRACKER_HOME_STRING='home status string' 
+PREF_DEVICE_TRACKER_AWAY_STRING='away status string'
+PREF_DEVICE_TRACKER_TOPIC_BRANCH='topic path for device tracker/presence tracker'
 ```
 
 Examples:
@@ -786,6 +790,7 @@ Examples:
 ```bash
 PREF_DEVICE_TRACKER_HOME_STRING='home' 
 PREF_DEVICE_TRACKER_AWAY_STRING='not_home'
+PREF_DEVICE_TRACKER_TOPIC_BRANCH='device_tracker'
 ```
 
 
@@ -794,6 +799,7 @@ PREF_DEVICE_TRACKER_AWAY_STRING='not_home'
 ```bash
 PREF_DEVICE_TRACKER_HOME_STRING='present' 
 PREF_DEVICE_TRACKER_AWAY_STRING='not present'
+PREF_DEVICE_TRACKER_TOPIC_BRANCH='presence'
 ```
 
 * Generic: 
@@ -801,6 +807,7 @@ PREF_DEVICE_TRACKER_AWAY_STRING='not present'
 ```bash
 PREF_DEVICE_TRACKER_HOME_STRING='home' 
 PREF_DEVICE_TRACKER_AWAY_STRING='away'
+PREF_DEVICE_TRACKER_TOPIC_BRANCH='anything you like'
 ```
 
 

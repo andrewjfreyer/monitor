@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.050
+export version=0.2.051
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -213,8 +213,8 @@ for addr in "${known_static_addresses[@]}"; do
 	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { id: $addr ... }"
 
 	#FOR DEBUGGING
-	printf "%s\n" "> ${GREEN}$addr${NC} confidence publishes to: $pub_topic (has $is_connected to $PREF_HCI_DEVICE)"
-	[ "$PREF_DEVICE_TRACKER_REPORT" == 'true' ] && printf "%s\n" "> ${GREEN}$addr${NC} device_tracker publishes to: $pub_topic/[$PREF_DEVICE_TRACKER_AWAY_STRING or $PREF_DEVICE_TRACKER_HOME_STRING]"
+	printf "%s\n" "> ${GREEN}$addr${NC} confidence topic: $pub_topic (has $is_connected to $PREF_HCI_DEVICE)"
+	[ "$PREF_DEVICE_TRACKER_REPORT" == 'true' ] && printf "%s\n" "> ${GREEN}$addr${NC} device_tracker topic: $pub_topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH [$PREF_DEVICE_TRACKER_AWAY_STRING or $PREF_DEVICE_TRACKER_HOME_STRING]"
 done
 
 # ----------------------------------------------------------------------------------------

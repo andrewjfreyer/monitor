@@ -246,12 +246,11 @@ publish_presence_message () {
  				device_tracker_message=""
  			fi
 
-
  			#ONLY POST A MESSAGE TO DEVICE TRACKER BOARD IF WE HAVE 
  			#A COMPLETE CONFIDENCE MESSAGE
  			if [ -n "$device_tracker_message" ]; then 
 	 			#PRINT FOR DEVICE TRACKER
-	 			printf "%s\n" "${PURPLE}$topic/device_tracker $device_tracker_message${NC}"
+	 			printf "%s\n" "${PURPLE}$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH $device_tracker_message${NC}"
 
 	 			#POST TO MQTT
 				($mosquitto_pub_path \
@@ -262,7 +261,7 @@ publish_presence_message () {
 				-P "$mqtt_password" -u "$mqtt_user" \
 				-h "$mqtt_address" \
 				-p "$mqtt_port" \
-				-t "$topic/device_tracker" \
+				-t "$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH" \
 				-m "$device_tracker_message" 2>&1)
 			fi
  		fi 
