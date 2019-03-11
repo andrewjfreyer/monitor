@@ -742,7 +742,7 @@ ____
 
 ____
 
-### How do I use this as a device_tracker, instead of just confidence? 
+### How do I use this as a device_tracker, in addition to the standard confidence messages? 
 
 Set the option `PREF_DEVICE_TRACKER_REPORT` in your `behavior_preferences` file to true. If it's not there, add a line like this: 
 
@@ -762,7 +762,7 @@ device_tracker:
       andrew_first_floor: 'monitor/first floor/[device address or alias]/device_tracker'
 ```
 
-The standard confidence reprot will also send. 
+The standard confidence report will also send. 
 
 ____
 
