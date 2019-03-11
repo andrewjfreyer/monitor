@@ -273,7 +273,7 @@ if [ -f "$PREF_CONFIG" ]; then
 	#SETTINGS
 	PREF_DEVICE_TRACKER_AWAY_STRING=${PREF_DEVICE_TRACKER_AWAY_STRING:-not_home}
 	PREF_DEVICE_TRACKER_HOME_STRING=${PREF_DEVICE_TRACKER_HOME_STRING:-home}
-	PREF_DEVICE_TRACKER_TOPIC_BRANCH=${PREF_DEVICE_TRACKER_HOME_STRING:-device_tracker}
+	PREF_DEVICE_TRACKER_TOPIC_BRANCH=${PREF_DEVICE_TRACKER_TOPIC_BRANCH:-device_tracker}
 
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
 	[ "$(printf "%s\n" "$preferences" | grep -c "error")" -gt "0" ] && printf "%s\n" "> ${ORANGE}warning:${NC} preferences error, using defaults. reset to defaults? [y/n]" && read -t 10 should_restore_defaults
