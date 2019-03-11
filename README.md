@@ -785,14 +785,13 @@ PREF_DEVICE_TRACKER_TOPIC_BRANCH='topic path for device tracker/presence tracker
 
 Examples:
 
-* Home Assisant (default): 
+* Home Assistant (default): 
 
 ```bash
 PREF_DEVICE_TRACKER_HOME_STRING='home' 
 PREF_DEVICE_TRACKER_AWAY_STRING='not_home'
 PREF_DEVICE_TRACKER_TOPIC_BRANCH='device_tracker'
 ```
-
 
 * SmartThings: 
 
