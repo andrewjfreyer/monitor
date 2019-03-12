@@ -53,7 +53,7 @@ log_listener () {
 			fi 
 
 			#ECHO LAST LINE
-			printf "${should_repeat}$version $(date "+%I:%M:%S %p") $line$line_append\n"
+			printf "${should_repeat}$version $(date "+%d-%m-%Y %I:%M:%S %p") $line$line_append\n"
 			last_log_line="$line"
 
 		done < log_pipe
