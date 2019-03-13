@@ -258,8 +258,9 @@ As an example:
   action:
     - service: device_tracker.see
       data:
-        dev_id: device_tracker.andrew
-  location_name: home
+        dev_id: andrew
+        location_name: home
+        source_type: bluetooth
 
 - alias: Andrew Occupancy Off
   hide_entity: true
@@ -270,8 +271,9 @@ As an example:
   action:
     - service: device_tracker.see
       data:
-        dev_id: device_tracker.andrew
-  location_name: not_home
+        dev_id: andrew
+        location_name: not_home
+        source_type: bluetooth
 
 ```
 
