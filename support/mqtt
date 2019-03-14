@@ -83,7 +83,7 @@ mqtt_broker_clean (){
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-P "$mqtt_password" -u "$mqtt_user" \
-		-r \ 
+		-r \
 		-n \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
