@@ -50,7 +50,7 @@ mqtt_announce_online(){
 	$mqtt_version_append \
 	$mqtt_ca_file_append \
 	-P "$mqtt_password" \
-	-u "$mqtt_user" ) \
+	-u "$mqtt_user" \
 	-h "$mqtt_address" \
 	-p "$mqtt_port" \
 	-t "$mqtt_topicpath/$mqtt_publisher_identity/status" \
