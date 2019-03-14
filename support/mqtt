@@ -49,7 +49,8 @@ mqtt_announce_online(){
 	-I "$mqtt_publisher_identity" \
 	$mqtt_version_append \
 	$mqtt_ca_file_append \
-	-P "$mqtt_password" -u "$mqtt_user" \
+	-P "$mqtt_password" \
+	-u "$mqtt_user" ) \
 	-h "$mqtt_address" \
 	-p "$mqtt_port" \
 	-t "$mqtt_topicpath/$mqtt_publisher_identity/status" \
@@ -82,7 +83,7 @@ mqtt_broker_clean (){
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-P "$mqtt_password" -u "$mqtt_user" \
-		-r \
+		-r \ 
 		-n \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
