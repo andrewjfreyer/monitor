@@ -90,14 +90,12 @@ if [ -f $MQTT_CONFIG ] ; then
 		printf "%s\n" "${ORANGE}> warning:${NC} operating in anonymous and unprotected mode for mqtt broker at $mqtt_address"
 	
 	else 
-		#UPDATE SUB/PUB PATH
-		mosquitto_sub_path="$mosquitto_sub_path -u ${mqtt_user@Q} -P ${mqtt_password@Q}"
-		mosquitto_pub_path="$mosquitto_pub_path -u ${mqtt_user@Q} -P ${mqtt_password@Q}"
-
-		$mosquitto_pub_path -t "test" -m ""
-
-		exit
+		#PREPEND COLON FOR FULL URL PROCESSING
+		mqtt_password=":$mqtt_password@"
 	fi
+
+	#SET UP PUB/SUB URL
+	mqtt_url="mqtt://$mtt_user$mqtt_password$mqtt_address:$mqtt_port/"
 
 else
 	printf "%s\n" "> mosquitto preferences file created. please customize." 

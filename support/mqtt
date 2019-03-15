@@ -49,9 +49,7 @@ mqtt_announce_online(){
 	-I "$mqtt_publisher_identity" \
 	$mqtt_version_append \
 	$mqtt_ca_file_append \
-	-h "$mqtt_address" \
-	-p "$mqtt_port" \
-	-t "$mqtt_topicpath/$mqtt_publisher_identity/status" \
+	-L "$mqtt_url$mqtt_topicpath/$mqtt_publisher_identity/status" \
 	-m "online" 2>&1 
 }
 
@@ -82,18 +80,14 @@ mqtt_broker_clean (){
 		$mqtt_ca_file_append \
 		-r \
 		-n \
-		-h "$mqtt_address" \
-		-p "$mqtt_port" \
-		-t "$topic_path" 2>&1 
+		-L "$mqtt_url$topic_path" 2>&1 
 
 	done < <($(which mosquitto_sub) \
 		-I "$mqtt_publisher_identity" \
 		-v $mqtt_version_append \
 		$mqtt_ca_file_append \
 		-W 1 \
-		-h "$mqtt_address" \
-		-p "$mqtt_port" \
-		-t "$mqtt_topicpath/$mqtt_publisher_identity/#" 2>&1 ) 
+		-L "$mqtt_url$mqtt_topicpath/$mqtt_publisher_identity/#" 2>&1 ) 
 }
 
 # ----------------------------------------------------------------------------------------
@@ -124,10 +118,8 @@ mqtt_listener (){
 			"$mqtt_publisher_identity" \
 			$mqtt_version_append \
 			$mqtt_ca_file_append \
-			-h "$mqtt_address" \
-			-p "$mqtt_port" \
 			-v \
-			-t "$mqtt_topicpath/scan/#" \
+			-L "$mqtt_url$mqtt_topicpath/scan/#" \
 			--will-topic "$mqtt_topicpath/$mqtt_publisher_identity/status" \
 			--will-payload "offline" 2>&1 ) 
 
@@ -167,9 +159,7 @@ publish_rssi_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		-h "$mqtt_address" \
-		-p "$mqtt_port" \
-		-t "$topic" \
+		-L "$mqtt_url$topic" \
 		-m "$message" 2>&1)
 	fi
 }
@@ -252,9 +242,7 @@ publish_presence_message () {
 				$should_retain \
 				$mqtt_version_append \
 				$mqtt_ca_file_append \
-				-h "$mqtt_address" \
-				-p "$mqtt_port" \
-				-t "$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH" \
+				-L "$mqtt_url$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH" \
 				-m "$device_tracker_message" 2>&1)
 			fi
  		fi 
@@ -269,9 +257,7 @@ publish_presence_message () {
 		$should_retain \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		-h "$mqtt_address" \
-		-p "$mqtt_port" \
-		-t "$topic" \
+		-L "$mqtt_url$topic" \
 		-m "$message" 2>&1)  	
 	fi
 }
@@ -287,9 +273,7 @@ publish_cooperative_scan_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		-h "$mqtt_address" \
-		-p "$mqtt_port" \
-		-t "$mqtt_topicpath/scan/$1" \
+		-L "$mqtt_url$mqtt_topicpath/scan/$1" \
 		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1)
 
 	elif [ -n "$1" ] && [ -n "$2" ]; then 
@@ -298,9 +282,7 @@ publish_cooperative_scan_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		-h "$mqtt_address" \
-		-p "$mqtt_port" \
-		-t "$mqtt_topicpath/$2/$1" \
+		-L "$mqtt_url$mqtt_topicpath/$2/$1" \
 		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1)
 
 	else 
@@ -309,9 +291,7 @@ publish_cooperative_scan_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		-h "$mqtt_address" \
-		-p "$mqtt_port" \
-		-t "$mqtt_topicpath/scan" \
+		-L "$mqtt_url$mqtt_topicpath/scan" \
 		-m "{\"identity\":\"$mqtt_publisher_identity\"}" 2>&1)
 	fi 
 }
