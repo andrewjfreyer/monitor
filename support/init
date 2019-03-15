@@ -88,9 +88,9 @@ if [ -f $MQTT_CONFIG ] ; then
 		#WARNING 
 		printf "%s\n" "${ORANGE}> warning:${NC} operating in anonymous and unprotected mode for mqtt broker at $mqtt_address"
 	else 
-		mqtt_credential_append='-u '"$mqtt_user"' -P '"$mqtt_password"
+		mqtt_credential_append="-u \'$mqtt_user\' -P \'$mqtt_password\'"
 	fi
-	
+
 else
 	printf "%s\n" "> mosquitto preferences file created. please customize." 
 
