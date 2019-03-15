@@ -140,7 +140,7 @@ mqtt_listener (){
 			--will-payload "offline" 2>&1 ) 
 
 		#LOG ERROR
-		log "[CMD-ERRO]	${RED}mqtt broker went offline, or a password/username combination was rejected.${NC} attempting subscribe in 10 seconds..."
+		log "[CMD-ERRO]	${RED}mqtt broker went offline, or a password/username combination was rejected.${NC}"
 		
 		sleep 10
 	done 
