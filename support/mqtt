@@ -65,6 +65,8 @@ mqtt_broker_clean (){
 	#MQTT LOOP
 	while read instruction; do 
 
+		printf "%s\n" "$instruction"
+
 		#ERROR HANDLING
 		[[ ${instruction^^} =~ .*REFUSED.* ]] && return 0
 		
@@ -81,7 +83,7 @@ mqtt_broker_clean (){
 		-n \
 		-L "$mqtt_url$topic_path_of_instruction" 2>&1 
 
-	done < <($(which mosquitto_sub) \
+	done < <($mosquitto_sub_path \
 		-I "$mqtt_publisher_identity" \
 		-v $mqtt_version_append \
 		$mqtt_ca_file_append \
@@ -109,7 +111,7 @@ mqtt_listener (){
 			#PRINT THE INSTRUCTION BACK TO THE MAIN THREAD
 			printf "MQTT$instruction\n" > main_pipe 
 
-		done < <($(which mosquitto_sub) -I \
+		done < <($mosquitto_sub_path -I \
 			"$mqtt_publisher_identity" \
 			$mqtt_version_append \
 			$mqtt_ca_file_append \
