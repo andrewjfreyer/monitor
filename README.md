@@ -810,5 +810,12 @@ PREF_DEVICE_TRACKER_AWAY_STRING='away'
 PREF_DEVICE_TRACKER_TOPIC_BRANCH='anything you like'
 ```
 
+____
+
+### I updated recently, and `monitor` is no longer working... what gives? 
+
+Make sure you've updated `mosquitto` and that you are running bash 4.4 or higher. In order to support a wider userbase, backward compabibility for old versions of `mosquitto` and older bash were dropped. 
+
+
 
 Anything else? Post a [question.](https://github.com/andrewjfreyer/monitor/issues/new)

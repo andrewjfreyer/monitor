@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.058
+export version=0.2.059
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -823,8 +823,6 @@ while true; do
 	#READ FROM THE MAIN PIPE
 	while read -r event; do 
 
-		printf "%s\n" "$event"
-		
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
 		data="${event:4}"
