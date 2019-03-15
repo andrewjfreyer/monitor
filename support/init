@@ -23,10 +23,11 @@ mosquitto_sub_path=$(which mosquitto_sub)
 hcidump_path=$(which hcidump)
 btmon_path=$(which btmon)
 bc_path=$(which bc)
-git_path=$(which git)f
+git_path=$(which git)
 
 #error CHECKING FOR MOSQUITTO PUBLICATION 
 should_exit=false
+[[ ! ${BASH_VERSION//[^0-9.]/} =~ [4-9].[4-9]{1,}. ]] && printf "%s\n" "${RED}> error:${NC} minimum required bash version 4.4 not found. please update." && should_exit=true
 [ -z "$mosquitto_pub_path" ] && printf "%s\n" "${RED}> error:${NC} required package 'mosquitto_pub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
 [ -z "$mosquitto_sub_path" ] && printf "%s\n" "${RED}> error:${NC} required package 'mosquitto_sub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
 [ -z "$btmon_path" ] && printf "%s\n" "${RED}> error:${NC} required package 'btmon' not found. please install 'btmon'." && should_exit=true
@@ -90,8 +91,8 @@ if [ -f $MQTT_CONFIG ] ; then
 	
 	else 
 		#UPDATE SUB/PUB PATH
-		mosquitto_sub_path="$mosquitto_sub_path -u '$mqtt_user' -P '$mqtt_password'"
-		mosquitto_pub_path="$mosquitto_pub_path -u '$mqtt_user' -P '$mqtt_password'"
+		mosquitto_sub_path="$mosquitto_sub_path -u ${mqtt_user@Q} -P ${mqtt_password@Q}"
+		mosquitto_pub_path="$mosquitto_pub_path -u ${mqtt_user@Q}' -P ${mqtt_password@Q}"
 
 		"$mosquitto_pub_path" -t "test" -m ""
 	fi
