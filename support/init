@@ -88,9 +88,11 @@ if [ -f $MQTT_CONFIG ] ; then
 		#WARNING 
 		printf "%s\n" "${ORANGE}> warning:${NC} operating in anonymous and unprotected mode for mqtt broker at $mqtt_address"
 	else 
-		mqtt_credential_append="-u '$mqtt_user' -P '$mqtt_password'"
+		mqtt_user_append_flag="-u"
+		mqtt_user_append_data="'$mqtt_user'"
 
-		printf "%s" $mqtt_credential_append
+		mqtt_pass_append_flag="-P"
+		mqtt_pass_append_data="'$mqtt_password'"
 	fi
 
 else
