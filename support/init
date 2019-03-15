@@ -25,9 +25,14 @@ btmon_path=$(which btmon)
 bc_path=$(which bc)
 git_path=$(which git)
 
+#VERSION CHECKER 
+mosquitto_sub_version=$($mosquitto_sub_path --help | grep -Eo "version [0-9.]{3,}" | sed 's/[^0-9.]//g')
+mosquitto_pub_version=$($mosquitto_pub_path --help | grep -Eo "version [0-9.]{3,}" | sed 's/[^0-9.]//g')
+
 #error CHECKING FOR MOSQUITTO PUBLICATION 
 should_exit=false
-[[ ! ${BASH_VERSION//[^0-9.]/} =~ [4-9].[4-9]{1,}. ]] && printf "%s\n" "${RED}> error:${NC} minimum required bash version 4.4 not found. please update." && should_exit=true
+
+#BINARY CHECKS
 [ -z "$mosquitto_pub_path" ] && printf "%s\n" "${RED}> error:${NC} required package 'mosquitto_pub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
 [ -z "$mosquitto_sub_path" ] && printf "%s\n" "${RED}> error:${NC} required package 'mosquitto_sub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
 [ -z "$btmon_path" ] && printf "%s\n" "${RED}> error:${NC} required package 'btmon' not found. please install 'btmon'." && should_exit=true
@@ -35,6 +40,14 @@ should_exit=false
 [ -z "$bc_path" ] && printf "%s\n" "${RED}> error:${NC} required package 'bc' not found. please install 'bc' (e.g., apt-get install bc)" && should_exit=true
 [ -z "$git_path" ] && printf "%s\n" "${ORANGE}> warning:${NC} Recommended package 'git' not found. please consider installing for regular updates."
 [ ! -f /.dockerenv  ] && [ ! -z "$(which systemctl)" ] && [ ! -e "$service_path" ] && printf "%s\n" "${ORANGE}> warning:${NC} monitor.service not installed. Install service? (y/n)" && read should_install
+
+#BASH VERSION 4.4+
+[[ ! ${BASH_VERSION//[^0-9.]/} =~ [4-9].[4-9]{1,}. ]] && printf "%s\n" "${RED}> error:${NC} minimum required bash version 4.4+ not found. please update." && should_exit=true
+
+#MOSQUITTO V. 1.5+
+[[ ! $mosquitto_sub_version =~ [1-9].[5-9]{1,}. ]] && printf "%s\n" "${RED}> error:${NC} minimum required mosquitto_sub version 1.5+ not found. please update." && should_exit=true
+[[ ! $mosquitto_pub_version =~ [1-9].[5-9]{1,}. ]] && printf "%s\n" "${RED}> error:${NC} minimum required mosquitto_pub version 1.5+ not found. please update." && should_exit=true
+
 
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
 base_directory=$(dirname "$(readlink -f "$0")")
@@ -96,8 +109,6 @@ if [ -f $MQTT_CONFIG ] ; then
 
 	#SET UP PUB/SUB URL
 	mqtt_url="mqtt://$mqtt_user$mqtt_password$mqtt_address:$mqtt_port/"
-
-	echo "$mqtt_url"
 
 else
 	printf "%s\n" "> mosquitto preferences file created. please customize." 
