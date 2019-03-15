@@ -97,6 +97,8 @@ if [ -f $MQTT_CONFIG ] ; then
 	#SET UP PUB/SUB URL
 	mqtt_url="mqtt://$mtt_user$mqtt_password$mqtt_address:$mqtt_port/"
 
+	echo "$mqtt_url"
+
 else
 	printf "%s\n" "> mosquitto preferences file created. please customize." 
 
