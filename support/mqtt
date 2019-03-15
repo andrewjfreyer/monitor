@@ -68,11 +68,10 @@ mqtt_broker_clean (){
 		#ERROR HANDLING
 		[[ ${instruction^^} =~ .*REFUSED.* ]] && return 0
 		
-		#EXTRACT THE TOPIC PATH WITHOUT RELYING ON FORMAT FLAG
-		topic_data=$(echo "$instruction" | sed 's/'"$mqtt_topicpath"'\/'"$mqtt_publisher_identity"'\/[0-9_:a-z/-]\{2,\}//gi')
-		topic_path=$(echo "$instruction" | sed 's/'"$topic_data"'$//g')
+		#EXTRACT TOPIC PATH FROM FORMATTED MQTT MESSAGE
+		topic_path_of_instruction="${instruction%%|*}"
 
-		[ -z "$topic_path" ] && continue
+		[ -z "$topic_path_of_instruction" ] && continue
 
 		#PUBLISH CLEARING MESSAGE
 		$mosquitto_pub_path \
@@ -80,12 +79,13 @@ mqtt_broker_clean (){
 		$mqtt_ca_file_append \
 		-r \
 		-n \
-		-L "$mqtt_url$topic_path" 2>&1 
+		-L "$mqtt_url$topic_path_of_instruction" 2>&1 
 
 	done < <($(which mosquitto_sub) \
 		-I "$mqtt_publisher_identity" \
 		-v $mqtt_version_append \
 		$mqtt_ca_file_append \
+		-F '%t|%p' \
 		-W 1 \
 		-L "$mqtt_url$mqtt_topicpath/$mqtt_publisher_identity/#" 2>&1 ) 
 }
@@ -106,19 +106,15 @@ mqtt_listener (){
 			#ERROR HANDLING
 			[[ ${instruction^^} =~ .*REFUSED.* ]] && break
 
-
-			#EXTRACT THE TOPIC PATH WITHOUT RELYING ON FORMAT FLAG
-			topic_data=$(echo "$instruction" | sed 's/'"$mqtt_topicpath"'\/scan\/[0-9_:a-z/-]\{2,\}\?//gi')
-			topic_path=$(echo "$instruction" | sed 's/'"$topic_data"'$//g')
-
 			#PRINT THE INSTRUCTION BACK TO THE MAIN THREAD
-			printf "MQTT$topic_path|$topic_data\n" > main_pipe 
+			printf "MQTT$instruction\n" > main_pipe 
 
 		done < <($(which mosquitto_sub) -I \
 			"$mqtt_publisher_identity" \
 			$mqtt_version_append \
 			$mqtt_ca_file_append \
 			-v \
+			-F '%t|%p' \
 			-L "$mqtt_url$mqtt_topicpath/scan/#" \
 			--will-topic "$mqtt_topicpath/$mqtt_publisher_identity/status" \
 			--will-payload "offline" 2>&1 ) 
