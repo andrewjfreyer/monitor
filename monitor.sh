@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.053
+export version=0.2.054
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -62,7 +62,7 @@ echo "====================== DEBUG ======================"
 # ----------------------------------------------------------------------------------------
 #SOURCE SETUP AND ARGV FILES
 source './support/argv'
-source './support/setup'
+source './support/init'
 
 #SOURCE FUNCTIONS
 source './support/mqtt'
