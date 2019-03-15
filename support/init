@@ -94,7 +94,7 @@ if [ -f $MQTT_CONFIG ] ; then
 		mosquitto_sub_path="$mosquitto_sub_path -u ${mqtt_user@Q} -P ${mqtt_password@Q}"
 		mosquitto_pub_path="$mosquitto_pub_path -u ${mqtt_user@Q} -P ${mqtt_password@Q}"
 
-		"$mosquitto_pub_path" -t "test" -m ""
+		$mosquitto_pub_path -t "test" -m ""
 
 		exit
 	fi
