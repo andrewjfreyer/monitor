@@ -822,6 +822,8 @@ while true; do
 	
 	#READ FROM THE MAIN PIPE
 	while read -r event; do 
+
+		printf "%s\n" "$event"
 		
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
