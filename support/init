@@ -96,10 +96,10 @@ if [ -f $MQTT_CONFIG ] ; then
 		mqtt_pass_append_data=""
 	else 
 		mqtt_user_append_flag="-u"
-		mqtt_user_append_data="$mqtt_user"
+		mqtt_user_append_data="\"$mqtt_user\""
 
 		mqtt_pass_append_flag="-P"
-		mqtt_pass_append_data="$mqtt_password"
+		mqtt_pass_append_data="\"$mqtt_password\""
 	fi
 
 else
