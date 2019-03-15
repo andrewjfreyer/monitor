@@ -95,7 +95,7 @@ if [ -f $MQTT_CONFIG ] ; then
 	fi
 
 	#SET UP PUB/SUB URL
-	mqtt_url="mqtt://$mtt_user$mqtt_password$mqtt_address:$mqtt_port/"
+	mqtt_url="mqtt://$mqtt_user$mqtt_password$mqtt_address:$mqtt_port/"
 
 	echo "$mqtt_url"
 
