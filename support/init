@@ -88,18 +88,10 @@ if [ -f $MQTT_CONFIG ] ; then
 		#WARNING 
 		printf "%s\n" "${ORANGE}> warning:${NC} operating in anonymous and unprotected mode for mqtt broker at $mqtt_address"
 	
-		#SET BLANK
-		mqtt_user_append_flag=""
-		mqtt_user_append_data=""
-
-		mqtt_pass_append_flag=""
-		mqtt_pass_append_data=""
 	else 
-		mqtt_user_append_flag="-u"
-		mqtt_user_append_data="$mqtt_user"
-
-		mqtt_pass_append_flag="-P"
-		mqtt_pass_append_data="$mqtt_password"
+		#UPDATE SUB/PUB PATH
+		mosquitto_sub_path="$mosquitto_sub_path -u \"$mqtt_user\" -P \"$mqtt_password\""
+		mosquitto_pub_path="$mosquitto_pub_path -u \"$mqtt_user\" -P \"$mqtt_password\""
 	fi
 
 else
@@ -114,10 +106,10 @@ printf "%s\n" "# ---------------------------
 # IP ADDRESS OR HOSTNAME OF MQTT BROKER
 mqtt_address=0.0.0.0
 
-# MQTT BROKER USERNAME (OR BLANK FOR NONE)
+# MQTT BROKER USERNAME
 mqtt_user=username
 
-# MQTT BROKER PASSWORD (OR BLANK FOR NONE)
+# MQTT BROKER PASSWORD
 mqtt_password=password
 
 # MQTT PUBLISH TOPIC ROOT 
@@ -129,10 +121,10 @@ mqtt_publisher_identity=''
 # MQTT PORT 
 mqtt_port='1883'
 
-# MQTT CERTIFICATE FILE (LEAVE BLANK IF NONE)
+# MQTT CERTIFICATE FILE
 mqtt_certificate_path=''
 
-#MQTT VERSION (LEAVE BLANK FOR DEFAULT; EXAMPLE: 'mqttv311')
+#MQTT VERSION (EXAMPLE: 'mqttv311')
 mqtt_version=''
 
 " > "$MQTT_CONFIG"

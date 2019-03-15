@@ -49,8 +49,6 @@ mqtt_announce_online(){
 	-I "$mqtt_publisher_identity" \
 	$mqtt_version_append \
 	$mqtt_ca_file_append \
-	$mqtt_user_append_flag "$mqtt_user_append_data" \
-	$mqtt_pass_append_flag "$mqtt_pass_append_data" \
 	-h "$mqtt_address" \
 	-p "$mqtt_port" \
 	-t "$mqtt_topicpath/$mqtt_publisher_identity/status" \
@@ -82,8 +80,6 @@ mqtt_broker_clean (){
 		$mosquitto_pub_path \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		$mqtt_user_append_flag "$mqtt_user_append_data" \
-		$mqtt_pass_append_flag "$mqtt_pass_append_data" \
 		-r \
 		-n \
 		-h "$mqtt_address" \
@@ -94,8 +90,6 @@ mqtt_broker_clean (){
 		-I "$mqtt_publisher_identity" \
 		-v $mqtt_version_append \
 		$mqtt_ca_file_append \
-		$mqtt_user_append_flag "$mqtt_user_append_data" \
-		$mqtt_pass_append_flag "$mqtt_pass_append_data" \
 		-W 1 \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
@@ -130,8 +124,6 @@ mqtt_listener (){
 			"$mqtt_publisher_identity" \
 			$mqtt_version_append \
 			$mqtt_ca_file_append \
-			$mqtt_user_append_flag "$mqtt_user_append_data" \
-			$mqtt_pass_append_flag "$mqtt_pass_append_data" \
 			-h "$mqtt_address" \
 			-p "$mqtt_port" \
 			-v \
@@ -175,8 +167,6 @@ publish_rssi_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		$mqtt_user_append_flag "$mqtt_user_append_data" \
-		$mqtt_pass_append_flag "$mqtt_pass_append_data" \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
 		-t "$topic" \
@@ -262,8 +252,6 @@ publish_presence_message () {
 				$should_retain \
 				$mqtt_version_append \
 				$mqtt_ca_file_append \
-				$mqtt_user_append_flag "$mqtt_user_append_data" \
-				$mqtt_pass_append_flag "$mqtt_pass_append_data" \
 				-h "$mqtt_address" \
 				-p "$mqtt_port" \
 				-t "$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH" \
@@ -277,8 +265,6 @@ publish_presence_message () {
 
 		#POST TO MQTT
 		($mosquitto_pub_path \
-		$mqtt_user_append_flag "$mqtt_user_append_data" \
-		$mqtt_pass_append_flag "$mqtt_pass_append_data" \
 		-I "$mqtt_publisher_identity" \
 		$should_retain \
 		$mqtt_version_append \
@@ -301,8 +287,6 @@ publish_cooperative_scan_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		$mqtt_user_append_flag "$mqtt_user_append_data" \
-		$mqtt_pass_append_flag "$mqtt_pass_append_data" \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
 		-t "$mqtt_topicpath/scan/$1" \
@@ -314,8 +298,6 @@ publish_cooperative_scan_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		$mqtt_user_append_flag "$mqtt_user_append_data" \
-		$mqtt_pass_append_flag "$mqtt_pass_append_data" \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
 		-t "$mqtt_topicpath/$2/$1" \
@@ -327,8 +309,6 @@ publish_cooperative_scan_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		$mqtt_user_append_flag "$mqtt_user_append_data" \
-		$mqtt_pass_append_flag "$mqtt_pass_append_data" \
 		-h "$mqtt_address" \
 		-p "$mqtt_port" \
 		-t "$mqtt_topicpath/scan" \
