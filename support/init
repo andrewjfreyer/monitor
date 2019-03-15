@@ -92,6 +92,8 @@ if [ -f $MQTT_CONFIG ] ; then
 		#UPDATE SUB/PUB PATH
 		mosquitto_sub_path="$mosquitto_sub_path -u '$mqtt_user -P '$mqtt_password'"
 		mosquitto_pub_path="$mosquitto_pub_path -u '$mqtt_user -P '$mqtt_password'"
+
+		echo $mosquitto_pub_path
 	fi
 
 else
