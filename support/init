@@ -42,7 +42,7 @@ should_exit=false
 [ ! -f /.dockerenv  ] && [ ! -z "$(which systemctl)" ] && [ ! -e "$service_path" ] && printf "%s\n" "${ORANGE}> warning:${NC} monitor.service not installed. Install service? (y/n)" && read should_install
 
 #BASH VERSION 4.4+
-[[ ! ${BASH_VERSION//[^0-9.]/} =~ [4-9].[4-9]{1,}. ]] && printf "%s\n" ">${ORANGE} warning:${NC} recommended minimum bash version 4.4+ not found. please consider updating."
+[[ ! ${BASH_VERSION//[^0-9.]/} =~ ^(4.[4-9]{1,}.?|^[5-9].) ]] && printf "%s\n" ">${ORANGE} warning:${NC} recommended minimum bash version 4.4+ not found. please consider updating."
 
 #MOSQUITTO V. 1.5+
 [[ ! $mosquitto_sub_version =~ [1-9].[5-9]{1,}. ]] && printf "%s\n" ">${RED} error:${NC} minimum required mosquitto_sub version 1.5+ not found. please update." && should_exit=true
