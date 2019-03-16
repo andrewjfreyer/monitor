@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.064
+export version=0.2.065
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1372,8 +1372,6 @@ while true; do
 			oem_data=$(echo "$data" | awk -F "|" '{print $9}')
 			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $10}')
 			
-			log "[CMD-INFO]	PUBL $mac ($LINENO)"
-
 			#DEFAULT?
 			instruction_timestamp=${instruction_timestamp:-timestamp}
 			instruction_delay=$((timestamp - instruction_timestamp))
