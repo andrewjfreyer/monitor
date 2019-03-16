@@ -1210,7 +1210,7 @@ while true; do
 						#SET THIS IS A BEACON
 						is_apple_beacon=true
 
-						log "[CMD-INFO] $mac ($LINENO)"
+						log "[CMD-INFO] $key ($LINENO)"
 
 						#SET THE LAST SEEN BASED ON THE BEACON REPORT IN THIS CASE
 						beacon_last_seen=""
@@ -1231,7 +1231,7 @@ while true; do
 						#SET THIS IS A BEACON
 						is_apple_beacon=true
 
-						log "[CMD-INFO] $mac ($LINENO)"
+						log "[CMD-INFO] $key ($LINENO)"
 
 						#SET THE ASSOCIATED KEY BACK 
 						key="$current_associated_beacon_mac_address"

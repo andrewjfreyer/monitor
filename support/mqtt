@@ -63,7 +63,9 @@ mqtt_broker_clean (){
 	local topic_path
 
 	#MQTT LOOP
-	while read instruction; do 
+	while read instruction; do
+
+	printf "%s\n" "$instruction " 
 
 		#ERROR HANDLING
 		[[ ${instruction^^} =~ .*REFUSED.* ]] && return 0
