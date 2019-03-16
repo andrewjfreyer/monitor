@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.067
+export version=0.2.068
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1524,7 +1524,7 @@ while true; do
 		#**********************************************************************
 
 		#REPORT RSSI CHANGES
-		if [ -n "$rssi" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
+		if [ -n "$rssi" ] && [ "${#rssi}" -lt "5" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
 
 			#ONLY FOR PUBLIC OR BEAON DEVICES
 			if [ "$cmd" == "PUBL" ] || [ "$cmd" == "BEAC" ]; then 
