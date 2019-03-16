@@ -343,7 +343,7 @@ sudo apt-get install pi-bluetooth
 sudo reboot
 ```
 
-7. Install Mosquitto:
+7. Install Mosquitto 1.5+ **(important step!)**:
 ```bash
 
 # get repo key
@@ -628,6 +628,10 @@ ____
 Post a message with blank content to `monitor/scan/update` or `monitor/scan/updatebeta` 
 
 
+____
+### How can I check if a `monitor` node is up and hasn't shut down for some reason?  
+
+Post a message to `monitor/scan/echo`, and you'll receive a response at the topic `$mqtt_topicpath/$mqtt_publisher_identity/echo`
 
 ____
 ### How can I restart a `monitor` node? 
@@ -639,8 +643,6 @@ sudo systemctl restart monitor
 ```
 
 Or, post a message with blank content to `monitor/scan/restart`
-
-
 
 ____
 ### Why don't I see RSSI for my iPhone/Andriod/whatever phone? 

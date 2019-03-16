@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.061
+export version=0.2.064
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -93,7 +93,7 @@ trap "clean" EXIT
 # ----------------------------------------------------------------------------------------
 
 #CYCLE BLUETOOTH INTERFACE 
-#hciconfig "$PREF_HCI_DEVICE" down && sleep 3 && hciconfig "$PREF_HCI_DEVICE" up
+hciconfig "$PREF_HCI_DEVICE" down && sleep 3 && hciconfig "$PREF_HCI_DEVICE" up
 
 #STOP OTHER INSTANCES OF MONITOR WITHOUT STOPPING THIS ONE
 for pid in $(pidof -x "$(basename "$0")"); do
