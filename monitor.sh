@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.060
+export version=0.2.061
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -914,8 +914,6 @@ while true; do
 				cmd="PUBL"
 				unset "random_device_log[$mac]"
 
-				log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
-
 				#BEACON TYPE
 				beacon_type="GENERIC_BEACON_RANDOM"
 
@@ -937,14 +935,10 @@ while true; do
 					[ -n "$rssi" ] && rssi_log[$mac]="$rssi"
 					cmd="PUBL"
 
-					log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
-
 					#BEACON TYPE
 					beacon_type="GENERIC_BEACON_PUBLIC"
 
 				else 
-
-					log "[CMD-INFO] RAND pass $mac ($LINENO)"
 
 
 					#DATA IS RANDOM MAC Addr.; ADD TO LOG
@@ -1042,6 +1036,11 @@ while true; do
 				#exit
 				exit 0	
 
+			elif [[ $mqtt_topic_branch =~ .*ECHO.* ]]; then 
+				log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] echo  ${NC}"				
+				
+				mqtt_echo
+			
 			elif [[ $mqtt_topic_branch =~ .*UPDATEBETA.* ]]; then 
 				log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] beta update requested ${NC}"				
 				
@@ -1102,6 +1101,8 @@ while true; do
 					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}restart${NC}? ${NC}"
 				elif [[ ${mqtt_topic_branch^^} =~ .*DAT.* ]]; then 
 					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}update${NC} or .../scan/${RED}updatebeta${NC}? ${NC}"
+				elif [[ ${mqtt_topic_branch^^} =~ .*ECH.* ]]; then 
+					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}echo${NC} or .../scan/${RED}updatebeta${NC}? ${NC}"
 				fi 
 
 			fi
@@ -1210,8 +1211,6 @@ while true; do
 						#SET THIS IS A BEACON
 						is_apple_beacon=true
 
-						log "[CMD-INFO] $key ($LINENO)"
-
 						#SET THE LAST SEEN BASED ON THE BEACON REPORT IN THIS CASE
 						beacon_last_seen=""
 						beacon_last_seen="${public_device_log[$beacon_uuid_key]}"
@@ -1230,8 +1229,6 @@ while true; do
 
 						#SET THIS IS A BEACON
 						is_apple_beacon=true
-
-						log "[CMD-INFO] $key ($LINENO)"
 
 						#SET THE ASSOCIATED KEY BACK 
 						key="$current_associated_beacon_mac_address"
@@ -1397,8 +1394,6 @@ while true; do
 					break
 				fi 
 			done
-
-			#log "[CMD-INFO]	PUBL $mac $matching_beacon_uuid_key ($LINENO)"
 
 			#SET NAME 
 			[ -n "$name" ] && known_public_device_name[$mac]="$name"
