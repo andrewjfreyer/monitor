@@ -1210,6 +1210,8 @@ while true; do
 						#SET THIS IS A BEACON
 						is_apple_beacon=true
 
+						log "[CMD-INFO] $mac ($LINENO)"
+
 						#SET THE LAST SEEN BASED ON THE BEACON REPORT IN THIS CASE
 						beacon_last_seen=""
 						beacon_last_seen="${public_device_log[$beacon_uuid_key]}"
@@ -1228,6 +1230,8 @@ while true; do
 
 						#SET THIS IS A BEACON
 						is_apple_beacon=true
+
+						log "[CMD-INFO] $mac ($LINENO)"
 
 						#SET THE ASSOCIATED KEY BACK 
 						key="$current_associated_beacon_mac_address"
@@ -1371,6 +1375,8 @@ while true; do
 			oem_data=$(echo "$data" | awk -F "|" '{print $9}')
 			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $10}')
 			
+			log "[CMD-INFO]	PUBL $mac ($LINENO)"
+
 			#DEFAULT?
 			instruction_timestamp=${instruction_timestamp:-timestamp}
 			instruction_delay=$((timestamp - instruction_timestamp))
