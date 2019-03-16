@@ -2,7 +2,8 @@
 =======
 ***TL;DR***: Passive Bluetooth presence detection of beacons, cell phones, and other Bluetooth devices. Useful for [mqtt-based](http://mqtt.org) home automation, especially when the script runs on multiple devices, distrubted throughout a property. 
 
-![version](https://img.shields.io/badge/version-0.2-blue.svg?maxAge=2592000)
+![version](https://img.shields.io/badge/version-0.2-green.svg?maxAge=2592000) ![bash](https://img.shields.io/badge/bash-4.4+-blue.svg?maxAge=2592000) ![mosquitto](https://img.shields.io/badge/mosquitto-1.5+-blue.svg?maxAge=2592000)
+
 ____
 
 ### *Table of Contents*
@@ -344,7 +345,7 @@ sudo apt-get install pi-bluetooth
 sudo reboot
 ```
 
-7. Install Mosquitto:
+7. Install Mosquitto 1.5+ **(important step!)**:
 ```bash
 
 # get repo key
@@ -629,6 +630,10 @@ ____
 Post a message with blank content to `monitor/scan/update` or `monitor/scan/updatebeta` 
 
 
+____
+### How can I check if a `monitor` node is up and hasn't shut down for some reason?  
+
+Post a message to `monitor/scan/echo`, and you'll receive a response at the topic `$mqtt_topicpath/$mqtt_publisher_identity/echo`
 
 ____
 ### How can I restart a `monitor` node? 
@@ -640,8 +645,6 @@ sudo systemctl restart monitor
 ```
 
 Or, post a message with blank content to `monitor/scan/restart`
-
-
 
 ____
 ### Why don't I see RSSI for my iPhone/Andriod/whatever phone? 
@@ -810,6 +813,13 @@ PREF_DEVICE_TRACKER_HOME_STRING='home'
 PREF_DEVICE_TRACKER_AWAY_STRING='away'
 PREF_DEVICE_TRACKER_TOPIC_BRANCH='anything you like'
 ```
+
+____
+
+### I updated recently, and `monitor` is no longer working... what gives? 
+
+Make sure you've updated `mosquitto` and that you are running bash 4.4 or higher. In order to support a wider userbase, backward compabibility for old versions of `mosquitto` and older bash were dropped. 
+
 
 
 Anything else? Post a [question.](https://github.com/andrewjfreyer/monitor/issues/new)

@@ -23,17 +23,31 @@ mosquitto_sub_path=$(which mosquitto_sub)
 hcidump_path=$(which hcidump)
 btmon_path=$(which btmon)
 bc_path=$(which bc)
-git_path=$(which git)f
+git_path=$(which git)
+
+#VERSION CHECKER 
+mosquitto_sub_version=$($mosquitto_sub_path --help | grep -Eo "version [0-9.]{3,}" | sed 's/[^0-9.]//g')
+mosquitto_pub_version=$($mosquitto_pub_path --help | grep -Eo "version [0-9.]{3,}" | sed 's/[^0-9.]//g')
 
 #error CHECKING FOR MOSQUITTO PUBLICATION 
 should_exit=false
-[ -z "$mosquitto_pub_path" ] && printf "%s\n" "${RED}error:${NC} required package 'mosquitto_pub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
-[ -z "$mosquitto_sub_path" ] && printf "%s\n" "${RED}error:${NC} required package 'mosquitto_sub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
-[ -z "$btmon_path" ] && printf "%s\n" "${RED}error:${NC} required package 'btmon' not found. please install 'btmon'." && should_exit=true
-[ -z "$hcidump_path" ] && printf "%s\n" "${RED}error:${NC} required package 'hcidump' not found. please install 'bluez-hcidump' (e.g., sudo apt-get install bluez-hcidump)." && should_exit=true
-[ -z "$bc_path" ] && printf "%s\n" "${RED}error:${NC} required package 'bc' not found. please install 'bc' (e.g., apt-get install bc)" && should_exit=true
-[ -z "$git_path" ] && printf "%s\n" "${ORANGE}warning:${NC} Recommended package 'git' not found. please consider installing for regular updates."
-[ ! -f /.dockerenv  ] && [ ! -z "$(which systemctl)" ] && [ ! -e "$service_path" ] && printf "%s\n" "${ORANGE}warning:${NC} monitor.service not installed. Install service? (y/n)" && read should_install
+
+#BINARY CHECKS
+[ -z "$mosquitto_pub_path" ] && printf "%s\n" ">${RED} error:${NC} required package 'mosquitto_pub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
+[ -z "$mosquitto_sub_path" ] && printf "%s\n" ">${RED} error:${NC} required package 'mosquitto_sub' not found. please install 'mosquitto' and 'mosquitto-clients'." && should_exit=true
+[ -z "$btmon_path" ] && printf "%s\n" ">${RED} error:${NC} required package 'btmon' not found. please install 'btmon'." && should_exit=true
+[ -z "$hcidump_path" ] && printf "%s\n" ">${RED} error:${NC} required package 'hcidump' not found. please install 'bluez-hcidump' (e.g., sudo apt-get install bluez-hcidump)." && should_exit=true
+[ -z "$bc_path" ] && printf "%s\n" ">${RED} error:${NC} required package 'bc' not found. please install 'bc' (e.g., apt-get install bc)" && should_exit=true
+[ -z "$git_path" ] && printf "%s\n" "${ORANGE}> warning:${NC} Recommended package 'git' not found. please consider installing for regular updates."
+[ ! -f /.dockerenv  ] && [ ! -z "$(which systemctl)" ] && [ ! -e "$service_path" ] && printf "%s\n" "${ORANGE}> warning:${NC} monitor.service not installed. Install service? (y/n)" && read should_install
+
+#BASH VERSION 4.4+
+[[ ! ${BASH_VERSION//[^0-9.]/} =~ [4-9].[4-9]{1,}. ]] && printf "%s\n" ">${RED} error:${NC} minimum required bash version 4.4+ not found. please update." && should_exit=true
+
+#MOSQUITTO V. 1.5+
+[[ ! $mosquitto_sub_version =~ [1-9].[5-9]{1,}. ]] && printf "%s\n" ">${RED} error:${NC} minimum required mosquitto_sub version 1.5+ not found. please update." && should_exit=true
+[[ ! $mosquitto_pub_version =~ [1-9].[5-9]{1,}. ]] && printf "%s\n" ">${RED} error:${NC} minimum required mosquitto_pub version 1.5+ not found. please update." && should_exit=true
+
 
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
 base_directory=$(dirname "$(readlink -f "$0")")
@@ -61,15 +75,15 @@ if [ -f $MQTT_CONFIG ] ; then
 	source $MQTT_CONFIG
 
 	#errorS
-	[ "$mqtt_address" == "0.0.0.0" ] && printf "%s\n" "${RED}error:${NC} please customize mqtt broker address in: mqtt_preferences" && should_exit=true
-	[ "$mqtt_user" == "username" ] || [ -z "$mqtt_user" ] && printf "%s\n" "${ORANGE}warning:${NC} for security purposes, please consider changing 'username' in: mqtt_preferences"
-	[ "$mqtt_password" == "password" ] || [ -z "$mqtt_password" ] && printf "%s\n" "${ORANGE}warning:${NC} for security purposes, please consider changing 'password' in: mqtt_preferences"
+	[ "$mqtt_address" == "0.0.0.0" ] && printf "%s\n" ">${RED} error:${NC} please customize mqtt broker address in: mqtt_preferences" && should_exit=true
+	[ "$mqtt_user" == "username" ] || [ -z "$mqtt_user" ] && printf "%s\n" "${ORANGE}> warning:${NC} for security purposes, please consider changing 'username' in: mqtt_preferences"
+	[ "$mqtt_password" == "password" ] || [ -z "$mqtt_password" ] && printf "%s\n" "${ORANGE}> warning:${NC} for security purposes, please consider changing 'password' in: mqtt_preferences"
 	[ "$mqtt_version" == "" ]&& printf "%s\n" "> ${GREEN}preference:${NC} using default mqtt protocol version" || printf "%s\n" "> ${GREEN}preference:${NC} using mqtt protocol version $mqtt_version"
-	[ ! -f "$mqtt_certificate_path" ] && [ ! -z "$mqtt_certificate_path" ] && printf "%s\n" "${RED}error:${NC} please check mqtt certificate path in mqtt_preferences" && should_exit=true
+	[ ! -f "$mqtt_certificate_path" ] && [ ! -z "$mqtt_certificate_path" ] && printf "%s\n" ">${RED} error:${NC} please check mqtt certificate path in mqtt_preferences" && should_exit=true
 
 	#warningS
-	[ -z "$mqtt_port" ] && printf "%s\n" "${ORANGE}warning:${NC} variable mqtt_port does not appear in mqtt_preferences. using default port 1883". && mqtt_port="1883"
-	[ -z "$mqtt_publisher_identity" ] && printf "%s\n" "${ORANGE}warning:${NC} variable mqtt_publisher_identity does not appear in: mqtt_preferences. using hostname: $(hostname)". && mqtt_publisher_identity="$(hostname)"
+	[ -z "$mqtt_port" ] && printf "%s\n" "${ORANGE}> warning:${NC} variable mqtt_port does not appear in mqtt_preferences. using default port 1883". && mqtt_port="1883"
+	[ -z "$mqtt_publisher_identity" ] && printf "%s\n" "${ORANGE}> warning:${NC} variable mqtt_publisher_identity does not appear in: mqtt_preferences. using hostname: $(hostname)". && mqtt_publisher_identity="$(hostname)"
 
 	#DEFINE CA APPEND
 	if [ -f "$mqtt_certificate_path" ]; then 
@@ -84,10 +98,18 @@ if [ -f $MQTT_CONFIG ] ; then
 	fi
 
 	#DEFINE PASSWORD APPEND
-	if [ -z "$mqtt_user" ] || [ -z "$mqtt_password" ]; then 
+	if [ -z "$mqtt_user" ] && [ -z "$mqtt_password" ]; then 
 		#WARNING 
-		printf "%s\n" "${ORANGE}warning:${NC} operating in anonymous and unprotected mode for mqtt broker at $mqtt_address"
+		printf "%s\n" "${ORANGE}> warning:${NC} operating in anonymous and unprotected mode for mqtt broker at $mqtt_address"
+	
+	else 
+		#PREPEND COLON FOR FULL URL PROCESSING
+		mqtt_password=":$mqtt_password@"
 	fi
+
+	#SET UP PUB/SUB URL
+	mqtt_url="mqtt://$mqtt_user$mqtt_password$mqtt_address:$mqtt_port/"
+
 else
 	printf "%s\n" "> mosquitto preferences file created. please customize." 
 
@@ -100,10 +122,10 @@ printf "%s\n" "# ---------------------------
 # IP ADDRESS OR HOSTNAME OF MQTT BROKER
 mqtt_address=0.0.0.0
 
-# MQTT BROKER USERNAME (OR BLANK FOR NONE)
+# MQTT BROKER USERNAME
 mqtt_user=username
 
-# MQTT BROKER PASSWORD (OR BLANK FOR NONE)
+# MQTT BROKER PASSWORD
 mqtt_password=password
 
 # MQTT PUBLISH TOPIC ROOT 
@@ -115,10 +137,10 @@ mqtt_publisher_identity=''
 # MQTT PORT 
 mqtt_port='1883'
 
-# MQTT CERTIFICATE FILE (LEAVE BLANK IF NONE)
+# MQTT CERTIFICATE FILE
 mqtt_certificate_path=''
 
-#MQTT VERSION (LEAVE BLANK FOR DEFAULT; EXAMPLE: 'mqttv311')
+#MQTT VERSION (EXAMPLE: 'mqttv311')
 mqtt_version=''
 
 " > "$MQTT_CONFIG"
@@ -136,7 +158,7 @@ PUB_CONFIG="$base_directory/known_static_addresses"
 
 if [ -f "$PUB_CONFIG" ]; then 
 	#DOUBLECHECKS 
-	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && printf "%s\n" " - ${RED}error:${NC} please customize public mac addresses in: known_static_addresses" && should_exit=true
+	[ ! -z "$(cat "$PUB_CONFIG" | grep "^00:00:00:00:00:00")" ] && printf "%s\n" " - >${RED} error:${NC} please customize public mac addresses in: known_static_addresses" && should_exit=true
 else
 	printf "%s\n" "> public MAC address list file created. please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
@@ -163,7 +185,7 @@ BEAC_CONFIG="$base_directory/known_beacon_addresses"
 
 if [ -f "$BEAC_CONFIG" ]; then 
 	#DOUBLECHECKS 
-	[ ! -z "$(cat "$BEAC_CONFIG" | grep "^00:00:00:00:00:00")" ] && printf "%s\n" " - ${RED}error:${NC} please customize beacon mac addresses in: known_beacon_addresses" && should_exit=true
+	[ ! -z "$(cat "$BEAC_CONFIG" | grep "^00:00:00:00:00:00")" ] && printf "%s\n" " - >${RED} error:${NC} please customize beacon mac addresses in: known_beacon_addresses" && should_exit=true
 else
 	printf "%s\n" "> beacon MAC address list file created. please customize."
 	#IF NO PUBLIC ADDRESS FILE; LOAD 
@@ -276,7 +298,7 @@ if [ -f "$PREF_CONFIG" ]; then
 	PREF_DEVICE_TRACKER_TOPIC_BRANCH=${PREF_DEVICE_TRACKER_TOPIC_BRANCH:-device_tracker}
 
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
-	[ "$(printf "%s\n" "$preferences" | grep -c "error")" -gt "0" ] && printf "%s\n" "> ${ORANGE}warning:${NC} preferences error, using defaults. reset to defaults? [y/n]" && read -t 10 should_restore_defaults
+	[ "$(printf "%s\n" "$preferences" | grep -c "error")" -gt "0" ] && printf "%s\n" "> ${ORANGE}> warning:${NC} preferences error, using defaults. reset to defaults? [y/n]" && read -t 10 should_restore_defaults
 
 	#CONVERT TYPED VALUE TO TRUE OR FALSE
 	[[ "${should_restore_defaults,,}" =~ y|yes ]] && should_restore_defaults=true

@@ -49,11 +49,21 @@ mqtt_announce_online(){
 	-I "$mqtt_publisher_identity" \
 	$mqtt_version_append \
 	$mqtt_ca_file_append \
-	-P "$mqtt_password" -u "$mqtt_user" \
-	-h "$mqtt_address" \
-	-p "$mqtt_port" \
-	-t "$mqtt_topicpath/$mqtt_publisher_identity/status" \
+	-L "$mqtt_url$mqtt_topicpath/$mqtt_publisher_identity/status" \
 	-m "online" 2>&1 
+}
+
+# ----------------------------------------------------------------------------------------
+# MQTT ECHO
+# ----------------------------------------------------------------------------------------
+mqtt_echo(){
+	#ANNOUCEE HEALTH 
+	$mosquitto_pub_path \
+	-I "$mqtt_publisher_identity" \
+	$mqtt_version_append \
+	$mqtt_ca_file_append \
+	-L "$mqtt_url$mqtt_topicpath/$mqtt_publisher_identity/echo" \
+	-m "ok" 2>&1 
 }
 
 
@@ -66,38 +76,35 @@ mqtt_broker_clean (){
 	local topic_path
 
 	#MQTT LOOP
-	while read instruction; do 
+	while read instruction; do
+
+	printf "%s\n" "$instruction " 
 
 		#ERROR HANDLING
 		[[ ${instruction^^} =~ .*REFUSED.* ]] && return 0
 		
-		#EXTRACT THE TOPIC PATH WITHOUT RELYING ON FORMAT FLAG
-		topic_data=$(echo "$instruction" | sed 's/'"$mqtt_topicpath"'\/'"$mqtt_publisher_identity"'\/[0-9_:a-z/-]\{2,\}//gi')
-		topic_path=$(echo "$instruction" | sed 's/'"$topic_data"'$//g')
+		#EXTRACT TOPIC PATH FROM FORMATTED MQTT MESSAGE
+		topic_path_of_instruction="${instruction%%|*}"
 
-		[ -z "$topic_path" ] && continue
+		[ -z "$topic_path_of_instruction" ] && continue
 
 		#PUBLISH CLEARING MESSAGE
 		$mosquitto_pub_path \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		-P "$mqtt_password" -u "$mqtt_user" \
 		-r \
 		-n \
-		-h "$mqtt_address" \
-		-p "$mqtt_port" \
-		-t "$topic_path" 2>&1 
+		-L "$mqtt_url$topic_path_of_instruction" 2>&1 
 
 	done < <($(which mosquitto_sub) \
 		-I "$mqtt_publisher_identity" \
 		-v $mqtt_version_append \
 		$mqtt_ca_file_append \
+		-F '%t|%p' \
 		-W 1 \
-		-h "$mqtt_address" \
-		-p "$mqtt_port" \
-		-P "$mqtt_password" \
-		-u "$mqtt_user" \
-		-t "$mqtt_topicpath/$mqtt_publisher_identity/#" 2>&1 ) 
+		-L "$mqtt_url$mqtt_topicpath/$mqtt_publisher_identity/#" 2>&1 ) 
+
+	printf "%s\n" "> retained messages cleaned from broker"
 }
 
 # ----------------------------------------------------------------------------------------
@@ -116,28 +123,21 @@ mqtt_listener (){
 			#ERROR HANDLING
 			[[ ${instruction^^} =~ .*REFUSED.* ]] && break
 
-
-			#EXTRACT THE TOPIC PATH WITHOUT RELYING ON FORMAT FLAG
-			topic_data=$(echo "$instruction" | sed 's/'"$mqtt_topicpath"'\/scan\/[0-9_:a-z/-]\{2,\}\?//gi')
-			topic_path=$(echo "$instruction" | sed 's/'"$topic_data"'$//g')
-
 			#PRINT THE INSTRUCTION BACK TO THE MAIN THREAD
-			printf "MQTT$topic_path|$topic_data\n" > main_pipe 
+			printf "MQTT$instruction\n" > main_pipe 
 
 		done < <($(which mosquitto_sub) -I \
 			"$mqtt_publisher_identity" \
 			$mqtt_version_append \
 			$mqtt_ca_file_append \
-			-h "$mqtt_address" \
-			-p "$mqtt_port" \
 			-v \
-			-P "$mqtt_password" -u "$mqtt_user" \
-			-t "$mqtt_topicpath/scan/#" \
+			-F '%t|%p' \
+			-L "$mqtt_url$mqtt_topicpath/scan/#" \
 			--will-topic "$mqtt_topicpath/$mqtt_publisher_identity/status" \
 			--will-payload "offline" 2>&1 ) 
 
 		#LOG ERROR
-		log "[CMD-ERRO]	${RED}mqtt broker went offline, or a password/username combination was rejected.${NC} attempting subscribe in 10 seconds..."
+		log "[CMD-ERRO]	${RED}mqtt broker went offline, or a password/username combination was rejected.${NC}"
 		
 		sleep 10
 	done 
@@ -172,10 +172,7 @@ publish_rssi_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		-P "$mqtt_password" -u "$mqtt_user" \
-		-h "$mqtt_address" \
-		-p "$mqtt_port" \
-		-t "$topic" \
+		-L "$mqtt_url$topic" \
 		-m "$message" 2>&1)
 	fi
 }
@@ -258,10 +255,7 @@ publish_presence_message () {
 				$should_retain \
 				$mqtt_version_append \
 				$mqtt_ca_file_append \
-				-P "$mqtt_password" -u "$mqtt_user" \
-				-h "$mqtt_address" \
-				-p "$mqtt_port" \
-				-t "$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH" \
+				-L "$mqtt_url$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH" \
 				-m "$device_tracker_message" 2>&1)
 			fi
  		fi 
@@ -272,14 +266,11 @@ publish_presence_message () {
 
 		#POST TO MQTT
 		($mosquitto_pub_path \
-		-P "$mqtt_password" -u "$mqtt_user" \
 		-I "$mqtt_publisher_identity" \
 		$should_retain \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		-h "$mqtt_address" \
-		-p "$mqtt_port" \
-		-t "$topic" \
+		-L "$mqtt_url$topic" \
 		-m "$message" 2>&1)  	
 	fi
 }
@@ -295,10 +286,7 @@ publish_cooperative_scan_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		-P "$mqtt_password" -u "$mqtt_user" \
-		-h "$mqtt_address" \
-		-p "$mqtt_port" \
-		-t "$mqtt_topicpath/scan/$1" \
+		-L "$mqtt_url$mqtt_topicpath/scan/$1" \
 		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1)
 
 	elif [ -n "$1" ] && [ -n "$2" ]; then 
@@ -307,10 +295,7 @@ publish_cooperative_scan_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		-P "$mqtt_password" -u "$mqtt_user" \
-		-h "$mqtt_address" \
-		-p "$mqtt_port" \
-		-t "$mqtt_topicpath/$2/$1" \
+		-L "$mqtt_url$mqtt_topicpath/$2/$1" \
 		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1)
 
 	else 
@@ -319,10 +304,7 @@ publish_cooperative_scan_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
-		-P "$mqtt_password" -u "$mqtt_user" \
-		-h "$mqtt_address" \
-		-p "$mqtt_port" \
-		-t "$mqtt_topicpath/scan" \
+		-L "$mqtt_url$mqtt_topicpath/scan" \
 		-m "{\"identity\":\"$mqtt_publisher_identity\"}" 2>&1)
 	fi 
 }

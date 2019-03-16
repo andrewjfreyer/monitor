@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.053
+export version=0.2.065
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -62,7 +62,7 @@ echo "====================== DEBUG ======================"
 # ----------------------------------------------------------------------------------------
 #SOURCE SETUP AND ARGV FILES
 source './support/argv'
-source './support/setup'
+source './support/init'
 
 #SOURCE FUNCTIONS
 source './support/mqtt'
@@ -822,7 +822,7 @@ while true; do
 	
 	#READ FROM THE MAIN PIPE
 	while read -r event; do 
-		
+
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
 		data="${event:4}"
@@ -914,8 +914,6 @@ while true; do
 				cmd="PUBL"
 				unset "random_device_log[$mac]"
 
-				#log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
-
 				#BEACON TYPE
 				beacon_type="GENERIC_BEACON_RANDOM"
 
@@ -937,12 +935,11 @@ while true; do
 					[ -n "$rssi" ] && rssi_log[$mac]="$rssi"
 					cmd="PUBL"
 
-					#log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
-
 					#BEACON TYPE
 					beacon_type="GENERIC_BEACON_PUBLIC"
 
 				else 
+
 
 					#DATA IS RANDOM MAC Addr.; ADD TO LOG
 					[ -z "${random_device_log[$mac]}" ] && is_new=true
@@ -1039,6 +1036,11 @@ while true; do
 				#exit
 				exit 0	
 
+			elif [[ $mqtt_topic_branch =~ .*ECHO.* ]]; then 
+				log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] echo  ${NC}"				
+				
+				mqtt_echo
+			
 			elif [[ $mqtt_topic_branch =~ .*UPDATEBETA.* ]]; then 
 				log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] beta update requested ${NC}"				
 				
@@ -1099,6 +1101,8 @@ while true; do
 					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}restart${NC}? ${NC}"
 				elif [[ ${mqtt_topic_branch^^} =~ .*DAT.* ]]; then 
 					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}update${NC} or .../scan/${RED}updatebeta${NC}? ${NC}"
+				elif [[ ${mqtt_topic_branch^^} =~ .*ECH.* ]]; then 
+					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}echo${NC} or .../scan/${RED}updatebeta${NC}? ${NC}"
 				fi 
 
 			fi
@@ -1388,8 +1392,6 @@ while true; do
 					break
 				fi 
 			done
-
-			#log "[CMD-INFO]	PUBL $mac $matching_beacon_uuid_key ($LINENO)"
 
 			#SET NAME 
 			[ -n "$name" ] && known_public_device_name[$mac]="$name"
