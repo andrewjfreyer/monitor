@@ -914,7 +914,7 @@ while true; do
 				cmd="PUBL"
 				unset "random_device_log[$mac]"
 
-				#log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
+				log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
 
 				#BEACON TYPE
 				beacon_type="GENERIC_BEACON_RANDOM"
@@ -937,12 +937,15 @@ while true; do
 					[ -n "$rssi" ] && rssi_log[$mac]="$rssi"
 					cmd="PUBL"
 
-					#log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
+					log "[CMD-INFO]	Converting RAND $mac to PUBL $mac ($LINENO)"
 
 					#BEACON TYPE
 					beacon_type="GENERIC_BEACON_PUBLIC"
 
 				else 
+
+					log "[CMD-INFO] RAND pass $mac ($LINENO)"
+
 
 					#DATA IS RANDOM MAC Addr.; ADD TO LOG
 					[ -z "${random_device_log[$mac]}" ] && is_new=true
