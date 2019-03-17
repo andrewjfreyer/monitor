@@ -260,7 +260,7 @@ As an example:
       data:
         dev_id: andrew
         source_type: bluetooth
-  location_name: home
+        location_name: home
 
 - alias: Andrew Occupancy Off
   hide_entity: true
@@ -273,7 +273,7 @@ As an example:
       data:
         dev_id: andrew
         source_type: bluetooth
-  location_name: not_home
+        location_name: not_home
 
 ```
 
