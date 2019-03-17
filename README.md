@@ -259,6 +259,7 @@ As an example:
     - service: device_tracker.see
       data:
         dev_id: andrew
+        source_type: bluetooth
   location_name: home
 
 - alias: Andrew Occupancy Off
@@ -271,6 +272,7 @@ As an example:
     - service: device_tracker.see
       data:
         dev_id: andrew
+        source_type: bluetooth
   location_name: not_home
 
 ```
