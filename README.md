@@ -20,7 +20,6 @@ ____
 
   * [**Installing on a Raspberry Pi Zero W**](#installation-instructions-for-raspberry-pi-zero-w) 
 
-  * [**FAQs**](#faqs) 
 ____
 
 # *Highlights*

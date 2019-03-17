@@ -1,6 +1,4 @@
-___
-
-# *FAQs*
+# *Frequenty Asked Questions*
 
 ### I'm running 5GHz Wi-Fi, I don't use Bluetooth for anything else, and I don't care whether I interfere with my neighbor's devices. Can't I just issue a name scan every few seconds to get faster arrival and depart detection? 
 
