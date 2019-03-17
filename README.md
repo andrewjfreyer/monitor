@@ -259,8 +259,8 @@ As an example:
     - service: device_tracker.see
       data:
         dev_id: andrew
-        source_type: bluetooth
         location_name: home
+        source_type: bluetooth
 
 - alias: Andrew Occupancy Off
   hide_entity: true
@@ -272,8 +272,8 @@ As an example:
     - service: device_tracker.see
       data:
         dev_id: andrew
-        source_type: bluetooth
         location_name: not_home
+        source_type: bluetooth
 
 ```
 
