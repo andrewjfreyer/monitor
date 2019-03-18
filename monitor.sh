@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.069
+export version=0.2.071
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1564,7 +1564,6 @@ while true; do
 
 				#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
 				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type by $abs_rssi_change dBm) ${NC}" && should_update=true
-				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "2" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI LOG: ${rssi:-100} dBm ($change_type) ${NC}"
 			fi
 		fi 
 
@@ -1673,12 +1672,12 @@ while true; do
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
 			
 			#REJECTION FILTER
-			if [[ $flags =~ $PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE ]] || [[ $manufacturer =~ $PREF_FAIL_FILTER_MANUFACTURER_ARRIVE ]]; then 
+			if [[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]] || [[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]]; then 
 				continue
 			fi 
 
 			#FLAG AND MFCG FILTER
-			if [[ $flags =~ $PREF_PASS_FILTER_ADV_FLAGS_ARRIVE ]] && [[ $manufacturer =~ $PREF_PASS_FILTER_MANUFACTURER_ARRIVE ]]; then 
+			if [[ ${flags,,} =~ ${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE,,} ]] && [[ ${manufacturer,,} =~ ${PREF_PASS_FILTER_MANUFACTURER_ARRIVE,,} ]]; then 
 				#PROVIDE USEFUL LOGGING
 				log "${RED}[CMD-$cmd]${NC}	[${GREEN}passed filter${NC}] data: ${BLUE}${mac:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${BLUE}${flags:-none}${NC} man: ${BLUE}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
 
