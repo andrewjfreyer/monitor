@@ -217,7 +217,7 @@ btle_text_processor () {
 				log "${RED}[CMD-TEST]${NC}	\
 				[${RED}failed flag filter${NC}] \
 				data: ${BLUE}${mac:-none}${NC} \
-				pdu: ${BLUE}${pdu_header:-none}${NC} \
+				pdu: ${BLUE}${pdu_type:-none}${NC} \
 				rssi: ${BLUE}${rssi:-UKN} dBm${NC} \
 				flags: ${RED}${flags:-none}${NC} \
 				man: ${RED}${manufacturer:-unknown}${NC} \
@@ -229,7 +229,7 @@ btle_text_processor () {
 				log "${RED}[CMD-TEST]${NC}	\
 				[${RED}failed mfcg filter${NC}] \
 				data: ${BLUE}${mac:-none}${NC} \
-				pdu: ${BLUE}${pdu_header:-none}${NC} \
+				pdu: ${BLUE}${pdu_type:-none}${NC} \
 				rssi: ${BLUE}${rssi:-UKN} dBm${NC} \
 				flags: ${RED}${flags:-none}${NC} \
 				man: ${RED}${manufacturer:-unknown}${NC} \
@@ -241,7 +241,7 @@ btle_text_processor () {
 				log "${RED}[CMD-TEST]${NC}	\
 				[${RED}failed pdu filter${NC}] \
 				data: ${BLUE}${mac:-none}${NC} \
-				pdu: ${BLUE}${pdu_header:-none}${NC} \
+				pdu: ${BLUE}${pdu_type:-none}${NC} \
 				rssi: ${BLUE}${rssi:-UKN} dBm${NC} \
 				flags: ${RED}${flags:-none}${NC} \
 				man: ${RED}${manufacturer:-unknown}${NC} \
