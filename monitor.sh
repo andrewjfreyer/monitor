@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.071
+export version=0.2.073
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -146,14 +146,14 @@ first_arrive_scan=true
 # ----------------------------------------------------------------------------------------
 
 #LOAD PUBLIC ADDRESSES TO SCAN INTO ARRAY, IGNORING COMMENTS
-mapfile -t known_static_beacons < <(sed 's/#.\{0,\}//g' < "$BEAC_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
-mapfile -t known_static_addresses < <(sed 's/#.\{0,\}//g' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
-mapfile -t address_blacklist < <(sed 's/#.\{0,\}//g' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
+mapfile -t known_static_beacons < <(sed 's/#.\{0,\}//gi' < "$BEAC_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
+mapfile -t known_static_addresses < <(sed 's/#.\{0,\}//gi' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
+mapfile -t address_blacklist < <(sed 's/#.\{0,\}//gi' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
 
 #MQTT ALIASES
 if [ -f "$ALIAS_CONFIG" ]; then 
 
-	mapfile -t mqtt_alias_addresses < <(sed 's/#.\{0,\}//g' < "$ALIAS_CONFIG")
+	mapfile -t mqtt_alias_addresses < <(sed 's/#.\{0,\}//gi' < "$ALIAS_CONFIG")
 
 	#MQTT ALIASES 
 	for line in "${mqtt_alias_addresses[@]}"; do 
@@ -167,7 +167,7 @@ if [ -f "$ALIAS_CONFIG" ]; then
 	  	value=${value,,}
 
 	  	#REMOVE FINAL UNDERSCORES SHOUDL THERE BE
-	   	value=$(echo "$value" | sed 's/[^0-9a-z]\{1,\}$//g;s/^[^0-9a-z]\{1,\}//g;s/__*/_/g')
+	   	value=$(echo "$value" | sed 's/[^0-9a-z]\{1,\}$//gi;s/^[^0-9a-z]\{1,\}//gi;s/__*/_/gi')
 
 	  	#DEFAULT
 	   	value=${value:-key}
@@ -190,13 +190,13 @@ done
 # ----------------------------------------------------------------------------------------
 
 #LIST CONNECTED DEVICES
-previously_connected_devices=$(echo "quit" | bluetoothctl | grep -Eio "Device ([0-9A-F]{2}:){5}[0-9A-F]{2}" | sed 's/Device //g')
+previously_connected_devices=$(echo "quit" | bluetoothctl | grep -Eio "Device ([0-9A-F]{2}:){5}[0-9A-F]{2}" | sed 's/Device //gi')
 
 #POPULATE KNOWN DEVICE ADDRESS
 for addr in "${known_static_addresses[@]}"; do 
 
 	#WAS THERE A NAME HERE?
-	known_name=$(grep "$addr" "$PUB_CONFIG" | tr "\\t" " " | sed 's/  */ /g;s/#.\{0,\}//g' | sed "s/$addr //g;s/  */ /g" )
+	known_name=$(grep "$addr" "$PUB_CONFIG" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$addr //gi;s/  */ /gi" )
 
 	#IF WE FOUND A NAME, RECORD IT
 	[ -n "$known_name" ] && known_public_device_name[$addr]="$known_name"
@@ -224,7 +224,7 @@ done
 for addr in "${known_static_beacons[@]}"; do 
 
 	#WAS THERE A NAME HERE?
-	known_name=$(grep "$addr" "$BEAC_CONFIG" | tr "\\t" " " | sed 's/  */ /g;s/#.\{0,\}//g' | sed "s/$addr //g;s/  */ /g" )
+	known_name=$(grep "$addr" "$BEAC_CONFIG" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$addr //gi;s/  */ /gi" )
 
 	#IF WE FOUND A NAME, RECORD IT
 	[ -n "$known_name" ] && known_public_device_name[$addr]="$known_name"
@@ -364,7 +364,7 @@ scannable_devices_with_state () {
 	done
  
 	#RETURN LIST, CLEANING FOR EXCESS SPACES OR STARTING WITH SPACES
-	return_list=$(echo "$return_list" | sed 's/^ //g;s/ $//g;s/  */ /g')
+	return_list=$(echo "$return_list" | sed 's/^ //gi;s/ $//gi;s/  */ /gi')
 
 	#RETURN THE LIST
 	echo "$return_list"
@@ -484,11 +484,11 @@ perform_complete_scan () {
 				publish_presence_message "id=$known_addr" "confidence=100" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
 
 				#REMOVE FROM SCAN
-				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
+				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//gi;s/  */ /gi")
 
 			elif [ -n "$name" ] && [ "$previous_state" == "3" ]; then 
 				#HERE, WE HAVE FOUND A DEVICE FOR THE FIRST TIME
-				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
+				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//gi;s/  */ /gi")
 
 				#NEED TO UPDATE STATE TO MAIN THREAD
 				printf "NAME$known_addr|$name\n" > main_pipe 
@@ -503,7 +503,7 @@ perform_complete_scan () {
 			elif [ -n "$name" ] && [ "$previous_state" == "1" ]; then 
 
 				#THIS DEVICE IS STILL PRESENT; REMOVE FROM VERIFICATIONS
-				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
+				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//gi;s/  */ /gi")
 
 				#NEED TO REPORT? 
 				if [[ $should_report =~ .*$known_addr.* ]] || [ "$PREF_REPORT_ALL_MODE" == true ] ; then 			
@@ -548,7 +548,7 @@ perform_complete_scan () {
 				"-99"
 
 				#NREMOVE FROM THE SCAN LIST TO THE MAIN BECAUSE THIS IS A BOOT UP 
-				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//g;s/  */ /g")
+				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//gi;s/  */ /gi")
 
 				#PUBLISH A NOT PRESENT TO THE NAME PIPE
 				printf "NAME$known_addr|\n" > main_pipe 

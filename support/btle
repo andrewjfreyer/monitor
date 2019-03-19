@@ -65,7 +65,7 @@ btle_scanner () {
 
 btle_packet_processor () {
 	#POPULATE PACKET 
-	local packet=$(echo "$1" | sed 's/> *//g;s/    / /g')
+	local packet=$(echo "$1" | sed 's/> *//g;s/    / /gi')
 
 	#BEACON PACKET?
 	if [[ $packet =~ ^04\ 3E\ 2[AB]\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]]; then
@@ -78,14 +78,14 @@ btle_packet_processor () {
 		local MAJOR=$(echo $packet | sed 's/^.\{117\}\(.\{5\}\).*$/\1/')
 		local MINOR=$(echo $packet | sed 's/^.\{123\}\(.\{5\}\).*$/\1/')
 		local POWER=$(echo $packet | sed 's/^.\{129\}\(.\{2\}\).*$/\1/')
-		local UUID=$(echo $UUID | sed -e 's/\ //g' -e 's/^\(.\{8\}\)\(.\{4\}\)\(.\{4\}\)\(.\{4\}\)\(.\{12\}\)$/\1-\2-\3-\4-\5/')
+		local UUID=$(echo $UUID | sed -e 's/\ //gi' -e 's/^\(.\{8\}\)\(.\{4\}\)\(.\{4\}\)\(.\{4\}\)\(.\{12\}\)$/\1-\2-\3-\4-\5/')
 	
 		#MAJOR CALCULATION
-		MAJOR=$(echo $MAJOR | sed 's/\ //g')
+		MAJOR=$(echo $MAJOR | sed 's/\ //gi')
 		MAJOR=$(echo "ibase=16; $MAJOR" | bc)
 
 		#MINOR CALCULATION
-		MINOR=$(echo $MINOR | sed 's/\ //g')
+		MINOR=$(echo $MINOR | sed 's/\ //gi')
 		MINOR=$(echo "ibase=16; $MINOR" | bc)
 
 		#POWER CALCULATION
@@ -211,8 +211,41 @@ btle_text_processor () {
 			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data|$timestamp" > main_pipe
 
 		elif [ "$tx_type" == "RAND" ]; then
+
+			#MOVE IGNORE FILTER HERE TO BE SURE 
+			if [[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]]; then 
+				log "${RED}[CMD-$cmd]${NC}	\
+				[${RED}failed flag filter${NC}] \
+				data: ${BLUE}${mac:-none}${NC} \
+				pdu: ${BLUE}${pdu_header:-none}${NC} \
+				rssi: ${BLUE}${rssi:-UKN} dBm${NC} \
+				flags: ${RED}${flags:-none}${NC} \
+				man: ${RED}${manufacturer:-unknown}${NC} \
+				delay: ${BLUE}${instruction_delay:-UKN}${NC}"
+			fi 
+
+			if [[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]]; then
+			 
+				log "${RED}[CMD-$cmd]${NC}	\
+				[${RED}failed mfcg filter${NC}] \
+				data: ${BLUE}${mac:-none}${NC} \
+				pdu: ${BLUE}${pdu_header:-none}${NC} \
+				rssi: ${BLUE}${rssi:-UKN} dBm${NC} \
+				flags: ${RED}${flags:-none}${NC} \
+				man: ${RED}${manufacturer:-unknown}${NC} \
+				delay: ${BLUE}${instruction_delay:-UKN}${NC}"
+			fi 
 		 
-			if [[ $pdu_type =~ $PREF_PASS_FILTER_PDU_TYPE ]] ; then 
+			if [[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]] ; then 
+
+				log "${RED}[CMD-$cmd]${NC}	\
+				[${RED}failed pdu filter${NC}] \
+				data: ${BLUE}${mac:-none}${NC} \
+				pdu: ${BLUE}${pdu_header:-none}${NC} \
+				rssi: ${BLUE}${rssi:-UKN} dBm${NC} \
+				flags: ${RED}${flags:-none}${NC} \
+				man: ${RED}${manufacturer:-unknown}${NC} \
+				delay: ${BLUE}${instruction_delay:-UKN}${NC}"
 
 				#IF THIS DOES NOT HAVE A UUID, PROCESS AS GENERIC BEACON
 				should_ignore=false 
@@ -228,6 +261,7 @@ btle_text_processor () {
 			fi 
 		fi 
 	fi
+
 }
 
 # ----------------------------------------------------------------------------------------

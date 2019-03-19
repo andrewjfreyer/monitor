@@ -17,7 +17,7 @@
 # ----------------------------------------------------------------------------------------
 beacon_database_expiration_trigger () {
 	while : ; do 
-		sleep "$(( PREF_BEACON_EXPIRATION / 6 ))"
+		sleep "$(( PREF_BEACON_EXPIRATION / 12 ))"
 		echo "BEXP" > main_pipe
 	done
 }
