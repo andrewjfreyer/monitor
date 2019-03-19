@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.077
+export version=0.2.078
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -631,7 +631,7 @@ perform_complete_scan () {
 	printf "DONE\n" > main_pipe
 
 	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-INFO]	${GREEN}**** Completed $transition_type scan. **** ${NC}"
+	log "${GREEN}[CMD-INFO]	${GREEN}**** completed $transition_type scan. **** ${NC}"
 
 	#PUBLISH END OF COOPERATIVE SCAN
 	$PREF_MQTT_REPORT_SCAN_MESSAGES && publish_cooperative_scan_message "$transition_type/end"

@@ -259,7 +259,7 @@ publish_presence_message () {
  		fi 
 
 		#DEBUGGING WITH SIMPLE
-		printf "%s\n" "${PURPLE}$topic${NC}"
+		log "[CMD-MQTT]	posted to topic: ${PURPLE}$topic${NC}"
 		$PREF_VERBOSE_LOGGING && printf "%s\n" "${PURPLE}$(json_unformat "$message")${NC}" 
 
 		#POST TO MQTT
