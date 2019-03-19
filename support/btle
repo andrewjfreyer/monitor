@@ -229,10 +229,13 @@ btle_text_processor () {
 
 				#PRINT DEBUG MESSAGES 				
 				printf "%s\n" "${PURPLE}***************** FILTER DEBUG ********************** ${NC}"
-				printf "%s\n" "btmon data:	$(tr '|' "\n" <<<$packet) "
+				printf "%s\n" "btmon packet:"
+				printf "%s\n" "$(tr '|' "\n" <<<$packet)"
+				printf "\n"
 				printf "%s\n" "flag filter:	${flag_filter_color}not (${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,})${NC}"
 				printf "%s\n" "mfcg filter:	${mfcg_filter_color}not (${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,})${NC}"
 				printf "%s\n" "pdu filter: 	${pdut_filter_color}${PREF_PASS_FILTER_PDU_TYPE,,}${NC}"
+				printf "%s\n" "type: 		${BLUE}${tx_type:-unknown}${NC}"
 				printf "%s\n" "data: 		${BLUE}${received_mac_address:-none}${NC}"
 				printf "%s\n" "name: 		${BLUE}${gap_name_str:-none}${NC}"
 				printf "%s\n" "pdu: 		${BLUE}${pdu_type:-none}${NC}"
