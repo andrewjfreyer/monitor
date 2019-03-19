@@ -245,7 +245,8 @@ publish_presence_message () {
  			#A COMPLETE CONFIDENCE MESSAGE
  			if [ -n "$device_tracker_message" ]; then 
 	 			#PRINT FOR DEVICE TRACKER
-	 			printf "%s\n" "${PURPLE}$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH $device_tracker_message${NC}"
+	 			log "${PURPLE}[CMD-POST]${NC	${PURPLE}$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH${NC}"
+	 			$PREF_VERBOSE_LOGGING && printf "%s\n" "${PURPLE}$device_tracker_message${NC}"
 
 	 			#POST TO MQTT
 				($mosquitto_pub_path \
@@ -259,7 +260,7 @@ publish_presence_message () {
  		fi 
 
 		#DEBUGGING WITH SIMPLE
-		log "[CMD-MQTT]	posted to topic: ${PURPLE}$topic${NC}"
+		log "${PURPLE}[CMD-POST]${NC	${PURPLE}$topic${NC}"
 		$PREF_VERBOSE_LOGGING && printf "%s\n" "${PURPLE}$(json_unformat "$message")${NC}" 
 
 		#POST TO MQTT
