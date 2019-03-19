@@ -61,7 +61,7 @@ usage:
 	monitor -v	print version number
 	monitor -d	restore to default behavior_preferences
 	monitor -u	update 'monitor.service' to current command line settings
-			(excluding -u and -d flags)
+			(excluding -u,-V, and -d flags)
 
 	monitor -s  report all mqtt messages to a single topic with 
 				\$mqtt_topicpath/\$mqtt_publisher_identity  (defined in MQTT preferences file)
