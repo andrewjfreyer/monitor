@@ -404,7 +404,7 @@ perform_complete_scan () {
 	
 	#LOG START OF DEVICE SCAN 
 	$PREF_MQTT_REPORT_SCAN_MESSAGES && publish_cooperative_scan_message "$transition_type/start"
-	log "${GREEN}[CMD-INFO]	${GREEN}**** started $transition_type scan. [x$repetitions max rep] **** ${NC}"
+	log "${GREEN}[CMD-INFO]	${GREEN}**** started $transition_type scan [x$repetitions max rep] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	local repetition 
@@ -631,7 +631,7 @@ perform_complete_scan () {
 	printf "DONE\n" > main_pipe
 
 	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-INFO]	${GREEN}**** completed $transition_type scan. **** ${NC}"
+	log "${GREEN}[CMD-INFO]	${GREEN}**** completed $transition_type scan **** ${NC}"
 
 	#PUBLISH END OF COOPERATIVE SCAN
 	$PREF_MQTT_REPORT_SCAN_MESSAGES && publish_cooperative_scan_message "$transition_type/end"
