@@ -272,5 +272,14 @@ ____
 
 ### I updated recently, and `monitor` is no longer working... what gives? 
 
-Make sure you've updated `mosquitto` and that you are running bash 4.4 or higher. In order to support a wider userbase, backward compatibility for old versions of `mosquitto` and older bash were dropped. 
+Make sure you've updated `mosquitto` to v1.5 or higher. In order to support a wider userbase, backward compatibility for old versions of `mosquitto` was dropped. It is alos strongly recommended that you upgrade to bash 4.4+.
+
+____
+
+### How do I determine what values to set for filters?  
+
+Try using the verbose logging option `-V` to see what `monitor` sees when a new bluetooth device advertisement is seen. Then, power cycle the bluetooth radio on the device you'd like to track - you'll probably see a pattern develop with flags or manufacturers. Use these values to create your arrival filters!
+
+Similarly, to set exclude filters, you can observe bluetooth traffic for a period of time to see what devices you simply do not care about seeing. 
+
 
