@@ -223,7 +223,7 @@ btle_text_processor () {
 		 
 			if [[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]] ; then 
 
-				log "${RED}[CMD-TEST]${NC} [${green}pass pdu filter${NC}] filter: ${PREF_PASS_FILTER_PDU_TYPE,,} data: ${BLUE}${received_mac_address:-none}${NC} name: ${gap_name_str:-none} pdu: ${BLUE}${pdu_type:-none}${NC} type: ${BLUE}${device_type:-unknown}${NC} oem: ${BLUE}${oem_data:-unknown}${NC} rssi: ${BLUE}${rssi_value:-unknown} dBm${NC} flags: ${RED}${flags:-none}${NC} man: ${RED}${manufacturer:-unknown}${NC} time: ${BLUE}${timestamp:-UKN}${NC}"
+				log "${RED}[CMD-TEST]${NC} [${GREEN}pass pdu filter${NC}] filter: ${PREF_PASS_FILTER_PDU_TYPE,,} data: ${BLUE}${received_mac_address:-none}${NC} name: ${gap_name_str:-none} pdu: ${BLUE}${pdu_type:-none}${NC} type: ${BLUE}${device_type:-unknown}${NC} oem: ${BLUE}${oem_data:-unknown}${NC} rssi: ${BLUE}${rssi_value:-unknown} dBm${NC} flags: ${RED}${flags:-none}${NC} man: ${RED}${manufacturer:-unknown}${NC} time: ${BLUE}${timestamp:-UKN}${NC}"
 
 				#IF THIS DOES NOT HAVE A UUID, PROCESS AS GENERIC BEACON
 				should_ignore=false 
