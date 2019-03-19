@@ -217,7 +217,7 @@ btle_text_processor () {
 			   [[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]] ||
 			   [[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]]; then 
 				
-				log "${RED} ***************** FILTER DEBUG ********************** ${NC} \n \
+				printf "%s\n" "${RED} ***************** FILTER DEBUG ********************** ${NC} \n \
 flag filter: ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,}\n \
 mfcg filter: ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,}\n \
 pdu filter: ${PREF_PASS_FILTER_PDU_TYPE,,}\n \
