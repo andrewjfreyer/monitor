@@ -128,6 +128,11 @@ btle_text_processor () {
 	local oem_data
 	local version
 
+	#FILTER DEBUG STUFF
+	local mfcg_filter_color
+	local flag_filter_color
+	local pdut_filter_color
+
 	#BEACON
 	local uuid
 	local tx_power
@@ -215,14 +220,20 @@ btle_text_processor () {
 			#MOVE IGNORE FILTER HERE TO BE SURE 
 			if [[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]] || 
 			   [[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]] ||
-			   [[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]]; then 
-				
-				printf "%s\n" "${PURPLE} ***************** FILTER DEBUG ********************** ${NC}"
+			   [[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]]; then  
+
+				#FORMATTING FOR FUN AND PROFIT
+			   	[[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]] && flag_filter_color=${GREEN} || flag_filter_color=${RED}
+			   	[[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]] && mfcg_filter_color=${GREEN} || mfcg_filter_color=${RED}
+			   	[[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]] && pdut_filter_color=${GREEN} || pdut_filter_color=${RED}
+
+				#PRINT DEBUG MESSAGES 				
+				printf "%s\n" "${PURPLE}***************** FILTER DEBUG ********************** ${NC}"
 				printf "%s\n" "flag filter:	${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,}"
 				printf "%s\n" "mfcg filter:	${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,}"
 				printf "%s\n" "pdu filter: 	${PREF_PASS_FILTER_PDU_TYPE,,}"
 				printf "%s\n" "data: 		${BLUE}${received_mac_address:-none}${NC}"
-				printf "%s\n" "name: 		${gap_name_str:-none}"
+				printf "%s\n" "name: 		${BLUE}${gap_name_str:-none}${NC}"
 				printf "%s\n" "pdu: 		${BLUE}${pdu_type:-none}${NC}"
 				printf "%s\n" "type: 		${BLUE}${device_type:-unknown}${NC}"
 				printf "%s\n" "oem: 		${BLUE}${oem_data:-unknown}${NC}"
@@ -230,8 +241,6 @@ btle_text_processor () {
 				printf "%s\n" "flags:		${RED}${flags:-none}${NC}"
 				printf "%s\n" "man: ${RED}		${manufacturer:-unknown}${NC}"
 				printf "%s\n" "time: ${BLUE}		${timestamp:-UKN}${NC}"
-				printf "%s\n" "${PURPLE} ***************************************************** ${NC}"
-
 
 			fi 
 
