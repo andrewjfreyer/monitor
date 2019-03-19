@@ -203,7 +203,7 @@ btle_text_processor () {
 		fi 
 
 		#------------ OEM DATA 
-		if [[ $packet =~ 1\ entry\ {0,}([^|\(]*)(\||$|\() ]]; then 
+		if [[ $packet =~ 1\ entry\|([^|\(]{1,}) ]]; then 
 			oem_data=${BASH_REMATCH[1]}
 		fi 
 
