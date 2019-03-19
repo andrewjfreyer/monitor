@@ -45,33 +45,9 @@ show_help_text() {
 monitor.sh
 
 Andrew J Freyer, 2018
+https://github.com/andrewjfreyer/monitor
+
 GNU General Public License
-
------ Summary -----
-
-This is a shell script and a set of helper scripts that passively 
-monitor for specified bluetooth devices, iBeacons, and bluetooth 
-devices that publicly advertise. Once a specified device, iBeacon, or 
-publicly device is found, a report is made via MQTT to a specified 
-MQTT broker. When a previously-found device expires or is not found, 
-a report is made via MQTT to the broker that the device has departed. 
-
------ Background ----- 
-
-By default, most BTLE devices repeatedly advertise their presence with a 
-random mac address at a random interval. The randomness is to maintain 
-privacy and to prevent device tracking by bad actors or advertisers. 
-
------ Description ----- 
-
-By knowing the static bluetooth mac address of a specified 
-bluetooth device before hand, a random advertisement can be used 
-as a trigger to scan for the presence of that known device. This 
-construction enables the script to rapidly detect the arrival of 
-a specified bluetooth device, while reducing the number of times 
-an affirmative scan operation is required (which may interfere 
-with 2.4GHz Wi-Fi).
-
 
 usage:
 
@@ -81,8 +57,9 @@ usage:
 	monitor -c addr	create connection to bluetooth device
 	monitor -C 	clean retained messages from MQTT broker
 
+	monitor -V	print verbose/debug logging messages
 	monitor -v	print version number
-	monitor -d	restore to default behavior settings (mqtt settings and known device settings are not effected)
+	monitor -d	restore to default behavior_preferences
 	monitor -u	update 'monitor.service' to current command line settings
 			(excluding -u and -d flags)
 
@@ -92,7 +69,7 @@ usage:
 	monitor -f	format MQTT topics with only letters and numbers
 	monitor -a	report all known device scan results, not just changes
 	monitor -x	retain mqtt status messages
-	monitor -b	report bluetooth beacons (e.g., generic beacons, ibeacons, and so on)
+	monitor -b	report bluetooth beacon advertisements (e.g., generic beacons, ibeacons, and so on)
 	monitor -t[adr]	scan for known devices only on mqtt trigger messages:
 				a \$mqtt_topicpath/scan/ARRIVE (defined in MQTT preferences file)
 				d \$mqtt_topicpath/scan/DEPART (defined in MQTT preferences file)
@@ -131,6 +108,7 @@ PREF_MQTT_REPORT_SCAN_MESSAGES=false
 PREF_SERVICE_CHECK=true
 PREF_CONFIG_DIR=''
 PREF_DISABLE_LOGGING=false
+PREF_VERBOSE_LOGGING=false
 
 while getopts "h?vfbut:EgSRCmsadxD:c:" opt; do
 	case "$opt" in
@@ -143,6 +121,10 @@ while getopts "h?vfbut:EgSRCmsadxD:c:" opt; do
 			;;
 		v)  
 			printf "%s\n" "$VERSION"
+			exit 0
+			;;
+		V)  
+			PREF_VERBOSE_LOGGING=true && printf "%s\n" "> verbose logging is enabled. this setting is only for debugging purposes"
 			exit 0
 			;;
 		c) 

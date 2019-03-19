@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.075
+export version=0.2.076
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -210,7 +210,7 @@ for addr in "${known_static_addresses[@]}"; do
 
 	#PUBLICATION TOPIC 
 	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch"
-	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { id: $addr ... }"
+	$PREF_MQTT_SINGLE_TOPIC_MODE && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { id: $addr ... }"
 
 	#FOR DEBUGGING
 	printf "%s\n" "> ${GREEN}$addr${NC} confidence topic: $pub_topic (has $is_connected to $PREF_HCI_DEVICE)"
@@ -234,7 +234,7 @@ for addr in "${known_static_beacons[@]}"; do
 
 	#PUBLICATION TOPIC 
 	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch"
-	[ "$PREF_MQTT_SINGLE_TOPIC_MODE" == true ] && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { id: $addr ... }"
+	$PREF_MQTT_SINGLE_TOPIC_MODE && pub_topic="$mqtt_topicpath/$mqtt_publisher_identity { id: $addr ... }"
 
 	#FOR DBUGGING
 	echo "> known beacon: $addr publishes to: $pub_topic"
@@ -286,7 +286,7 @@ connectable_present_devices () {
 			"-$known_device_rssi"
 
 			#REPORT 
-			log "${CYAN}[CMD-RSSI]	${NC}$known_addr ${GREEN}$cmd ${NC}RSSI: -$known_device_rssi dBm ${NC}"
+			$PREF_VERBOSE_LOGGING && log "${CYAN}[CMD-RSSI]	${NC}$known_addr ${GREEN}$cmd ${NC}RSSI: -$known_device_rssi dBm ${NC}"
 
 			#SET RSSI LOG
 			rssi_log[$known_addr]="$known_device_rssi"
@@ -339,7 +339,6 @@ scannable_devices_with_state () {
 		#SCAN STATE [X]; THIS ALLOWS A FIRST SCAN TO PROGRESS TO 
 		#COMPLETION FOR ALL DEVICES
 		this_state=${this_state:-3}
-
 
 		#FIND LAST TIME THIS DEVICE WAS SCANNED
 		last_scan="${known_static_device_scan_log[$known_addr]}"
@@ -404,7 +403,7 @@ perform_complete_scan () {
 	local has_requested_collaborative_depart_scan=false
 	
 	#LOG START OF DEVICE SCAN 
-	[ "$PREF_MQTT_REPORT_SCAN_MESSAGES" == true ] && publish_cooperative_scan_message "$transition_type/start"
+	$PREF_MQTT_REPORT_SCAN_MESSAGES && publish_cooperative_scan_message "$transition_type/start"
 	log "${GREEN}[CMD-INFO]	${GREEN}**** started $transition_type scan. [x$repetitions max rep] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
@@ -458,7 +457,7 @@ perform_complete_scan () {
 			expected_name=${expected_name:-Unknown}
 
 			#DEBUG LOGGING
-			log "${GREEN}[CMD-SCAN]	${GREEN}(No. $repetition)${NC} $known_addr $transition_type? ${NC}"
+			$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-SCAN]	${GREEN}(No. $repetition)${NC} $known_addr $transition_type? ${NC}"
 
 			#PERFORM NAME SCAN FROM HCI TOOL. THE HCITOOL CMD 0X1 0X0019 IS POSSIBLE, BUT HCITOOL NAME
 			#SCAN PERFORMS VERIFICATIONS THAT REDUCE FALSE NEGATIVES. 
@@ -497,7 +496,7 @@ perform_complete_scan () {
 				publish_presence_message "id=$known_addr" "confidence=100" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
 
 				#COOPERATIVE SCAN ON RESTART
-				[ "$PREF_TRIGGER_MODE_REPORT_OUT" == true ] && publish_cooperative_scan_message "arrive" 
+				$PREF_TRIGGER_MODE_REPORT_OUT && publish_cooperative_scan_message "arrive" 
 
 
 			elif [ -n "$name" ] && [ "$previous_state" == "1" ]; then 
@@ -525,7 +524,7 @@ perform_complete_scan () {
 				#TRIGGER ONLY MODE DOES NOT SEND COOPERATIVE MESSAGES
 				if [ "$has_requested_collaborative_depart_scan" == false ]; then 
 					#SEND THE MESSAGE IF APPROPRIATE
-					if [ "$percent_confidence" -lt "$PREF_COOPERATIVE_SCAN_THRESHOLD" ] && [ "$PREF_TRIGGER_MODE_REPORT_OUT" == true ]; then 
+					if [ "$percent_confidence" -lt "$PREF_COOPERATIVE_SCAN_THRESHOLD" ] && $PREF_TRIGGER_MODE_REPORT_OUT; then 
 						has_requested_collaborative_depart_scan=true
 						publish_cooperative_scan_message "depart" 
 					fi 
@@ -554,7 +553,7 @@ perform_complete_scan () {
 				printf "NAME$known_addr|\n" > main_pipe 
 
 				#COOPERATIVE SCAN ON RESTART
-				[ "$PREF_TRIGGER_MODE_REPORT_OUT" == true ] && publish_cooperative_scan_message "depart"
+				$PREF_TRIGGER_MODE_REPORT_OUT && publish_cooperative_scan_message "depart"
 
 			elif [ -z "$name" ] && [ "$previous_state" == "0" ]; then 
 
@@ -635,7 +634,7 @@ perform_complete_scan () {
 	log "${GREEN}[CMD-INFO]	${GREEN}**** Completed $transition_type scan. **** ${NC}"
 
 	#PUBLISH END OF COOPERATIVE SCAN
-	[ "$PREF_MQTT_REPORT_SCAN_MESSAGES" == true ] && publish_cooperative_scan_message "$transition_type/end"
+	$PREF_MQTT_REPORT_SCAN_MESSAGES && publish_cooperative_scan_message "$transition_type/end"
 }
 
 # ----------------------------------------------------------------------------------------
@@ -779,36 +778,43 @@ determine_name () {
 log_listener &
 listener_pid="$!"
 echo "> log listener pid = $listener_pid" >> .pids
+$PREF_VERBOSE_LOGGING && echo "> log listener pid = $listener_pid"
 disown "$listener_pid"
 
 btle_scanner & 
 btle_scan_pid="$!"
 echo "> btle scan pid = $btle_scan_pid" >> .pids
+$PREF_VERBOSE_LOGGING && echo "> btle scan pid = $btle_scan_pid"
 disown "$btle_scan_pid"
 
 btle_text_listener &
 btle_text_pid="$!"
 echo "> btle text pid = $btle_text_pid" >> .pids
+$PREF_VERBOSE_LOGGING && echo "> btle text pid = $btle_text_pid"
 disown "$btle_text_pid"
 
 btle_listener &
 btle_listener_pid="$!"
 echo "> btle listener pid = $btle_listener_pid" >> .pids
+$PREF_VERBOSE_LOGGING && echo "> btle listener pid = $btle_listener_pid" 
 disown "$btle_listener_pid"
 
 mqtt_listener &
 mqtt_pid="$!"
 echo "> mqtt listener pid = $mqtt_pid" >> .pids
+$PREF_VERBOSE_LOGGING && echo "> mqtt listener pid = $mqtt_pid"
 disown "$mqtt_pid"
 
 btle_packet_listener &
 btle_packet_listener_pid="$!"
 echo "> packet listener pid = $btle_packet_listener_pid" >> .pids
+$PREF_VERBOSE_LOGGING && echo "> packet listener pid = $btle_packet_listener_pid"
 disown "$btle_packet_listener_pid"
 
 beacon_database_expiration_trigger &
 beacon_database_expiration_trigger_pid="$!"
 echo "> beacon database time trigger pid = $beacon_database_expiration_trigger_pid" >> .pids
+$PREF_VERBOSE_LOGGING && echo "> beacon database time trigger pid = $beacon_database_expiration_trigger_pid"
 disown "$beacon_database_expiration_trigger_pid"
 
 echo "================== BEGIN LOGGING =================="
@@ -836,7 +842,7 @@ while true; do
 		is_apple_beacon=false
 
 		#CLEAR DATA IN NONLOCAL VARS
-		manufacturer="Unknown"
+		manufacturer="unknown"
 		current_associated_beacon_mac_address=""
 		name=""
 		expected_name=""
@@ -863,7 +869,7 @@ while true; do
 			if [ "$data" == "arrive" ]; then 
 
 				#LOG
-				log "${GREEN}[ENQ-ARR]	${NC}Enqueued arrival scan triggered.${NC}" 
+				$PREF_VERBOSE_LOGGING && log "${GREEN}[ENQ-ARR]	${NC}Enqueued arrival scan triggered.${NC}" 
 
 				#WAIT 5 SECONDS
 				sleep 5
@@ -873,7 +879,7 @@ while true; do
 
 			elif [ "$data" == "depart" ]; then 		
 				#LOG
-				log "${GREEN}[ENQ-DEP]	${NC}Enqueued depart scan triggered.${NC}" 
+				$PREF_VERBOSE_LOGGING && log "${GREEN}[ENQ-DEP]	${NC}Enqueued depart scan triggered.${NC}" 
 
 				#WAIT 5 SECONDS
 				sleep 5
@@ -940,7 +946,6 @@ while true; do
 
 				else 
 
-
 					#DATA IS RANDOM MAC Addr.; ADD TO LOG
 					[ -z "${random_device_log[$mac]}" ] && is_new=true
 
@@ -996,10 +1001,10 @@ while true; do
 				#IGNORE OR PASS MQTT INSTRUCTION?
 				scan_type_diff=$((timestamp - last_arrival_scan))
 				if [ "$scan_type_diff" -gt "$PREF_MINIMUM_TIME_BETWEEN_SCANS" ]; then 
-					log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] arrive scan requested ${NC}"
+					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] arrive scan requested ${NC}"
 					perform_arrival_scan
 				else
-					log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] arrive scan rejected due to recent scan ${NC}"
+					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] arrive scan rejected due to recent scan ${NC}"
 				fi 
 				
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
@@ -1007,10 +1012,10 @@ while true; do
 				#IGNORE OR PASS MQTT INSTRUCTION?
 				scan_type_diff=$((timestamp - last_depart_scan))
 				if [ "$scan_type_diff" -gt "$PREF_MINIMUM_TIME_BETWEEN_SCANS" ]; then 
-					log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] depart scan requested ${NC}"
+					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] depart scan requested ${NC}"
 					perform_departure_scan
 				else
-					log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] depart scan rejected due to recent scan ${NC}"
+					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] depart scan rejected due to recent scan ${NC}"
 				fi 	
 
 			elif [[ $mqtt_topic_branch =~ .*RSSI.* ]]; then 
@@ -1020,15 +1025,15 @@ while true; do
 
 				#ONLY EVER 5 MINUTES
 				if [ "$difference_last_rssi" -gt "100" ] || [ -z "$last_rssi_scan" ] ; then 
-					log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] rssi update scan requested ${NC}"
+					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] rssi update scan requested ${NC}"
 					connectable_present_devices
 					last_rssi_scan=$(date +%s)
 				else
-					log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] rssi update scan rejected due to recent scan ${NC}"
+					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] rssi update scan rejected due to recent scan ${NC}"
 				fi 
 
 			elif [[ $mqtt_topic_branch =~ .*RESTART.* ]]; then 
-				log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] service restart requested ${NC}"
+				$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] service restart requested ${NC}"
 				
 				#RESTART SYSTEM
 				systemctl restart monitor.service	
@@ -1037,12 +1042,12 @@ while true; do
 				exit 0	
 
 			elif [[ $mqtt_topic_branch =~ .*ECHO.* ]]; then 
-				log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] echo  ${NC}"				
+				$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] echo  ${NC}"				
 				
 				mqtt_echo
 			
 			elif [[ $mqtt_topic_branch =~ .*UPDATEBETA.* ]]; then 
-				log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] beta update requested ${NC}"				
+				$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] beta update requested ${NC}"				
 				
 				#GIT FETCH
 				git fetch
@@ -1060,7 +1065,7 @@ while true; do
 				exit 0
 				
 			elif [[ $mqtt_topic_branch =~ .*UPDATE.* ]]; then 
-				log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] update requested ${NC}"				
+				$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] update requested ${NC}"				
 				
 				#GIT FETCH
 				git fetch
@@ -1079,7 +1084,7 @@ while true; do
 
 			elif [[ ${mqtt_topic_branch^^} =~ .*START.* ]] || [[ ${mqtt_topic_branch^^} =~ .*END.* ]]; then 
 				#IGNORE ERRORS
-				log "${GREEN}[CMD-SCAN]	${NC}[${RED}ignore mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
+				$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-SCAN]	${NC}[${RED}ignore mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
 
 				continue
 
@@ -1090,19 +1095,19 @@ while true; do
 
 				#DO A LITTLE SPELL CHECKING HERE
 				if [[ ${mqtt_topic_branch^^} =~ .*ARR.* ]]; then 
-					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}arrive${NC}? ${NC}"
+					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}arrive${NC}? ${NC}"
 				elif [[ ${mqtt_topic_branch^^} =~ .*DEP.* ]]; then 
-					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}depart${NC}? ${NC}"
+					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}depart${NC}? ${NC}"
 				elif [[ ${mqtt_topic_branch^^} =~ .*BET.* ]]; then 
-					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}updatebeta${NC}? ${NC}"
+					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}updatebeta${NC}? ${NC}"
 				elif [[ ${mqtt_topic_branch^^} =~ .*RSS.* ]]; then 
-					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}rssi${NC}? ${NC}"
+					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}rssi${NC}? ${NC}"
 				elif [[ ${mqtt_topic_branch^^} =~ .*STAR.* ]]; then 
-					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}restart${NC}? ${NC}"
+					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}restart${NC}? ${NC}"
 				elif [[ ${mqtt_topic_branch^^} =~ .*DAT.* ]]; then 
-					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}update${NC} or .../scan/${RED}updatebeta${NC}? ${NC}"
+					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}update${NC} or .../scan/${RED}updatebeta${NC}? ${NC}"
 				elif [[ ${mqtt_topic_branch^^} =~ .*ECH.* ]]; then 
-					log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}echo${NC} or .../scan/${RED}updatebeta${NC}? ${NC}"
+					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-SUGG]	${NC}[${RED}fail mqtt${NC}] did you mean .../scan/${RED}echo${NC} or .../scan/${RED}updatebeta${NC}? ${NC}"
 				fi 
 
 			fi
@@ -1602,7 +1607,7 @@ while true; do
 			fi 
 
 			#IF WE HAVE DEPARTED OR ARRIVED; MAKE A NOTE UNLESS WE ARE ALSO IN THE TRIGGER MODE
-			[ "$did_change" == true ] && [ "$current_state" == "1" ] && [ "$PREF_TRIGGER_MODE_REPORT_OUT" == true ] && publish_cooperative_scan_message "arrive"
+			[ "$did_change" == true ] && [ "$current_state" == "1" ] && $PREF_TRIGGER_MODE_REPORT_OUT && publish_cooperative_scan_message "arrive"
 
 			#PRINT RAW COMMAND; DEBUGGING
 			log "${CYAN}[CMD-$cmd]	${NC}$mac ${GREEN}$debug_name ${NC} $manufacturer${NC}"
@@ -1674,7 +1679,7 @@ while true; do
 			#REJECTION FILTER
 			if [[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]] || [[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]]; then 
 
-				log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: ${BLUE}${mac:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${RED}${flags:-none}${NC} man: ${RED}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
+				$PREF_VERBOSE_LOGGING && log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: ${BLUE}${mac:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${RED}${flags:-none}${NC} man: ${RED}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
 
 				continue
 			fi 
@@ -1682,7 +1687,7 @@ while true; do
 			#FLAG AND MFCG FILTER
 			if [[ ${flags,,} =~ ${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE,,} ]] && [[ ${manufacturer,,} =~ ${PREF_PASS_FILTER_MANUFACTURER_ARRIVE,,} ]]; then 
 				#PROVIDE USEFUL LOGGING
-				log "${RED}[CMD-$cmd]${NC}	[${GREEN}passed filter${NC}] data: ${BLUE}${mac:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${BLUE}${flags:-none}${NC} man: ${BLUE}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
+				$PREF_VERBOSE_LOGGING && log "${RED}[CMD-$cmd]${NC}	[${GREEN}passed filter${NC}] data: ${BLUE}${mac:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${BLUE}${flags:-none}${NC} man: ${BLUE}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
 
 				#WE ARE PERFORMING THE FIRST ARRIVAL SCAN?
 				first_arrive_scan=false
@@ -1693,7 +1698,7 @@ while true; do
 				continue
 			else 
 				#PROVIDE USEFUL LOGGING
-				log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: ${BLUE}${mac:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${RED}${flags:-none}${NC} man: ${RED}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
+				$PREF_VERBOSE_LOGGING && log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: ${BLUE}${mac:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${RED}${flags:-none}${NC} man: ${RED}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
 
 				continue
 			fi 

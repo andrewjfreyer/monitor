@@ -25,6 +25,10 @@ btmon_path=$(which btmon)
 bc_path=$(which bc)
 git_path=$(which git)
 
+#RUNTYPE
+SERVICE_ACTIVE=true
+systemctl is-active --quiet monitor && SERVICE_ACTIVE=true || SERVICE_ACTIVE=false
+
 #VERSION CHECKER 
 mosquitto_sub_version=$($mosquitto_sub_path --help | grep -Eo "version [0-9.]{3,}" | sed 's/[^0-9.]//gi')
 mosquitto_pub_version=$($mosquitto_pub_path --help | grep -Eo "version [0-9.]{3,}" | sed 's/[^0-9.]//gi')
@@ -47,7 +51,6 @@ should_exit=false
 #MOSQUITTO V. 1.5+
 [[ ! $mosquitto_sub_version =~ (^1.[5-9]{1,}.?|^[2-9].[0-9]{1,}.?) ]] && printf "%s\n" ">${RED} error:${NC} minimum required mosquitto_sub version 1.5+ not found. please update." && should_exit=true
 [[ ! $mosquitto_pub_version =~ (^1.[5-9]{1,}.?|^[2-9].[0-9]{1,}.?) ]] && printf "%s\n" ">${RED} error:${NC} minimum required mosquitto_pub version 1.5+ not found. please update." && should_exit=true
-
 
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
 base_directory=$(dirname "$(readlink -f "$0")")
