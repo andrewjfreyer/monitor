@@ -260,7 +260,7 @@ publish_presence_message () {
 
 		#DEBUGGING WITH SIMPLE
 		printf "%s\n" "${PURPLE}$topic${NC}"
-		printf "%s\n" "${PURPLE}$(json_unformat "$message")${NC}" 
+		$PREF_VERBOSE_LOGGING && printf "%s\n" "${PURPLE}$(json_unformat "$message")${NC}" 
 
 		#POST TO MQTT
 		($mosquitto_pub_path \

@@ -231,7 +231,7 @@ btle_text_processor () {
 				   	[[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]] && pdut_filter_color=${GREEN} || pdut_filter_color=${RED}
 
 					#PRINT DEBUG MESSAGES 				
-					printf "%s\n" "${PURPLE}***************** FILTER DEBUG ********************** ${NC}"
+					printf "\n%s\n" "${PURPLE}***************** FILTER DEBUG ********************** ${NC}"
 					printf "%s\n" "btmon packet:"
 					printf "%s\n" "$(tr '|' "\n" <<<$packet)"
 					printf "%s\n" ""
@@ -249,6 +249,8 @@ btle_text_processor () {
 					printf "%s\n" "flags:		${CYAN}${flags:-none}${NC}"
 					printf "%s\n" "man: ${CYAN}		${manufacturer:--}${NC}"
 					printf "%s\n" "time: ${CYAN}		${timestamp:--}${NC}"
+					printf "%s\n" ""
+
 				fi 
 			fi
 
