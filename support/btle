@@ -233,8 +233,8 @@ btle_text_processor () {
 					#FORMATTING FOR FUN AND PROFIT
 				   	[[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]] && flag_filter_color=${RED} || flag_filter_color=${GREEN}
 				   	[[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]] && mfcg_filter_color=${RED} || mfcg_filter_color=${GREEN}
-					[[ ${flags,,} =~ ${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE,,} ]] && flag_pass_filter_color=${RED} || flag_pass_filter_color=${GREEN}
-				   	[[ ${manufacturer,,} =~ ${PREF_PASS_FILTER_MANUFACTURER_ARRIVE,,} ]] && mfcg_pass_filter_color=${RED} || mfcg_pass_filter_color=${GREEN}
+					[[ ${flags,,} =~ ${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE,,} ]] && flag_pass_filter_color=${GREEN} || flag_pass_filter_color=${RED}
+				   	[[ ${manufacturer,,} =~ ${PREF_PASS_FILTER_MANUFACTURER_ARRIVE,,} ]] && mfcg_pass_filter_color=${GREEN} || mfcg_pass_filter_color=${RED}
 				   	[[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]] && pdut_filter_color=${GREEN} || pdut_filter_color=${RED}
 
 					#PRINT DEBUG MESSAGES 				
@@ -242,8 +242,8 @@ btle_text_processor () {
 					printf "%s\n" "btmon packet:"
 					printf "%s\n" "$(tr '|' "\n" <<<$packet)"
 					printf "%s\n" ""
-					printf "%s\n" "flag pass:	${flag_pass_filter_color}${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE,,})${NC}"
-					printf "%s\n" "mfcg pass:	${mfcg_pass_filter_color}${PREF_PASS_FILTER_MANUFACTURER_ARRIVE,,})${NC}"
+					printf "%s\n" "flag pass:	${flag_pass_filter_color}${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE,,}${NC}"
+					printf "%s\n" "mfcg pass:	${mfcg_pass_filter_color}${PREF_PASS_FILTER_MANUFACTURER_ARRIVE,,}${NC}"
 					printf "%s\n" "flag fail:	${flag_filter_color}not (${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,})${NC}"
 					printf "%s\n" "mfcg fail:	${mfcg_filter_color}not (${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,})${NC}"
 					printf "%s\n" "pdu filter: 	${pdut_filter_color}${PREF_PASS_FILTER_PDU_TYPE,,}${NC}"
