@@ -125,7 +125,6 @@ while getopts "h?vfbut:EgSRCmsVadxD:c:" opt; do
 			;;
 		V)  
 			PREF_VERBOSE_LOGGING=true && printf "%s\n" "> verbose logging is enabled. this setting is only for debugging purposes"
-			exit 0
 			;;
 		c) 
 			#GET TARGET MAC ADDRESS
