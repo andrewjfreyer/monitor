@@ -24,7 +24,7 @@ launch_flag=""
 
 #LOGGING FLAG TO DISTINGUISH SERVICE-LAUNCHED 
 #LOGGS FROM CONSOLE LOGGED LAUNCHES
-$SERVICE_ACTIVE && launch_flag="\+" || launch_flag="\-"
+$SERVICE_ACTIVE && launch_flag="[srv]" || launch_flag="[con]"
 
 #FORK THE LOG FROM THE MAIN THREAD 
 log_listener () {
