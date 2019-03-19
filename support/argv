@@ -25,13 +25,13 @@ if [ "$previous_version" != "$version" ]; then
 	[ -z "$previous_version" ] && previous_version="Unknown"
 	
 	#UPDATE REPORT
-	printf "%s\n" "updated $(basename "$0") (v. $previous_version) -> (v. $version)..."
+	printf "%s\n" "> updated $(basename "$0") (v. $previous_version) -> (v. $version)..."
 
 	#RECORD UPDATED VERSION
 	printf "%s\n" "$version" > ".previous_version"
 else 
 	#STANDARD RUN
-	printf "%s\n" "starting $(basename "$0") (v. $version)..."
+	printf "%s\n" "> starting $(basename "$0") (v. $version)..."
 fi 
 
 # ----------------------------------------------------------------------------------------
@@ -110,7 +110,7 @@ PREF_CONFIG_DIR=''
 PREF_DISABLE_LOGGING=false
 PREF_VERBOSE_LOGGING=false
 
-while getopts "h?vfbut:EgSRCmsadxD:c:" opt; do
+while getopts "h?vfbut:EgSRCmsVadxD:c:" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
