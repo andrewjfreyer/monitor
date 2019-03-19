@@ -217,18 +217,18 @@ btle_text_processor () {
 			   [[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]] ||
 			   [[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]]; then 
 				
-				log "${RED} ***************** FILTER DEBUG ********************** ${NC} \
-flag filter: ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} \
-mfcg filter: ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} \
-pdu filter: ${PREF_PASS_FILTER_PDU_TYPE,,} \
-data: ${BLUE}${received_mac_address:-none}${NC} 
-name: ${gap_name_str:-none} \
-pdu: ${BLUE}${pdu_type:-none}${NC} \
-type: ${BLUE}${device_type:-unknown}${NC} \
-oem: ${BLUE}${oem_data:-unknown}${NC} \
-rssi: ${BLUE}${rssi_value:-unknown} \
-dBm${NC} flags: ${RED}${flags:-none}${NC} \
-man: ${RED}${manufacturer:-unknown}${NC} \
+				log "${RED} ***************** FILTER DEBUG ********************** ${NC} \n \
+flag filter: ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,}\n \
+mfcg filter: ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,}\n \
+pdu filter: ${PREF_PASS_FILTER_PDU_TYPE,,}\n \
+data: ${BLUE}${received_mac_address:-none}${NC}\n \ 
+name: ${gap_name_str:-none} \n \
+pdu: ${BLUE}${pdu_type:-none}${NC}\n \
+type: ${BLUE}${device_type:-unknown}${NC}\n \
+oem: ${BLUE}${oem_data:-unknown}${NC}\n \
+rssi: ${BLUE}${rssi_value:-unknown}\n \
+dBm${NC} flags: ${RED}${flags:-none}${NC}\n \
+man: ${RED}${manufacturer:-unknown}${NC}\n \
 time: ${BLUE}${timestamp:-UKN}${NC}"
 
 			fi 
