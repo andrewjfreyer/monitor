@@ -238,8 +238,8 @@ btle_text_processor () {
 				printf "%s\n" "type: 		${BLUE}${device_type:-unknown}${NC}"
 				printf "%s\n" "oem: 		${BLUE}${oem_data:-unknown}${NC}"
 				printf "%s\n" "rssi: 		${BLUE}${rssi_value:-unknown} dBm${NC}"
-				printf "%s\n" "flags:		${RED}${flags:-none}${NC}"
-				printf "%s\n" "man: ${RED}		${manufacturer:-unknown}${NC}"
+				printf "%s\n" "flags:		${BLUE}${flags:-none}${NC}"
+				printf "%s\n" "man: ${BLUE}		${manufacturer:-unknown}${NC}"
 				printf "%s\n" "time: ${BLUE}		${timestamp:-UKN}${NC}"
 
 			fi 
