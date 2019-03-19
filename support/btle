@@ -214,7 +214,7 @@ btle_text_processor () {
 
 			#MOVE IGNORE FILTER HERE TO BE SURE 
 			if [[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]]; then 
-				log "${RED}[CMD-$cmd]${NC}	\
+				log "${RED}[CMD-TEST]${NC}	\
 				[${RED}failed flag filter${NC}] \
 				data: ${BLUE}${mac:-none}${NC} \
 				pdu: ${BLUE}${pdu_header:-none}${NC} \
@@ -225,8 +225,8 @@ btle_text_processor () {
 			fi 
 
 			if [[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]]; then
-			 
-				log "${RED}[CMD-$cmd]${NC}	\
+
+				log "${RED}[CMD-TEST]${NC}	\
 				[${RED}failed mfcg filter${NC}] \
 				data: ${BLUE}${mac:-none}${NC} \
 				pdu: ${BLUE}${pdu_header:-none}${NC} \
@@ -238,7 +238,7 @@ btle_text_processor () {
 		 
 			if [[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]] ; then 
 
-				log "${RED}[CMD-$cmd]${NC}	\
+				log "${RED}[CMD-TEST]${NC}	\
 				[${RED}failed pdu filter${NC}] \
 				data: ${BLUE}${mac:-none}${NC} \
 				pdu: ${BLUE}${pdu_header:-none}${NC} \
