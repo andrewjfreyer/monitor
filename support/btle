@@ -214,10 +214,10 @@ btle_text_processor () {
 
 			#MOVE IGNORE FILTER HERE TO BE SURE 
 			if [[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]] || 
-			   [[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]]; then 
+			   [[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]] ||
+			   [[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]]; then 
 				
 				log "${RED} ***************** FILTER DEBUG ********************** ${NC} \
-[${RED}failed flag filter ${NC}] \
 flag filter: ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} \
 mfcg filter: ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} \
 pdu filter: ${PREF_PASS_FILTER_PDU_TYPE,,} \
@@ -235,8 +235,6 @@ time: ${BLUE}${timestamp:-UKN}${NC}"
 
 			#PDU FILTERING		 
 			if [[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]] ; then 
-
-				log "${RED}[CMD-TEST]${NC} [${GREEN}pass pdu filter${NC}] filter: ${PREF_PASS_FILTER_PDU_TYPE,,} data: ${BLUE}${received_mac_address:-none}${NC} name: ${gap_name_str:-none} pdu: ${BLUE}${pdu_type:-none}${NC} type: ${BLUE}${device_type:-unknown}${NC} oem: ${BLUE}${oem_data:-unknown}${NC} rssi: ${BLUE}${rssi_value:-unknown} dBm${NC} flags: ${RED}${flags:-none}${NC} man: ${RED}${manufacturer:-unknown}${NC} time: ${BLUE}${timestamp:-UKN}${NC}"
 
 				#IF THIS DOES NOT HAVE A UUID, PROCESS AS GENERIC BEACON
 				should_ignore=false 
