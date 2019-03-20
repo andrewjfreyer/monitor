@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.084
+export version=0.2.085
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -129,6 +129,7 @@ declare -A known_public_device_name
 declare -A blacklisted_devices
 declare -A beacon_mac_address_log
 declare -A mqtt_aliases
+declare -A advertisement_interval_observation
 
 #LAST TIME THIS 
 scan_pid=""
@@ -668,7 +669,7 @@ perform_departure_scan () {
 		scan_pid=$!
 		scan_type=1
 	else 
-		#HERE A DEPART SCAN IS ACTIVE; ENQUEUE ANOTHER DEPART SCAN AFTER 15-second delay 
+		#HERE A DEPART SCAN IS ACTIVE; ENQUEUE ANOTHER DEPART SCAN AFTER DELAY 
 		[ "$scan_type" == "0" ] && sleep 5 && printf "ENQUdepart\n" > main_pipe & 	
 	fi
 }
@@ -698,7 +699,7 @@ perform_arrival_scan () {
 		scan_pid=$!
 		scan_type=0
 	else 
-		#HERE A DEPART SCAN IS ACTIVE; ENQUEUE ANOTHER DEPART SCAN AFTER 15-second delay 
+		#HERE A DEPART SCAN IS ACTIVE; ENQUEUE ANOTHER DEPART SCAN AFTER DELAY
 		[ "$scan_type" == "1" ] && sleep 5 && printf "ENQUarrive\n" > main_pipe & 
 	fi 
 }
@@ -859,6 +860,7 @@ while true; do
 		beacon_last_seen=""
 		key_last_seen=""
 		uuid_reference=""
+		last_appearance=""
 		beacon_uuid_key=""
 		instruction_timestamp=""
 		instruction_delay=""
@@ -929,14 +931,25 @@ while true; do
 				[ -n "$rssi" ] && rssi_log[$mac]="$rssi"
 
 				#IS THIS A NEW STATIC DEVICE?
-				[ -z "${public_device_log[$mac]}" ] && is_new=true
+				if [ -n "${public_device_log[$mac]}" ]; then 					
+					last_appearance=${public_device_log[$mac]}
+					advertisement_interval_observation[$mac]=$((timestamp - last_appearance))
+
+				else 
+					is_new=true
+				fi 
+
 				public_device_log[$mac]="$timestamp"
 
 			else
 
 				#IS THIS ALREADY IN THE STATIC LOG? 
 				if [ -n "${public_device_log[$mac]}" ]; then
-				
+					
+					#GET INTERVAL SINCE LAST SEEN
+					last_appearance=${public_device_log[$mac]}
+					advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+
 					#IS THIS A NEW STATIC DEVICE?
 					public_device_log[$mac]="$timestamp"
 					[ -n "$rssi" ] && rssi_log[$mac]="$rssi"
@@ -952,7 +965,7 @@ while true; do
 
 					#CALCULATE INTERVAL
 					last_appearance=${random_device_log[$mac]}
-					rand_interval=$((timestamp - last_appearance))	
+					advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 					#ONLY ADD THIS TO THE DEVICE LOG 
 					random_device_log[$mac]="$timestamp"
@@ -1185,6 +1198,8 @@ while true; do
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
 
+				$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]	PUBL $key ${advertisement_interval_observation[$beacon_uuid_key]} $LINENO"
+
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen="${public_device_log[$key]}"
 
@@ -1204,6 +1219,9 @@ while true; do
 				
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_uuid_key in "${!beacon_mac_address_log[@]}"; do
+
+					$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]	BEAC $beacon_uuid_key ${advertisement_interval_observation[$beacon_uuid_key]} $LINENO"
+
 
 					#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 					last_seen="${public_device_log[$key]}"
@@ -1399,6 +1417,16 @@ while true; do
 				fi 
 			done
 
+			#SET ADVERTISEMENT INTERVAL OBSERVATION
+			last_appearance=${public_device_log[$mac]}
+			advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+
+			#SET ADVERTISEMENT INTERVAL OBSERVATION
+			if [ -n "$matching_beacon_uuid_key" ]; then 
+				last_appearance=${public_device_log[$matching_beacon_uuid_key]}
+				advertisement_interval_observation[$matching_beacon_uuid_key]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+			fi
+
 			#SET NAME 
 			[ -n "$name" ] && known_public_device_name[$mac]="$name"
 			[ -z "$name" ] && name="$(determine_name "$mac")"
@@ -1498,6 +1526,14 @@ while true; do
 				#SET THIS AS NEW
 				is_new=true
 			fi 
+
+			#SET ADVERTISEMENT INTERVAL OBSERVATION
+			last_appearance=${public_device_log[$mac]}
+			advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+
+			#SET ADVERTISEMENT INTERVAL OBSERVATION
+			last_appearance=${public_device_log[$uuid_reference]}
+			advertisement_interval_observation[$uuid_reference]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 			#SAVE BEACON ADDRESS LOG
 			beacon_mac_address_log[$uuid_reference]="$mac"

@@ -211,11 +211,11 @@ publish_presence_message () {
 		fi 
 
 		#ASSEMBLE 
-		message=$(\
-			json_format "$@"\
-		 	"retained=$retain_flag"\
-		  	"timestamp=$stamp"\
-		  	"version=$version"\
+		message=$( \
+			json_format "$@" \
+		 	"retained=$retain_flag" \
+		  	"timestamp=$stamp" \
+		  	"version=$version" \
 		)
 
 		#DEFINE THE TOPIC
