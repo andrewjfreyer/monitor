@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.087
+export version=0.2.088
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1198,7 +1198,7 @@ while true; do
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
 
-				$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]	PUBL $key ${advertisement_interval_observation[$key]} $LINENO"
+				$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	PUBL $key ${advertisement_interval_observation[$key]} $LINENO"
 
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen="${public_device_log[$key]}"
@@ -1220,7 +1220,7 @@ while true; do
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_uuid_key in "${!beacon_mac_address_log[@]}"; do
 
-					$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]	BEAC $beacon_uuid_key ${advertisement_interval_observation[$beacon_uuid_key]} $LINENO"
+					$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC $beacon_uuid_key ${advertisement_interval_observation[$beacon_uuid_key]} $LINENO"
 
 
 					#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
