@@ -932,7 +932,7 @@ while true; do
 
 				#IS THIS A NEW STATIC DEVICE?
 				if [ -n "${public_device_log[$mac]}" ]; then 					
-					last_appearance=${public_device_log[$mac]:-$timestamp}}
+					last_appearance=${public_device_log[$mac]:-$timestamp}
 					advertisement_interval_observation[$mac]=$((timestamp - last_appearance))
 
 				else 
@@ -1418,12 +1418,12 @@ while true; do
 			done
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
-			last_appearance=${public_device_log[$mac]:-$timestamp}}
+			last_appearance=${public_device_log[$mac]:-$timestamp}
 			advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
 			if [ -n "$matching_beacon_uuid_key" ]; then 
-				last_appearance=${public_device_log[$matching_beacon_uuid_key]:-$timestamp}}
+				last_appearance=${public_device_log[$matching_beacon_uuid_key]:-$timestamp}
 				advertisement_interval_observation[$matching_beacon_uuid_key]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 			fi
 
@@ -1528,11 +1528,11 @@ while true; do
 			fi 
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
-			last_appearance=${public_device_log[$mac]:-$timestamp}}
+			last_appearance=${public_device_log[$mac]:-$timestamp}
 			advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
-			last_appearance=${public_device_log[$uuid_reference]:-$timestamp}}
+			last_appearance=${public_device_log[$uuid_reference]:-$timestamp}
 			advertisement_interval_observation[$uuid_reference]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 			#SAVE BEACON ADDRESS LOG
