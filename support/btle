@@ -225,7 +225,7 @@ btle_text_processor () {
 		elif [ "$tx_type" == "RAND" ]; then
 
 			#MOVE IGNORE FILTER HERE TO BE SURE 
-			if [ $PREF_VERBOSE_LOGGING == true ]; then 
+			if [ $PREF_VERBOSE_LOGGING_EXTENDED == true ]; then 
 
 				if [[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]] || 
 				   [[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]] ||
