@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.085
+export version=0.2.087
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -46,7 +46,7 @@ if [[ $(git status) =~ .*beta.* ]]; then
 
 	printf "\n${RED}===================================================${NC}\n"
 
-	printf "\n\n      ${RED}*** THIS IS A${PURPLE} BETA ${RED}TEST RELEASE ***${NC}      \n\n"
+	printf "\n\n      ${RED}***${PURPLE} BETA/DEVELOPMENT BRANCH ${RED} ***${NC}      \n\n"
 
 	printf "${RED}===================================================${NC}\n\n"
 
@@ -932,7 +932,7 @@ while true; do
 
 				#IS THIS A NEW STATIC DEVICE?
 				if [ -n "${public_device_log[$mac]}" ]; then 					
-					last_appearance=${public_device_log[$mac]}
+					last_appearance=${public_device_log[$mac]:-$timestamp}}
 					advertisement_interval_observation[$mac]=$((timestamp - last_appearance))
 
 				else 
@@ -947,7 +947,7 @@ while true; do
 				if [ -n "${public_device_log[$mac]}" ]; then
 					
 					#GET INTERVAL SINCE LAST SEEN
-					last_appearance=${public_device_log[$mac]}
+					last_appearance=${public_device_log[$mac]:-$timestamp}
 					advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 					#IS THIS A NEW STATIC DEVICE?
@@ -964,7 +964,7 @@ while true; do
 					[ -z "${random_device_log[$mac]}" ] && is_new=true
 
 					#CALCULATE INTERVAL
-					last_appearance=${random_device_log[$mac]}
+					last_appearance=${random_device_log[$mac]:-$timestamp}
 					advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 					#ONLY ADD THIS TO THE DEVICE LOG 
@@ -1198,7 +1198,7 @@ while true; do
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
 
-				$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]	PUBL $key ${advertisement_interval_observation[$beacon_uuid_key]} $LINENO"
+				$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]	PUBL $key ${advertisement_interval_observation[$key]} $LINENO"
 
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen="${public_device_log[$key]}"
@@ -1418,12 +1418,12 @@ while true; do
 			done
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
-			last_appearance=${public_device_log[$mac]}
+			last_appearance=${public_device_log[$mac]:-$timestamp}}
 			advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
 			if [ -n "$matching_beacon_uuid_key" ]; then 
-				last_appearance=${public_device_log[$matching_beacon_uuid_key]}
+				last_appearance=${public_device_log[$matching_beacon_uuid_key]:-$timestamp}}
 				advertisement_interval_observation[$matching_beacon_uuid_key]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 			fi
 
@@ -1528,11 +1528,11 @@ while true; do
 			fi 
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
-			last_appearance=${public_device_log[$mac]}
+			last_appearance=${public_device_log[$mac]:-$timestamp}}
 			advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
-			last_appearance=${public_device_log[$uuid_reference]}
+			last_appearance=${public_device_log[$uuid_reference]:-$timestamp}}
 			advertisement_interval_observation[$uuid_reference]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 			#SAVE BEACON ADDRESS LOG
