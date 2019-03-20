@@ -210,6 +210,8 @@ btle_text_processor () {
 		if [[ $packet =~ 1\ entry\|([^|\(]{1,}) ]]; then 
 			oem_data=${BASH_REMATCH[1]}
 			oem_data=$(trim_whitespace "$oem_data")
+
+			[ -n "$oem_data" ] && manufacturer=${manufacturer:-$oem_data}
 		fi 
 
 		local timestamp
