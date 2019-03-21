@@ -216,7 +216,7 @@ btle_text_processor () {
 		fi 
 
 		#------------ RESOLVABILITY
-		if [[ $packet =~ (Non-Resolvable) ]] || [[ $packet =~ (Resolvable) ]]; then 
+		if [[ $packet =~ \(Non-Resolvable\) ]] || [[ $packet =~ \(Resolvable\) ]]; then 
 			resolvable=${BASH_REMATCH[1]}
 		fi 
 
