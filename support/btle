@@ -217,7 +217,7 @@ btle_text_processor () {
 
 		#------------ RESOLVABILITY
 		if [[ $packet =~ \(Non-Resolvable\) ]] || [[ $packet =~ \(Resolvable\) ]]; then 
-			resolvable=${BASH_REMATCH[1]}
+			resolvable=${BASH_REMATCH^^}
 		fi 
 
 		local timestamp
