@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.089
+export version=0.2.090
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -44,19 +44,14 @@ REPEAT=$'\e[1A'
 
 if [[ $(git status) =~ .*beta.* ]]; then 
 
-	printf "\n${RED}===================================================${NC}\n"
-
-	printf "\n\n      ${RED}***${PURPLE} BETA/DEVELOPMENT BRANCH ${RED} ***${NC}      \n\n"
-
-	printf "${RED}===================================================${NC}\n\n"
+	printf "\n%s\n" 	"${RED}===================================================${NC}"
+	printf "\n\n%s\n\n"	"${RED}              ${PURPLE}*** BETA/DEV BRANCH ***${NC}"
+	printf "\n%s\n" 	"${RED}===================================================${NC}"
 
 fi 
 
 #CAPTURE ARGS IN VAR TO USE IN SOURCED FILE
 export RUNTIME_ARGS=("$@")
-
-#LOG DELIMITER
-echo "====================== DEBUG ======================"
 
 # ----------------------------------------------------------------------------------------
 # SOURCES
@@ -269,10 +264,10 @@ connectable_present_devices () {
 			#AVERAGE OVER THREE CYCLES; IF BLANK GIVE VALUE OF 100
 			known_device_rssi=$(counter=0; \
 				avg_total=0; \
-				hcitool cc $known_addr; \
+				hcitool cc "$known_addr"; \
 				avg_total=""; \
 				for i in 1 2 3; \
-				do scan_result=$(hcitool rssi $known_addr 2>&1); \
+				do scan_result=$(hcitool rssi "$known_addr" 2>&1); \
 				scan_result=${scan_result//[^0-9]/}; \
 				scan_result=${scan_result:-99}; \
 				[[ "$scan_result" == "0" ]] && scan_result=99; \
@@ -280,7 +275,7 @@ connectable_present_devices () {
 				avg_total=$((avg_total + scan_result )); \
 				sleep 0.5; \
 				done; \
-				printf "$(( avg_total / counter ))")
+				printf "%s" "$(( avg_total / counter ))")
 
 			#PUBLISH MESSAGE TO RSSI SENSOR 
 			publish_rssi_message \
@@ -413,7 +408,7 @@ perform_complete_scan () {
 	for repetition in $(seq 1 $repetitions); do
 
 		#SET DONE TO MAIN PIPE
-		printf "DONE\n" > main_pipe
+		printf "%s\n" "DONE" > main_pipe
 
 		#SET DEVICES
 		devices="$devices_next"
@@ -455,7 +450,7 @@ perform_complete_scan () {
 			scan_start="$(date +%s)"
 
 			#GET LOCAL NAME
-			expected_name="$(determine_name $known_addr)"
+			expected_name="$(determine_name "$known_addr")"
 			expected_name=${expected_name:-Unknown}
 
 			#DEBUG LOGGING
@@ -473,13 +468,13 @@ perform_complete_scan () {
 			scan_duration=$((scan_end - scan_start))
 
 			#MARK THE ADDRESS AS SCANNED SO THAT IT CAN BE LOGGED ON THE MAIN PIPE
-			printf "SCAN$known_addr\n" > main_pipe & 
+			printf "%s\n" "SCAN$known_addr" > main_pipe & 
 
 			#IF STATUS CHANGES TO PRESENT FROM NOT PRESENT, REMOVE FROM VERIFICATIONS
 			if [ -n "$name" ] && [ "$previous_state" == "0" ]; then 
 
 				#PUSH TO MAIN POPE
-				printf "NAME$known_addr|$name\n" > main_pipe 
+				printf "%s\n" "NAME$known_addr|$name" > main_pipe 
 
 				#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT 
 				publish_presence_message "id=$known_addr" "confidence=100" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
@@ -492,7 +487,7 @@ perform_complete_scan () {
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//gi;s/  */ /gi")
 
 				#NEED TO UPDATE STATE TO MAIN THREAD
-				printf "NAME$known_addr|$name\n" > main_pipe 
+				printf "%s\n" "NAME$known_addr|$name" > main_pipe 
 
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
 				publish_presence_message "id=$known_addr" "confidence=100" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
@@ -552,7 +547,7 @@ perform_complete_scan () {
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//gi;s/  */ /gi")
 
 				#PUBLISH A NOT PRESENT TO THE NAME PIPE
-				printf "NAME$known_addr|\n" > main_pipe 
+				printf "%s\n" "NAME$known_addr|" > main_pipe 
 
 				#COOPERATIVE SCAN ON RESTART
 				$PREF_TRIGGER_MODE_REPORT_OUT && publish_cooperative_scan_message "depart"
@@ -597,6 +592,7 @@ perform_complete_scan () {
 	#ANYHTING LEFT IN THE DEVICES GROUP IS NOT PRESENT
 	local known_addr_stated
 	local known_addr
+	local expected_name
 	for known_addr_stated in $devices_next; do 
 		#EXTRACT KNOWN ADDRESS FROM STATE-PREFIXED KNOWN ADDRESS, IF PRESENT
 		if [[ "$known_addr_stated" =~ .*[0-9A-Fa-f]{3}.* ]]; then 
@@ -609,7 +605,7 @@ perform_complete_scan () {
 
 		#PUBLISH MESSAGE
 		if [ ! "$previous_state" == "0" ]; then 
-			local expected_name="$(determine_name "$known_addr")"
+			expected_name="$(determine_name "$known_addr")"
 			expected_name=${expected_name:-Unknown}
 
 					#DETERMINE MANUFACTUERE
@@ -625,12 +621,12 @@ perform_complete_scan () {
 			"-99"
 		fi 
 
-		printf "NAME$known_addr|\n" > main_pipe 
+		printf "%s\n" "NAME$known_addr|" > main_pipe 
 	done
 
 
 	#SET DONE TO MAIN PIPE
-	printf "DONE\n" > main_pipe
+	printf "%s\n" "DONE" > main_pipe
 
 	#GROUP SCAN FINISHED
 	log "${GREEN}[CMD-INFO]	${GREEN}**** completed $transition_type scan **** ${NC}"
@@ -660,7 +656,7 @@ perform_departure_scan () {
 	if [ "$scan_active" == false ] ; then 
 
 	 	#ADD A FLAG TO SCAN FOR 
-		[ -n "$depart_list" ] && printf "BEXP\n" > main_pipe & 
+		[ -n "$depart_list" ] && printf "%s\n" "BEXP" > main_pipe & 
 
 		#ONCE THE LIST IS ESTABLISHED, TRIGGER SCAN OF THESE DEVICES IN THE BACKGROUND
 		perform_complete_scan "$depart_list" "$PREF_DEPART_SCAN_ATTEMPTS" "1" & 
@@ -670,7 +666,7 @@ perform_departure_scan () {
 		scan_type=1
 	else 
 		#HERE A DEPART SCAN IS ACTIVE; ENQUEUE ANOTHER DEPART SCAN AFTER DELAY 
-		[ "$scan_type" == "0" ] && sleep 5 && printf "ENQUdepart\n" > main_pipe & 	
+		[ "$scan_type" == "0" ] && sleep 5 && printf "%s\n" "ENQUdepart" > main_pipe & 	
 	fi
 }
 
@@ -700,7 +696,7 @@ perform_arrival_scan () {
 		scan_type=0
 	else 
 		#HERE A DEPART SCAN IS ACTIVE; ENQUEUE ANOTHER DEPART SCAN AFTER DELAY
-		[ "$scan_type" == "1" ] && sleep 5 && printf "ENQUarrive\n" > main_pipe & 
+		[ "$scan_type" == "1" ] && sleep 5 && printf "%s\n" "ENQUarrive" > main_pipe & 
 	fi 
 }
 
@@ -767,7 +763,7 @@ determine_name () {
 		fi
 	fi 
 
-	printf "$expected_name\n"
+	printf "%s\n" "$expected_name"
 }
 
 # ----------------------------------------------------------------------------------------
@@ -775,7 +771,7 @@ determine_name () {
 # ----------------------------------------------------------------------------------------
 
 #SET LOG
-(2>&1 1>/dev/null rm .pids)
+(rm .pids) 2>&1 1>/dev/null 
 
 log_listener &
 listener_pid="$!"
@@ -948,7 +944,7 @@ while true; do
 					
 					#GET INTERVAL SINCE LAST SEEN
 					last_appearance=${public_device_log[$mac]:-$timestamp}
-					advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+					advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 					#IS THIS A NEW STATIC DEVICE?
 					public_device_log[$mac]="$timestamp"
@@ -965,7 +961,7 @@ while true; do
 
 					#CALCULATE INTERVAL
 					last_appearance=${random_device_log[$mac]:-$timestamp}
-					advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+					advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 					#ONLY ADD THIS TO THE DEVICE LOG 
 					random_device_log[$mac]="$timestamp"
@@ -1426,12 +1422,12 @@ while true; do
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
 			last_appearance=${public_device_log[$mac]:-$timestamp}
-			advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+			advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
 			if [ -n "$matching_beacon_uuid_key" ]; then 
 				last_appearance=${public_device_log[$matching_beacon_uuid_key]:-$timestamp}
-				advertisement_interval_observation[$matching_beacon_uuid_key]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+				advertisement_interval_observation[$matching_beacon_uuid_key]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 			fi
 
 			#SET NAME 
@@ -1536,11 +1532,11 @@ while true; do
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
 			last_appearance=${public_device_log[$mac]:-$timestamp}
-			advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+			advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
 			last_appearance=${public_device_log[$uuid_reference]:-$timestamp}
-			advertisement_interval_observation[$uuid_reference]=$((((timestamp - last_appearance - 1 + $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * $PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+			advertisement_interval_observation[$uuid_reference]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 			#SAVE BEACON ADDRESS LOG
 			beacon_mac_address_log[$uuid_reference]="$mac"
