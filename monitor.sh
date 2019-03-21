@@ -1245,6 +1245,8 @@ while true; do
 						#SET BEACON UUID FOUND
 						beacon_uuid_found=$beacon_uuid_key
 						beacon_mac_found=$key
+
+						$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC $beacon_uuid_key is assocaited with $current_associated_beacon_mac_address $LINENO"
 					
 					elif [ "$beacon_uuid_key" == "$key" ]; then 
 
@@ -1270,6 +1272,9 @@ while true; do
 						#FILL BEACON UUID FOUND
 						beacon_uuid_found=$beacon_uuid_key
 						beacon_mac_found=$current_associated_beacon_mac_address
+
+						$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC $beacon_uuid_key is assocaited with $current_associated_beacon_mac_address $LINENO"
+
 					fi
 				done
 
