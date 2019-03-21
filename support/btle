@@ -235,46 +235,39 @@ btle_text_processor () {
 			#MOVE IGNORE FILTER HERE TO BE SURE 
 			if [ ${PREF_VERBOSE_LOGGING_EXTENDED:-false} == true ]; then 
 
-				if [[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]] || 
-				   [[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]] ||
-				   [[ ${flags,,} =~ ${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE,,} ]] || 
-				   [[ ${manufacturer,,} =~ ${PREF_PASS_FILTER_MANUFACTURER_ARRIVE,,} ]] ||
-				   [[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]]; then 
+				#FORMATTING FOR FUN AND PROFIT
+			   	[[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]] && flag_filter_color=${RED} || flag_filter_color=${GREEN}
+			   	[[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]] && mfcg_filter_color=${RED} || mfcg_filter_color=${GREEN}
+				[[ ${flags,,} =~ ${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE,,} ]] && flag_pass_filter_color=${GREEN} || flag_pass_filter_color=${RED}
+			   	[[ ${manufacturer,,} =~ ${PREF_PASS_FILTER_MANUFACTURER_ARRIVE,,} ]] && mfcg_pass_filter_color=${GREEN} || mfcg_pass_filter_color=${RED}
+			   	[[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]] && pdut_filter_color=${GREEN} || pdut_filter_color=${RED}
 
-					#FORMATTING FOR FUN AND PROFIT
-				   	[[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]] && flag_filter_color=${RED} || flag_filter_color=${GREEN}
-				   	[[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]] && mfcg_filter_color=${RED} || mfcg_filter_color=${GREEN}
-					[[ ${flags,,} =~ ${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE,,} ]] && flag_pass_filter_color=${GREEN} || flag_pass_filter_color=${RED}
-				   	[[ ${manufacturer,,} =~ ${PREF_PASS_FILTER_MANUFACTURER_ARRIVE,,} ]] && mfcg_pass_filter_color=${GREEN} || mfcg_pass_filter_color=${RED}
-				   	[[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]] && pdut_filter_color=${GREEN} || pdut_filter_color=${RED}
+			   	#REASSEMBLE FULL
+			   	full_packet=$(echo "$packet" | tr "|" "\n")
 
-				   	#REASSEMBLE FULL
-				   	full_packet=$(echo "$packet" | tr "|" "\n")
+				#PRINT DEBUG MESSAGES 				
+				printf "\n%s\n" "${PURPLE}***************** ARRIVE/REJECT FILTER DEBUG ********************** ${NC}"
+				printf "%s\n" "btmon packet:"
+				printf "%s\n" "$full_packet"
+				printf "%s\n" "flag pass:	${flag_pass_filter_color}only (${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE,,})${NC}"
+				printf "%s\n" "mfcg pass:	${mfcg_pass_filter_color}only (${PREF_PASS_FILTER_MANUFACTURER_ARRIVE,,})${NC}"
+				printf "%s\n" "flag fail:	${flag_filter_color}not (${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,})${NC}"
+				printf "%s\n" "mfcg fail:	${mfcg_filter_color}not (${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,})${NC}"
+				printf "%s\n" "pdu filter: 	${pdut_filter_color}only (${PREF_PASS_FILTER_PDU_TYPE,,})${NC}"
+				printf "%s\n" ""
+				printf "%s\n" "type: 		${CYAN}${tx_type:-???}${NC}"
+				printf "%s\n" "data: 		${CYAN}${received_mac_address:-???}${NC}"
+				printf "%s\n" "name: 		${CYAN}${gap_name_str:-???}${NC}"
+				printf "%s\n" "pdu: 		${CYAN}${pdu_type:-???}${NC}"
+				printf "%s\n" "type: 		${CYAN}${device_type:-???}${NC}"
+				printf "%s\n" "oem: 		${CYAN}${oem_data:-???}${NC}"
+				printf "%s\n" "rssi: 		${CYAN}${rssi_value:-???} dBm${NC}"
+				printf "%s\n" "flags:		${CYAN}${flags:-???}${NC}"
+				printf "%s\n" "resolvable:	${CYAN}${resolvable:-???}${NC}"
+				printf "%s\n" "man: ${CYAN}		${manufacturer:-???}${NC}"
+				printf "%s\n" "time: ${CYAN}		${timestamp:-???}${NC}"
+				printf "%s\n" ""
 
-					#PRINT DEBUG MESSAGES 				
-					printf "\n%s\n" "${PURPLE}***************** ARRIVE/REJECT FILTER DEBUG ********************** ${NC}"
-					printf "%s\n" "btmon packet:"
-					printf "%s\n" "$full_packet"
-					printf "%s\n" "flag pass:	${flag_pass_filter_color}only (${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE,,})${NC}"
-					printf "%s\n" "mfcg pass:	${mfcg_pass_filter_color}only (${PREF_PASS_FILTER_MANUFACTURER_ARRIVE,,})${NC}"
-					printf "%s\n" "flag fail:	${flag_filter_color}not (${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,})${NC}"
-					printf "%s\n" "mfcg fail:	${mfcg_filter_color}not (${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,})${NC}"
-					printf "%s\n" "pdu filter: 	${pdut_filter_color}only (${PREF_PASS_FILTER_PDU_TYPE,,})${NC}"
-					printf "%s\n" ""
-					printf "%s\n" "type: 		${CYAN}${tx_type:-???}${NC}"
-					printf "%s\n" "data: 		${CYAN}${received_mac_address:-???}${NC}"
-					printf "%s\n" "name: 		${CYAN}${gap_name_str:-???}${NC}"
-					printf "%s\n" "pdu: 		${CYAN}${pdu_type:-???}${NC}"
-					printf "%s\n" "type: 		${CYAN}${device_type:-???}${NC}"
-					printf "%s\n" "oem: 		${CYAN}${oem_data:-???}${NC}"
-					printf "%s\n" "rssi: 		${CYAN}${rssi_value:-???} dBm${NC}"
-					printf "%s\n" "flags:		${CYAN}${flags:-???}${NC}"
-					printf "%s\n" "resolvable:	${CYAN}${resolvable:-???}${NC}"
-					printf "%s\n" "man: ${CYAN}		${manufacturer:-???}${NC}"
-					printf "%s\n" "time: ${CYAN}		${timestamp:-???}${NC}"
-					printf "%s\n" ""
-
-				fi 
 			fi
 
 			#FAIL FLAGS HERE
