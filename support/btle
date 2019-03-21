@@ -233,7 +233,7 @@ btle_text_processor () {
 		elif [ "$tx_type" == "RAND" ]; then
 
 			#MOVE IGNORE FILTER HERE TO BE SURE 
-			if [ ${PREF_VERBOSE_LOGGING:-false} == true ]; then 
+			if [ ${PREF_VERBOSE_LOGGING_EXTENDED:-false} == true ]; then 
 
 				if [[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]] || 
 				   [[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]] ||
@@ -252,7 +252,7 @@ btle_text_processor () {
 				   	full_packet=$(echo "$packet" | tr "|" "\n")
 
 					#PRINT DEBUG MESSAGES 				
-					printf "\n%s\n" "${PURPLE}***************** FILTER DEBUG ********************** ${NC}"
+					printf "\n%s\n" "${PURPLE}***************** ARRIVE/REJECT FILTER DEBUG ********************** ${NC}"
 					printf "%s\n" "btmon packet:"
 					printf "%s\n" "$full_packet"
 					printf "%s\n" "flag pass:	${flag_pass_filter_color}only (${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE,,})${NC}"
@@ -295,7 +295,7 @@ btle_text_processor () {
 
 				if [ "$should_ignore" == false ]; then 
 					#REPORT TO MAIN LOOP
-					printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data|$timestamp" > main_pipe
+					printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data|$timestamp|$resolvable" > main_pipe
 				fi 
 			fi 
 		fi 

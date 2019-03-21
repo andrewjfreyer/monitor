@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.091
+export version=0.2.092
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -847,6 +847,7 @@ while true; do
 		mac=""
 		rssi=""
 		adv_data=""
+		resolvable=""
 		pdu_header=""
 		power=""
 		major=""
@@ -899,6 +900,9 @@ while true; do
 			flags=$(echo "$data" | awk -F "|" '{print $8}')
 			oem_data=$(echo "$data" | awk -F "|" '{print $9}')
 			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $10}')
+			resolvable=$(echo "$data" | awk -F "|" '{print $11}')
+
+			#FIND DELAY BASED ON INSTRUCTINO TIMESTAMP
 			instruction_delay=$((timestamp - instruction_timestamp))
 
 			#GET LAST RSSI
@@ -1400,9 +1404,10 @@ while true; do
 			flags=$(echo "$data" | awk -F "|" '{print $8}')
 			oem_data=$(echo "$data" | awk -F "|" '{print $9}')
 			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $10}')
-			
+			resolvable=$(echo "$data" | awk -F "|" '{print $11}')
+
 			#DEFAULT?
-			instruction_timestamp=${instruction_timestamp:-timestamp}
+			instruction_timestamp=${instruction_timestamp:-$timestamp}
 			instruction_delay=$((timestamp - instruction_timestamp))
 
 			#RESET BEACON UUID
@@ -1501,8 +1506,7 @@ while true; do
 			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $7}')
 
 			#DEFAULT?
-			instruction_timestamp=${instruction_timestamp:-timestamp}
-
+			instruction_timestamp=${instruction_timestamp:-$timestamp}
 			instruction_delay=$((timestamp - instruction_timestamp))
 
 			#GET MAC AND PDU HEADER
