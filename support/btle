@@ -162,22 +162,22 @@ btle_text_processor () {
 
 		#------------ PDU TYPE
 		if [[ $packet =~ Event\ type:\ ([^|\(]*)\  ]]; then 
-			pdu_type=${BASH_REMATCH[1]##* }
-			#pdu_type=${pdu_type##* }
+			pdu_type=${BASH_REMATCH[1]}
+			pdu_type=${pdu_type##* }
 		else 
 			return 0
 		fi 
 
 		#------------ ADVERTISEMENT TYPE
 		if [[ $packet =~ Random ]] || [[ $packet =~ Public ]]; then 
-			tx_type=${BASH_REMATCH^^:0:4}
-			#tx_type=${tx_type:0:4}
+			tx_type=${BASH_REMATCH^^}
+			tx_type=${tx_type:0:4}
 		fi 
 
 		#------------ RSSI 
 		if [[ $packet =~ RSSI[^:]*?:([^|\(]*) ]]; then 
-			rssi_value=${BASH_REMATCH[1]//[^-0-9]/}
-			#rssi_value=${rssi_value//[^-0-9]/}
+			rssi_value=${BASH_REMATCH[1]}
+			rssi_value=${rssi_value//[^-0-9]/}
 		fi 
 
 		#------------ NAME
