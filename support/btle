@@ -127,6 +127,7 @@ btle_text_processor () {
 	local device_type
 	local oem_data
 	local version
+	local resolvable
 
 	#FILTER DEBUG STUFF
 	local mfcg_filter_color
@@ -214,6 +215,14 @@ btle_text_processor () {
 			[ -n "$oem_data" ] && manufacturer=${manufacturer:-$oem_data}
 		fi 
 
+		#------------ RESOLVABILITY
+		if [[ ${packet,,} =~ .*non-resolvable.* ]]; then 
+			resolvable=${BASH_REMATCH[1]}
+
+		elif [[ ${packet,,} =~ .*nresolvable.* ]]; then 
+			resolvable=${BASH_REMATCH[1]}
+		fi 
+
 		local timestamp
 		timestamp=$(date +%s)
 
@@ -260,7 +269,8 @@ btle_text_processor () {
 					printf "%s\n" "type: 		${CYAN}${device_type:-???}${NC}"
 					printf "%s\n" "oem: 		${CYAN}${oem_data:-???}${NC}"
 					printf "%s\n" "rssi: 		${CYAN}${rssi_value:-???} dBm${NC}"
-					printf "%s\n" "flags:		${CYAN}${flags:-none}${NC}"
+					printf "%s\n" "flags:		${CYAN}${flags:-???}${NC}"
+					printf "%s\n" "resolvable:	${CYAN}${resolvable:-???}${NC}"
 					printf "%s\n" "man: ${CYAN}		${manufacturer:-???}${NC}"
 					printf "%s\n" "time: ${CYAN}		${timestamp:-???}${NC}"
 					printf "%s\n" ""

@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.090
+export version=0.2.091
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -903,7 +903,6 @@ while true; do
 
 			#GET LAST RSSI
 			rssi_latest="${rssi_log[$mac]}"
-			expected_name="${known_public_device_name[$mac]}"
 			
 			#IF WE HAVE A NAME; UNSEAT FROM RANDOM AND ADD TO STATIC
 			#THIS IS A BIT OF A FUDGE, A RANDOM DEVICE WITH A LOCAL 
@@ -914,45 +913,48 @@ while true; do
 			#ALSO NEED TO CHECK WHETHER THE RANDOM BROADCAST
 			#IS INCLUDED IN THE KNOWN DEVICES LOG...
 
-			if [ -n "$name" ] || [ -n "$expected_name" ]; then 
-				#RESET COMMAND
-				cmd="PUBL"
-				unset "random_device_log[$mac]"
-
-				#BEACON TYPE
-				beacon_type="GENERIC_BEACON_RANDOM"
-
-				#SAVE THE NAME
-				known_public_device_name[$mac]="$name"
-				[ -n "$rssi" ] && rssi_log[$mac]="$rssi"
+			if [ -n "${public_device_log[$mac]}" ]; then
+					
+				#GET INTERVAL SINCE LAST SEEN
+				last_appearance=${public_device_log[$mac]:-$timestamp}
+				advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 				#IS THIS A NEW STATIC DEVICE?
-				if [ -n "${public_device_log[$mac]}" ]; then 					
-					last_appearance=${public_device_log[$mac]:-$timestamp}
-					advertisement_interval_observation[$mac]=$((timestamp - last_appearance))
-
-				else 
-					is_new=true
-				fi 
-
 				public_device_log[$mac]="$timestamp"
+				[ -n "$rssi" ] && rssi_log[$mac]="$rssi"
+				cmd="PUBL"
+
+				#BEACON TYPE
+				beacon_type="GENERIC_BEACON_PUBLIC"
 
 			else
+				#DO WE HAVE A NAME FOR THIS MAC ADDRESSS? 
+				#THAT IS NOT IN THE PUBLIC DEVICE ARRAY?
+				expected_name="${known_public_device_name[$mac]}"
 
-				#IS THIS ALREADY IN THE STATIC LOG? 
-				if [ -n "${public_device_log[$mac]}" ]; then
-					
-					#GET INTERVAL SINCE LAST SEEN
-					last_appearance=${public_device_log[$mac]:-$timestamp}
-					advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
-
-					#IS THIS A NEW STATIC DEVICE?
-					public_device_log[$mac]="$timestamp"
-					[ -n "$rssi" ] && rssi_log[$mac]="$rssi"
+				#DOES THIS DEVICE HAVE A NAME? 
+				if [ -n "$name" ] || [ -n "$expected_name" ]; then 
+					#RESET COMMAND
 					cmd="PUBL"
+					unset "random_device_log[$mac]"
 
 					#BEACON TYPE
-					beacon_type="GENERIC_BEACON_PUBLIC"
+					beacon_type="GENERIC_BEACON_RANDOM"
+
+					#SAVE THE NAME
+					known_public_device_name[$mac]="$name"
+					[ -n "$rssi" ] && rssi_log[$mac]="$rssi"
+
+					#IS THIS A NEW STATIC DEVICE?
+					if [ -n "${public_device_log[$mac]}" ]; then 					
+						last_appearance=${public_device_log[$mac]:-$timestamp}
+						advertisement_interval_observation[$mac]=$((timestamp - last_appearance))
+
+					else 
+						is_new=true
+					fi 
+
+					public_device_log[$mac]="$timestamp"
 
 				else 
 
