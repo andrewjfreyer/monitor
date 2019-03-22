@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.106
+export version=0.2.109
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1218,10 +1218,6 @@ while true; do
 				
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_uuid_key in "${!beacon_mac_address_log[@]}"; do
-
-					#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
-					last_seen="${public_device_log[$key]}"
-
 					#FIND ASSOCIATED BEACON
 					current_associated_beacon_mac_address="${beacon_mac_address_log[$beacon_uuid_key]}"
 
@@ -1231,55 +1227,20 @@ while true; do
 						#SET THIS IS A BEACON
 						is_apple_beacon=true
 
-						#SET THE LAST SEEN BASED ON THE BEACON REPORT IN THIS CASE
-						beacon_last_seen=""
-						beacon_last_seen="${public_device_log[$beacon_uuid_key]}"
-
-						[ -z "$beacon_last_seen" ] && beacon_last_seen=0
-						[ "$beacon_last_seen" -gt "$most_recent_beacon" ] && most_recent_beacon=$beacon_last_seen 
-
-						#RSSI
-						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
-
-						#SET BEACON UUID FOUND
-						beacon_uuid_found=$beacon_uuid_key
-						beacon_mac_found=$key
-
-						$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	PUBL $beacon_mac_found is assocaited with $beacon_uuid_found $LINENO"
-
-					
-					elif [ "$beacon_uuid_key" == "$key" ]; then 
-
-						#SET THIS IS A BEACON
-						is_apple_beacon=true
-
-						#SET THE ASSOCIATED KEY BACK 
-						key="$current_associated_beacon_mac_address"
-
-						#SET THE LAST SEEN BASED ON THE MAC ADDRESS IN THIS CASE
-						key_last_seen=""
-						key_last_seen="${public_device_log[$current_associated_beacon_mac_address]}"
-
-						[ -z "$key_last_seen" ] && key_last_seen=0
-						[ -z "$last_seen" ] && last_seen=0
-						[ "$key_last_seen" -gt "$most_recent_beacon" ] && most_recent_beacon=$key_last_seen
-						
-						#RSSI
-						latest_rssi="${rssi_log[$beacon_uuid_key]}" 
-
-						#FILL BEACON UUID FOUND
-						beacon_uuid_found=$beacon_uuid_key
-						beacon_mac_found=$current_associated_beacon_mac_address
-
-						$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC $beacon_uuid_key is assocaited with $current_associated_beacon_mac_address $LINENO"
-
+						#SET VALUES
+						beacon_mac_found="$current_associated_beacon_mac_address"
+						beacon_uuid_found="$beacon_uuid_key"
+						break					
 					fi
 				done
 
 				#DETERMINE IF THIS WAS A BEACON AND, IF SO, WHETHER THE BEACON IS SEEN MORE RECENTLY 
 				if [ "$is_apple_beacon" == true ]; then 
-					#DETERMINE DIFFERENCE
-					difference=$((timestamp - most_recent_beacon))
+					
+					$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC $beacon_mac_found = $beacon_uuid_found ${advertisement_interval_observation[$key]} $LINENO"
+
+					#DETERMINE DIFFERENCE SET DEFAULT NON-EXPIRING VALUE FOR DEVUGGING PURPOSES
+					difference=10
 
 				else
 
