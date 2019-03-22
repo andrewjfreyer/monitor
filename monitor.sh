@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.105
+export version=0.2.106
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1247,11 +1247,8 @@ while true; do
 						beacon_uuid_found=$beacon_uuid_key
 						beacon_mac_found=$key
 
-						$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC $beacon_uuid_key is assocaited with $current_associated_beacon_mac_address $LINENO"
 					
 					elif [ "$beacon_uuid_key" == "$key" ]; then 
-
-						$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC $beacon_uuid_key ${advertisement_interval_observation[$beacon_uuid_key]} $LINENO"
 
 						#SET THIS IS A BEACON
 						is_apple_beacon=true
@@ -1483,10 +1480,6 @@ while true; do
 			public_device_log[$mac]="$timestamp"
 			[ -n "$rssi" ] && rssi_log[$mac]="$rssi"
 
-			#IF BEACON
-			[ -n "$matching_beacon_uuid_key" ] && public_device_log[$matching_beacon_uuid_key]="$timestamp"	
-			[ -n "$matching_beacon_uuid_key" ] && [ -n "$rssi" ] && rssi_log[$matching_beacon_uuid_key]="$rssi"	
-
 			#MANUFACTURER
 			[ -z "$manufacturer" ] && manufacturer="$(determine_manufacturer "$mac")"
 		
@@ -1559,11 +1552,9 @@ while true; do
 
 			#RECORD BASED ON UUID AND MAC ADDRESS
 			public_device_log[$uuid_reference]="$timestamp"	
-			public_device_log[$mac]="$timestamp"
 
 			#RSSI LOGS
 			[ -n "$rssi" ] && rssi_log[$uuid_reference]="$rssi"
-			[ -n "$rssi" ] && rssi_log[$mac]="$rssi"
 		fi
 
 		#**********************************************************************
