@@ -1247,6 +1247,9 @@ while true; do
 						beacon_uuid_found=$beacon_uuid_key
 						beacon_mac_found=$key
 
+
+						$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	PUBL $beacon_mac_found is assocaited with $beacon_uuid_found $LINENO"
+
 					
 					elif [ "$beacon_uuid_key" == "$key" ]; then 
 

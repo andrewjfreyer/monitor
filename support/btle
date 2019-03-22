@@ -275,6 +275,9 @@ btle_text_processor () {
 			printf "%s\n" ""
 		fi
 
+		#IF BLACLISTED, PREVENT FROM GOING HOME
+		[ -z "${blacklisted_devices["$received_mac_address"]}" ] && return 0
+
 		if [ "$tx_type" == "PUBL" ]; then 
 			#PRINT ALL PUBLIC BEACONS
 			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data|$timestamp|$hex_data" > main_pipe
