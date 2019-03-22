@@ -266,6 +266,7 @@ btle_text_processor () {
 			printf "%s\n" "oem: 		${CYAN}${oem_data:-???}${NC}"
 			printf "%s\n" "rssi: 		${CYAN}${rssi_value:-???} dBm${NC}"
 			printf "%s\n" "flags:		${CYAN}${flags:-???}${NC}"
+			printf "%s\n" "hext:		${CYAN}${hex_data:-???}${NC}"
 			printf "%s\n" "resolvable:	${CYAN}${resolvable:-???}${NC}"
 			printf "%s\n" "man: ${CYAN}		${manufacturer:-???}${NC}"
 			printf "%s\n" "time: ${CYAN}		${timestamp:-???}${NC}"
