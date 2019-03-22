@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.101
+export version=0.2.102
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -45,7 +45,7 @@ REPEAT=$'\e[1A'
 if [[ $(git status) =~ .*beta.* ]]; then 
 
 	printf "\n%s\n" 	"${RED}===================================================${NC}"
-	printf "\n\n%s\n\n"	"${RED}              ${PURPLE}*** BETA/DEV BRANCH ***${NC}"
+	printf "\n%s\n"		"${RED}              ${PURPLE}*** BETA/DEV BRANCH ***${NC}"
 	printf "\n%s\n" 	"${RED}===================================================${NC}"
 
 fi 

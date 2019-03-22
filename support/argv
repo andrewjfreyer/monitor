@@ -128,7 +128,7 @@ while getopts "h?vfFbut:EgSRCmsVadxD:c:" opt; do
 			PREF_FILTER_DEBUG_LOGGING=true && printf "%s\n" "> ${ORANGE}warning:${NC} filter logging is enabled. this setting is only for debugging purposes"
 			;;
 		V)  
-			PREF_VERBOSE_LOGGING=true && printf "%s\n" "> verbose logging is enabled. this setting is only for debugging purposes"
+			PREF_VERBOSE_LOGGING=true && printf "%s\n" "> ${ORANGE}warning:${NC} verbose logging is enabled. this setting is only for debugging purposes"
 			;;
 		c) 
 			#GET TARGET MAC ADDRESS
