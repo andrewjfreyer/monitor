@@ -128,6 +128,7 @@ btle_text_processor () {
 	local oem_data
 	local version
 	local resolvable
+	local hex_data
 
 	#FILTER DEBUG STUFF
 	local mfcg_filter_color
@@ -266,7 +267,7 @@ btle_text_processor () {
 			printf "%s\n" "oem: 		${CYAN}${oem_data:-???}${NC}"
 			printf "%s\n" "rssi: 		${CYAN}${rssi_value:-???} dBm${NC}"
 			printf "%s\n" "flags:		${CYAN}${flags:-???}${NC}"
-			printf "%s\n" "hext:		${CYAN}${hex_data:-???}${NC}"
+			printf "%s\n" "hex:		${CYAN}${hex_data:-???}${NC}"
 			printf "%s\n" "resolvable:	${CYAN}${resolvable:-???}${NC}"
 			printf "%s\n" "man: ${CYAN}		${manufacturer:-???}${NC}"
 			printf "%s\n" "time: ${CYAN}		${timestamp:-???}${NC}"
