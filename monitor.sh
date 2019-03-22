@@ -1227,8 +1227,6 @@ while true; do
 
 					#COMPARE TO CURRENT KEY
 					if [ "$current_associated_beacon_mac_address" == "$key" ]; then 
-
-						$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC $key ${advertisement_interval_observation[$key]} $LINENO"
 						
 						#SET THIS IS A BEACON
 						is_apple_beacon=true
@@ -1246,7 +1244,6 @@ while true; do
 						#SET BEACON UUID FOUND
 						beacon_uuid_found=$beacon_uuid_key
 						beacon_mac_found=$key
-
 
 						$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	PUBL $beacon_mac_found is assocaited with $beacon_uuid_found $LINENO"
 
