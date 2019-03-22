@@ -83,7 +83,7 @@ usage:
 # ----------------------------------------------------------------------------------------
 
 #REMOVE MANUFACTURER CACHE AND PUBLIC NAME CACHE FROM PREVIOUS SESSION 
-(&>/dev/null rm ".manufacturer_cache") && printf "%s\n" "> removing web request caches"
+(&>/dev/null rm ".manufacturer_cache") && $PREF_VERBOSE_LOGGING && printf "%s\n" "> removing web request caches"
 
 #NO LONGER REQUIRED; NAME CACHING SHOULD BE STICKY
 #(&>/dev/null rm ".public_name_cache") && printf "%s\n" "> removing public name cache"
@@ -152,9 +152,9 @@ while getopts "h?vfbut:EgSRCmsVadxD:c:" opt; do
 		C)  
 			PREF_CLEAN_MQTT=true && printf "%s\n" "> cleaning retained messages on broker"
 			;;
-		E)  PREF_MQTT_REPORT_SCAN_MESSAGES=true  && printf "%s\n" "> publishing MQTT .../scan/[arrival|depart]/[start|end]"
+		E)  PREF_MQTT_REPORT_SCAN_MESSAGES=true && printf "%s\n" "> publishing MQTT .../scan/[arrival|depart]/[start|end]"
 			;;
-		s)  PREF_MQTT_SINGLE_TOPIC_MODE=true  && printf "%s\n" "> publishing all MQTT presence messages to \$mqtt_topicpath/\$mqtt_publisher_identity"
+		s)  PREF_MQTT_SINGLE_TOPIC_MODE=true && printf "%s\n" "> publishing all MQTT presence messages to \$mqtt_topicpath/\$mqtt_publisher_identity"
 			;;
 		x)  PREF_SHOULD_RETAIN=true  && printf "%s\n" "> retaining mqtt status reports"
 			;;
@@ -164,27 +164,27 @@ while getopts "h?vfbut:EgSRCmsVadxD:c:" opt; do
 			;;
 		u)  PREF_UPDATE_SERVICE=true 	&& printf "%s\n" "> updating monitor.service"
 			;;
-		f)  PREF_FORMAT_MQTT=true 		&& printf "%s\n" "> only allow letters, numbers, and spaces in mqtt topic paths"
+		f)  PREF_FORMAT_MQTT=true 		&& $PREF_VERBOSE_LOGGING && printf "%s\n" "> only allow letters, numbers, and spaces in mqtt topic paths"
 			;;
-		b)  PREF_BEACON_MODE=true 		&& printf "%s\n" "> generic bluetooth beacon, ibeacon, and known beacon address reporting mode enabled"
+		b)  PREF_BEACON_MODE=true 		&& $PREF_VERBOSE_LOGGING && printf "%s\n" "> generic bluetooth beacon, ibeacon, and known beacon address reporting mode enabled"
 			;;
 		t)  #DO WE INCLUDE THE REPORTING TRIGGER?
-			[[ $OPTARG = *r* ]] && PREF_TRIGGER_MODE_REPORT_OUT=true && printf "%s\n" "> trigger mode: report out MQTT arrive/depart scan triggers to other devices" 
+			[[ $OPTARG = *r* ]] && PREF_TRIGGER_MODE_REPORT_OUT=true && $PREF_VERBOSE_LOGGING && printf "%s\n" "> trigger mode: report out MQTT arrive/depart scan triggers to other devices" 
 			#SORT THROUGH REMAINING FILTERS
 			case "$OPTARG" in 
 				r)	PREF_TRIGGER_MODE_REPORT_OUT=true
 					;;
-				d|rd|dr)	PREF_TRIGGER_MODE_DEPART=true && printf "%s\n" "> trigger mode: depart scan only on MQTT trigger" 
+				d|rd|dr)	PREF_TRIGGER_MODE_DEPART=true && $PREF_VERBOSE_LOGGING && printf "%s\n" "> trigger mode: depart scan only on MQTT trigger" 
 					;;
-				a|ra|ar)	PREF_TRIGGER_MODE_ARRIVE=true && printf "%s\n" "> trigger mode: arrive scan only on MQTT trigger" 
+				a|ra|ar)	PREF_TRIGGER_MODE_ARRIVE=true && $PREF_VERBOSE_LOGGING && printf "%s\n" "> trigger mode: arrive scan only on MQTT trigger" 
 					;;
-				da|ad|rda|rad|dra|ard|dar|adr) PREF_TRIGGER_MODE_ARRIVE=true && PREF_TRIGGER_MODE_DEPART==true && printf "%s\n" "> trigger mode: scan only (both on arrive and depart) on trigger" 
+				da|ad|rda|rad|dra|ard|dar|adr) PREF_TRIGGER_MODE_ARRIVE=true && PREF_TRIGGER_MODE_DEPART==true && $PREF_VERBOSE_LOGGING && printf "%s\n" "> trigger mode: scan only (both on arrive and depart) on trigger" 
 					;;
 				*) printf "%s\n" "> ${ORANGE}warning: ${NC}unknown trigger mode: $OPTARG"
 				;;
 			esac
 			;;
-		a)  PREF_REPORT_ALL_MODE=true 	&& printf "%s\n" "> report all scan results mode enabled"
+		a)  PREF_REPORT_ALL_MODE=true && $PREF_VERBOSE_LOGGING && printf "%s\n" "> report all scan results mode enabled"
 			;;
         D)  PREF_CONFIG_DIR=$OPTARG && printf "%s\n" "> using custom config directory [$PREF_CONFIG_DIR]"
             [ ! -d "$PREF_CONFIG_DIR" ] && printf "%s\n" "> ${RED}error: ${NC}config directory [$PREF_CONFIG_DIR] doesn't exist" && exit 1
