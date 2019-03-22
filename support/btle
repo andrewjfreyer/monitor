@@ -209,7 +209,7 @@ btle_text_processor () {
 		fi 
 
 		#------------ HEX DATA
-		if [[ $packet =~ [a-fA-F0-9-]{8,} ]]; then 
+		if [[ $packet =~ [a-f0-9-]{8,} ]]; then 
 			hex_data=$BASH_REMATCH
 		fi
 
