@@ -920,7 +920,7 @@ while true; do
 					
 				#GET INTERVAL SINCE LAST SEEN
 				last_appearance=${public_device_log[$mac]:-$timestamp}
-				advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+				echo "$LINENO $mac" && advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 				#IS THIS A NEW STATIC DEVICE?
 				public_device_log[$mac]="$timestamp"
@@ -951,7 +951,7 @@ while true; do
 					#IS THIS A NEW STATIC DEVICE?
 					if [ -n "${public_device_log[$mac]}" ]; then 					
 						last_appearance=${public_device_log[$mac]:-$timestamp}
-						advertisement_interval_observation[$mac]=$((timestamp - last_appearance))
+						echo "$LINENO $mac" && advertisement_interval_observation[$mac]=$((timestamp - last_appearance))
 
 					else 
 						is_new=true
@@ -966,7 +966,7 @@ while true; do
 
 					#CALCULATE INTERVAL
 					last_appearance=${random_device_log[$mac]:-$timestamp}
-					advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+					echo "$LINENO $mac" && advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 					#ONLY ADD THIS TO THE DEVICE LOG 
 					random_device_log[$mac]="$timestamp"
@@ -1403,7 +1403,7 @@ while true; do
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
 			last_appearance=${public_device_log[$mac]:-$timestamp}
-			advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+			echo "$LINENO $mac" && advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
 			if [ -n "$matching_beacon_uuid_key" ]; then 
@@ -1508,7 +1508,7 @@ while true; do
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
 			last_appearance=${public_device_log[$mac]:-$timestamp}
-			advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+			echo "$LINENO $mac" && advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
 			last_appearance=${public_device_log[$uuid_reference]:-$timestamp}
