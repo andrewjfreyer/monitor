@@ -110,9 +110,6 @@ PREF_CONFIG_DIR=''
 PREF_DISABLE_LOGGING=false
 PREF_VERBOSE_LOGGING=false
 
-#MQTT VERSION
-[ "$mqtt_version" == "" ] && $PREF_VERBOSE_LOGGING && printf "%s\n" "> ${GREEN}preference:${NC} using default mqtt protocol version" || printf "%s\n" "> ${GREEN}preference:${NC} using mqtt protocol version $mqtt_version"
-
 while getopts "h?vfbut:EgSRCmsVadxD:c:" opt; do
 	case "$opt" in
 		h|\?)
@@ -201,4 +198,3 @@ shift $((OPTIND-1))
 
 #SHIFT IF NECESSARY
 [ "$1" = "--" ] && shift
-
