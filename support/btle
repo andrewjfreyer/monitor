@@ -222,7 +222,7 @@ btle_text_processor () {
 			[[ $oem_data =~ Vendor\ specific ]] && oem_data=""
 
 			#OVERWRITE OEMS
-			[ -n "$oem_data" ] && manufacturer=${manufacturer:-$manufacturer for $oem_data}
+			[ -n "$oem_data" ] && [ -n "$manufacturer" ] && manufacturer="$manufacturer for $oem_data"
 			[ -n "$oem_data" ] && manufacturer=${manufacturer:-$oem_data}
 		fi 
 
