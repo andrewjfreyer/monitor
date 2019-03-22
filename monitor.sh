@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.095
+export version=0.2.097
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -901,6 +901,7 @@ while true; do
 			oem_data=$(echo "$data" | awk -F "|" '{print $9}')
 			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $10}')
 			resolvable=$(echo "$data" | awk -F "|" '{print $11}')
+			hex_data=$(echo "$data" | awk -F "|" '{print $12}')
 
 			#FIND DELAY BASED ON INSTRUCTINO TIMESTAMP
 			instruction_delay=$((timestamp - instruction_timestamp))
@@ -1405,6 +1406,7 @@ while true; do
 			oem_data=$(echo "$data" | awk -F "|" '{print $9}')
 			instruction_timestamp=$(echo "$data" | awk -F "|" '{print $10}')
 			resolvable=$(echo "$data" | awk -F "|" '{print $11}')
+			hex_data=$(echo "$data" | awk -F "|" '{print $12}')
 
 			#DEFAULT?
 			instruction_timestamp=${instruction_timestamp:-$timestamp}

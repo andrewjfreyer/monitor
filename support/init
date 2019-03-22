@@ -272,7 +272,9 @@ if [ -f "$PREF_CONFIG" ]; then
 > ${GREEN}preference:${NC} selected HCI device = ${PREF_HCI_DEVICE:-hci0}
 > ${BLUE}mqtt trigger:${NC} $mqtt_topicpath/scan/ARRIVE
 > ${BLUE}mqtt trigger:${NC} $mqtt_topicpath/scan/DEPART" | sed 's/= $/= '${RED}'error'${NC}'\!/gi')
-	printf "%s\n" "$preferences"
+	
+	#SIMPLIFY LOGGING
+	$PREF_VERBOSE_LOGGING && printf "%s\n" "$preferences"
 
 	#DEFAULTS
 	PREF_ARRIVAL_SCAN_ATTEMPTS=${PREF_ARRIVAL_SCAN_ATTEMPTS:-2}
