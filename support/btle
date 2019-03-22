@@ -212,6 +212,11 @@ btle_text_processor () {
 			oem_data=${BASH_REMATCH[1]}
 			oem_data=$(trim_whitespace "$oem_data")
 
+			#IS THIS A VENDOR-SPECIFIC UUID? 
+			[[ ${oem_data,,} =~ vendor specific ]] && oem_data=""
+
+			#OVERWRITE OEMS
+			[ -n "$oem_data" ] && manufacturer="$manufacturer for $oem_data"
 			[ -n "$oem_data" ] && manufacturer=${manufacturer:-$oem_data}
 		fi 
 
