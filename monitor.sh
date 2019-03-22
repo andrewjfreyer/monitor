@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.110
+export version=0.2.111
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1253,7 +1253,7 @@ while true; do
 				#DETERMINE IF THIS WAS A BEACON AND, IF SO, WHETHER THE BEACON IS SEEN MORE RECENTLY 
 				if [ "$is_apple_beacon" == true ]; then 
 					
-					$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC $beacon_mac_found = $beacon_uuid_found ${advertisement_interval_observation[$key]} $LINENO"
+					$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC [$beacon_mac_found] = $beacon_uuid_found ${advertisement_interval_observation[$key]} $LINENO"
 
 					#DETERMINE DIFFERENCE SET DEFAULT NON-EXPIRING VALUE FOR DEVUGGING PURPOSES
 					difference=10
