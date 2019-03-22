@@ -83,9 +83,6 @@ if [ -f $MQTT_CONFIG ] ; then
 	[ "$mqtt_password" == "password" ] || [ -z "$mqtt_password" ] && printf "%s\n" "${ORANGE}> warning:${NC} for security purposes, please consider changing 'password' in: mqtt_preferences"
 	[ ! -f "$mqtt_certificate_path" ] && [ ! -z "$mqtt_certificate_path" ] && printf "%s\n" ">${RED} error:${NC} please check mqtt certificate path in mqtt_preferences" && should_exit=true
 
-	#MQTT VERSION
-	[ "$mqtt_version" == "" ] && $PREF_VERBOSE_LOGGING && printf "%s\n" "> ${GREEN}preference:${NC} using default mqtt protocol version" || printf "%s\n" "> ${GREEN}preference:${NC} using mqtt protocol version $mqtt_version"
-	
 	#WARNINGS
 	[ -z "$mqtt_port" ] && printf "%s\n" "${ORANGE}> warning:${NC} variable mqtt_port does not appear in mqtt_preferences. using default port 1883". && mqtt_port="1883"
 	[ -z "$mqtt_publisher_identity" ] && printf "%s\n" "${ORANGE}> warning:${NC} variable mqtt_publisher_identity does not appear in: mqtt_preferences. using hostname: $(hostname)". && mqtt_publisher_identity="$(hostname)"
