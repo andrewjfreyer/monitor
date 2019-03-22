@@ -237,7 +237,7 @@ btle_text_processor () {
 		timestamp=$(date +%s)
 
 		#MOVE IGNORE FILTER HERE TO BE SURE 
-		if [ ${PREF_VERBOSE_LOGGING_EXTENDED:-false} == true ]; then 
+		if [ ${PREF_FILTER_DEBUG_LOGGING:-false} == true ]; then 
 
 			#FORMATTING FOR FUN AND PROFIT
 		   	[[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]] && flag_filter_color=${RED} || flag_filter_color=${GREEN}

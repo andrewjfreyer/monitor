@@ -109,8 +109,9 @@ PREF_SERVICE_CHECK=true
 PREF_CONFIG_DIR=''
 PREF_DISABLE_LOGGING=false
 PREF_VERBOSE_LOGGING=false
+PREF_FILTER_DEBUG_LOGGING=false
 
-while getopts "h?vfbut:EgSRCmsVadxD:c:" opt; do
+while getopts "h?vfFbut:EgSRCmsVadxD:c:" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
@@ -122,6 +123,9 @@ while getopts "h?vfbut:EgSRCmsVadxD:c:" opt; do
 		v)  
 			printf "%s\n" "$VERSION"
 			exit 0
+			;;
+		F)  
+			PREF_FILTER_DEBUG_LOGGING=true && printf "%s\n" "> ${ORANGE}warning:${NC} filter logging is enabled. this setting is only for debugging purposes"
 			;;
 		V)  
 			PREF_VERBOSE_LOGGING=true && printf "%s\n" "> verbose logging is enabled. this setting is only for debugging purposes"

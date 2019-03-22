@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.100
+export version=0.2.101
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -814,8 +814,6 @@ beacon_database_expiration_trigger_pid="$!"
 echo "> beacon database time trigger pid = $beacon_database_expiration_trigger_pid" >> .pids
 $PREF_VERBOSE_LOGGING && echo "> beacon database time trigger pid = $beacon_database_expiration_trigger_pid"
 disown "$beacon_database_expiration_trigger_pid"
-
-echo "================== BEGIN LOGGING =================="
 
 # ----------------------------------------------------------------------------------------
 # MAIN LOOPS. INFINITE LOOP CONTINUES, NAMED PIPE IS READ INTO SECONDARY LOOP
