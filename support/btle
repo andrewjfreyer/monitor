@@ -258,7 +258,7 @@ btle_text_processor () {
 			printf "%s\n" "flag fail:	${flag_filter_color}not (${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,})${NC}"
 			printf "%s\n" "mfcg fail:	${mfcg_filter_color}not (${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,})${NC}"
 			printf "%s\n" "pdu filter: 	${pdut_filter_color}only (${PREF_PASS_FILTER_PDU_TYPE,,})${NC}"
-			[ -z "${blacklisted_devices["$received_mac_address"]}" ] && printf "%s\n" "blacklist: 	${RED}true${NC}" || printf "%s\n" "blacklist: 	${GREEN}false${NC}"
+			[ -n "${blacklisted_devices["$received_mac_address"]}" ] && printf "%s\n" "blacklist: 	${RED}true${NC}" || printf "%s\n" "blacklist: 	${GREEN}false${NC}"
 			printf "%s\n" ""
 			printf "%s\n" "type: 		${CYAN}${tx_type:-???}${NC}"
 			printf "%s\n" "mac: 		${CYAN}${received_mac_address:-???}${NC}"
