@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.125
+export version=0.2.126
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1322,6 +1322,8 @@ while true; do
 					
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
 					percent_confidence=$(( 100 - (difference - expiration_prediction) * 100 / (PREF_BEACON_EXPIRATION - expiration_prediction) )) 
+					[ "$percent_confidence" -lt "5" ] && percent_confidence=0
+
 
 					if [ "$PREF_REPORT_ALL_MODE" == true ]; then						
 						#REPORTING ALL 	
@@ -1419,7 +1421,7 @@ while true; do
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
 			if [ -n "$matching_beacon_uuid_key" ]; then 
-				last_appearance=${public_device_log[$mac]:-$timestamp}
+				last_appearance=${public_device_log[$matching_beacon_uuid_key]:-$timestamp}
 				advertisement_interval_observation[$matching_beacon_uuid_key]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 			fi
 
