@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.115
+export version=0.2.116
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -860,6 +860,7 @@ while true; do
 		instruction_timestamp=""
 		instruction_delay=""
 		observation_made=false
+		most_recent_beacon=""
 
 		#PROCEED BASED ON COMMAND TYPE
 		if [ "$cmd" == "ENQU" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
@@ -1210,7 +1211,7 @@ while true; do
 				is_apple_beacon=false
 
 				#RESET BEACON KEY
-				most_recent_beacon="0"
+				most_recent_beacon=""
 				beacon_uuid_found=""
 				beacon_mac_found=""
 
@@ -1254,9 +1255,12 @@ while true; do
 				#DETERMINE IF THIS WAS A BEACON AND, IF SO, WHETHER THE BEACON IS SEEN MORE RECENTLY 
 				if [ "$is_apple_beacon" == true ]; then 
 					
-					$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC [$beacon_mac_found] = $beacon_uuid_found ${advertisement_interval_observation[$key]} ${public_device_log[$beacon_mac_found]} ${public_device_log[$beacon_uuid_found]} $LINENO"
-
 					#DETERMINE DIFFERENCE SET DEFAULT NON-EXPIRING VALUE FOR DEVUGGING PURPOSES
+					[ "${public_device_log[$beacon_mac_found]:--1}" -gt "${public_device_log[$beacon_uuid_found]:--1}" ] && most_recent_beacon=${public_device_log[$beacon_mac_found]}
+					[ "${public_device_log[$beacon_uuid_found]:--1}" -gt "${public_device_log[$beacon_mac_found]:--1}" ] && most_recent_beacon=${public_device_log[$beacon_uuid_found]}
+					
+					$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC [$beacon_mac_found] = $beacon_uuid_found ${advertisement_interval_observation[$key]} ${public_device_log[$beacon_mac_found]} ${public_device_log[$beacon_uuid_found]} == $most_recent_beacon $LINENO"
+
 					difference=10
 
 				else
