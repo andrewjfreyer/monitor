@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.119
+export version=0.2.120
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1323,8 +1323,6 @@ while true; do
 						#REPORTING ALL 	
 						if [ "$is_apple_beacon" == true ] && [ "$PREF_BEACON_MODE" == true ]; then 
 							#DEBUG LOGGING
-							log "${BLUE}[DEL-UPDA]	${NC}BEAC $beacon_uuid_found (MAC: $beacon_mac_found) ${NC}"
-
 							[ -z "${blacklisted_devices[$beacon_uuid_found]}" ] && publish_presence_message "id=$beacon_uuid_found" "confidence=$percent_confidence" "mac=$key" "last_seen=$most_recent_beacon" && expiring_device_log[$beacon_uuid_found]='true'
 							[ -z "${blacklisted_devices[$beacon_mac_found]}" ] && publish_presence_message "id=$beacon_mac_found" "confidence=$percent_confidence" "last_seen=$most_recent_beacon" && expiring_device_log[$beacon_mac_found]='true'
 
