@@ -1268,6 +1268,7 @@ while true; do
 					[ "${advertisement_interval_observation[$beacon_mac_found]:--1}" -gt "${advertisement_interval_observation[$beacon_uuid_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_mac_found]}"
 					[ "${advertisement_interval_observation[$beacon_uuid_found]:--1}" -gt "${advertisement_interval_observation[$beacon_mac_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_uuid_found]}"
 
+					$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC [$beacon_mac_found] = $beacon_uuid_found ${advertisement_interval_observation[$key]} ${public_device_log[$beacon_mac_found]} ${public_device_log[$beacon_uuid_found]} $most_recent_beacon $LINENO"
 
 					#CALCUALTE DIFFERENCE FOR CONFIDENCE FINDING
 					difference=$((timestamp - most_recent_beacon))
