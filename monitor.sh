@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.118
+export version=0.2.119
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1266,12 +1266,8 @@ while true; do
 					[ "${advertisement_interval_observation[$beacon_mac_found]:--1}" -gt "${advertisement_interval_observation[$beacon_uuid_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_mac_found]}"
 					[ "${advertisement_interval_observation[$beacon_uuid_found]:--1}" -gt "${advertisement_interval_observation[$beacon_mac_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_uuid_found]}"
 
-
+					#CALCUALTE DIFFERENCE FOR CONFIDENCE FINDING
 					difference=$((timestamp - most_recent_beacon))
-
-					$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC [$beacon_mac_found] = $beacon_uuid_found ${advertisement_interval_observation[$key]} ${public_device_log[$beacon_mac_found]} ${public_device_log[$beacon_uuid_found]} == $most_recent_beacon --> $expiration_prediction $LINENO"
-
-					difference=10
 
 				else
 
@@ -1318,9 +1314,10 @@ while true; do
 						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" "last_seen=$last_seen"
 				
 					fi 
-				else 
+				elif [ "$difference" -gt "$expiration_prediction" ]; then
+					
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
-					percent_confidence=$(( 100 - difference * 100 / PREF_BEACON_EXPIRATION )) 
+					percent_confidence=$(( 100 - (difference - expiration_prediction)  * 100 / (PREF_BEACON_EXPIRATION - expiration_prediction) )) 
 
 					if [ "$PREF_REPORT_ALL_MODE" == true ]; then						
 						#REPORTING ALL 	
