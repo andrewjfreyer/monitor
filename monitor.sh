@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.126
+export version=0.2.127
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1259,14 +1259,14 @@ while true; do
 				if [ "$is_apple_beacon" == true ]; then 
 					
 					#DETERMINE DIFFERENCE SET DEFAULT NON-EXPIRING VALUE FOR DEVUGGING PURPOSES
-					[ "${public_device_log[$beacon_mac_found]:--1}" -gt "${public_device_log[$beacon_uuid_found]:--1}" ] && most_recent_beacon=${public_device_log[$beacon_mac_found]}
-					[ "${public_device_log[$beacon_uuid_found]:--1}" -gt "${public_device_log[$beacon_mac_found]:--1}" ] && most_recent_beacon=${public_device_log[$beacon_uuid_found]}
+					[ "${public_device_log[$beacon_mac_found]:--1}" -ge "${public_device_log[$beacon_uuid_found]:--1}" ] && most_recent_beacon=${public_device_log[$beacon_mac_found]}
+					[ "${public_device_log[$beacon_uuid_found]:--1}" -ge "${public_device_log[$beacon_mac_found]:--1}" ] && most_recent_beacon=${public_device_log[$beacon_uuid_found]}
 					
 					last_seen="$most_recent_beacon"
 
 					#WHICH PREDICTION SHOULD WE USE? 
-					[ "${advertisement_interval_observation[$beacon_mac_found]:--1}" -gt "${advertisement_interval_observation[$beacon_uuid_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_mac_found]}"
-					[ "${advertisement_interval_observation[$beacon_uuid_found]:--1}" -gt "${advertisement_interval_observation[$beacon_mac_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_uuid_found]}"
+					[ "${advertisement_interval_observation[$beacon_mac_found]:--1}" -ge "${advertisement_interval_observation[$beacon_uuid_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_mac_found]}"
+					[ "${advertisement_interval_observation[$beacon_uuid_found]:--1}" -ge "${advertisement_interval_observation[$beacon_mac_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_uuid_found]}"
 
 
 					#CALCUALTE DIFFERENCE FOR CONFIDENCE FINDING
