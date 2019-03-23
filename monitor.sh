@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.120
+export version=0.2.121
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1313,11 +1313,15 @@ while true; do
 						#REPORT PRESENCE OF DEVICE
 						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && publish_presence_message "id=$key" "confidence=0" "last_seen=$last_seen"
 				
-					fi 
-				elif [ "$difference" -gt "$expiration_prediction" ]; then
+					fi
+
+				elif [ "$expiration_prediction" -gt "0" ] && [ "$difference" -gt "$expiration_prediction" ]; then
 					
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
-					percent_confidence=$(( 100 - (difference - expiration_prediction)  * 100 / (PREF_BEACON_EXPIRATION - expiration_prediction) )) 
+					percent_confidence=$(( 100 - (difference - expiration_prediction) * 100 / (PREF_BEACON_EXPIRATION - expiration_prediction) )) 
+
+					$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC $percent_confidence  $LINENO"
+
 
 					if [ "$PREF_REPORT_ALL_MODE" == true ]; then						
 						#REPORTING ALL 	
