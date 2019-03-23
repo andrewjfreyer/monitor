@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.127
+export version=0.2.128
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1271,9 +1271,6 @@ while true; do
 
 					#CALCUALTE DIFFERENCE FOR CONFIDENCE FINDING
 					difference=$((timestamp - most_recent_beacon))
-
-
-					$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC [$beacon_mac_found] = $beacon_uuid_found ${advertisement_interval_observation[$key]} ${public_device_log[$beacon_mac_found]} ${public_device_log[$beacon_uuid_found]} $most_recent_beacon $difference $LINENO"
 
 				else
 
