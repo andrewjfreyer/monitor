@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.124
+export version=0.2.125
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1262,9 +1262,12 @@ while true; do
 					[ "${public_device_log[$beacon_mac_found]:--1}" -gt "${public_device_log[$beacon_uuid_found]:--1}" ] && most_recent_beacon=${public_device_log[$beacon_mac_found]}
 					[ "${public_device_log[$beacon_uuid_found]:--1}" -gt "${public_device_log[$beacon_mac_found]:--1}" ] && most_recent_beacon=${public_device_log[$beacon_uuid_found]}
 					
+					last_seen="$most_recent_beacon"
+
 					#WHICH PREDICTION SHOULD WE USE? 
 					[ "${advertisement_interval_observation[$beacon_mac_found]:--1}" -gt "${advertisement_interval_observation[$beacon_uuid_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_mac_found]}"
 					[ "${advertisement_interval_observation[$beacon_uuid_found]:--1}" -gt "${advertisement_interval_observation[$beacon_mac_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_uuid_found]}"
+
 
 					#CALCUALTE DIFFERENCE FOR CONFIDENCE FINDING
 					difference=$((timestamp - most_recent_beacon))
@@ -1591,7 +1594,7 @@ while true; do
 				[ "$rssi_latest" == "-200" ] && change_type="initial reading" && should_update=true
 
 				#ONLY PRINT IF WE HAVE A CHANCE OF A CERTAIN MAGNITUDE
-				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type by $abs_rssi_change dBm) ${NC}" && should_update=true
+				[ -z "${blacklisted_devices[$mac]}" ] && [ "$abs_rssi_change" -gt "$PREF_RSSI_CHANGE_THRESHOLD" ] && log "${CYAN}[CMD-RSSI]	${NC}$cmd $mac ${GREEN}${NC}RSSI: ${rssi:-100} dBm ($change_type | $abs_rssi_change dBm) ${NC}" && should_update=true
 			fi
 		fi 
 
