@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.123
+export version=0.2.124
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1315,12 +1315,10 @@ while true; do
 				
 					fi
 
-				elif [ "$expiration_prediction" -gt "0" ] && [ "$difference" -gt "$expiration_prediction" ]; then
+				elif [ "$expiration_prediction" -gt "0" ] && [ "$difference" -gt "$(( (PREF_BEACON_EXPIRATION - expiration_prediction)  / 2 + expiration_prediction)) " ]; then
 					
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
 					percent_confidence=$(( 100 - (difference - expiration_prediction) * 100 / (PREF_BEACON_EXPIRATION - expiration_prediction) )) 
-
-					$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC $percent_confidence --> $key : $expiration_prediction to $difference --> $((PREF_BEACON_EXPIRATION - expiration_prediction)) $LINENO"
 
 					if [ "$PREF_REPORT_ALL_MODE" == true ]; then						
 						#REPORTING ALL 	
