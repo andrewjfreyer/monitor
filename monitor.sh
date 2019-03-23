@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.117
+export version=0.2.118
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1263,8 +1263,8 @@ while true; do
 					[ "${public_device_log[$beacon_uuid_found]:--1}" -gt "${public_device_log[$beacon_mac_found]:--1}" ] && most_recent_beacon=${public_device_log[$beacon_uuid_found]}
 					
 					#WHICH PREDICTION SHOULD WE USE? 
-					[ "${advertisement_interval_observation[$beacon_mac_found]:--1}" -gt "${advertisement_interval_observation[$beacon_uuid_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_uuid_found]}"
-					[ "${advertisement_interval_observation[$beacon_uuid_found]:--1}" -gt "${advertisement_interval_observation[$beacon_mac_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_mac_found]}"
+					[ "${advertisement_interval_observation[$beacon_mac_found]:--1}" -gt "${advertisement_interval_observation[$beacon_uuid_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_mac_found]}"
+					[ "${advertisement_interval_observation[$beacon_uuid_found]:--1}" -gt "${advertisement_interval_observation[$beacon_mac_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_uuid_found]}"
 
 
 					difference=$((timestamp - most_recent_beacon))
