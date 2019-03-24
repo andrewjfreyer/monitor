@@ -1359,7 +1359,7 @@ while true; do
 				
 					fi
 
-				elif [ "$expiration_prediction" -gt "0" ] && [ "$difference" -gt "$(( (PREF_BEACON_EXPIRATION - expiration_prediction)  / 2 + expiration_prediction)) " ]; then
+				elif [ "${expiration_prediction:-0}" -gt "0" ] && [ "$difference" -gt "$(( (PREF_BEACON_EXPIRATION - expiration_prediction)  / 2 + expiration_prediction))" ]; then
 					
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
 					percent_confidence=$(( 100 - (difference - expiration_prediction) * 100 / (PREF_BEACON_EXPIRATION - expiration_prediction) )) 
