@@ -1205,7 +1205,7 @@ while true; do
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
 
-				printf "key: $key\n"
+				printf "key: $key $LINENO\n"
 
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen="${public_device_log[$key]}"
@@ -1224,7 +1224,8 @@ while true; do
 
 				#THE PROBLEM HEERE IS THAT WE CAN RUN THROUGH THIS AND HIT ONE OR THE OTHER OF MAC OR ADDRESS FIRST; 
 				#THEN WE EXIT
-				
+				printf "key: $key $LINENO\n"
+
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_uuid_key in "${!beacon_mac_address_log[@]}"; do
 					#FIND ASSOCIATED BEACON
@@ -1258,6 +1259,7 @@ while true; do
 						break					
 					fi
 				done
+				printf "key: $key $LINENO\n"
 
 				#DETERMINE IF THIS WAS A BEACON AND, IF SO, WHETHER THE BEACON IS SEEN MORE RECENTLY 
 				if [ "$is_apple_beacon" == true ]; then 
@@ -1284,6 +1286,7 @@ while true; do
 					#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
 					[ -z "$last_seen" ] && continue 
 				fi 
+				printf "key: $key $LINENO\n"
 
 				$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-LOG]${NC}	INFO {{$key}} ${advertisement_interval_observation[$key]} time_difference=$difference $LINENO"
 
