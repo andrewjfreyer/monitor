@@ -1281,7 +1281,7 @@ while true; do
 					[ -z "$last_seen" ] && continue 
 				fi 
 
-				$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	INFO $key ${advertisement_interval_observation[$key]} time_difference=$difference $LINENO"
+				$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	INFO -$key- ${advertisement_interval_observation[$key]} time_difference=$difference $LINENO"
 
 				#TIMEOUT AFTER [XXX] SECONDS; ALL BEACONS HONOR THE SAME EXPRIATION THRESHOLD INCLUDING IBEACONS
 				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
