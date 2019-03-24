@@ -828,8 +828,8 @@ while true; do
 		#DEBUG PRINTING
 		if [ "$PREF_VERBOSE_LOGGING" == true ]; then 
 			printf "%s\n" "======================================="
-			for i in "${!foo[@]}"; do 
-		  		printf "%s\t%s\n" "$i" "${foo[$i]}"
+			for i in "${!public_device_log[@]}"; do 
+		  		printf "%s\t%s\n" "$i" "${public_device_log[$i]}"
 			done
 			printf "%s\n" "======================================="
 		fi 
