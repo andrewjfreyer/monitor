@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.131
+export version=0.2.132
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -823,16 +823,7 @@ disown "$beacon_database_expiration_trigger_pid"
 while true; do 
 	
 	#READ FROM THE MAIN PIPE
-	while read -r event; do 
-
-		#DEBUG PRINTING
-		if [ "$PREF_VERBOSE_LOGGING" == true ]; then 
-			printf "%s\n" "======================================="
-			for i in "${!public_device_log[@]}"; do 
-		  		printf "%s\t%s\n" "$i" "${public_device_log[$i]}"
-			done
-			printf "%s\n" "======================================="
-		fi 
+	while read -r event; do
 
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
@@ -1293,7 +1284,7 @@ while true; do
 					[ -z "$last_seen" ] && continue 
 				fi 
 
-				$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	INFO -$key- ${advertisement_interval_observation[$key]} time_difference=$difference $LINENO"
+				$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	INFO {{$key}} ${advertisement_interval_observation[$key]} time_difference=$difference $LINENO"
 
 				#TIMEOUT AFTER [XXX] SECONDS; ALL BEACONS HONOR THE SAME EXPRIATION THRESHOLD INCLUDING IBEACONS
 				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
