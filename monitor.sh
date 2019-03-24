@@ -826,10 +826,12 @@ while true; do
 	while read -r event; do 
 
 		#DEBUG PRINTING
-		if [ "$PREF_VERBOSE_LOGGING" == true]; then 
+		if [ "$PREF_VERBOSE_LOGGING" == true ]; then 
+			printf "%s\n" "======================================="
 			for i in "${!foo[@]}"; do 
 		  		printf "%s\t%s\n" "$i" "${foo[$i]}"
 			done
+			printf "%s\n" "======================================="
 		fi 
 
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
