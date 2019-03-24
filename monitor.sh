@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.137
+export version=0.2.138
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1711,6 +1711,7 @@ while true; do
 				"rssi=$rssi" \
 				"mac=$mac" \
 				"report_delay=$instruction_delay" \
+				"observed_interval=${advertisement_interval_observation[$mac]:--1}" \
 				"power=$power" \
 				"movement=$change_type"
 
@@ -1724,6 +1725,7 @@ while true; do
 				"manufacturer=$manufacturer" \
 				"type=GENERIC_BEACON_PUBLIC" \
 				"report_delay=$instruction_delay" \
+				"observed_interval=${advertisement_interval_observation[$mac]:--1}" \
 				"rssi=$rssi" \
 				"flags=$flags" \
 				"movement=${change_type:-none}"
@@ -1749,6 +1751,7 @@ while true; do
 				"type=$beacon_type" \
 				"report_delay=$instruction_delay" \
 				"rssi=$rssi" \
+				"observed_interval=${advertisement_interval_observation[$mac]:--1}" \
 				"flags=${flags:-none}" \
 				"movement=${change_type:-none}" \
 				"oem_data=${oem_data:-not advertised}" \
