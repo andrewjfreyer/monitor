@@ -959,8 +959,9 @@ while true; do
 				#GET INTERVAL SINCE LAST SEEN
 				last_appearance=${public_device_log[$mac]:-$timestamp}
 				if [ "$observation_made" == false ] && [ observation_made=true ]; then 
-					temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
-					[ "$temp_observation" -ge "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+					temp_observation="" && temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+					[ "$temp_observation" -gt "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+					printf "%s\n" "$temp_observation"
 				fi
 
 				#IS THIS A NEW STATIC DEVICE?
@@ -994,8 +995,9 @@ while true; do
 						#GET INTERVAL SINCE LAST SEEN
 						last_appearance=${public_device_log[$mac]:-$timestamp}
 						if [ "$observation_made" == false ] && [ observation_made=true ]; then 
-							temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
-							[ "$temp_observation" -ge "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+							temp_observation="" && temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+							[ "$temp_observation" -gt "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+							printf "%s\n" "$temp_observation"
 						fi
 						
 					else 
@@ -1012,8 +1014,9 @@ while true; do
 					#CALCULATE INTERVAL
 					last_appearance=${public_device_log[$mac]:-$timestamp}
 					if [ "$observation_made" == false ] && [ observation_made=true ]; then 
-						temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
-						[ "$temp_observation" -ge "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+						temp_observation="" && temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+						[ "$temp_observation" -gt "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+						printf "%s\n" "$temp_observation"
 					fi
 					
 					#ONLY ADD THIS TO THE DEVICE LOG 
@@ -1459,8 +1462,9 @@ while true; do
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
 			last_appearance=${public_device_log[$mac]:-$timestamp}
 			if [ "$observation_made" == false ] && [ observation_made=true ]; then 
-				temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
-				[ "$temp_observation" -ge "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+				temp_observation="" && temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+				[ "$temp_observation" -gt "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+				printf "%s\n" "$temp_observation"
 			fi
 			
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
@@ -1468,8 +1472,9 @@ while true; do
 				#GET INTERVAL SINCE LAST SEEN
 				last_appearance=${public_device_log[$mac]:-$timestamp}
 				if [ "$observation_made" == false ] && [ observation_made=true ]; then 
-					temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
-					[ "$temp_observation" -ge "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+					temp_observation="" && temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+					[ "$temp_observation" -gt "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+					printf "%s\n" "$temp_observation"
 				fi
 			fi
 
@@ -1575,8 +1580,9 @@ while true; do
 			#GET INTERVAL SINCE LAST SEEN
 			last_appearance=${public_device_log[$mac]:-$timestamp}
 			if [ "$observation_made" == false ] && [ observation_made=true ]; then 
-				temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
-				[ "$temp_observation" -ge "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+				temp_observation="" && temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+				[ "$temp_observation" -gt "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+				printf "%s\n" "$temp_observation"
 			fi
 			
 			#SAVE BEACON ADDRESS LOG
