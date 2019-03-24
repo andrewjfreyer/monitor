@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.129
+export version=0.2.130
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1272,9 +1272,6 @@ while true; do
 					#CALCUALTE DIFFERENCE FOR CONFIDENCE FINDING
 					difference=$((timestamp - most_recent_beacon))
 
-
-					$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	BEAC [$beacon_mac_found] = $beacon_uuid_found prediction=${advertisement_interval_observation[$key]} mac=${public_device_log[$beacon_mac_found]} beacon=${public_device_log[$beacon_uuid_found]} greatest=$most_recent_beacon time_difference=$difference $LINENO"
-
 				else
 
 					#DETERMINE DIFFERENCE
@@ -1283,6 +1280,8 @@ while true; do
 					#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
 					[ -z "$last_seen" ] && continue 
 				fi 
+
+				$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	INFO $mac ${advertisement_interval_observation[$key]} time_difference=$difference $LINENO"
 
 				#TIMEOUT AFTER [XXX] SECONDS; ALL BEACONS HONOR THE SAME EXPRIATION THRESHOLD INCLUDING IBEACONS
 				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
