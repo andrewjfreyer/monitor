@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.135
+export version=0.2.136
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -477,7 +477,12 @@ perform_complete_scan () {
 				printf "%s\n" "NAME$known_addr|$name" > main_pipe 
 
 				#DEVICE FOUND; IS IT CHANGED? IF SO, REPORT 
-				publish_presence_message "id=$known_addr" "confidence=100" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
+				publish_presence_message \
+				"id=$known_addr" \
+				"confidence=100" \
+				"name=$expected_name" \
+				"manufacturer=$manufacturer" \
+				"type=KNOWN_MAC"
 
 				#REMOVE FROM SCAN
 				devices_next=$(echo "$devices_next" | sed "s/$known_addr_stated//gi;s/  */ /gi")
@@ -490,7 +495,11 @@ perform_complete_scan () {
 				printf "%s\n" "NAME$known_addr|$name" > main_pipe 
 
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
-				publish_presence_message "id=$known_addr" "confidence=100" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
+				publish_presence_message \
+				"id=$known_addr" "confidence=100" \
+				"name=$expected_name" \
+				"manufacturer=$manufacturer" \
+				"type=KNOWN_MAC"
 
 				#COOPERATIVE SCAN ON RESTART
 				$PREF_TRIGGER_MODE_REPORT_OUT && publish_cooperative_scan_message "arrive" 
@@ -504,7 +513,12 @@ perform_complete_scan () {
 				#NEED TO REPORT? 
 				if [[ $should_report =~ .*$known_addr.* ]] || [ "$PREF_REPORT_ALL_MODE" == true ] ; then 			
 					#REPORT PRESENCE
-					publish_presence_message "id=$known_addr" "confidence=100" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"			
+					publish_presence_message \
+					"id=$known_addr" \
+					"confidence=100" \
+					"name=$expected_name" \
+					"manufacturer=$manufacturer" \
+					"type=KNOWN_MAC"			
 				fi 
 			fi 
 
@@ -528,7 +542,12 @@ perform_complete_scan () {
 				fi 
 
 				#REPORT PRESENCE OF DEVICE
-				publish_presence_message "id=$known_addr" "confidence=$percent_confidence" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
+				publish_presence_message \
+				"id=$known_addr" \
+				"confidence=$percent_confidence" \
+				"name=$expected_name" \
+				"manufacturer=$manufacturer" \
+				"type=KNOWN_MAC"
 
 				#IF WE DO FIND A NAME LATER, WE SHOULD REPORT OUT 
 				should_report="$should_report$known_addr"
@@ -536,7 +555,12 @@ perform_complete_scan () {
 			elif [ -z "$name" ] && [ "$previous_state" == "3" ]; then 
 
 				#NEVER SEEN THIS DEVICE; NEED TO PUBLISH STATE MESSAGE
-				publish_presence_message "id=$known_addr" "confidence=0" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
+				publish_presence_message \
+				"id=$known_addr" \
+				"confidence=0" \
+				"name=$expected_name" \
+				"manufacturer=$manufacturer" \
+				"type=KNOWN_MAC"
 
 				#PUBLISH MESSAGE TO RSSI SENSOR 
 				publish_rssi_message \
@@ -556,7 +580,12 @@ perform_complete_scan () {
 
 				if [ "$PREF_REPORT_ALL_MODE" == true ] ; then 			
 					#REPORT PRESENCE
-					publish_presence_message "id=$known_addr" "confidence=0" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"			
+					publish_presence_message \
+					"id=$known_addr" \
+					"confidence=0" \
+					"name=$expected_name" \
+					"manufacturer=$manufacturer" \
+					"type=KNOWN_MAC"			
 
 					#PUBLISH MESSAGE TO RSSI SENSOR 
 					publish_rssi_message \
@@ -613,7 +642,12 @@ perform_complete_scan () {
 			manufacturer=${manufacturer:-Unknown}
 
 			#PUBLISH PRESENCE METHOD
-			publish_presence_message "id=$known_addr" "confidence=0" "name=$expected_name" "manufacturer=$manufacturer" "type=KNOWN_MAC"
+			publish_presence_message \
+			"id=$known_addr" \
+			"confidence=0" \
+			"name=$expected_name" \
+			"manufacturer=$manufacturer" \
+			"type=KNOWN_MAC"
 
 			#PUBLISH MESSAGE TO RSSI SENSOR 
 			publish_rssi_message \
@@ -862,6 +896,7 @@ while true; do
 		observation_made=false
 		most_recent_beacon=""
 		expiration_prediction=""
+		temp_observation=""
 
 		#PROCEED BASED ON COMMAND TYPE
 		if [ "$cmd" == "ENQU" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
@@ -923,7 +958,10 @@ while true; do
 					
 				#GET INTERVAL SINCE LAST SEEN
 				last_appearance=${public_device_log[$mac]:-$timestamp}
-				[ "$observation_made" == false ] && observation_made=true && advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+				if [ "$observation_made" == false ] && [ observation_made=true ]; then 
+					temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+					[ "$temp_observation" -ge "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+				fi
 
 				#IS THIS A NEW STATIC DEVICE?
 				public_device_log[$mac]="$timestamp"
@@ -953,9 +991,13 @@ while true; do
 
 					#IS THIS A NEW STATIC DEVICE?
 					if [ -n "${public_device_log[$mac]}" ]; then 					
+						#GET INTERVAL SINCE LAST SEEN
 						last_appearance=${public_device_log[$mac]:-$timestamp}
-						[ "$observation_made" == false ] && observation_made=true && advertisement_interval_observation[$mac]=$((timestamp - last_appearance))
-
+						if [ "$observation_made" == false ] && [ observation_made=true ]; then 
+							temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+							[ "$temp_observation" -ge "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+						fi
+						
 					else 
 						is_new=true
 					fi 
@@ -968,9 +1010,12 @@ while true; do
 					[ -z "${random_device_log[$mac]}" ] && is_new=true
 
 					#CALCULATE INTERVAL
-					last_appearance=${random_device_log[$mac]:-$timestamp}
-					[ "$observation_made" == false ] && observation_made=true && advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
-
+					last_appearance=${public_device_log[$mac]:-$timestamp}
+					if [ "$observation_made" == false ] && [ observation_made=true ]; then 
+						temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+						[ "$temp_observation" -ge "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+					fi
+					
 					#ONLY ADD THIS TO THE DEVICE LOG 
 					random_device_log[$mac]="$timestamp"
 					[ -n "$rssi" ] && rssi_log[$mac]="$rssi"
@@ -1200,8 +1245,6 @@ while true; do
 			most_recent_beacon=""
 			expiration_prediction=""
 
-			$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-LOG]${NC}	====================================================== $LINENO"
-
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
 
@@ -1417,12 +1460,19 @@ while true; do
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
 			last_appearance=${public_device_log[$mac]:-$timestamp}
-			[ "$observation_made" == false ] && observation_made=true && advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
-
+			if [ "$observation_made" == false ] && [ observation_made=true ]; then 
+				temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+				[ "$temp_observation" -ge "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+			fi
+			
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
 			if [ -n "$matching_beacon_uuid_key" ]; then 
-				last_appearance=${public_device_log[$matching_beacon_uuid_key]:-$timestamp}
-				advertisement_interval_observation[$matching_beacon_uuid_key]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+				#GET INTERVAL SINCE LAST SEEN
+				last_appearance=${public_device_log[$mac]:-$timestamp}
+				if [ "$observation_made" == false ] && [ observation_made=true ]; then 
+					temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+					[ "$temp_observation" -ge "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+				fi
 			fi
 
 			#SET NAME 
@@ -1524,10 +1574,13 @@ while true; do
 			last_appearance=${public_device_log[$mac]:-$timestamp}
 			[ "$observation_made" == false ] && observation_made=true && advertisement_interval_observation[$mac]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 
-			#SET ADVERTISEMENT INTERVAL OBSERVATION
-			last_appearance=${public_device_log[$uuid_reference]:-$timestamp}
-			advertisement_interval_observation[$uuid_reference]=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
-
+			#GET INTERVAL SINCE LAST SEEN
+			last_appearance=${public_device_log[$mac]:-$timestamp}
+			if [ "$observation_made" == false ] && [ observation_made=true ]; then 
+				temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+				[ "$temp_observation" -ge "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+			fi
+			
 			#SAVE BEACON ADDRESS LOG
 			beacon_mac_address_log[$uuid_reference]="$mac"
 
@@ -1698,8 +1751,11 @@ while true; do
 				"type=$beacon_type" \
 				"report_delay=$instruction_delay" \
 				"rssi=$rssi" \
-				"flags=$flags" \
-				"movement=${change_type:-none}"
+				"flags=${flags:-none}" \
+				"movement=${change_type:-none}" \
+				"oem_data=${oem_data:-not advertised}" \
+				"resolvable=${resolvable:-PUBLIC}" \
+				"hex_data=${hex_data:-none}" 
 			fi 
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
