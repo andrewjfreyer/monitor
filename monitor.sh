@@ -1200,6 +1200,9 @@ while true; do
 			most_recent_beacon=""
 			expiration_prediction=""
 
+			$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	====================================================== $LINENO"
+
+
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
 
