@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.130
+export version=0.2.131
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -824,6 +824,13 @@ while true; do
 	
 	#READ FROM THE MAIN PIPE
 	while read -r event; do 
+
+		#DEBUG PRINTING
+		if [ "$PREF_VERBOSE_LOGGING" == true]; then 
+			for i in "${!foo[@]}"; do 
+		  		printf "%s\t%s\n" "$i" "${foo[$i]}"
+			done
+		fi 
 
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
@@ -1680,7 +1687,7 @@ while true; do
 				"report_delay=$instruction_delay" \
 				"rssi=$rssi" \
 				"flags=$flags" \
-				"movement=$change_type"
+				"movement=${change_type:-none}"
 			fi 
 		
 		elif [ "$cmd" == "PUBL" ] && [ "$PREF_BEACON_MODE" == true ] && ([ "$should_update" == true ] || [ "$is_new" == true ]); then 
@@ -1704,7 +1711,7 @@ while true; do
 				"report_delay=$instruction_delay" \
 				"rssi=$rssi" \
 				"flags=$flags" \
-				"movement=$change_type"
+				"movement=${change_type:-none}"
 			fi 
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
