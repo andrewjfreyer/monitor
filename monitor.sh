@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.136
+export version=0.2.137
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1321,8 +1321,6 @@ while true; do
 					#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
 					[ -z "$last_seen" ] && continue 
 				fi 
-
-				$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-LOG]${NC}	INFO {{$key}} ${advertisement_interval_observation[$key]} time_difference=$difference $LINENO"
 
 				#TIMEOUT AFTER [XXX] SECONDS; ALL BEACONS HONOR THE SAME EXPRIATION THRESHOLD INCLUDING IBEACONS
 				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
