@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.132
+export version=0.2.134
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1200,11 +1200,12 @@ while true; do
 			most_recent_beacon=""
 			expiration_prediction=""
 
-			$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	====================================================== $LINENO"
-
+			$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-LOG]${NC}	====================================================== $LINENO"
 
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
+
+				printf "key: $key\n"
 
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen="${public_device_log[$key]}"
@@ -1284,7 +1285,7 @@ while true; do
 					[ -z "$last_seen" ] && continue 
 				fi 
 
-				$PREF_VERBOSE_LOGGING && log "${RED}[CMD-LOG]${NC}	INFO {{$key}} ${advertisement_interval_observation[$key]} time_difference=$difference $LINENO"
+				$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-LOG]${NC}	INFO {{$key}} ${advertisement_interval_observation[$key]} time_difference=$difference $LINENO"
 
 				#TIMEOUT AFTER [XXX] SECONDS; ALL BEACONS HONOR THE SAME EXPRIATION THRESHOLD INCLUDING IBEACONS
 				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
