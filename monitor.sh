@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.134
+export version=0.2.135
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1205,8 +1205,6 @@ while true; do
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
 
-				printf "key: $key $LINENO\n"
-
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				last_seen="${public_device_log[$key]}"
 
@@ -1224,7 +1222,6 @@ while true; do
 
 				#THE PROBLEM HEERE IS THAT WE CAN RUN THROUGH THIS AND HIT ONE OR THE OTHER OF MAC OR ADDRESS FIRST; 
 				#THEN WE EXIT
-				printf "key: $key $LINENO\n"
 
 				#IS THIS RANDOM ADDRESS ASSOCIATED WITH A BEACON
 				for beacon_uuid_key in "${!beacon_mac_address_log[@]}"; do
@@ -1247,9 +1244,6 @@ while true; do
 						#SET THIS IS A BEACON
 						is_apple_beacon=true
 
-						#SET THE ASSOCIATED KEY BACK 
-						key="$current_associated_beacon_mac_address"
-
 						#SET THIS IS A BEACON
 						is_apple_beacon=true
 
@@ -1259,7 +1253,6 @@ while true; do
 						break					
 					fi
 				done
-				printf "key: $key $LINENO\n"
 
 				#DETERMINE IF THIS WAS A BEACON AND, IF SO, WHETHER THE BEACON IS SEEN MORE RECENTLY 
 				if [ "$is_apple_beacon" == true ]; then 
@@ -1274,7 +1267,6 @@ while true; do
 					[ "${advertisement_interval_observation[$beacon_mac_found]:--1}" -ge "${advertisement_interval_observation[$beacon_uuid_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_mac_found]}"
 					[ "${advertisement_interval_observation[$beacon_uuid_found]:--1}" -ge "${advertisement_interval_observation[$beacon_mac_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_uuid_found]}"
 
-
 					#CALCUALTE DIFFERENCE FOR CONFIDENCE FINDING
 					difference=$((timestamp - most_recent_beacon))
 
@@ -1286,7 +1278,6 @@ while true; do
 					#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
 					[ -z "$last_seen" ] && continue 
 				fi 
-				printf "key: $key $LINENO\n"
 
 				$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-LOG]${NC}	INFO {{$key}} ${advertisement_interval_observation[$key]} time_difference=$difference $LINENO"
 
