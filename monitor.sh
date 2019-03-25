@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.145
+export version=0.2.146
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -958,7 +958,8 @@ while true; do
 					
 				#GET INTERVAL SINCE LAST SEEN
 				last_appearance=${public_device_log[$mac]:-$timestamp}
-				if [ "$observation_made" == false ] && [ observation_made=true ]; then 
+				if [ "$observation_made" == false ]; then 
+					observation_made=true
 					temp_observation="" && temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 					[ "$temp_observation" -gt "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
 					
@@ -994,7 +995,8 @@ while true; do
 					if [ -n "${public_device_log[$mac]}" ]; then 					
 						#GET INTERVAL SINCE LAST SEEN
 						last_appearance=${public_device_log[$mac]:-$timestamp}
-						if [ "$observation_made" == false ] && [ observation_made=true ]; then 
+						if [ "$observation_made" == false ]; then 
+							observation_made=true
 							temp_observation="" && temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 							[ "$temp_observation" -gt "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
 							
@@ -1013,7 +1015,8 @@ while true; do
 
 					#CALCULATE INTERVAL
 					last_appearance=${public_device_log[$mac]:-$timestamp}
-					if [ "$observation_made" == false ] && [ observation_made=true ]; then 
+					if [ "$observation_made" == false ]; then 
+						observation_made=true
 						temp_observation="" && temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 						[ "$temp_observation" -gt "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
 						
@@ -1021,7 +1024,8 @@ while true; do
 
 					#WHEN DOES THIS RANDOM BEACON EXPIRE?
 					last_appearance=${random_device_log[$mac]:-$timestamp}
-					if [ "$observation_made" == false ] && [ observation_made=true ]; then 
+					if [ "$observation_made" == false ]; then 
+						observation_made=true
 						temp_observation="" && temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 						[ "$temp_observation" -gt "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
 						
@@ -1485,7 +1489,8 @@ while true; do
 
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
 			last_appearance=${public_device_log[$mac]:-$timestamp}
-			if [ "$observation_made" == false ] && [ observation_made=true ]; then 
+			if [ "$observation_made" == false ]; then 
+				observation_made=true 
 				temp_observation="" && temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 				[ "$temp_observation" -gt "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
 				
@@ -1494,12 +1499,9 @@ while true; do
 			#SET ADVERTISEMENT INTERVAL OBSERVATION
 			if [ -n "$matching_beacon_uuid_key" ]; then 
 				#GET INTERVAL SINCE LAST SEEN
-				last_appearance=${public_device_log[$mac]:-$timestamp}
-				if [ "$observation_made" == false ] && [ observation_made=true ]; then 
-					temp_observation="" && temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
-					[ "$temp_observation" -gt "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
-					
-				fi
+				last_appearance=${public_device_log[$matching_beacon_uuid_key]:-$timestamp}
+				temp_observation="" && temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+				[ "$temp_observation" -gt "${advertisement_interval_observation[$matching_beacon_uuid_key]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$matching_beacon_uuid_key]=$temp_observation
 			fi
 
 			#SET NAME 
@@ -1603,7 +1605,8 @@ while true; do
 
 			#GET INTERVAL SINCE LAST SEEN
 			last_appearance=${public_device_log[$mac]:-$timestamp}
-			if [ "$observation_made" == false ] && [ observation_made=true ]; then 
+			if [ "$observation_made" == false ]; then 
+				observation_made=true
 				temp_observation="" && temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
 				[ "$temp_observation" -gt "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
 
