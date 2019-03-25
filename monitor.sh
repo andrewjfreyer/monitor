@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.142
+export version=0.2.144
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1229,7 +1229,7 @@ while true; do
 
 				#FIND THE EXPIRATION INTERVAL FOR THIS PARTICULAR BEACON
 				beacon_specific_expiration_interval="${advertisement_interval_observation[$key]}"
-				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval * PREF_DEPART_SCAN_ATTEMPTS ))
+				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval * 3 ))
 
 				#SET EXPIRATION
 				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval > 0 && beacon_specific_expiration_interval  < PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL ? beacon_specific_expiration_interval : PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL ))
@@ -1345,7 +1345,7 @@ while true; do
 				#BEACON
 				beacon_specific_expiration_interval=""
 				beacon_specific_expiration_interval="${advertisement_interval_observation[$key]}"
-				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval * PREF_DEPART_SCAN_ATTEMPTS ))
+				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval * 3 ))
 
 				#SET EXPIRATION
 				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval > 0 && beacon_specific_expiration_interval  < PREF_BEACON_EXPIRATION ? beacon_specific_expiration_interval : PREF_BEACON_EXPIRATION ))
