@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.146
+export version=0.2.147
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1013,15 +1013,6 @@ while true; do
 					#DATA IS RANDOM MAC Addr.; ADD TO LOG
 					[ -z "${random_device_log[$mac]}" ] && is_new=true
 
-					#CALCULATE INTERVAL
-					last_appearance=${public_device_log[$mac]:-$timestamp}
-					if [ "$observation_made" == false ]; then 
-						observation_made=true
-						temp_observation="" && temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
-						[ "$temp_observation" -gt "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
-						
-					fi
-
 					#WHEN DOES THIS RANDOM BEACON EXPIRE?
 					last_appearance=${random_device_log[$mac]:-$timestamp}
 					if [ "$observation_made" == false ]; then 
@@ -1233,7 +1224,7 @@ while true; do
 
 				#FIND THE EXPIRATION INTERVAL FOR THIS PARTICULAR BEACON
 				beacon_specific_expiration_interval="${advertisement_interval_observation[$key]}"
-				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval * 3 ))
+				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval * PREF_DEPART_SCAN_ATTEMPTS ))
 
 				#SET EXPIRATION
 				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval > 0 && beacon_specific_expiration_interval  < PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL ? beacon_specific_expiration_interval : PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL ))
@@ -1345,9 +1336,17 @@ while true; do
 					[ -z "$last_seen" ] && continue 
 				fi 
 
+				#FIND THE EXPIRATION INTERVAL FOR THIS PARTICULAR BEACON
+				beacon_specific_expiration_interval="${advertisement_interval_observation[$key]}"
+
+				#ADJUST TO BUFFER BASED ON USER PREFERENCES
+				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval * PREF_DEPART_SCAN_ATTEMPTS ))
+
+				#SET EXPIRATION 
+				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval > 0 && beacon_specific_expiration_interval  < PREF_BEACON_EXPIRATION ? beacon_specific_expiration_interval : PREF_BEACON_EXPIRATION ))
 
 				#TIMEOUT AFTER [XXX] SECONDS; ALL BEACONS HONOR THE SAME EXPRIATION THRESHOLD INCLUDING IBEACONS
-				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
+				if [ "$difference" -gt "$beacon_specific_expiration_interval" ]; then 
 					#REMOVE FROM EXPIRING DEVICE LOG
 					[ -n "${expiring_device_log[$key]}" ] && unset "expiring_device_log[$key]"
 
