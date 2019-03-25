@@ -1229,14 +1229,14 @@ while true; do
 
 				#FIND THE EXPIRATION INTERVAL FOR THIS PARTICULAR BEACON
 				expiration_interval="${advertisement_interval_observation[$key]}"
-				printf "%s\n" "$mac expiration = $expiration_interval $LINENO"
+				printf "%s\n" "$key expiration = $expiration_interval $LINENO"
 
 				expiration_interval=$(( expiration_interval * 3 ))
-				printf "%s\n" "$mac expiration = $expiration_interval $LINENO"
+				printf "%s\n" "$key expiration = $expiration_interval $LINENO"
 
 				#SET EXPIRATION
 				expiration_interval=$(( expiration_interval > 0 && expiration_interval  < PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL ? expiration_interval : PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL ))
-				printf "%s\n" "$mac expiration = $expiration_interval $LINENO"
+				printf "%s\n" "$key expiration = $expiration_interval $LINENO"
 
 
 				#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
