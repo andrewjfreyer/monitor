@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.147
+export version=0.2.148
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1227,7 +1227,7 @@ while true; do
 				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval * PREF_DEPART_SCAN_ATTEMPTS ))
 
 				#SET EXPIRATION
-				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval > 0 && beacon_specific_expiration_interval  < PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL ? beacon_specific_expiration_interval : PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL ))
+				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval > 45 && beacon_specific_expiration_interval  < PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL ? beacon_specific_expiration_interval : PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL ))
 
 				#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
 				[ -z "$last_seen" ] && continue
@@ -1343,7 +1343,7 @@ while true; do
 				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval * PREF_DEPART_SCAN_ATTEMPTS ))
 
 				#SET EXPIRATION 
-				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval > 0 && beacon_specific_expiration_interval  < PREF_BEACON_EXPIRATION ? beacon_specific_expiration_interval : PREF_BEACON_EXPIRATION ))
+				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval > 45 && beacon_specific_expiration_interval  < PREF_BEACON_EXPIRATION ? beacon_specific_expiration_interval : PREF_BEACON_EXPIRATION ))
 
 				#TIMEOUT AFTER [XXX] SECONDS; ALL BEACONS HONOR THE SAME EXPRIATION THRESHOLD INCLUDING IBEACONS
 				if [ "$difference" -gt "$beacon_specific_expiration_interval" ]; then 
