@@ -1232,7 +1232,7 @@ while true; do
 				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval * PREF_DEPART_SCAN_ATTEMPTS ))
 
 				#SET EXPIRATION
-				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval > 0 && beacon_specific_expiration_interval  < PREF_RANDOM_DEVICE_beacon_specific_expiration_interval ? beacon_specific_expiration_interval : PREF_RANDOM_DEVICE_beacon_specific_expiration_interval ))
+				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval > 0 && beacon_specific_expiration_interval  < PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL ? beacon_specific_expiration_interval : PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL ))
 
 				#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
 				[ -z "$last_seen" ] && continue
@@ -1348,7 +1348,7 @@ while true; do
 				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval * PREF_DEPART_SCAN_ATTEMPTS ))
 
 				#SET EXPIRATION
-				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval > 0 && beacon_specific_expiration_interval  < PREF_BEACON_EXPIRATION ? beacon_specific_expiration_interval : PREF_RANDOM_DEVICE_beacon_specific_expiration_interval ))
+				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval > 0 && beacon_specific_expiration_interval  < PREF_BEACON_EXPIRATION ? beacon_specific_expiration_interval : PREF_BEACON_EXPIRATION ))
 
 				printf "%s\n" "$key difference = $difference | expiration = $beacon_specific_expiration_interval | $LINENO"
 
