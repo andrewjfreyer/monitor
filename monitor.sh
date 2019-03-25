@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.140
+export version=0.2.142
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -895,7 +895,7 @@ while true; do
 		instruction_delay=""
 		observation_made=false
 		most_recent_beacon=""
-		expiration_prediction=""
+		observed_max_advertisement_interval=""
 		temp_observation=""
 
 		#PROCEED BASED ON COMMAND TYPE
@@ -1216,7 +1216,7 @@ while true; do
 			should_scan=false
 			last_seen=""
 			key=""
-			expiration_interval=""
+			beacon_specific_expiration_interval=""
 			
 			#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
 			for key in "${!random_device_log[@]}"; do
@@ -1228,22 +1228,17 @@ while true; do
 				difference=$((timestamp - last_seen))
 
 				#FIND THE EXPIRATION INTERVAL FOR THIS PARTICULAR BEACON
-				expiration_interval="${advertisement_interval_observation[$key]}"
-				printf "%s\n" "$key expiration = $expiration_interval $LINENO"
-
-				expiration_interval=$(( expiration_interval * 3 ))
-				printf "%s\n" "$key expiration = $expiration_interval $LINENO"
+				beacon_specific_expiration_interval="${advertisement_interval_observation[$key]}"
+				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval * PREF_DEPART_SCAN_ATTEMPTS ))
 
 				#SET EXPIRATION
-				expiration_interval=$(( expiration_interval > 0 && expiration_interval  < PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL ? expiration_interval : PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL ))
-				printf "%s\n" "$key expiration = $expiration_interval $LINENO"
-
+				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval > 0 && beacon_specific_expiration_interval  < PREF_RANDOM_DEVICE_beacon_specific_expiration_interval ? beacon_specific_expiration_interval : PREF_RANDOM_DEVICE_beacon_specific_expiration_interval ))
 
 				#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
 				[ -z "$last_seen" ] && continue
 
 				#IS THIS A BEACON??
-				if [ "$difference" -gt "$PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL" ]; then 
+				if [ "$difference" -gt "$beacon_specific_expiration_interval" ]; then 
 					
 					#REMOVE FROM RANDOM DEVICE LOG
 					unset "random_device_log[$key]"
@@ -1267,7 +1262,7 @@ while true; do
 
 			#TEMP VAR
 			most_recent_beacon=""
-			expiration_prediction=""
+			observed_max_advertisement_interval=""
 
 			#PURGE OLD KEYS FROM THE BEACON DEVICE LOG
 			for key in "${!public_device_log[@]}"; do
@@ -1282,7 +1277,7 @@ while true; do
 				is_apple_beacon=false
 
 				#RESET BEACON KEY
-				expiration_prediction="${advertisement_interval_observation[$key]}"
+				observed_max_advertisement_interval="${advertisement_interval_observation[$key]}"
 				most_recent_beacon=""
 				beacon_uuid_found=""
 				beacon_mac_found=""
@@ -1331,8 +1326,8 @@ while true; do
 					last_seen="$most_recent_beacon"
 
 					#WHICH PREDICTION SHOULD WE USE? 
-					[ "${advertisement_interval_observation[$beacon_mac_found]:--1}" -ge "${advertisement_interval_observation[$beacon_uuid_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_mac_found]}"
-					[ "${advertisement_interval_observation[$beacon_uuid_found]:--1}" -ge "${advertisement_interval_observation[$beacon_mac_found]:--1}" ] && expiration_prediction="${advertisement_interval_observation[$beacon_uuid_found]}"
+					[ "${advertisement_interval_observation[$beacon_mac_found]:--1}" -ge "${advertisement_interval_observation[$beacon_uuid_found]:--1}" ] && observed_max_advertisement_interval="${advertisement_interval_observation[$beacon_mac_found]}"
+					[ "${advertisement_interval_observation[$beacon_uuid_found]:--1}" -ge "${advertisement_interval_observation[$beacon_mac_found]:--1}" ] && observed_max_advertisement_interval="${advertisement_interval_observation[$beacon_uuid_found]}"
 
 					#CALCUALTE DIFFERENCE FOR CONFIDENCE FINDING
 					difference=$((timestamp - most_recent_beacon))
@@ -1348,11 +1343,17 @@ while true; do
 
 				#NEED TO FIND THE EXPIRATION INTERVAL OF THIS PARTICULAR 
 				#BEACON
+				beacon_specific_expiration_interval=""
+				beacon_specific_expiration_interval="${advertisement_interval_observation[$key]}"
+				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval * PREF_DEPART_SCAN_ATTEMPTS ))
 
+				#SET EXPIRATION
+				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval > 0 && beacon_specific_expiration_interval  < PREF_BEACON_EXPIRATION ? beacon_specific_expiration_interval : PREF_RANDOM_DEVICE_beacon_specific_expiration_interval ))
 
+				printf "%s\n" "$key difference = $difference | expiration = $beacon_specific_expiration_interval | $LINENO"
 
 				#TIMEOUT AFTER [XXX] SECONDS; ALL BEACONS HONOR THE SAME EXPRIATION THRESHOLD INCLUDING IBEACONS
-				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
+				if [ "$difference" -gt "$beacon_specific_expiration_interval" ]; then 
 					#REMOVE FROM EXPIRING DEVICE LOG
 					[ -n "${expiring_device_log[$key]}" ] && unset "expiring_device_log[$key]"
 
@@ -1395,10 +1396,10 @@ while true; do
 				
 					fi
 
-				elif [ "${expiration_prediction:-0}" -gt "0" ] && [ "$difference" -gt "$(( (PREF_BEACON_EXPIRATION - expiration_prediction)  / 2 + expiration_prediction))" ]; then
-					
+				elif [ "${observed_max_advertisement_interval:-0}" -gt "0" ] && [ "$difference" -gt "$(( (beacon_specific_expiration_interval - observed_max_advertisement_interval)  / 2 + observed_max_advertisement_interval))" ]; then
+
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
-					percent_confidence=$(( 100 - (difference - expiration_prediction) * 100 / (PREF_BEACON_EXPIRATION - expiration_prediction) )) 
+					percent_confidence=$(( 100 - (difference - observed_max_advertisement_interval) * 100 / (beacon_specific_expiration_interval - observed_max_advertisement_interval) )) 
 					[ "$percent_confidence" -lt "5" ] && percent_confidence=0
 
 
