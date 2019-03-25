@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.144
+export version=0.2.145
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1341,19 +1341,9 @@ while true; do
 					[ -z "$last_seen" ] && continue 
 				fi 
 
-				#NEED TO FIND THE EXPIRATION INTERVAL OF THIS PARTICULAR 
-				#BEACON
-				beacon_specific_expiration_interval=""
-				beacon_specific_expiration_interval="${advertisement_interval_observation[$key]}"
-				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval * 3 ))
-
-				#SET EXPIRATION
-				beacon_specific_expiration_interval=$(( beacon_specific_expiration_interval > 0 && beacon_specific_expiration_interval  < PREF_BEACON_EXPIRATION ? beacon_specific_expiration_interval : PREF_BEACON_EXPIRATION ))
-
-				printf "%s\n" "$key difference = $difference | expiration = $beacon_specific_expiration_interval | $LINENO"
 
 				#TIMEOUT AFTER [XXX] SECONDS; ALL BEACONS HONOR THE SAME EXPRIATION THRESHOLD INCLUDING IBEACONS
-				if [ "$difference" -gt "$beacon_specific_expiration_interval" ]; then 
+				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
 					#REMOVE FROM EXPIRING DEVICE LOG
 					[ -n "${expiring_device_log[$key]}" ] && unset "expiring_device_log[$key]"
 
@@ -1399,7 +1389,7 @@ while true; do
 				elif [ "${observed_max_advertisement_interval:-0}" -gt "0" ] && [ "$difference" -gt "$(( (beacon_specific_expiration_interval - observed_max_advertisement_interval)  / 2 + observed_max_advertisement_interval))" ]; then
 
 					#SHOULD REPORT A DROP IN CONFIDENCE? 
-					percent_confidence=$(( 100 - (difference - observed_max_advertisement_interval) * 100 / (beacon_specific_expiration_interval - observed_max_advertisement_interval) )) 
+					percent_confidence=$(( 100 - (difference - observed_max_advertisement_interval) * 100 / (PREF_BEACON_EXPIRATION - observed_max_advertisement_interval) )) 
 					[ "$percent_confidence" -lt "5" ] && percent_confidence=0
 
 
