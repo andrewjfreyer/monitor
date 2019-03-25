@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.139
+export version=0.2.140
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1018,6 +1018,14 @@ while true; do
 						[ "$temp_observation" -gt "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
 						
 					fi
+
+					#WHEN DOES THIS RANDOM BEACON EXPIRE?
+					last_appearance=${random_device_log[$mac]:-$timestamp}
+					if [ "$observation_made" == false ] && [ observation_made=true ]; then 
+						temp_observation="" && temp_observation=$((((timestamp - last_appearance - 1 + PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) / PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP) * PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP))
+						[ "$temp_observation" -gt "${advertisement_interval_observation[$mac]:-0}" ] && [ "$temp_observation" -gt "0" ] && [ "$temp_observation" -lt "300" ] &&	advertisement_interval_observation[$mac]=$temp_observation
+						
+					fi
 					
 					#ONLY ADD THIS TO THE DEVICE LOG 
 					random_device_log[$mac]="$timestamp"
@@ -1208,6 +1216,7 @@ while true; do
 			should_scan=false
 			last_seen=""
 			key=""
+			expiration_interval=""
 			
 			#PURGE OLD KEYS FROM THE RANDOM DEVICE LOG
 			for key in "${!random_device_log[@]}"; do
@@ -1217,6 +1226,18 @@ while true; do
 
 				#DETERMINE THE LAST TIME THIS MAC WAS LOGGED
 				difference=$((timestamp - last_seen))
+
+				#FIND THE EXPIRATION INTERVAL FOR THIS PARTICULAR BEACON
+				expiration_interval="${advertisement_interval_observation[$key]}"
+				printf "%s\n" "$mac expiration = $expiration_interval $LINENO"
+
+				expiration_interval=$(( expiration_interval * 3 ))
+				printf "%s\n" "$mac expiration = $expiration_interval $LINENO"
+
+				#SET EXPIRATION
+				expiration_interval=$(( expiration_interval > 0 && expiration_interval  < PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL ? expiration_interval : PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL ))
+				printf "%s\n" "$mac expiration = $expiration_interval $LINENO"
+
 
 				#CONTINUE IF DEVICE HAS NOT BEEN SEEN OR DATE IS CORRUPT
 				[ -z "$last_seen" ] && continue
@@ -1325,6 +1346,11 @@ while true; do
 					[ -z "$last_seen" ] && continue 
 				fi 
 
+				#NEED TO FIND THE EXPIRATION INTERVAL OF THIS PARTICULAR 
+				#BEACON
+
+
+
 				#TIMEOUT AFTER [XXX] SECONDS; ALL BEACONS HONOR THE SAME EXPRIATION THRESHOLD INCLUDING IBEACONS
 				if [ "$difference" -gt "$PREF_BEACON_EXPIRATION" ]; then 
 					#REMOVE FROM EXPIRING DEVICE LOG
@@ -1343,6 +1369,11 @@ while true; do
 						#REMOVE BEACON FROM MAC ADDRESS ARRAY
 						unset "beacon_mac_address_log[$beacon_uuid_found]"
 
+						#REMOVE FROM BEACON ASSOCIATION
+						unset "advertisement_interval_observation[$beacon_uuid_found]"
+						unset "advertisement_interval_observation[$beacon_mac_found]"
+						
+						#PUBLISH EXPIRATION
 						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$beacon_uuid_found]}" ] && log "${BLUE}[DEL-BEAC]	${NC}BEAC $beacon_uuid_found expired after $difference seconds ${NC}"
 						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$beacon_mac_found]}" ] && log "${BLUE}[DEL-PUBL]	${NC}BEAC $beacon_mac_found expired after $difference seconds ${NC}"
 
@@ -1354,7 +1385,9 @@ while true; do
 						unset "public_device_log[$key]"
 						unset "rssi_log[$key]"
 
-						#LOGGING
+						##REMOVE FROM BEACON ASSOCIATION
+						unset "advertisement_interval_observation[$key]"
+
 						[ "$PREF_BEACON_MODE" == true ] && [ -z "${blacklisted_devices[$key]}" ] && log "${BLUE}[DEL-PUBL]	${NC}PUBL $key expired after $difference seconds ${NC}"
 						
 						#REPORT PRESENCE OF DEVICE
