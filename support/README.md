@@ -7,7 +7,7 @@
 
 [***Filters***](#filters)
 
-[***Misc.***](#misc)
+[***Miscellaneous***](#misc)
 
 ____
 
