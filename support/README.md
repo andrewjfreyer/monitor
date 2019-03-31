@@ -1,13 +1,13 @@
 # *Frequenty Asked Questions:*
 [***monitor Basics***](#monitor-basics)
 
-[***Wi-Fi Interference & monitor Performance***](#wi-fi-interference-performance-issues)
+[***Wi-Fi Interference & monitor Performance***](#wi-fi-interference--performance-issues)
 
-[***montor` Logs***](#monitor-logs)
+[***Debugging***](#monitor-logs--debugging)
 
 [***Filters***](#filters)
 
-[***Miscellaneous***](#misc)
+[***Miscellaneous***](#other-questions)
 
 ____
 
@@ -189,7 +189,7 @@ Similarly, to set exclude filters, you can observe bluetooth traffic for a perio
 
 ____
 
-## *Misc*
+## *Other Questions*
 
 #### It's annoying to have to keep track of mac addresses. Can't I just use an alias for the mac addresses for MQTT topics? 
 
