@@ -1,7 +1,7 @@
 # *Frequenty Asked Questions:*
-[***monitor Basics***](#monitor-basics)
+[***Basics***](#monitor-basics)
 
-[***Wi-Fi Interference & monitor Performance***](#wi-fi-interference--performance-issues)
+[***Wi-Fi Interference & Performance***](#wi-fi-interference--performance-issues)
 
 [***Debugging***](#monitor-logs--debugging)
 
