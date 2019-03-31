@@ -1,9 +1,14 @@
 # *Frequenty Asked Questions:*
 [***`monitor` Basics***](#monitor-basics)
+
 [***Wi-Fi Interference & `monitor` Performance***](#wi-fi-interference-performance-issues)
+
 [***`montor` Logs***](#monitor-logs)
+
 [***Filters***](#filters)
+
 [***Misc.***](#misc)
+
 ____
 
 ## *Monitor Basics*
