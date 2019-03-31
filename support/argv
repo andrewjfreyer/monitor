@@ -25,13 +25,13 @@ if [ "$previous_version" != "$version" ]; then
 	[ -z "$previous_version" ] && previous_version="Unknown"
 	
 	#UPDATE REPORT
-	printf "%s\n" "updated $(basename "$0") (v. $previous_version) -> (v. $version)..."
+	printf "%s\n" "> ${GREEN}updated${NC} $(basename "$0") (v. $previous_version) -> (v. $version)..."
 
 	#RECORD UPDATED VERSION
 	printf "%s\n" "$version" > ".previous_version"
 else 
 	#STANDARD RUN
-	printf "%s\n" "starting $(basename "$0") (v. $version)..."
+	printf "%s\n" "> ${GREEN}starting${NC} $(basename "$0") (v. $version)..."
 fi 
 
 # ----------------------------------------------------------------------------------------
@@ -45,33 +45,9 @@ show_help_text() {
 monitor.sh
 
 Andrew J Freyer, 2018
+https://github.com/andrewjfreyer/monitor
+
 GNU General Public License
-
------ Summary -----
-
-This is a shell script and a set of helper scripts that passively 
-monitor for specified bluetooth devices, iBeacons, and bluetooth 
-devices that publicly advertise. Once a specified device, iBeacon, or 
-publicly device is found, a report is made via MQTT to a specified 
-MQTT broker. When a previously-found device expires or is not found, 
-a report is made via MQTT to the broker that the device has departed. 
-
------ Background ----- 
-
-By default, most BTLE devices repeatedly advertise their presence with a 
-random mac address at a random interval. The randomness is to maintain 
-privacy and to prevent device tracking by bad actors or advertisers. 
-
------ Description ----- 
-
-By knowing the static bluetooth mac address of a specified 
-bluetooth device before hand, a random advertisement can be used 
-as a trigger to scan for the presence of that known device. This 
-construction enables the script to rapidly detect the arrival of 
-a specified bluetooth device, while reducing the number of times 
-an affirmative scan operation is required (which may interfere 
-with 2.4GHz Wi-Fi).
-
 
 usage:
 
@@ -81,10 +57,11 @@ usage:
 	monitor -c addr	create connection to bluetooth device
 	monitor -C 	clean retained messages from MQTT broker
 
+	monitor -V	print verbose/debug logging messages
 	monitor -v	print version number
-	monitor -d	restore to default behavior settings (mqtt settings and known device settings are not effected)
+	monitor -d	restore to default behavior_preferences
 	monitor -u	update 'monitor.service' to current command line settings
-			(excluding -u and -d flags)
+			(excluding -u,-V, -F, and -d flags)
 
 	monitor -s  report all mqtt messages to a single topic with 
 				\$mqtt_topicpath/\$mqtt_publisher_identity  (defined in MQTT preferences file)
@@ -92,7 +69,7 @@ usage:
 	monitor -f	format MQTT topics with only letters and numbers
 	monitor -a	report all known device scan results, not just changes
 	monitor -x	retain mqtt status messages
-	monitor -b	report bluetooth beacons (e.g., generic beacons, ibeacons, and so on)
+	monitor -b	report bluetooth beacon advertisements (e.g., generic beacons, ibeacons, and so on)
 	monitor -t[adr]	scan for known devices only on mqtt trigger messages:
 				a \$mqtt_topicpath/scan/ARRIVE (defined in MQTT preferences file)
 				d \$mqtt_topicpath/scan/DEPART (defined in MQTT preferences file)
@@ -106,7 +83,7 @@ usage:
 # ----------------------------------------------------------------------------------------
 
 #REMOVE MANUFACTURER CACHE AND PUBLIC NAME CACHE FROM PREVIOUS SESSION 
-(&>/dev/null rm ".manufacturer_cache") && printf "%s\n" "> removing web request caches"
+(&>/dev/null rm ".manufacturer_cache") && $PREF_VERBOSE_LOGGING && printf "%s\n" "> removing web request caches"
 
 #NO LONGER REQUIRED; NAME CACHING SHOULD BE STICKY
 #(&>/dev/null rm ".public_name_cache") && printf "%s\n" "> removing public name cache"
@@ -131,8 +108,10 @@ PREF_MQTT_REPORT_SCAN_MESSAGES=false
 PREF_SERVICE_CHECK=true
 PREF_CONFIG_DIR=''
 PREF_DISABLE_LOGGING=false
+PREF_VERBOSE_LOGGING=false
+PREF_FILTER_DEBUG_LOGGING=false
 
-while getopts "h?vfbut:EgSRCmsadxD:c:" opt; do
+while getopts "h?vfFbut:EgSRCmsVadxD:c:" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
@@ -144,6 +123,12 @@ while getopts "h?vfbut:EgSRCmsadxD:c:" opt; do
 		v)  
 			printf "%s\n" "$VERSION"
 			exit 0
+			;;
+		F)  
+			PREF_FILTER_DEBUG_LOGGING=true && printf "%s\n" "> ${ORANGE}warning:${NC} filter logging is enabled. this setting is only for informational and debug purposes"
+			;;
+		V)  
+			PREF_VERBOSE_LOGGING=true && printf "%s\n" "> ${ORANGE}warning:${NC} verbose logging is enabled. this setting is only for informational and debugging purposes"
 			;;
 		c) 
 			#GET TARGET MAC ADDRESS
@@ -171,9 +156,9 @@ while getopts "h?vfbut:EgSRCmsadxD:c:" opt; do
 		C)  
 			PREF_CLEAN_MQTT=true && printf "%s\n" "> cleaning retained messages on broker"
 			;;
-		E)  PREF_MQTT_REPORT_SCAN_MESSAGES=true  && printf "%s\n" "> publishing MQTT .../scan/[arrival|depart]/[start|end]"
+		E)  PREF_MQTT_REPORT_SCAN_MESSAGES=true && printf "%s\n" "> publishing MQTT .../scan/[arrival|depart]/[start|end]"
 			;;
-		s)  PREF_MQTT_SINGLE_TOPIC_MODE=true  && printf "%s\n" "> publishing all MQTT presence messages to \$mqtt_topicpath/\$mqtt_publisher_identity"
+		s)  PREF_MQTT_SINGLE_TOPIC_MODE=true && printf "%s\n" "> publishing all MQTT presence messages to \$mqtt_topicpath/\$mqtt_publisher_identity"
 			;;
 		x)  PREF_SHOULD_RETAIN=true  && printf "%s\n" "> retaining mqtt status reports"
 			;;
@@ -183,27 +168,27 @@ while getopts "h?vfbut:EgSRCmsadxD:c:" opt; do
 			;;
 		u)  PREF_UPDATE_SERVICE=true 	&& printf "%s\n" "> updating monitor.service"
 			;;
-		f)  PREF_FORMAT_MQTT=true 		&& printf "%s\n" "> only allow letters, numbers, and spaces in mqtt topic paths"
+		f)  PREF_FORMAT_MQTT=true 		&& $PREF_VERBOSE_LOGGING && printf "%s\n" "> only allow letters, numbers, and spaces in mqtt topic paths"
 			;;
-		b)  PREF_BEACON_MODE=true 		&& printf "%s\n" "> generic bluetooth beacon, ibeacon, and known beacon address reporting mode enabled"
+		b)  PREF_BEACON_MODE=true 		&& $PREF_VERBOSE_LOGGING && printf "%s\n" "> generic bluetooth beacon, ibeacon, and known beacon address reporting mode enabled"
 			;;
 		t)  #DO WE INCLUDE THE REPORTING TRIGGER?
-			[[ $OPTARG = *r* ]] && PREF_TRIGGER_MODE_REPORT_OUT=true && printf "%s\n" "> trigger mode: report out MQTT arrive/depart scan triggers to other devices" 
+			[[ $OPTARG = *r* ]] && PREF_TRIGGER_MODE_REPORT_OUT=true && $PREF_VERBOSE_LOGGING && printf "%s\n" "> trigger mode: report out MQTT arrive/depart scan triggers to other devices" 
 			#SORT THROUGH REMAINING FILTERS
 			case "$OPTARG" in 
 				r)	PREF_TRIGGER_MODE_REPORT_OUT=true
 					;;
-				d|rd|dr)	PREF_TRIGGER_MODE_DEPART=true && printf "%s\n" "> trigger mode: depart scan only on MQTT trigger" 
+				d|rd|dr)	PREF_TRIGGER_MODE_DEPART=true && $PREF_VERBOSE_LOGGING && printf "%s\n" "> trigger mode: depart scan only on MQTT trigger" 
 					;;
-				a|ra|ar)	PREF_TRIGGER_MODE_ARRIVE=true && printf "%s\n" "> trigger mode: arrive scan only on MQTT trigger" 
+				a|ra|ar)	PREF_TRIGGER_MODE_ARRIVE=true && $PREF_VERBOSE_LOGGING && printf "%s\n" "> trigger mode: arrive scan only on MQTT trigger" 
 					;;
-				da|ad|rda|rad|dra|ard|dar|adr) PREF_TRIGGER_MODE_ARRIVE=true && PREF_TRIGGER_MODE_DEPART==true && printf "%s\n" "> trigger mode: scan only (both on arrive and depart) on trigger" 
+				da|ad|rda|rad|dra|ard|dar|adr) PREF_TRIGGER_MODE_ARRIVE=true && PREF_TRIGGER_MODE_DEPART==true && $PREF_VERBOSE_LOGGING && printf "%s\n" "> trigger mode: scan only (both on arrive and depart) on trigger" 
 					;;
 				*) printf "%s\n" "> ${ORANGE}warning: ${NC}unknown trigger mode: $OPTARG"
 				;;
 			esac
 			;;
-		a)  PREF_REPORT_ALL_MODE=true 	&& printf "%s\n" "> report all scan results mode enabled"
+		a)  PREF_REPORT_ALL_MODE=true && $PREF_VERBOSE_LOGGING && printf "%s\n" "> report all scan results mode enabled"
 			;;
         D)  PREF_CONFIG_DIR=$OPTARG && printf "%s\n" "> using custom config directory [$PREF_CONFIG_DIR]"
             [ ! -d "$PREF_CONFIG_DIR" ] && printf "%s\n" "> ${RED}error: ${NC}config directory [$PREF_CONFIG_DIR] doesn't exist" && exit 1
@@ -217,4 +202,3 @@ shift $((OPTIND-1))
 
 #SHIFT IF NECESSARY
 [ "$1" = "--" ] && shift
-

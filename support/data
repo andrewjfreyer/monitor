@@ -35,7 +35,7 @@ determine_manufacturer () {
 
 		#IF CACHE DOES NOT EXIST, USE MACVENDORS.COM
 		if [ -z "$manufacturer" ]; then 
-			local remote_result=$(curl -sL https://api.macvendors.com/${address:0:8} | grep -vi "error" | head -1 | sed 's/[^A-Za-z ]//g')
+			local remote_result=$(curl -sL https://api.macvendors.com/${address:0:8} | grep -vi "error" | head -1 | sed 's/[^A-Za-z ]//gi')
 
 			#MAKE SURE WE DONT' SCREW UP THE MANUFACTUERE'S FILE
 			if [[ ! "$remote_result" = *html* ]]; then

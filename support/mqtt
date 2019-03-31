@@ -78,8 +78,6 @@ mqtt_broker_clean (){
 	#MQTT LOOP
 	while read instruction; do
 
-	printf "%s\n" "$instruction " 
-
 		#ERROR HANDLING
 		[[ ${instruction^^} =~ .*REFUSED.* ]] && return 0
 		
@@ -167,6 +165,8 @@ publish_rssi_message () {
 		
 		local topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch/rssi"
 
+		$PREF_VERBOSE_LOGGING && log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic${NC}"
+
 		#POST TO MQTT
 		($mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
@@ -211,11 +211,11 @@ publish_presence_message () {
 		fi 
 
 		#ASSEMBLE 
-		message=$(\
-			json_format "$@"\
-		 	"retained=$retain_flag"\
-		  	"timestamp=$stamp"\
-		  	"version=$version"\
+		message=$( \
+			json_format "$@" \
+		 	"retained=$retain_flag" \
+		  	"timestamp=$stamp" \
+		  	"version=$version" \
 		)
 
 		#DEFINE THE TOPIC
@@ -247,7 +247,8 @@ publish_presence_message () {
  			#A COMPLETE CONFIDENCE MESSAGE
  			if [ -n "$device_tracker_message" ]; then 
 	 			#PRINT FOR DEVICE TRACKER
-	 			printf "%s\n" "${PURPLE}$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH $device_tracker_message${NC}"
+	 			log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH${NC}"
+	 			$PREF_VERBOSE_LOGGING && printf "%s\n" "${YELLOW}$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH $device_tracker_message${NC}"
 
 	 			#POST TO MQTT
 				($mosquitto_pub_path \
@@ -261,8 +262,8 @@ publish_presence_message () {
  		fi 
 
 		#DEBUGGING WITH SIMPLE
-		printf "%s\n" "${PURPLE}$topic${NC}"
-		printf "%s\n" "${PURPLE}$(json_unformat "$message")${NC}" 
+		log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic${NC}"
+		$PREF_VERBOSE_LOGGING && printf "%s\n" "${YELLOW}$(json_unformat "$message")${NC}" 
 
 		#POST TO MQTT
 		($mosquitto_pub_path \

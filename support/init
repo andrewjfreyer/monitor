@@ -25,9 +25,13 @@ btmon_path=$(which btmon)
 bc_path=$(which bc)
 git_path=$(which git)
 
+#RUNTYPE
+SERVICE_ACTIVE=true
+systemctl is-active --quiet monitor && SERVICE_ACTIVE=true || SERVICE_ACTIVE=false
+
 #VERSION CHECKER 
-mosquitto_sub_version=$($mosquitto_sub_path --help | grep -Eo "version [0-9.]{3,}" | sed 's/[^0-9.]//g')
-mosquitto_pub_version=$($mosquitto_pub_path --help | grep -Eo "version [0-9.]{3,}" | sed 's/[^0-9.]//g')
+mosquitto_sub_version=$($mosquitto_sub_path --help | grep -Eo "version [0-9.]{3,}" | sed 's/[^0-9.]//gi')
+mosquitto_pub_version=$($mosquitto_pub_path --help | grep -Eo "version [0-9.]{3,}" | sed 's/[^0-9.]//gi')
 
 #error CHECKING FOR MOSQUITTO PUBLICATION 
 should_exit=false
@@ -42,12 +46,11 @@ should_exit=false
 [ ! -f /.dockerenv  ] && [ ! -z "$(which systemctl)" ] && [ ! -e "$service_path" ] && printf "%s\n" "${ORANGE}> warning:${NC} monitor.service not installed. Install service? (y/n)" && read should_install
 
 #BASH VERSION 4.4+
-[[ ! ${BASH_VERSION//[^0-9.]/} =~ ^(4.[4-9]{1,}.?|^[5-9].) ]] && printf "%s\n" ">${ORANGE} warning:${NC} recommended minimum bash version 4.4+ not found. please consider updating."
+[[ ! ${BASH_VERSION//[^0-9.]/} =~ ^(4.[4-9]{1,}.?|^[5-9].?) ]] && printf "%s\n" ">${ORANGE} warning:${NC} recommended minimum bash version 4.4+ not found. please consider updating."
 
 #MOSQUITTO V. 1.5+
-[[ ! $mosquitto_sub_version =~ [1-9].[5-9]{1,}. ]] && printf "%s\n" ">${RED} error:${NC} minimum required mosquitto_sub version 1.5+ not found. please update." && should_exit=true
-[[ ! $mosquitto_pub_version =~ [1-9].[5-9]{1,}. ]] && printf "%s\n" ">${RED} error:${NC} minimum required mosquitto_pub version 1.5+ not found. please update." && should_exit=true
-
+[[ ! $mosquitto_sub_version =~ (^1.[5-9]{1,}.?|^[2-9].[0-9]{1,}.?) ]] && printf "%s\n" ">${RED} error:${NC} minimum required mosquitto_sub version 1.5+ not found. please update." && should_exit=true
+[[ ! $mosquitto_pub_version =~ (^1.[5-9]{1,}.?|^[2-9].[0-9]{1,}.?) ]] && printf "%s\n" ">${RED} error:${NC} minimum required mosquitto_pub version 1.5+ not found. please update." && should_exit=true
 
 #BASE DIRECTORY REGARDLESS OF INSTALLATION; ELSE MANUALLY SET HERE
 base_directory=$(dirname "$(readlink -f "$0")")
@@ -78,10 +81,9 @@ if [ -f $MQTT_CONFIG ] ; then
 	[ "$mqtt_address" == "0.0.0.0" ] && printf "%s\n" ">${RED} error:${NC} please customize mqtt broker address in: mqtt_preferences" && should_exit=true
 	[ "$mqtt_user" == "username" ] || [ -z "$mqtt_user" ] && printf "%s\n" "${ORANGE}> warning:${NC} for security purposes, please consider changing 'username' in: mqtt_preferences"
 	[ "$mqtt_password" == "password" ] || [ -z "$mqtt_password" ] && printf "%s\n" "${ORANGE}> warning:${NC} for security purposes, please consider changing 'password' in: mqtt_preferences"
-	[ "$mqtt_version" == "" ]&& printf "%s\n" "> ${GREEN}preference:${NC} using default mqtt protocol version" || printf "%s\n" "> ${GREEN}preference:${NC} using mqtt protocol version $mqtt_version"
 	[ ! -f "$mqtt_certificate_path" ] && [ ! -z "$mqtt_certificate_path" ] && printf "%s\n" ">${RED} error:${NC} please check mqtt certificate path in mqtt_preferences" && should_exit=true
 
-	#warningS
+	#WARNINGS
 	[ -z "$mqtt_port" ] && printf "%s\n" "${ORANGE}> warning:${NC} variable mqtt_port does not appear in mqtt_preferences. using default port 1883". && mqtt_port="1883"
 	[ -z "$mqtt_publisher_identity" ] && printf "%s\n" "${ORANGE}> warning:${NC} variable mqtt_publisher_identity does not appear in: mqtt_preferences. using hostname: $(hostname)". && mqtt_publisher_identity="$(hostname)"
 
@@ -204,7 +206,7 @@ fi
 # ----------------------------------------------------------------------------------------
 
 #FILTER THE ARGV FROM THE PARENT SCRIPT TO REMOVE ONE-TIME USE VARIABLES
-FILTERED_ARGS=$(printf '%s\n' "$(IFS=' '; echo "${RUNTIME_ARGS[*]}")" | sed 's/ \?-d//g;s/ \?-u//g;s/&//g;s/  */ /g')
+FILTERED_ARGS=$(printf '%s\n' "$(IFS=' '; echo "${RUNTIME_ARGS[*]}")" | sed 's/ \?-d//gi;s/ \?-V//gi;s/ \?-F//gi;s/ \?-u//gi;s/&//g;s/  */ /gi')
 
 #CHECK FOR CORRECT SERVICE; 
 if [ "$should_install" == "y" ] || [ "$PREF_UPDATE_SERVICE" == true ] ; then
@@ -268,8 +270,10 @@ if [ -f "$PREF_CONFIG" ]; then
 > ${GREEN}preference:${NC} maximum sequential depart scan attempts = $PREF_DEPART_SCAN_ATTEMPTS
 > ${GREEN}preference:${NC} selected HCI device = ${PREF_HCI_DEVICE:-hci0}
 > ${BLUE}mqtt trigger:${NC} $mqtt_topicpath/scan/ARRIVE
-> ${BLUE}mqtt trigger:${NC} $mqtt_topicpath/scan/DEPART" | sed 's/= $/= '${RED}'error'${NC}'\!/g')
-	printf "%s\n" "$preferences"
+> ${BLUE}mqtt trigger:${NC} $mqtt_topicpath/scan/DEPART" | sed 's/= $/= '${RED}'error'${NC}'\!/gi')
+	
+	#SIMPLIFY LOGGING
+	$PREF_VERBOSE_LOGGING && printf "%s\n" "$preferences"
 
 	#DEFAULTS
 	PREF_ARRIVAL_SCAN_ATTEMPTS=${PREF_ARRIVAL_SCAN_ATTEMPTS:-2}
@@ -296,6 +300,7 @@ if [ -f "$PREF_CONFIG" ]; then
 	PREF_DEVICE_TRACKER_AWAY_STRING=${PREF_DEVICE_TRACKER_AWAY_STRING:-not_home}
 	PREF_DEVICE_TRACKER_HOME_STRING=${PREF_DEVICE_TRACKER_HOME_STRING:-home}
 	PREF_DEVICE_TRACKER_TOPIC_BRANCH=${PREF_DEVICE_TRACKER_TOPIC_BRANCH:-device_tracker}
+	PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP=${PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP:-15}
 
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
 	[ "$(printf "%s\n" "$preferences" | grep -c "error")" -gt "0" ] && printf "%s\n" "> ${ORANGE}> warning:${NC} preferences error, using defaults. reset to defaults? [y/n]" && read -t 10 should_restore_defaults

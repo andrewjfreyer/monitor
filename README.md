@@ -1,8 +1,8 @@
 `monitor`
 =======
-***TL;DR***: Passive Bluetooth presence detection of beacons, cell phones, and other Bluetooth devices. Useful for [mqtt-based](http://mqtt.org) home automation, especially when the script runs on multiple devices, distrubted throughout a property. 
+***TL;DR***: Passive Bluetooth presence detection of beacons, cell phones, and other Bluetooth devices. Useful for [mqtt-based](http://mqtt.org) home automation, especially when the script runs on multiple devices, distributed throughout a property. 
 
-![version](https://img.shields.io/badge/version-0.2-green.svg?maxAge=2592000) ![bash](https://img.shields.io/badge/bash-4.4+-blue.svg?maxAge=2592000) ![mosquitto](https://img.shields.io/badge/mosquitto-1.5+-blue.svg?maxAge=2592000)
+![version](https://img.shields.io/badge/version-0.2-green.svg?maxAge=2592000) ![mosquitto](https://img.shields.io/badge/mosquitto-1.5+-blue.svg?maxAge=2592000)
 
 ____
 
@@ -20,7 +20,6 @@ ____
 
   * [**Installing on a Raspberry Pi Zero W**](#installation-instructions-for-raspberry-pi-zero-w) 
 
-  * [**FAQs**](#faqs) 
 ____
 
 # *Highlights*
@@ -69,7 +68,7 @@ ___
 
 # *Oversimplified Analogy of the Bluetooth Presence Problem*
 
-Imagine you’re blindfolded in a large room with other people. We want to find out who of your friends **is** there and who of your friends **isn't** there:
+Imagine you're blindfolded in a large room with other people. We want to find out who of your friends **is** there and who of your friends **isn't** there:
 
 ![First Picture](https://i.imgur.com/FOubz6T.png)
 
@@ -111,17 +110,17 @@ The Bluetooth Low Energy 4.0 spec was designed to make connecting Bluetooth devi
 
 A part of the Blueooth spec is a special function called a `name` request that asks another Bluetooth device to send back a human-readable name of itself. In order to send a `name` request, we need to know a private (unchanging) address of the target device. 
 
-Issuing a `name` request to the same private mac address every few seconds is a reliable - albeit rudamentary - way of detecting whether that device is "**present**" (it responds to the `name` request) or "**absent**" (no response to the `name` request is received). However, issuing `name` requests too frequently (*e.g.*, every few seconds) uses quite a bit of 2.4GHz spectrum, which can cause substantial interference with Wi-Fi or other wireless communications.
+Issuing a `name` request to the same private mac address every few seconds is a reliable - albeit rudimentary - way of detecting whether that device is "**present**" (it responds to the `name` request) or "**absent**" (no response to the `name` request is received). However, issuing `name` requests too frequently (*e.g.*, every few seconds) uses quite a bit of 2.4GHz spectrum, which can cause substantial interference with Wi-Fi or other wireless communications.
 
 ## Connectable Devices
 
-Blueooth devices that can exchange information with other devices (almost always) advertise a random/anonymous address that other devices can use to negotate a secure connection with that device's real, private, Bluetooth address. 
+Blueooth devices that can exchange information with other devices (almost always) advertise a random/anonymous address that other devices can use to negotiate a secure connection with that device's real, private, Bluetooth address. 
 
-Using a random address when publicly advertising prevents baddies from tracking people via Bluetooth monitoring. This is beacuse monitoring for anonymous advertisement is not a reliable way to detect whether a device is **present** or **absent**. However, nearly all connectable devices respond to `name` requests if made to the device's private Bluetooth address.
+Using a random address when publicly advertising prevents baddies from tracking people via Bluetooth monitoring. This is because monitoring for anonymous advertisement is not a reliable way to detect whether a device is **present** or **absent**. However, nearly all connectible devices respond to `name` requests if made to the device's private Bluetooth address.
 
 ## Beacon Devices
 
-The Bluetooth spec has been used by Apple, Google, and others to create additional standards (e.g., iBeacon, Eddystone, and so on). These devices generally don't care to conenct to other devices, so their random/anonymous addresses don't really matter. Instead, these devices encode additional information into each advertisement of an anonymous address. For example, iBeacon devices will broadcast a UUID that conforms to the 8-4-4-4-12 format defined by [IETC RFC4122](http://www.ietf.org/rfc/rfc4122.txt).
+The Bluetooth spec has been used by Apple, Google, and others to create additional standards (e.g., iBeacon, Eddystone, and so on). These devices generally don't care to connect to other devices, so their random/anonymous addresses don't really matter. Instead, these devices encode additional information into each advertisement of an anonymous address. For example, iBeacon devices will broadcast a UUID that conforms to the 8-4-4-4-12 format defined by [IETC RFC4122](http://www.ietf.org/rfc/rfc4122.txt).
 
 Beacons do not respond to `name` requests, even if made to the device's private Bluetooth address. So, issuing periodic `name` requests to beacons is not a reliable way to detect whether a beacon device is **present** or **absent**. However, monitoring for beacon advertisement is a reliable way to detect whether a beacon device is **present** or **absent**.
 
@@ -152,9 +151,9 @@ If `monitor` has not heard from a particular anonymous address in a long time, `
 
 To reduce scanning even further, `monitor` can filter which types of anonymous advertisements are used for ***ARRIVE*** scans. These are called "filters" and are defined in a file called `behavior_preferences`. The filters are bash RegEx strings that either pass or reject anonymous advertisements that match the filter. There are two filter types: 
 
-* **Manufacturer Filter** - filters based on data in an advertisement that is connected to a particular device manufacturer. This is almost always the OEM of the device that is transmitting the anonymous advertisment. By default, because of the prevalence of iPhones, Apple is the only manufacturer that triggers an ***ARRIVAL*** scan. Multiple manufacturers can be appended together by a pipe: `|`. An example filter for Apple and Samsung looks like: `Apple|Samsung`. To diable the manufacturer filter, use `.*`.
+* **Manufacturer Filter** - filters based on data in an advertisement that is connected to a particular device manufacturer. This is almost always the OEM of the device that is transmitting the anonymous advertisement. By default, because of the prevalence of iPhones, Apple is the only manufacturer that triggers an ***ARRIVAL*** scan. Multiple manufacturers can be appended together by a pipe: `|`. An example filter for Apple and Samsung looks like: `Apple|Samsung`. To disable the manufacturer filter, use `.*`.
 
-* **Flag Filter:** filters based on flags contained in an advertisement. This varies by device type. By default, because of the prevalence of iPhones, the flag of `0x1b` triggers an ***ARRIVAL*** scan. Like with the manufacturer filter, multiple flags can be appended together by a pipe: `|`. To diable the manufacturer filter, use `.*`.
+* **Flag Filter:** filters based on flags contained in an advertisement. This varies by device type. By default, because of the prevalence of iPhones, the flag of `0x1b` triggers an ***ARRIVAL*** scan. Like with the manufacturer filter, multiple flags can be appended together by a pipe: `|`. To disable the manufacturer filter, use `.*`.
 
 ##### Beacons & iBeacons
 In addition, once installed and run with the `-b` beacon argument, `monitor` listens for beacon advertisements that report themselves as "public", meaning that their addresses will not change. The script can track these by default; these addresses do not have to be added anywhere - after all, `monitor` will obtain them just by listening. 
@@ -169,7 +168,7 @@ ___
 
 Personally, I have four **raspberry pi zero w**s throughout the house and garage. My family spends most of our time on the first floor, so our main `monitor` node or sensor is on the first floor. Our other 'nodes' on the second and third floor and garage are set up for triggered use only - these will scan for ***ARRIVAL*** and ***DEPART*** only in response to mqtt messages, with option ```-tad```. The first floor node is set up to send mqtt arrive/depart scan instructions to these nodes by including the `-tr` flag ("report" to other nodes when an arrival or depart scan is triggered). 
 
-The first floor constantly monitors for beacons (`-b`) advertisements and anonymous advertisements, which may be sent by our phones listed in the `known_static_addresses` file. In response to a new anonymous advertisement, `monitor` will initate an ***ARRIVAL*** scan for whichever of our phones is not present.  If one of those devices is seen, an mqtt message is sent to Home Assistant reporting that the scanned phone is "home" with a confidence of 100%. In addition, an mqtt message is sent to the second and third floor and garage to trigger a scan on those floors as well. 
+The first floor constantly monitors for beacons (`-b`) advertisements and anonymous advertisements, which may be sent by our phones listed in the `known_static_addresses` file. In response to a new anonymous advertisement, `monitor` will initiate an ***ARRIVAL*** scan for whichever of our phones is not present.  If one of those devices is seen, an mqtt message is sent to Home Assistant reporting that the scanned phone is "home" with a confidence of 100%. In addition, an mqtt message is sent to the second and third floor and garage to trigger a scan on those floors as well. 
 
 When we leave the house, we use either the front door or the garage door to trigger an mqtt trigger of ```monitor/scan/depart``` after a ten second delay to trigger a departure scan of our devices that were previously known to be present. The ten second delay gives us a chance to get out of Bluetooth range before a "departure" scan is triggered. Different houses/apartments will probably need different delays. 
 
@@ -286,7 +285,7 @@ ___
 
 ## Setup of SD Card
 
-1. Download latest version of **rasbpian** [here](https://downloads.raspberrypi.org/raspbian_lite_latest)
+1. Download latest version of **raspbian** [here](https://downloads.raspberrypi.org/raspbian_lite_latest)
 
 2. Download etcher from [etcher.io](https://etcher.io)
 
@@ -383,7 +382,7 @@ git checkout beta
 
 9. Initial run:
 
-Configuration files will be created with default preferences. Any executables that are not installed will be reported. All can be installed via `apt-get intall ...`
+Configuration files will be created with default preferences. Any executables that are not installed will be reported. All can be installed via `apt-get install ...`
 
 ```bash 
 sudo bash monitor.sh
@@ -396,7 +395,7 @@ sudo bash monitor.sh
 sudo nano mqtt_preferences
 ```
 
-11. Edit **known_static_addresses** (phones, laptops, some smartwatches): 
+11. Edit **known_static_addresses** (phones, laptops, some smart watches): 
 
 ```bash
 sudo nano known_static_addresses
@@ -450,7 +449,7 @@ Similarly, we can create a negative filter. If you or your neighbors use Google 
 PREF_FAIL_FILTER_MANUFACTURER_ARRIVE="Google"
 ```
 
-Filters are a great way to minimize the frequency of `name` scanning, which causes 2.4GHz interference and can, if your values are too agressive, dramatically interfere with Wi-Fi and other services. 
+Filters are a great way to minimize the frequency of `name` scanning, which causes 2.4GHz interference and can, if your values are too aggressive, dramatically interfere with Wi-Fi and other services. 
 
 2. **Standard configuration options:**
 
@@ -459,7 +458,7 @@ When `monitor` is first run, default preferences are created in the `behavior_pr
 | **Option** | **Default Value** | **Description** |
 |-|-|-|
 | PREF_ARRIVAL_SCAN_ATTEMPTS | 1 | This is the number of times that `monitor` will send a name request before deciding that a device has not yet arrived. The higher the number, the fewer errors on arrival detection but also the longer it may take to recognize all devices are home in a multi-device installation. |
-| PREF_DEPART_SCAN_ATTEMPTS | 2 | This is the number of timesthat `monitor` will send a name request before deciding that a device has not yet departed. The higher the number, the fewer errors on departure detection but also the longer it may take to recognize all devices are awy in a multi-device installation. |
+| PREF_DEPART_SCAN_ATTEMPTS | 2 | This is the number of times that `monitor` will send a name request before deciding that a device has not yet departed. The higher the number, the fewer errors on departure detection but also the longer it may take to recognize all devices are away in a multi-device installation. |
 | PREF_BEACON_EXPIRATION | 180 | This is the number of seconds without observing an advertisement before a beacon is considered expired. |
 | PREF_MINIMUM_TIME_BETWEEN_SCANS | 15 | This is the minimum number of seconds required between "arrival" scans or between "departure" scans. Increasing the value will decrease interference, but will also increase arrival and departure detection time. |
 | PREF_PASS_FILTER_ADV_FLAGS_ARRIVE | .* | See above. |
@@ -474,10 +473,10 @@ In addition to the options described above, there are a number of advanced optio
 
 | **Option** | **Default Value** | **Description** |
 |-|-|-|
-PREF_INTERSCAN_DELAY|3|This is a fixed delay between `name` scans. Increasing the value will decrease inteference, but will decrease responsiveness. Decreasing the value will risk a Bluetooth hardware fault.|
+PREF_INTERSCAN_DELAY|3|This is a fixed delay between `name` scans. Increasing the value will decrease interference, but will decrease responsiveness. Decreasing the value will risk a Bluetooth hardware fault.|
 PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL|75|This is the interval after which an anonymous advertisement mac address is considered expired. Increasing this value will reduce arrival scan frequency, but will also increase memory footprint (minimal) and will decrease the frequency of depart scans.|
 PREF_RSSI_CHANGE_THRESHOLD|-20|If a beacon's rssi changes by at least this value, then the beacon will be reported again via mqtt.|
-PREF_RSSI_IGNORE_BELOW|-75|If an anonymous advertisement is "farther" away (lower RSSI), ignore the advertisement|
+PREF_RSSI_IGNORE_BELOW|-75|If an anonymous advertisement is "farther" away (lower RSSI), ignore the advertisement
 PREF_HCI_DEVICE|hci0|Select which hci device should be used by `monitor`|
 PREF_COOPERATIVE_SCAN_THRESHOLD|60|Once confidence of a known device falls below this value, send an mqtt message to other `monitor` nodes to begin an arrival scan or a departure scan.|
 PREF_MQTT_REPORT_SCAN_MESSAGES|false|This value is either true or false and determines whether `monitor` publishes when a scan begins and when a scan ends|
@@ -491,7 +490,7 @@ PREF_DEVICE_TRACKER_TOPIC_BRANCH|device_tracker|If `PREF_DEVICE_TRACKER_REPORT` 
 
 ## RSSI Tracking
 
-This script can also track RSSI changes throughout the day. This can be useful for very rudamentary room-level tracking. Only devices in `known_static_addresses` that have been paired to a `monitor` node can have their RSSI tracked. Here's how to pair: 
+This script can also track RSSI changes throughout the day. This can be useful for very rudimentary room-level tracking. Only devices in `known_static_addresses` that have been paired to a `monitor` node can have their RSSI tracked. Here's how to pair: 
 
 1. Stop `monitor` service:
 
@@ -505,7 +504,7 @@ sudo systemctl stop monitor
 sudo bash monitor.sh -c 00:11:22:33:44:55
 ```
 
-After this, follow the prompts given by `monitor` and your device will be connected. That's it. After you restart monitor will periodicly (once every ~1.5 minutes) connect to your phone and take three RSSI samples, average the samples, and report a string message to the same path as a confidence report, with the additional path component of */rssi*. So, if a `monitor` node is named 'first floor', an rssi message is reported to:
+After this, follow the prompts given by `monitor` and your device will be connected. That's it. After you restart monitor will periodically (once every ~1.5 minutes) connect to your phone and take three RSSI samples, average the samples, and report a string message to the same path as a confidence report, with the additional path component of */rssi*. So, if a `monitor` node is named 'first floor', an rssi message is reported to:
 
 ```bash 
 topic: monitor/first floor/00:11:22:33:44:55/rssi
@@ -540,286 +539,5 @@ sensor:
         window_size: 00:01
         precision: 1
 ```
-
-___
-
-# *FAQs*
-
-### I'm running 5GHz Wi-Fi, I don't use Bluetooth for anything else, and I don't care whether I interfere with my neighbor's devices. Can't I just issue a name scan every few seconds to get faster arrival and depart detection? 
-
-Not anymore. Periodic scanning has been removed from `monitor`. If you would like to scan every few seconds anyway, despite that you may be causing interference for others, you can use the `presence` project in my repository available [here](https://github.com/andrewjfreyer/presence). This feature will not be added back into `monitor` in the foreseeable future. 
-
-### I keep seeing that my Bluetooth hardware is "cycling" in the logs - what does that mean? 
-
-If more than one program or executable try to use the Bluetooth hardware at the same time, your Bluetooth hardware will report an error. To correct this error, the hardware needs to be taken offline, then brought back. 
-
-### Can I use other Bluetooth services while `monitor` is running? 
-
-No. Monitor needs exclusive use of the Bluetooth radio to function properly. This is why it is designed to run on inexpensive hardware like the Raspberry Pi Zero W. 
-
-### Can `monitor` run on XYZ hardware or in XYZ container? 
-
-Probably. The script has been designed to minimize dependencies as much as possible. That said, I can't guarantee or provide support to all systems. 
-
-### Does this work to track my iPhone?
-
-Yes. `monitor` was specifically designed to work with iPhones, but also works with most of all Android phones as well. 
-____
-
-### Will this be able to track my Apple Watch/Smart Watch?
-
-Yes, with a caveat. Many users, including myself, have successfully added Apple Watch Bluetooth addresses to the `known_static_addresses` file. In my personal experience, an Apple Watch works just fine [once it has connected to at least one other Bluetooth device, apart from your iPhone.](https://github.com/andrewjfreyer/monitor#my-phone-doesnt-seem-to-automatically-broadcast-an-anonymous-bluetooth-advertisement-what-can-i-do)
-
-Other users have reported that the Apple Watch will occasionally not respond to `monitor`. Your mileage using the Apple Watch and/or other low-power connectable Bluetooth devices may vary. 
-
-I strongly recommend tracking phones. 
-
-____
-
-### What special app do I need on my phone to get this to work? 
-
-None, except in very rare circumstances. The only requirement is that Bluetooth is left on. 
-
-____
-
-### Does `monitor` reduce battery life for my phone? 
-
-Not noticable in my several years of using techniques similar to this. 
-
-
-____
-### Does `monitor` interfere with Wi-Fi, Zigbee, or Zwave? 
-
-It can, if it scans too frequently, especially if you're running `monitor` from internal Raspberry Pi radios. Try to use all techniques for reducing `name` scans, including using trigger-only depart mode `-tdr`. When in this mode, `monitor` will never scan when all devices are home. Instead, `monitor` will wait until a `monitor/scan/depart` message is sent. 
-
-Personally, I use my front door lock as a depart scan trigger.
-
-
-____
-### How can I trigger an arrival scan? 
-
-Post a message with blank content to `monitor/scan/arrive`
-
-
-____
-### How can I trigger an depart scan? 
-
-Post a message with blank content to `monitor/scan/depart`
-
-
-____
-### How can I trigger an arrive/depart scan from an automation in Home Assistant?
-
-For an automation or script (or other service trigger), use: 
-
-```yaml
-  service: 'mqtt.publish'
-  data: 
-    topic: location/scan/arrive
-```
-
-```yaml
-  service: 'mqtt.publish'
-  data: 
-    topic: location/scan/depart
-```
-
-____
-### How can I upgrade to the latest version without using ssh? 
-
-Post a message with blank content to `monitor/scan/update` or `monitor/scan/updatebeta` 
-
-
-____
-### How can I check if a `monitor` node is up and hasn't shut down for some reason?  
-
-Post a message to `monitor/scan/echo`, and you'll receive a response at the topic `$mqtt_topicpath/$mqtt_publisher_identity/echo`
-
-____
-### How can I restart a `monitor` node? 
-
-Via command line: 
-
-```bash
-sudo systemctl restart monitor
-```
-
-Or, post a message with blank content to `monitor/scan/restart`
-
-____
-### Why don't I see RSSI for my iPhone/Andriod/whatever phone? 
-
-See the RSSI section above. You'll have to connect your phone to `monitor` first.  
-
-
-____
-### How do I force an RSSI update for a known device, like my phone? 
-
-Post a message with blank content to `monitor/scan/rssi`
-
-
-____
-### I can't do **XYZ**, is `monitor` broken? 
-
-Run via command line and post log output to github. Else, access `journalctl` to show the most recent logs: 
-
-```bash
-journalctl -u monitor -r
-```
-
-____
-### My phone doesn't seem to automatically broadcast an anonymous Bluetooth advertisement... what can I do? 
-
-Many phones will only broadcast once they have already connected to *at least one* other Bluetooth device. Connect to a speaker, a car, a headset, or `monitor.sh -c [address]` and try again. 
-
-____
-### I have connected to Bluetooth devices but my phone doesn't seem to automatically broadcast an anonymous Bluetooth advertisement... what can I do? 
-
-Some android phones just don't seem to advertise... and that's a bummer. There are a number of beacon apps that can be used from the Play Store.
-
-____
-### My Android phone doesn't seem to send any anonymous advertisements, no matter what I do. Is there any solution?  
-
-Some phones, like the LG ThinQ G7 include an option in settings to enable file sharing via bluetooth. As resported by Home Assistant forum user @jusdwy, access this option via Settings >Connected Devices > File Sharing > File Sharing ON.
-
-For other android phones, an app like [Beacon Simulator](https://play.google.com/store/apps/details?id=net.alea.beaconsimulator&hl=en_US) may be a good option. You may also be able to see more information about bluetooth on your phone using [nRF Connect](https://play.google.com/store/apps/details?id=no.nordicsemi.android.mcp&hl=en_US).
-
-I'm working on a solution. Stay tuned. 
-
-____
-### It's annoying to have to keep track of mac addresses. Can't I just use an alias for the mac addresses for MQTT topics? 
-
-Yes! Create a file called `mqtt_aliases` in the configuration directory, and then add a line for each mac address of a known device that you'd like to create a alias. Comments starting with a pound/hash sign will be ignored. 
-
-So, if you have a known device with the mac address of 00:11:22:33:44:55 that you would like to call "Andrew's Phone", add one line to the `mqtt_aliases`:
-
-```bash
-00:11:22:33:44:55 Andrew's iPhone
-```
-
-Then restart the `monitor` service. The script will now use "andrew_s_iphone" as the final mqtt topic path component. Important: 
-
-* any entry will be made **lowercase**
-
-* any non-digit or non-decimal character will be replaced with an underscore
-
-The same is true for beacons as well:
-
-```bash 
-09876543-3333-2222-1111-000000000000-9-10000 Doggo's Collar
-```
-____
-### What filters do you personally use? 
-
-```bash 
-
-#ARRIVE TRIGGER FILTER(S)
-PREF_PASS_FILTER_ADV_FLAGS_ARRIVE=\"0x1a|0x1b\"
-PREF_PASS_FILTER_MANUFACTURER_ARRIVE=\"Apple\"
-
-#ARRIVE TRIGGER NEGATIVE FILTER(S)
-PREF_FAIL_FILTER_MANUFACTURER_ARRIVE=\"Google|Samsung\"
-PREF_FAIL_FILTER_MANUFACTURER_ARRIVE=\"NONE\"
-```
-____
-
-### Why does my broker show connection and disconnction so often? 
-
-This is normal behavior for `mosquitto_pub` - nothing to worry about. 
-
-____
-
-### I *still* have interference and/or my ssh sessions to the raspberry pi are really slow and laggy. What gives? 
-
-Cheap Wi-Fi chipsets and cheap Bluetooth chipsets can perform poorly together if operated at the same time, especially on Raspberry Pi devices. If you still experience interference in your network, switching to a Wi-Fi dongle can help. 
-
-____
-
-### I use a Bluetooth dongle, and `monitor` seems to become non-responsive after a while - what's going on? 
-
-Many Bluetooth dongles do not properly filter out duplicate advertisements, so `monitor` gets overwhelmed trying to filter out hundreds of reports, when it expects dozens. I'm working on a solution, but for now the best option is to switch to internal Bluetooth or, alternatively, you can try another Bluetooth dongle. 
-
-____
-
-### What are the default filters for the PDU filter option? 
-
-```ADV_IND|ADV_SCAN_IND|ADV_NONCONN_IND|SCAN_RSP```
-
-____
-
-### How do I use this as a device_tracker, in addition to the standard confidence messages? 
-
-Set the option `PREF_DEVICE_TRACKER_REPORT` in your `behavior_preferences` file to true. If it's not there, add a line like this: 
-
-```bash
-PREF_DEVICE_TRACKER_REPORT=true
-```
-
-Then, an additional mqtt message will be posted to the topic branch ending in  `/device_tracker`
-
-So, as an example for a `monitor` node named "first floor", a device tracker configuration for Home Assistant can look like: 
-
-```yaml
-
-device_tracker:
-  - platform: mqtt
-    devices:
-      andrew_first_floor: 'monitor/first floor/[device address or alias]/device_tracker'
-```
-
-The standard confidence report will also send. 
-
-____
-
-### I don't care about a few devices that are reporting. Can I block them? 
-
-Yes. Create a file called `address_blacklist` in your configuration directory and add the mac addresses you'd like to block (or uuid-major-minor for iBeacons) one at a time. 
-
-
-____
-
-### I can't use the `device_tracker` platform with the default status strings of `home` and `not_home` with my home automation software. What can I do? 
-
-Set these options in `behavior_preferences`: 
-
-```bash
-PREF_DEVICE_TRACKER_HOME_STRING='home status string' 
-PREF_DEVICE_TRACKER_AWAY_STRING='away status string'
-PREF_DEVICE_TRACKER_TOPIC_BRANCH='topic path for device tracker/presence tracker'
-```
-
-Examples:
-
-* Home Assistant (default): 
-
-```bash
-PREF_DEVICE_TRACKER_HOME_STRING='home' 
-PREF_DEVICE_TRACKER_AWAY_STRING='not_home'
-PREF_DEVICE_TRACKER_TOPIC_BRANCH='device_tracker'
-```
-
-* SmartThings: 
-
-```bash
-PREF_DEVICE_TRACKER_HOME_STRING='present' 
-PREF_DEVICE_TRACKER_AWAY_STRING='not present'
-PREF_DEVICE_TRACKER_TOPIC_BRANCH='presence'
-```
-
-* Generic: 
-
-```bash
-PREF_DEVICE_TRACKER_HOME_STRING='home' 
-PREF_DEVICE_TRACKER_AWAY_STRING='away'
-PREF_DEVICE_TRACKER_TOPIC_BRANCH='anything you like'
-```
-
-____
-
-### I updated recently, and `monitor` is no longer working... what gives? 
-
-Make sure you've updated `mosquitto` and that you are running bash 4.4 or higher. In order to support a wider userbase, backward compabibility for old versions of `mosquitto` and older bash were dropped. 
-
-
 
 Anything else? Post a [question.](https://github.com/andrewjfreyer/monitor/issues/new)

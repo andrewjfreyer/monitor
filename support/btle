@@ -65,7 +65,7 @@ btle_scanner () {
 
 btle_packet_processor () {
 	#POPULATE PACKET 
-	local packet=$(echo "$1" | sed 's/> *//g;s/    / /g')
+	local packet=$(echo "$1" | sed 's/> *//g;s/    / /gi')
 
 	#BEACON PACKET?
 	if [[ $packet =~ ^04\ 3E\ 2[AB]\ 02\ 01\ .{26}\ 02\ 01\ .{14}\ 02\ 15 ]]; then
@@ -78,14 +78,14 @@ btle_packet_processor () {
 		local MAJOR=$(echo $packet | sed 's/^.\{117\}\(.\{5\}\).*$/\1/')
 		local MINOR=$(echo $packet | sed 's/^.\{123\}\(.\{5\}\).*$/\1/')
 		local POWER=$(echo $packet | sed 's/^.\{129\}\(.\{2\}\).*$/\1/')
-		local UUID=$(echo $UUID | sed -e 's/\ //g' -e 's/^\(.\{8\}\)\(.\{4\}\)\(.\{4\}\)\(.\{4\}\)\(.\{12\}\)$/\1-\2-\3-\4-\5/')
+		local UUID=$(echo $UUID | sed -e 's/\ //gi' -e 's/^\(.\{8\}\)\(.\{4\}\)\(.\{4\}\)\(.\{4\}\)\(.\{12\}\)$/\1-\2-\3-\4-\5/')
 	
 		#MAJOR CALCULATION
-		MAJOR=$(echo $MAJOR | sed 's/\ //g')
+		MAJOR=$(echo $MAJOR | sed 's/\ //gi')
 		MAJOR=$(echo "ibase=16; $MAJOR" | bc)
 
 		#MINOR CALCULATION
-		MINOR=$(echo $MINOR | sed 's/\ //g')
+		MINOR=$(echo $MINOR | sed 's/\ //gi')
 		MINOR=$(echo "ibase=16; $MINOR" | bc)
 
 		#POWER CALCULATION
@@ -127,7 +127,18 @@ btle_text_processor () {
 	local device_type
 	local oem_data
 	local version
+	local resolvable
+	local hex_data
 
+	#FILTER DEBUG STUFF
+	local mfcg_filter_color
+	local flag_filter_color
+	local pdut_filter_color
+
+	local mfcg_pass_filter_color
+	local flag_pass_filter_color
+	local full_packet
+	
 	#BEACON
 	local uuid
 	local tx_power
@@ -197,22 +208,90 @@ btle_text_processor () {
 			flags=${BASH_REMATCH[1]}
 		fi 
 
+		#------------ HEX DATA
+		if [[ $packet =~ [a-f0-9-]{8,} ]]; then 
+			hex_data=$BASH_REMATCH
+		fi
+
 		#------------ OEM DATA 
-		if [[ $packet =~ 1\ entry\ {0,}([^|\(]*)(\||$|\() ]]; then 
+		if [[ $packet =~ 1\ entry\|([^|\(]{1,}) ]]; then 
 			oem_data=${BASH_REMATCH[1]}
+			oem_data=$(trim_whitespace "$oem_data")
+
+			#IS THIS A VENDOR-SPECIFIC UUID? 
+			[[ $oem_data =~ Vendor\ specific ]] && oem_data=""
+
+			#OVERWRITE OEMS
+			[ -n "$oem_data" ] && [ -n "$manufacturer" ] && manufacturer="$manufacturer for $oem_data"
+			[ -n "$oem_data" ] && manufacturer=${manufacturer:-$oem_data}
+		fi 
+
+		#------------ RESOLVABILITY
+		if [[ $packet =~ \(Non-Resolvable\) ]] || [[ $packet =~ \(Resolvable\) ]]; then 
+			resolvable=${BASH_REMATCH^^}
+			resolvable=${resolvable//-/_}
+			resolvable=${resolvable//[^A-Z_]/}
 		fi 
 
 		local timestamp
 		timestamp=$(date +%s)
 
+		#MOVE IGNORE FILTER HERE TO BE SURE 
+		if [ ${PREF_FILTER_DEBUG_LOGGING:-false} == true ]; then 
+
+			#FORMATTING FOR FUN AND PROFIT
+		   	[[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]] && flag_filter_color=${RED} || flag_filter_color=${GREEN}
+		   	[[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]] && mfcg_filter_color=${RED} || mfcg_filter_color=${GREEN}
+			[[ ${flags,,} =~ ${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE,,} ]] && flag_pass_filter_color=${GREEN} || flag_pass_filter_color=${RED}
+		   	[[ ${manufacturer,,} =~ ${PREF_PASS_FILTER_MANUFACTURER_ARRIVE,,} ]] && mfcg_pass_filter_color=${GREEN} || mfcg_pass_filter_color=${RED}
+		   	[[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]] && pdut_filter_color=${GREEN} || pdut_filter_color=${RED}
+
+		   	#REASSEMBLE FULL
+		   	full_packet=$(echo "$packet" | tr "|" "\n")
+
+			#PRINT DEBUG MESSAGES 				
+			printf "\n%s\n" "${PURPLE}***************** ARRIVE/REJECT FILTER DEBUG ********************** ${NC}"
+			printf "%s\n" "btmon packet:"
+			printf "%s\n" "$full_packet"
+			printf "%s\n" "flag pass:	${flag_pass_filter_color}only (${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE,,})${NC}"
+			printf "%s\n" "mfcg pass:	${mfcg_pass_filter_color}only (${PREF_PASS_FILTER_MANUFACTURER_ARRIVE,,})${NC}"
+			printf "%s\n" "flag fail:	${flag_filter_color}not (${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,})${NC}"
+			printf "%s\n" "mfcg fail:	${mfcg_filter_color}not (${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,})${NC}"
+			printf "%s\n" "pdu filter: 	${pdut_filter_color}only (${PREF_PASS_FILTER_PDU_TYPE,,})${NC}"
+			[ -n "${blacklisted_devices["$received_mac_address"]}" ] && printf "%s\n" "blacklist: 	${RED}true${NC}" || printf "%s\n" "blacklist: 	${GREEN}false${NC}"
+			printf "%s\n" ""
+			printf "%s\n" "type: 		${CYAN}${tx_type:-???}${NC}"
+			printf "%s\n" "mac: 		${CYAN}${received_mac_address:-???}${NC}"
+			printf "%s\n" "name: 		${CYAN}${gap_name_str:-???}${NC}"
+			printf "%s\n" "pdu: 		${CYAN}${pdu_type:-???}${NC}"
+			printf "%s\n" "type: 		${CYAN}${device_type:-???}${NC}"
+			printf "%s\n" "oem: 		${CYAN}${oem_data:-???}${NC}"
+			printf "%s\n" "rssi: 		${CYAN}${rssi_value:-???} dBm${NC}"
+			printf "%s\n" "flags:		${CYAN}${flags:-???}${NC}"
+			printf "%s\n" "hex:		${CYAN}${hex_data:-???}${NC}"
+			printf "%s\n" "resolvable:	${CYAN}${resolvable:-???}${NC}"
+			printf "%s\n" "man: ${CYAN}		${manufacturer:-???}${NC}"
+			printf "%s\n" "time: ${CYAN}		${timestamp:-???}${NC}"
+			printf "%s\n" ""
+		fi
+
+		#IF BLACLISTED, PREVENT FROM GOING HOME
+		[ -n "${blacklisted_devices[$received_mac_address]}" ] && return 0
 
 		if [ "$tx_type" == "PUBL" ]; then 
 			#PRINT ALL PUBLIC BEACONS
-			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data|$timestamp" > main_pipe
+			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data|$timestamp|$hex_data" > main_pipe
 
 		elif [ "$tx_type" == "RAND" ]; then
-		 
-			if [[ $pdu_type =~ $PREF_PASS_FILTER_PDU_TYPE ]] ; then 
+
+			#FAIL FLAGS HERE
+			if [[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]] || 
+			   [[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]]; then 
+			   return 0
+			fi 
+
+			#PDU FILTERING		 
+			if [[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]] ; then 
 
 				#IF THIS DOES NOT HAVE A UUID, PROCESS AS GENERIC BEACON
 				should_ignore=false 
@@ -223,11 +302,12 @@ btle_text_processor () {
 
 				if [ "$should_ignore" == false ]; then 
 					#REPORT TO MAIN LOOP
-					printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data|$timestamp" > main_pipe
+					printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data|$timestamp|$resolvable|$hex_data" > main_pipe
 				fi 
 			fi 
 		fi 
 	fi
+
 }
 
 # ----------------------------------------------------------------------------------------
