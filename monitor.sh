@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.150
+export version=0.2.151
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1827,4 +1827,9 @@ while true; do
 		fi 
 
 	done < main_pipe
+
+	#SHOUD WE PERFORM AN ARRIVAL SCAN AFTER THIS FIRST LOOP?
+	if [ "$first_arrive_scan" == true ] && [ "$uptime" -lt "$PREF_STARTUP_SETTLE_TIME" ] ; then 
+		perform_arrival_scan 
+	fi
 done
