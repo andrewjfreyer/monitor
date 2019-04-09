@@ -252,3 +252,7 @@ PREF_DEVICE_TRACKER_HOME_STRING='home'
 PREF_DEVICE_TRACKER_AWAY_STRING='away'
 PREF_DEVICE_TRACKER_TOPIC_BRANCH='anything you like'
 ```
+
+#### I keep seeing MQTT Broker Offline messages in the `monitor` log. What's going on? 
+
+mosquitto fails to connect to a broker if your password has certain special characters such as: `@`, `:`,`/` - if this is the case, the easiest solution is to create a new user for `monitor` with a different password. 
