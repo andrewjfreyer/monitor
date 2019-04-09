@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.148
+export version=0.2.150
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
