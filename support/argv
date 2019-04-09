@@ -110,6 +110,7 @@ PREF_CONFIG_DIR=''
 PREF_DISABLE_LOGGING=false
 PREF_VERBOSE_LOGGING=false
 PREF_FILTER_DEBUG_LOGGING=false
+PREF_MQTT_SINGLE_TOPIC_MODE=false
 
 while getopts "h?vfFbut:EgSRCmsVadxD:c:" opt; do
 	case "$opt" in
