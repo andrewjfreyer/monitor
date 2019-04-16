@@ -65,7 +65,7 @@ Or, post a message with blank content to `monitor/scan/restart`
 
 #### Why don't I see RSSI for my iPhone/Andriod/whatever phone? 
 
-See the RSSI section above. You'll have to connect your phone to `monitor` first.  
+See the RSSI section of this FAQ. You'll have to connect your phone to `monitor` first.  
 
 #### How do I force an RSSI update for a known device, like my phone? 
 
@@ -77,7 +77,7 @@ ____
 
 #### I'm running 5GHz Wi-Fi, I don't use Bluetooth for anything else, and I don't care whether I interfere with my neighbor's devices. Can't I just issue a name scan every few seconds to get faster arrival and depart detection?
 
-Not anymore. Periodic scanning has been removed from `monitor`. If you would like to scan every few seconds anyway, despite that you may be causing interference for others, you can use the `presence` project in my repository available [here.](https://github.com/andrewjfreyer/presence). This feature will not be added back into `monitor` in the foreseeable future. 
+Yes, use periodic scanning mode with `-r`.
 
 #### Can I use other Bluetooth services while `monitor` is running?
 
@@ -138,6 +138,9 @@ This is normal behavior for `mosquitto_pub` - nothing to worry about.
 
 Make sure you've updated `mosquitto` to v1.5 or higher. In order to support a wider userbase, backward compatibility for old versions of `mosquitto` was dropped. It is alos strongly recommended that you upgrade to bash 4.4+.
 
+#### I keep seeing MQTT Broker Offline messages in the `monitor` log. What's going on? 
+
+mosquitto fails to connect to a broker if your password has certain special characters such as: `@`, `:`,`/` - if this is the case, the easiest solution is to create a new user for `monitor` with a different password. 
 ____
 
 ## *Filters*
@@ -252,7 +255,3 @@ PREF_DEVICE_TRACKER_HOME_STRING='home'
 PREF_DEVICE_TRACKER_AWAY_STRING='away'
 PREF_DEVICE_TRACKER_TOPIC_BRANCH='anything you like'
 ```
-
-#### I keep seeing MQTT Broker Offline messages in the `monitor` log. What's going on? 
-
-mosquitto fails to connect to a broker if your password has certain special characters such as: `@`, `:`,`/` - if this is the case, the easiest solution is to create a new user for `monitor` with a different password. 

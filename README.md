@@ -8,6 +8,8 @@ ____
 
 ### *Table of Contents*
 
+  * [**FAQ**](https://github.com/andrewjfreyer/monitor/blob/master/support/README.md)
+
   * [**Highlights**](#highlights)
   
   * [**Oversimplified Analogy of the Bluetooth Presence Problem**](#oversimplified-analogy-of-the-Bluetooth-presence-problem)

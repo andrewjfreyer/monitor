@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.151
+export version=0.2.154
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -897,6 +897,7 @@ while true; do
 		most_recent_beacon=""
 		observed_max_advertisement_interval=""
 		temp_observation=""
+		device_state=""
 
 		#PROCEED BASED ON COMMAND TYPE
 		if [ "$cmd" == "ENQU" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
@@ -1076,6 +1077,26 @@ while true; do
 					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] arrive scan rejected due to recent scan ${NC}"
 				fi 
 				
+			elif [[ $mqtt_topic_branch =~ .*STATUS.* ]]; then 				
+
+				#SIMPLE STATUS MESSAGE FOR KNOWN
+				device_state=""
+				for addr in "${known_static_addresses[@]}"; do 
+					#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
+					device_state="${known_public_device_log[$known_addr]}"
+					device_state=${device_state:-0}
+
+					#SET TO CONFIDENCE RANGE
+					[ "$known_public_device_log" == "1" ] && known_public_device_log=100
+
+					#SEND STATUS UPDATE
+					publish_presence_message  \
+					"id=$addr" \
+					"confidence=$device_state" \
+					"type=KNOWN_MAC" \
+				done
+				 	
+
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
 				
 				#IGNORE OR PASS MQTT INSTRUCTION?
@@ -1196,6 +1217,25 @@ while true; do
 					connectable_present_devices
 					last_rssi_scan=$(date +%s)
 				fi 
+
+				#RETURN PERIODIC SCAN MODE	
+				if [ "$PREF_PERIODIC_MODE" == true ]; then 
+	
+					#SCANNED RECENTLY? 
+					duration_since_arrival_scan=$((timestamp - last_arrival_scan))
+					
+					#CALCULATE DEPARTURE
+					duration_since_depart_scan=$((timestamp - last_depart_scan))
+	
+					if [ "$duration_since_depart_scan" -gt "$PREF_DEPART_SCAN_INTERVAL" ]; then 
+	
+						perform_departure_scan
+	
+					elif [ "$duration_since_arrival_scan" -gt "$PREF_ARRIVE_SCAN_INTERVAL" ]; then 
+	
+						perform_arrival_scan 
+					fi
+				fi
 			fi 
 
 			#**********************************************************************
