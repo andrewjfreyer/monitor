@@ -1812,7 +1812,6 @@ while true; do
 				#FIND NAME
 				expected_name="$(determine_name "$mac")"
 
-
 				log "${PURPLE}[CMD-$cmd]${NC}	$mac ${GREEN}$name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
 				
 				publish_presence_message \
@@ -1827,8 +1826,8 @@ while true; do
 				"flags=${flags:-none}" \
 				"movement=${change_type:-none}" \
 				"oem_data=${oem_data:-not advertised}" \
-				"resolvable=${resolvable:-PUBLIC}" \
-				"hex_data=${hex_data:-none}" 
+				"hex_data=${hex_data:-none}" \
+				"resolvable=${resolvable:-PUBLIC}"
 			fi 
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
