@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.159
+export version=0.2.160
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1828,7 +1828,38 @@ while true; do
 				"oem_data=${oem_data:-not advertised}" \
 				"hex_data=${hex_data:-none}" \
 				"resolvable=${resolvable:-PUBLIC}"
+
+				#PERFORM SCAN HERE AS WELL
+				if [ "$is_new" == true ]); then 
+					#REJECTION FILTER
+					if [[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]] || [[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]]; then 
+
+						$PREF_VERBOSE_LOGGING && log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: ${BLUE}${mac:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${RED}${flags:-none}${NC} man: ${RED}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
+
+						continue
+					fi 
+
+					#FLAG AND MFCG FILTER
+					if [[ ${flags,,} =~ ${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE,,} ]] && [[ ${manufacturer,,} =~ ${PREF_PASS_FILTER_MANUFACTURER_ARRIVE,,} ]]; then 
+						#PROVIDE USEFUL LOGGING
+						$PREF_VERBOSE_LOGGING && log "${RED}[CMD-$cmd]${NC}	[${GREEN}passed filter${NC}] data: ${BLUE}${mac:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${BLUE}${flags:-none}${NC} man: ${BLUE}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
+
+						#WE ARE PERFORMING THE FIRST ARRIVAL SCAN?
+						first_arrive_scan=false
+
+						#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
+						perform_arrival_scan 
+
+						continue
+					else 
+						#PROVIDE USEFUL LOGGING
+						$PREF_VERBOSE_LOGGING && log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: ${BLUE}${mac:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${RED}${flags:-none}${NC} man: ${RED}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
+
+						continue
+					fi 
+				fi 
 			fi 
+
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
 			
