@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.157
+export version=0.2.158
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1087,7 +1087,7 @@ while true; do
 					device_state=${device_state:-0}
 
 					#SET TO CONFIDENCE RANGE
-					[ "$known_public_device_log" == "1" ] && known_public_device_log=100
+					[ "$device_state" == "1" ] && device_state=100
 
 					#SEND STATUS UPDATE
 					publish_presence_message  \
