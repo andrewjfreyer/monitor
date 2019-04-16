@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.154
+export version=0.2.155
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1093,7 +1093,7 @@ while true; do
 					publish_presence_message  \
 					"id=$addr" \
 					"confidence=$device_state" \
-					"type=KNOWN_MAC" \
+					"type=KNOWN_MAC"
 				done
 				 	
 
