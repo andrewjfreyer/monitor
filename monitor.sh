@@ -1830,7 +1830,7 @@ while true; do
 				"resolvable=${resolvable:-PUBLIC}"
 
 				#PERFORM SCAN HERE AS WELL
-				if [ "$is_new" == true ]); then 
+				if [ "$is_new" == true ]; then 
 					#REJECTION FILTER
 					if [[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]] || [[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]]; then 
 
