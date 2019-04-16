@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.155
+export version=0.2.156
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1813,21 +1813,6 @@ while true; do
 				expected_name="$(determine_name "$mac")"
 
 				log "${PURPLE}[CMD-$cmd]${NC}	$mac ${GREEN}$name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
-				
-
-printf "%s\n" "id=$mac" \
-				"confidence=100" \
-				"name=$name" \
-				"manufacturer=$manufacturer" \
-				"type=$beacon_type" \
-				"report_delay=$instruction_delay" \
-				"rssi=$rssi" \
-				"observed_interval=${advertisement_interval_observation[$mac]:--1}" \
-				"flags=${flags:-none}" \
-				"movement=${change_type:-none}" \
-				"oem_data=${oem_data:-not advertised}" \
-				"hex_data=${hex_data:-none}" \
-				"resolvable=${resolvable:-PUBLIC}"
 
 				publish_presence_message \
 				"id=$mac" \

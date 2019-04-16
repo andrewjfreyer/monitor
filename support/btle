@@ -280,7 +280,7 @@ btle_text_processor () {
 
 		if [ "$tx_type" == "PUBL" ]; then 
 			#PRINT ALL PUBLIC BEACONS
-			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data|$timestamp|$hex_data" > main_pipe
+			printf "%s\n" "$tx_type$received_mac_address|$pdu_type|$gap_name_str|$rssi_value|$adv_data|$manufacturer|$device_type|$flags|$oem_data|$timestamp|$resolvable|$hex_data" > main_pipe
 
 		elif [ "$tx_type" == "RAND" ]; then
 
