@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.156
+export version=0.2.157
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1077,13 +1077,13 @@ while true; do
 					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] arrive scan rejected due to recent scan ${NC}"
 				fi 
 				
-			elif [[ $mqtt_topic_branch =~ .*STATUS.* ]]; then 				
+			elif [[ $mqtt_topic_branch =~ .*STATES.* ]]; then 				
 
 				#SIMPLE STATUS MESSAGE FOR KNOWN
 				device_state=""
 				for addr in "${known_static_addresses[@]}"; do 
 					#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
-					device_state="${known_public_device_log[$known_addr]}"
+					device_state="${known_public_device_log[$addr]}"
 					device_state=${device_state:-0}
 
 					#SET TO CONFIDENCE RANGE
