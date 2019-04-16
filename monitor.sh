@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.158
+export version=0.2.159
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1217,26 +1217,26 @@ while true; do
 					connectable_present_devices
 					last_rssi_scan=$(date +%s)
 				fi 
-
-				#RETURN PERIODIC SCAN MODE	
-				if [ "$PREF_PERIODIC_MODE" == true ]; then 
-	
-					#SCANNED RECENTLY? 
-					duration_since_arrival_scan=$((timestamp - last_arrival_scan))
-					
-					#CALCULATE DEPARTURE
-					duration_since_depart_scan=$((timestamp - last_depart_scan))
-	
-					if [ "$duration_since_depart_scan" -gt "$PREF_DEPART_SCAN_INTERVAL" ]; then 
-	
-						perform_departure_scan
-	
-					elif [ "$duration_since_arrival_scan" -gt "$PREF_ARRIVE_SCAN_INTERVAL" ]; then 
-	
-						perform_arrival_scan 
-					fi
-				fi
 			fi 
+
+			#RETURN PERIODIC SCAN MODE	
+			if [ "$PREF_PERIODIC_MODE" == true ]; then 
+
+				#SCANNED RECENTLY? 
+				duration_since_arrival_scan=$((timestamp - last_arrival_scan))
+				
+				#CALCULATE DEPARTURE
+				duration_since_depart_scan=$((timestamp - last_depart_scan))
+
+				if [ "$duration_since_depart_scan" -gt "$PREF_DEPART_SCAN_INTERVAL" ]; then 
+
+					perform_departure_scan
+
+				elif [ "$duration_since_arrival_scan" -gt "$PREF_ARRIVE_SCAN_INTERVAL" ]; then 
+
+					perform_arrival_scan 
+				fi
+			fi
 
 			#**********************************************************************
 			#
