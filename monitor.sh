@@ -1096,7 +1096,7 @@ while true; do
 					"type=KNOWN_MAC"
 				done
 				
-			elif [[ $mqtt_topic_branch =~ .*NEW.* ]]; then 
+			elif [[ $mqtt_topic_branch =~ .*NEW\ STATIC\ DEVICE.* ]]; then 
 
 				if [[ "${data_of_instruction^^}" =~ ([A-F0-9]{2}:){5}[A-F0-9]{2} ]]; then 
 					
@@ -1106,12 +1106,15 @@ while true; do
 
 						#ADD TO KNOWN PUBLIC DEVICE ARRAY
 						known_public_device_name[$mac]="Unknown"
+						known_static_addresses+=("$mac")
 
 						#ADD TO KNOWN_STATIC_ADDRESSES FILE
 						echo "$mac Unknown" >> $PUB_CONFIG
 
 						#PERFORM ARRIVAL SCAN FOR NEW DEVICE
 						perform_arrival_scan
+					else
+						printf "%s\n" "Address: $mac does not exist" 
 					fi 
 				fi
 
