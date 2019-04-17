@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.178
+export version=0.2.179
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1153,7 +1153,7 @@ while true; do
 
 							#REMOVE FROM STATIC ADDRESSES TOO
 							substitute_array=( $mac )							
-							known_static_addresses=( ${known_static_addresses[@]} / $substitute_array )
+							known_static_addresses=( "${known_static_addresses[@]/$substitute_array}" )
 
 							#LOGGING
 							$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] removed static device ${GREEN}$mac${NC}"
