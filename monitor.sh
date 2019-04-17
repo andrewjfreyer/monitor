@@ -1145,7 +1145,7 @@ while true; do
 						if [[ $mqtt_topic_branch =~ .*DELETE\ STATIC\ DEVICE.* ]]; then 
 
 							#HERE, WE NOW THAT WE HAVE TO DELETE THE DEVICE WITH THE MAC ADDRESS
-							sed -i.bak '/'"$mac"'/di' $PUB_CONFIG
+							sed -i.bak '/$mac/di' $PUB_CONFIG
 
 							#UNSET FROM MEMORY
 							unset "known_public_device_name[$mac]"
