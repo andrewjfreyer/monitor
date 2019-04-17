@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.163
+export version=0.2.164
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1100,7 +1100,7 @@ while true; do
 
 				if [[ "${data_of_instruction^^}" =~ ([A-F0-9]{2}:){5}[A-F0-9]{2} ]]; then 
 					mac="${BASH_REMATCH}"
-					[ ${known_public_device_name[mac]+true} ] && printf "%s\n" "Address: $mac exists" || printf "%s\n" "Address: $mac does not exist" 
+					[ ${known_public_device_name[$mac]+true} ] && printf "%s\n" "Address: $mac exists" || printf "%s\n" "Address: $mac does not exist" 
 				fi
 
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
