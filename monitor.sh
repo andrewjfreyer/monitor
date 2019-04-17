@@ -1109,14 +1109,18 @@ while true; do
 					
 					mac="${BASH_REMATCH}"
 					if [ ! ${known_public_device_name[$mac]+true} ]; then 
-						printf "%s\n" "Address: $mac does not exist" 
+						#WAS THERE A NAME HERE?
+						name=$(echo "$data_of_instruction" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$mac //gi;s/  */ /gi" )
+						name=${name:-Unknown}
+
+						printf "%s\n" "Address: $mac does not exist ($data_of_instruction)" 
 
 						#ADD TO KNOWN PUBLIC DEVICE ARRAY
-						known_public_device_name[$mac]="Unknown"
+						known_public_device_name[$mac]="$name"
 						known_static_addresses+=("$mac")
 
 						#ADD TO KNOWN_STATIC_ADDRESSES FILE
-						echo "$mac Unknown" >> $PUB_CONFIG
+						echo "$mac $name" >> $PUB_CONFIG
 
 						#PERFORM ARRIVAL SCAN FOR NEW DEVICE
 						perform_arrival_scan
