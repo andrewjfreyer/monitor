@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.177
+export version=0.2.178
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1151,8 +1151,9 @@ while true; do
 							unset "known_public_device_name[$mac]"
 							unset "mqtt_aliases[$mac]"
 
-							#REMOVE FROM STATIC ADDRESSES TOO							
-							known_static_addresses=( ${known_static_addresses[@]}/ ( $mac ) )
+							#REMOVE FROM STATIC ADDRESSES TOO
+							substitute_array=( $mac )							
+							known_static_addresses=( ${known_static_addresses[@]} / $substitute_array )
 
 							#LOGGING
 							$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] removed static device ${GREEN}$mac${NC}"
