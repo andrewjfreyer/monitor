@@ -1099,7 +1099,7 @@ while true; do
 			elif [[ $mqtt_topic_branch =~ .*ADD\ DEVICE.* ]]; then 
 
 				if [[ "${data_of_instruction^^}" =~ ([A-F0-9]{2}:){5}[A-F0-9]{2} ]]; then 
-					printf "%s\n" "TEST PASSED WITH ${BASH_REMATCH[1]}"
+					printf "%s\n" "TEST PASSED WITH ${BASH_REMATCH}"
 				fi
 
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
