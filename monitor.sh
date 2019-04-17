@@ -1077,7 +1077,7 @@ while true; do
 					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] arrive scan rejected due to recent scan ${NC}"
 				fi 
 				
-			elif [[ $mqtt_topic_branch =~ .*KNOWN DEVICE STATES.* ]]; then 				
+			elif [[ $mqtt_topic_branch =~ .*KNOWN\ DEVICE\ STATES.* ]]; then 				
 
 				#SIMPLE STATUS MESSAGE FOR KNOWN
 				device_state=""
@@ -1096,7 +1096,7 @@ while true; do
 					"type=KNOWN_MAC"
 				done
 				
-			elif [[ $mqtt_topic_branch =~ .*ADD DEVICE.* ]]; then 
+			elif [[ $mqtt_topic_branch =~ .*ADD\ DEVICE.* ]]; then 
 
 				if [[ "${data_of_instruction^^}" =~ ([A-F0-9]{2}:){5}[A-F0-9]{2} ]]; then 
 					printf "%s\n" "TEST PASSED WITH $data_of_instruction"
