@@ -153,7 +153,7 @@ if [ -f "$ALIAS_CONFIG" ]; then
 	mapfile -t mqtt_alias_addresses < <(sed 's/#.\{0,\}//gi' < "$ALIAS_CONFIG")
 
 	#MQTT ALIASES 
-	for line in "${mqtt_alias_addresses[@]}"; do 
+	for line in "${mqtt_alias_addresses[@]^^}"; do 
 		key=${line%% *}
 	   	value=${line#* }
 
@@ -176,7 +176,7 @@ if [ -f "$ALIAS_CONFIG" ]; then
 fi 
 
 #ASSEMBLE COMMENT-CLEANED BLACKLIST INTO BLACKLIST ARRAY
-for addr in "${address_blacklist[@]}"; do 
+for addr in "${address_blacklist[@]^^}"; do 
 	blacklisted_devices[$addr]=1
 	printf "%s\n" "> ${RED}blacklisted device:${NC} $addr"
 done 
@@ -218,7 +218,7 @@ done
 # POPULATE BEACON ADDRESS ARRAY
 # ----------------------------------------------------------------------------------------
 #POPULATE KNOWN DEVICE ADDRESS
-for addr in "${known_static_beacons[@]}"; do 
+for addr in "${known_static_beacons[@]^^}"; do 
 
 	#WAS THERE A NAME HERE?
 	known_name=$(grep "$addr" "$BEAC_CONFIG" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$addr //gi;s/  */ /gi" )
