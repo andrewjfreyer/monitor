@@ -1099,7 +1099,7 @@ while true; do
 			elif [[ $mqtt_topic_branch =~ .*ADD\ DEVICE.* ]]; then 
 
 				if [[ "${data_of_instruction^^}" =~ ([A-F0-9]{2}:){5}[A-F0-9]{2} ]]; then 
-					mac="${BASH_REMATCH}"
+					mac=$(echo "${BASH_REMATCH}" | head -1 )
 					[ -n "${known_static_addresses[$mac]}" ] && printf "%s\n" "Address: $mac exists" || printf "%s\n" "Address: $mac does not exist" 
 				fi
 
