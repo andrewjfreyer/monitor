@@ -251,7 +251,7 @@ connectable_present_devices () {
 
 	#ITERATE THROUGH THE KNOWN DEVICES 
 	local known_addr
-	for known_addr in "${known_static_addresses[@]}"; do 
+	for known_addr in "${known_static_addresses[@]^^}"; do 
 		
 		#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
 		this_state="${known_public_device_log[$known_addr]}"
@@ -327,7 +327,7 @@ scannable_devices_with_state () {
 		 	
 	#ITERATE THROUGH THE KNOWN DEVICES 
 	local known_addr
-	for known_addr in "${known_static_addresses[@]}"; do 
+	for known_addr in "${known_static_addresses[@]^^}"; do 
 		
 		#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
 		this_state="${known_public_device_log[$known_addr]}"
@@ -1081,7 +1081,7 @@ while true; do
 
 				#SIMPLE STATUS MESSAGE FOR KNOWN
 				device_state=""
-				for addr in "${known_static_addresses[@]}"; do 
+				for addr in "${known_static_addresses[@]^^}"; do 
 					#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
 					device_state="${known_public_device_log[$addr]}"
 					device_state=${device_state:-0}
