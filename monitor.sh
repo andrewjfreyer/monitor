@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.170
+export version=0.2.171
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1110,7 +1110,7 @@ while true; do
 					mac="${BASH_REMATCH}"
 					if [ ! ${known_public_device_name[$mac]+true} ]; then 
 						#WAS THERE A NAME HERE?
-						name=$(echo "$data_of_instruction" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$mac //gi;s/  */ /gi" )
+						name=$(echo "$data_of_instruction" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$m //gi;s/  */ /gi" )
 						name=${name:-Unknown}
 
 						printf "%s\n" "Address: $mac does not exist ($data_of_instruction)" 
@@ -1118,6 +1118,7 @@ while true; do
 						#ADD TO KNOWN PUBLIC DEVICE ARRAY
 						known_public_device_name[$mac]="$name"
 						known_static_addresses+=("$mac")
+						[ -n "$mac" ] && [ -n "$name" ] && mqtt_aliases[$addr]="$alias_value" 
 
 						#ADD TO KNOWN_STATIC_ADDRESSES FILE
 						echo "$mac $name" >> $PUB_CONFIG
