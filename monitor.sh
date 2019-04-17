@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.169
+export version=0.2.170
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -167,10 +167,6 @@ for addr in "${known_static_addresses[@]^^}"; do
 
 	#WAS THERE A NAME HERE?
 	known_name=$(grep "$addr" "$PUB_CONFIG" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$addr //gi;s/  */ /gi" )
-
-	#ALIAS MODE? 
-	known_name=${known_name%% *}
-   	known_name=${known_name#* }
 
    	#IF THE VALUE DOES NOT EXIST, USE THE KEY (MAC ADDRESS INSTEAD)
    	alias_value=${known_name//[^A-Za-z0-9]/_}
