@@ -1145,15 +1145,20 @@ while true; do
 						if [[ $mqtt_topic_branch =~ .*DELETE\ STATIC\ DEVICE.* ]]; then 
 
 							#HERE, WE NOW THAT WE HAVE TO DELETE THE DEVICE WITH THE MAC ADDRESS
-							sed -i.bak '/'"$mac"'/di' $PUB_CONFIG
+							sed '/'"$mac"'/di' $PUB_CONFIG
 
 							#UNSET FROM MEMORY
 							unset "known_public_device_name[$mac]"
-							unset "known_static_addresses[$mac]"
 							unset "mqtt_aliases[$mac]"
+
+							#REMOVE FROM STATIC ADDRESSES TOO
+							known_static_addresses=( "${known_static_addresses[@]}/$mac" )
 
 							#LOGGING
 							$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] removed static device ${GREEN}$mac${NC}"
+
+							#PERFORM DEPARTURE SCAN TO MAKE SURE THIS DEVICE IS GONE
+							perform_departure_scan
 						fi 
 					fi 
 				else
