@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.168
+export version=0.2.169
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -147,40 +147,11 @@ mapfile -t known_static_beacons < <(sed 's/#.\{0,\}//gi' < "$BEAC_CONFIG" | awk 
 mapfile -t known_static_addresses < <(sed 's/#.\{0,\}//gi' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
 mapfile -t address_blacklist < <(sed 's/#.\{0,\}//gi' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
 
-#MQTT ALIASES
-if [ -f "$ALIAS_CONFIG" ]; then 
-
-	mapfile -t mqtt_alias_addresses < <(sed 's/#.\{0,\}//gi' < "$ALIAS_CONFIG")
-
-	#MQTT ALIASES 
-	for line in "${mqtt_alias_addresses[@]^^}"; do 
-		key=${line%% *}
-	   	value=${line#* }
-
-	   	#IF THE VALUE DOES NOT EXIST, USE THE KEY (MAC ADDRESS INSTEAD)
-	   	value=${value//[^A-Za-z0-9]/_}
-
-	   	#LOWERCASE
-	  	value=${value,,}
-
-	  	#REMOVE FINAL UNDERSCORES SHOUDL THERE BE
-	   	value=$(echo "$value" | sed 's/[^0-9a-z]\{1,\}$//gi;s/^[^0-9a-z]\{1,\}//gi;s/__*/_/gi')
-
-	  	#DEFAULT
-	   	value=${value:-key}
-
-	   	#ALIASES
-	   	[ -n "$key" ] && [ -n "$value" ] && mqtt_aliases[$key]="$value" 
-	done 
-
-fi 
-
 #ASSEMBLE COMMENT-CLEANED BLACKLIST INTO BLACKLIST ARRAY
 for addr in "${address_blacklist[@]^^}"; do 
 	blacklisted_devices[$addr]=1
 	printf "%s\n" "> ${RED}blacklisted device:${NC} $addr"
 done 
-
 
 # ----------------------------------------------------------------------------------------
 # POPULATE MAIN DEVICE ARRAY
@@ -192,8 +163,31 @@ previously_connected_devices=$(echo "quit" | bluetoothctl | grep -Eio "Device ([
 #POPULATE KNOWN DEVICE ADDRESS
 for addr in "${known_static_addresses[@]^^}"; do 
 
+	#================= SHOULD WE USE AN ALIAS? =====================
+
 	#WAS THERE A NAME HERE?
 	known_name=$(grep "$addr" "$PUB_CONFIG" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$addr //gi;s/  */ /gi" )
+
+	#ALIAS MODE? 
+	known_name=${known_name%% *}
+   	known_name=${known_name#* }
+
+   	#IF THE VALUE DOES NOT EXIST, USE THE KEY (MAC ADDRESS INSTEAD)
+   	alias_value=${known_name//[^A-Za-z0-9]/_}
+
+   	#LOWERCASE
+  	alias_value=${alias_value,,}
+
+  	#REMOVE FINAL UNDERSCORES SHOUDL THERE BE
+   	alias_value=$(echo "$alias_value" | sed 's/[^0-9a-z]\{1,\}$//gi;s/^[^0-9a-z]\{1,\}//gi;s/__*/_/gi')
+
+  	#DEFAULT
+   	alias_value=${alias_value:-addr}
+
+   	#ALIASES
+   	[ -n "$addr" ] && [ -n "$alias_value" ] && mqtt_aliases[$addr]="$alias_value" 
+
+	#================= PROCESS THE KNOWN ADDR =====================
 
 	#IF WE FOUND A NAME, RECORD IT
 	[ -n "$known_name" ] && known_public_device_name[$addr]="$known_name"
