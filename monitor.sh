@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.161
+export version=0.2.162
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1099,7 +1099,7 @@ while true; do
 			elif [[ $mqtt_topic_branch =~ .*ADD\ DEVICE.* ]]; then 
 
 				if [[ "${data_of_instruction^^}" =~ ([A-F0-9]{2}:){5}[A-F0-9]{2} ]]; then 
-					printf "%s\n" "TEST PASSED WITH ${BASH_REMATCH}"
+					printf "%s\n" "TEST PASSED WITH ${known_static_addresses[${BASH_REMATCH}]}"
 				fi
 
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
