@@ -1106,7 +1106,7 @@ while true; do
 			elif [[ $mqtt_topic_branch =~ .*NEW\ STATIC\ DEVICE.* ]]; then 
 
 				if [[ "${data_of_instruction^^}" =~ ([A-F0-9]{2}:){5}[A-F0-9]{2} ]]; then 
-					
+					#GET MAC ADDRESSES
 					mac="${BASH_REMATCH}"
 					if [ ! ${known_public_device_name[$mac]+true} ]; then 
 						#WAS THERE A NAME HERE?
@@ -1129,11 +1129,16 @@ while true; do
 						#ADD TO KNOWN_STATIC_ADDRESSES FILE
 						echo "$mac $name" >> $PUB_CONFIG
 
+						#LOGGING
+						$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] new static device ${GREEN}$mac${NC} added with alias ${GREEN}${name:-none}${NC}"
+
 						#PERFORM ARRIVAL SCAN FOR NEW DEVICE
 						perform_arrival_scan
 					else
-						printf "%s\n" "Address: $mac does not exist" 
+						$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] new static device request rejected. ${GREEN}$mac${NC} exists. ${NC}"
 					fi 
+				else
+					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] new static device request did not contain a device address ${NC}"
 				fi
 
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
@@ -1175,7 +1180,8 @@ while true; do
 				
 				mqtt_echo
 			
-			elif [[ $mqtt_topic_branch =~ .*UPDATEBETA.* ]]; then 
+			elif [[ $mqtt_topic_branch =~ .*UPDATEBETA.* ]]; then
+
 				$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] beta update requested ${NC}"				
 				
 				#GIT FETCH
@@ -1194,6 +1200,7 @@ while true; do
 				exit 0
 				
 			elif [[ $mqtt_topic_branch =~ .*UPDATE.* ]]; then 
+
 				$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] update requested ${NC}"				
 				
 				#GIT FETCH
@@ -1219,8 +1226,8 @@ while true; do
 
 			elif [[ ${mqtt_topic_branch^^} =~ .*[0-9A-F:-]{2,}.* ]]; then 
 				#LOG THE OUTPU
-				log "${GREEN}[CMD-INST]	${NC}[${ORANGE}ignored mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
-
+				#log "${GREEN}[CMD-INST]	${NC}[${ORANGE}ignored mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
+				continue
 			else
 
 				#LOG THE OUTPU
