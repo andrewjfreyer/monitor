@@ -1178,7 +1178,7 @@ while true; do
 				#exit
 				exit 0
 
-			elif [[ ${mqtt_topic_branch^^} =~ .*START.* ]] || [[ ${mqtt_topic_branch^^} =~ .*END.* ]]; then 
+			elif [[ ${mqtt_topic_branch^^} =~ .*START.* ]] || [[ ${mqtt_topic_branch^^} =~ .*END.* ]] || [[ ${mqtt_topic_branch^^} =~ .*${mqtt_publisher_identity^^}.* ]]; then 
 				#IGNORE ERRORS
 				#$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-SCAN]	${NC}[${RED}ignore mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
 
