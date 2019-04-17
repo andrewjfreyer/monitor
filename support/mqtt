@@ -130,7 +130,7 @@ mqtt_listener (){
 			$mqtt_ca_file_append \
 			-v \
 			-F '%t|%p' \
-			-L "$mqtt_url$mqtt_topicpath/scan/#" \
+			-L "$mqtt_url$mqtt_topicpath/#" \
 			--will-topic "$mqtt_topicpath/$mqtt_publisher_identity/status" \
 			--will-payload "offline" 2>&1 ) 
 
