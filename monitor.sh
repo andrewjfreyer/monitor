@@ -166,7 +166,7 @@ for addr in "${known_static_addresses[@]^^}"; do
 	#================= SHOULD WE USE AN ALIAS? =====================
 
 	#WAS THERE A NAME HERE?
-	known_name=$(grep "$addr" "$PUB_CONFIG" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$addr //gi;s/  */ /gi" )
+	known_name=$(grep -i "$addr" "$PUB_CONFIG" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$addr //gi;s/  */ /gi" )
 
    	#IF THE VALUE DOES NOT EXIST, USE THE KEY (MAC ADDRESS INSTEAD)
    	alias_value=${known_name//[^A-Za-z0-9]/_}
@@ -178,7 +178,7 @@ for addr in "${known_static_addresses[@]^^}"; do
    	alias_value=$(echo "$alias_value" | sed 's/[^0-9a-z]\{1,\}$//gi;s/^[^0-9a-z]\{1,\}//gi;s/__*/_/gi')
 
   	#DEFAULT
-   	alias_value=${alias_value:-addr}
+   	alias_value=${alias_value:-$addr}
 
    	#ALIASES
    	[ -n "$addr" ] && [ -n "$alias_value" ] && mqtt_aliases[$addr]="$alias_value" 
