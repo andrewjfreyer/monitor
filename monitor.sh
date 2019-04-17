@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.160
+export version=0.2.161
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1077,7 +1077,7 @@ while true; do
 					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] arrive scan rejected due to recent scan ${NC}"
 				fi 
 				
-			elif [[ $mqtt_topic_branch =~ .*STATES.* ]]; then 				
+			elif [[ $mqtt_topic_branch =~ .*KNOWN DEVICE STATES.* ]]; then 				
 
 				#SIMPLE STATUS MESSAGE FOR KNOWN
 				device_state=""
@@ -1095,7 +1095,12 @@ while true; do
 					"confidence=$device_state" \
 					"type=KNOWN_MAC"
 				done
-				 	
+				
+			elif [[ $mqtt_topic_branch =~ .*ADD DEVICE.* ]]; then 
+
+				if [[ "${data_of_instruction^^}" =~ ([A-F0-9]{2}:){5}[A-F0-9]{2} ]]; then 
+					printf "%s\n" "TEST PASSED WITH $data_of_instruction"
+				fi
 
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
 				
@@ -1174,7 +1179,7 @@ while true; do
 
 			elif [[ ${mqtt_topic_branch^^} =~ .*START.* ]] || [[ ${mqtt_topic_branch^^} =~ .*END.* ]]; then 
 				#IGNORE ERRORS
-				$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-SCAN]	${NC}[${RED}ignore mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
+				#$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-SCAN]	${NC}[${RED}ignore mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
 
 				continue
 
