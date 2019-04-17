@@ -190,7 +190,7 @@ done
 previously_connected_devices=$(echo "quit" | bluetoothctl | grep -Eio "Device ([0-9A-F]{2}:){5}[0-9A-F]{2}" | sed 's/Device //gi')
 
 #POPULATE KNOWN DEVICE ADDRESS
-for addr in "${known_static_addresses[@]}"; do 
+for addr in "${known_static_addresses[@]^^}"; do 
 
 	#WAS THERE A NAME HERE?
 	known_name=$(grep "$addr" "$PUB_CONFIG" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$addr //gi;s/  */ /gi" )
