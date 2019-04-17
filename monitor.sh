@@ -1151,8 +1151,8 @@ while true; do
 							unset "known_public_device_name[$mac]"
 							unset "mqtt_aliases[$mac]"
 
-							#REMOVE FROM STATIC ADDRESSES TOO
-							known_static_addresses=( "${known_static_addresses[@]}/$mac" )
+							#REMOVE FROM STATIC ADDRESSES TOO							
+							known_static_addresses=( ${known_static_addresses[@]}/ ( $mac ) )
 
 							#LOGGING
 							$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] removed static device ${GREEN}$mac${NC}"
