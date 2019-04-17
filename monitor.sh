@@ -213,6 +213,23 @@ for addr in "${known_static_beacons[@]^^}"; do
 	#WAS THERE A NAME HERE?
 	known_name=$(grep "$addr" "$BEAC_CONFIG" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$addr //gi;s/  */ /gi" )
 
+	#================= SHOULD WE USE AN ALIAS? =====================
+
+   	#IF THE VALUE DOES NOT EXIST, USE THE KEY (MAC ADDRESS INSTEAD)
+   	alias_value=${known_name//[^A-Za-z0-9]/_}
+
+   	#LOWERCASE
+  	alias_value=${alias_value,,}
+
+  	#REMOVE FINAL UNDERSCORES SHOUDL THERE BE
+   	alias_value=$(echo "$alias_value" | sed 's/[^0-9a-z]\{1,\}$//gi;s/^[^0-9a-z]\{1,\}//gi;s/__*/_/gi')
+
+  	#DEFAULT
+   	alias_value=${alias_value:-$addr}
+
+   	#ALIASES
+   	[ -n "$addr" ] && [ -n "$alias_value" ] && mqtt_aliases[$addr]="$alias_value" 
+
 	#IF WE FOUND A NAME, RECORD IT
 	[ -n "$known_name" ] && known_public_device_name[$addr]="$known_name"
 

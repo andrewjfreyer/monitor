@@ -196,24 +196,24 @@ ____
 
 #### It's annoying to have to keep track of mac addresses. Can't I just use an alias for the mac addresses for MQTT topics? 
 
-Yes! Create a file called `mqtt_aliases` in the configuration directory, and then add a line for each mac address of a known device that you'd like to create a alias. Comments starting with a pound/hash sign will be ignored. 
-
-So, if you have a known device with the mac address of 00:11:22:33:44:55 that you would like to call "Andrew's Phone", add one line to the `mqtt_aliases`:
+Yes. All you have to do is provide a name next to the address in the `known_static_addresses` file. For example, if you have a known device with the mac address of 00:11:22:33:44:55 that you would like to call "Andrew's Phone":
 
 ```bash
 00:11:22:33:44:55 Andrew's iPhone
 ```
 
-Then restart the `monitor` service. The script will now use "andrew_s_iphone" as the final mqtt topic path component. Important: 
+Then restart the `monitor` service. The script will now use "andrew_s_iphone" as the final mqtt topic path component. 
+
+***Important:***
 
 * any entry will be made **lowercase**
 
 * any non-digit or non-decimal character will be replaced with an underscore
 
-The same is true for beacons as well:
+The same is true for beacons in the `known_beacon_addresses` file as well:
 
 ```bash 
-09876543-3333-2222-1111-000000000000-9-10000 Doggo's Collar
+09876543-3333-2222-1111-000000000000-9-10000 Dog
 ```
 
 #### I don't care about a few devices that are reporting. Can I block them? 

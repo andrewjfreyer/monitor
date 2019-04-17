@@ -167,11 +167,12 @@ else
 	printf "%s\n" "
 # ---------------------------
 #
-# PUBLIC MAC ADDRESS LIST
+# STATIC MAC ADDRESS LIST
 #
+# 00:00:00:00:00:00 Alias #comment
 # ---------------------------
 
-00:00:00:00:00:00 Nickname #comment" > "$PUB_CONFIG"
+" > "$PUB_CONFIG"
 
 	#SET SHOULD EXIT
 	should_exit=true
