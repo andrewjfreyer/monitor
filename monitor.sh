@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.174
+export version=0.2.175
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1137,7 +1137,13 @@ while true; do
 
 							#PERFORM ARRIVAL SCAN FOR NEW DEVICE
 							perform_arrival_scan
-						else
+						fi
+						
+					else
+
+						#ONLY PERFORM IF WE HAVE A DEVICE TO DELETE
+						if [[ $mqtt_topic_branch =~ .*DELETE\ STATIC\ DEVICE.* ]]; then 
+
 							#HERE, WE NOW THAT WE HAVE TO DELETE THE DEVICE WITH THE MAC ADDRESS
 							sed -i.bak '/'$mac'/di' $PUB_CONFIG
 
@@ -1149,8 +1155,6 @@ while true; do
 							#LOGGING
 							$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] removed static device ${GREEN}$mac${NC}"
 						fi 
-					else
-						$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] new static device request rejected. ${GREEN}$mac${NC} exists. ${NC}"
 					fi 
 				else
 					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] new static device request did not contain a device address ${NC}"
