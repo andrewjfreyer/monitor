@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.173
+export version=0.2.174
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1103,37 +1103,52 @@ while true; do
 					"type=KNOWN_MAC"
 				done
 				
-			elif [[ $mqtt_topic_branch =~ .*NEW\ STATIC\ DEVICE.* ]]; then 
+			elif [[ $mqtt_topic_branch =~ .*NEW\ STATIC\ DEVICE.* ]] || [[ $mqtt_topic_branch =~ .*DELETE\ STATIC\ DEVICE.* ]]; then 
 
 				if [[ "${data_of_instruction^^}" =~ ([A-F0-9]{2}:){5}[A-F0-9]{2} ]]; then 
 					#GET MAC ADDRESSES
 					mac="${BASH_REMATCH}"
 					if [ ! ${known_public_device_name[$mac]+true} ]; then 
-						#WAS THERE A NAME HERE?
-						name=$(echo "$data_of_instruction" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$mac //gi;s/  */ /gi" )
 
-						#IF THE VALUE DOES NOT EXIST, USE THE KEY (MAC ADDRESS INSTEAD)
-					   	alias_value=${name//[^A-Za-z0-9]/_}
+						#HERE, WE KNOW THAT WE HAVE A MAC ADDRESS AND A VALID INSTRUCTION
+						if [[ $mqtt_topic_branch =~ .*NEW\ STATIC\ DEVICE.* ]]; then 
+							#WAS THERE A NAME HERE?
+							name=$(echo "$data_of_instruction" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$mac //gi;s/  */ /gi" )
 
-					   	#LOWERCASE
-					  	alias_value=${alias_value,,}
+							#IF THE VALUE DOES NOT EXIST, USE THE KEY (MAC ADDRESS INSTEAD)
+						   	alias_value=${name//[^A-Za-z0-9]/_}
 
-					  	#REMOVE FINAL UNDERSCORES SHOUDL THERE BE
-					   	alias_value=$(echo "$alias_value" | sed 's/[^0-9a-z]\{1,\}$//gi;s/^[^0-9a-z]\{1,\}//gi;s/__*/_/gi')
+						   	#LOWERCASE
+						  	alias_value=${alias_value,,}
 
-						#ADD TO KNOWN PUBLIC DEVICE ARRAY
-						known_public_device_name[$mac]="$name"
-						known_static_addresses+=("$mac")
-						[ -n "$mac" ] && [ -n "$alias_value" ] && mqtt_aliases[$mac]="$alias_value" 
+						  	#REMOVE FINAL UNDERSCORES SHOUDL THERE BE
+						   	alias_value=$(echo "$alias_value" | sed 's/[^0-9a-z]\{1,\}$//gi;s/^[^0-9a-z]\{1,\}//gi;s/__*/_/gi')
 
-						#ADD TO KNOWN_STATIC_ADDRESSES FILE
-						echo "$mac $name" >> $PUB_CONFIG
+							#ADD TO KNOWN PUBLIC DEVICE ARRAY
+							known_public_device_name[$mac]="$name"
+							known_static_addresses+=("$mac")
+							[ -n "$mac" ] && [ -n "$alias_value" ] && mqtt_aliases[$mac]="$alias_value" 
 
-						#LOGGING
-						$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] new static device ${GREEN}$mac${NC} added with alias ${GREEN}${name:-none}${NC}"
+							#ADD TO KNOWN_STATIC_ADDRESSES FILE
+							echo "$mac $name" >> $PUB_CONFIG
 
-						#PERFORM ARRIVAL SCAN FOR NEW DEVICE
-						perform_arrival_scan
+							#LOGGING
+							$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] new static device ${GREEN}$mac${NC} added with alias ${GREEN}${name:-none}${NC}"
+
+							#PERFORM ARRIVAL SCAN FOR NEW DEVICE
+							perform_arrival_scan
+						else
+							#HERE, WE NOW THAT WE HAVE TO DELETE THE DEVICE WITH THE MAC ADDRESS
+							sed -i.bak '/'$mac'/di' $PUB_CONFIG
+
+							#UNSET FROM MEMORY
+							unset "known_public_device_name[$mac]"
+							unset "known_static_addresses[$mac]"
+							unset "mqtt_aliases[$mac]"
+
+							#LOGGING
+							$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] removed static device ${GREEN}$mac${NC}"
+						fi 
 					else
 						$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] new static device request rejected. ${GREEN}$mac${NC} exists. ${NC}"
 					fi 
