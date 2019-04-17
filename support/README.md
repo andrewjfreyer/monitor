@@ -120,7 +120,11 @@ journalctl -u monitor -r
 
 #### My Android phone doesn't seem to send any anonymous advertisements, no matter what I do. Is there any solution?  
 
-Some phones, like the LG ThinQ G7 include an option in settings to enable file sharing via bluetooth. As resported by Home Assistant forum user @jusdwy, access this option via Settings >Connected Devices > File Sharing > File Sharing ON. For other android phones, an app like [Beacon Simulator](https://play.google.com/store/apps/details?id=net.alea.beaconsimulator&hl=en_US) may be a good option. You may also be able to see more information about Bluetooth on your phone using [nRF Connect](https://play.google.com/store/apps/details?id=no.nordicsemi.android.mcp&hl=en_US). I'm working on a solution. Stay tuned. 
+Some phones, like the LG ThinQ G7 include an option in settings to enable file sharing via bluetooth. As resported by Home Assistant forum user @jusdwy, access this option via Settings >Connected Devices > File Sharing > File Sharing ON. For other android phones, an app like [Beacon Simulator](https://play.google.com/store/apps/details?id=net.alea.beaconsimulator&hl=en_US) may be a good option. You may also be able to see more information about Bluetooth on your phone using [nRF Connect](https://play.google.com/store/apps/details?id=no.nordicsemi.android.mcp&hl=en_US). 
+
+Unfortunately, until Android OS includes at least one service that requires bluetooth peripheral mode to be enabled, Android devices will probably not advertise without an application running in the background. In short, as I understand it, Android/Google has been  slow to adopt BTLE peripheral mode as an option in addition to the default central mode. [Here is a decently comprehensive list of phones that support peripheral mode](https://altbeacon.github.io/android-beacon-library/beacon-transmitter-devices.html), should an application choose to leverage the appropriate API. It does not appear as though the native OS has an option (outside of the file sharing option mentioned above on LG phones) to enable this mode. 
+
+Unfortunately, it seems to me that absent an application causing an advertisement to send, Android users will not be able to use monitor in the same way as iOS users or beacon users. 
 
 #### My phone doesn't seem to automatically broadcast an anonymous Bluetooth advertisement ... what can I do? 
 
@@ -128,7 +132,7 @@ Many phones will only broadcast once they have already connected to *at least on
 
 #### I have connected my phone to Bluetooth devices before but my phone doesn't seem to automatically broadcast an anonymous Bluetooth advertisement ... what can I do? 
 
-Some android phones just don't seem to advertise... and that's a bummer. There are a number of beacon apps that can be used from the Play Store.
+See above. 
 
 #### Why does my MQTT broker show connection and disconnection so often? 
 
@@ -194,9 +198,9 @@ ____
 
 ## *Other Questions*
 
-#### It's annoying to have to keep track of mac addresses. Can't I just use an alias for the mac addresses for MQTT topics? 
+#### It's annoying to have to keep track of mac addresses. Can't I just use a nickname for the mac addresses for MQTT topics? 
 
-Yes. All you have to do is provide a name next to the address in the `known_static_addresses` file. For example, if you have a known device with the mac address of 00:11:22:33:44:55 that you would like to call "Andrew's Phone":
+Yes, this is now default behavior. All you have to do is provide a name next to the address in the `known_static_addresses` file. For example, if you have a known device with the mac address of 00:11:22:33:44:55 that you would like to call "Andrew's Phone":
 
 ```bash
 00:11:22:33:44:55 Andrew's iPhone
@@ -215,6 +219,8 @@ The same is true for beacons in the `known_beacon_addresses` file as well:
 ```bash 
 09876543-3333-2222-1111-000000000000-9-10000 Dog
 ```
+
+To disable this feature, set `PREF_ALIAS_MODE=false` in your `behavior_preferences` file. 
 
 #### I don't care about a few devices that are reporting. Can I block them? 
 

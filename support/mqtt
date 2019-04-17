@@ -161,7 +161,7 @@ publish_rssi_message () {
 		mqtt_topic_branch="$address"
 
 	    #ALIASES? 
-   		[ "${mqtt_aliases[$address]+abc}" ] && mqtt_topic_branch=${mqtt_aliases[$address]:-$address}
+   		$PREF_ALIAS_MODE && [ "${mqtt_aliases[$address]+abc}" ] && mqtt_topic_branch=${mqtt_aliases[$address]:-$address}
 		
 		local topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch/rssi"
 
@@ -198,7 +198,7 @@ publish_presence_message () {
 		mqtt_topic_branch="$isolated_address"
 
 	    #ALIASES? 
-    	[ "${mqtt_aliases[$isolated_address]+abc}" ] && mqtt_topic_branch=${mqtt_aliases[$isolated_address]:-$isolated_address}
+    	$PREF_ALIAS_MODE && [ "${mqtt_aliases[$isolated_address]+abc}" ] && mqtt_topic_branch=${mqtt_aliases[$isolated_address]:-$isolated_address}
 
 		#SET TIMESTAMP
 		stamp=$(date "+%a %b %d %Y %H:%M:%S GMT%z (%Z)")

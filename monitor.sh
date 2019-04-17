@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.172
+export version=0.2.173
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -193,7 +193,7 @@ for addr in "${known_static_addresses[@]^^}"; do
 	[[ $previously_connected_devices =~ .*$addr.* ]] && is_connected="previously connected"
 
 	#CORRECT 
-	mqtt_topic_branch=${mqtt_aliases[$addr]:-$addr}
+	$PREF_ALIAS_MODE && mqtt_topic_branch=${mqtt_aliases[$addr]:-$addr} || mqtt_topic_branch=$addr
 
 	#PUBLICATION TOPIC 
 	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch"
@@ -234,7 +234,7 @@ for addr in "${known_static_beacons[@]^^}"; do
 	[ -n "$known_name" ] && known_public_device_name[$addr]="$known_name"
 
 	#CORRECT 
-	mqtt_topic_branch=${mqtt_aliases[$addr]:-$addr}
+	$PREF_ALIAS_MODE && mqtt_topic_branch=${mqtt_aliases[$addr]:-$addr} || mqtt_topic_branch=$addr
 
 	#PUBLICATION TOPIC 
 	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch"
