@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.166
+export version=0.2.167
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1183,6 +1183,10 @@ while true; do
 				#$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-SCAN]	${NC}[${RED}ignore mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
 
 				continue
+
+			elif [[ ${mqtt_topic_branch^^} =~ .*[0-9A-F:-]{2,}.* ]]; then 
+				#LOG THE OUTPU
+				log "${GREEN}[CMD-INST]	${NC}[${ORANGE}ignored mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
 
 			else
 
