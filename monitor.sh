@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.171
+export version=0.2.172
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1110,15 +1110,21 @@ while true; do
 					mac="${BASH_REMATCH}"
 					if [ ! ${known_public_device_name[$mac]+true} ]; then 
 						#WAS THERE A NAME HERE?
-						name=$(echo "$data_of_instruction" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$m //gi;s/  */ /gi" )
-						name=${name:-Unknown}
+						name=$(echo "$data_of_instruction" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$mac //gi;s/  */ /gi" )
 
-						printf "%s\n" "Address: $mac does not exist ($data_of_instruction)" 
+						#IF THE VALUE DOES NOT EXIST, USE THE KEY (MAC ADDRESS INSTEAD)
+					   	alias_value=${name//[^A-Za-z0-9]/_}
+
+					   	#LOWERCASE
+					  	alias_value=${alias_value,,}
+
+					  	#REMOVE FINAL UNDERSCORES SHOUDL THERE BE
+					   	alias_value=$(echo "$alias_value" | sed 's/[^0-9a-z]\{1,\}$//gi;s/^[^0-9a-z]\{1,\}//gi;s/__*/_/gi')
 
 						#ADD TO KNOWN PUBLIC DEVICE ARRAY
 						known_public_device_name[$mac]="$name"
 						known_static_addresses+=("$mac")
-						[ -n "$mac" ] && [ -n "$name" ] && mqtt_aliases[$addr]="$alias_value" 
+						[ -n "$mac" ] && [ -n "$alias_value" ] && mqtt_aliases[$mac]="$alias_value" 
 
 						#ADD TO KNOWN_STATIC_ADDRESSES FILE
 						echo "$mac $name" >> $PUB_CONFIG
