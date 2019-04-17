@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.167
+export version=0.2.168
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1096,11 +1096,23 @@ while true; do
 					"type=KNOWN_MAC"
 				done
 				
-			elif [[ $mqtt_topic_branch =~ .*ADD\ DEVICE.* ]]; then 
+			elif [[ $mqtt_topic_branch =~ .*NEW.* ]]; then 
 
 				if [[ "${data_of_instruction^^}" =~ ([A-F0-9]{2}:){5}[A-F0-9]{2} ]]; then 
+					
 					mac="${BASH_REMATCH}"
-					[ ${known_public_device_name[$mac]+true} ] && printf "%s\n" "Address: $mac exists" || printf "%s\n" "Address: $mac does not exist" 
+					if [ ! ${known_public_device_name[$mac]+true} ]; then 
+						printf "%s\n" "Address: $mac does not exist" 
+
+						#ADD TO KNOWN PUBLIC DEVICE ARRAY
+						known_public_device_name[$mac]="Unknown"
+
+						#ADD TO KNOWN_STATIC_ADDRESSES FILE
+						echo "$mac Unknown" >> $PUB_CONFIG
+
+						#PERFORM ARRIVAL SCAN FOR NEW DEVICE
+						perform_arrival_scan
+					fi 
 				fi
 
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
