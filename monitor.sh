@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.179
+export version=0.2.180
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1130,7 +1130,7 @@ while true; do
 							[ -n "$mac" ] && [ -n "$alias_value" ] && mqtt_aliases[$mac]="$alias_value" 
 
 							#ADD TO KNOWN_STATIC_ADDRESSES FILE
-							echo "$mac $name" >> $PUB_CONFIG
+							echo "$mac ${name:-}" >> $PUB_CONFIG
 
 							#LOGGING
 							$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] new static device ${GREEN}$mac${NC} added with alias ${GREEN}${name:-none}${NC}"
@@ -1152,8 +1152,7 @@ while true; do
 							unset "mqtt_aliases[$mac]"
 
 							#REMOVE FROM STATIC ADDRESSES TOO
-							substitute_array=( $mac )							
-							known_static_addresses=( "${known_static_addresses[@]/$substitute_array}" )
+							mapfile -t known_static_addresses < <(sed 's/#.\{0,\}//gi' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
 
 							#LOGGING
 							$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] removed static device ${GREEN}$mac${NC}"
