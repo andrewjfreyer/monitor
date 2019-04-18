@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.181
+export version=0.2.182
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1126,11 +1126,15 @@ while true; do
 
 							#ADD TO KNOWN PUBLIC DEVICE ARRAY
 							known_public_device_name[$mac]="$name"
-							known_static_addresses+=("$mac")
+
+							#ESTABLISH ALIAS
 							[ -n "$mac" ] && [ -n "$alias_value" ] && mqtt_aliases[$mac]="$alias_value" 
 
 							#ADD TO KNOWN_STATIC_ADDRESSES FILE
 							echo "$mac ${name:-}" >> $PUB_CONFIG
+							
+							#UPDATE FROM STATIC ADDRESSES TOO
+							mapfile -t known_static_addresses < <(sed 's/#.\{0,\}//gi' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
 
 							#LOGGING
 							$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] new static device ${GREEN}$mac${NC} added with alias ${GREEN}${name:-none}${NC}"
