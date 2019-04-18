@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.180
+export version=0.2.181
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -408,7 +408,7 @@ perform_complete_scan () {
 	
 	#LOG START OF DEVICE SCAN 
 	$PREF_MQTT_REPORT_SCAN_MESSAGES && publish_cooperative_scan_message "$transition_type/start"
-	log "${GREEN}[CMD-INFO]	${GREEN}**** started $transition_type scan [x$repetitions max rep] **** ${NC}"
+	$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INFO]	${GREEN}**** started $transition_type scan [x$repetitions max rep] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	local repetition 
@@ -670,7 +670,7 @@ perform_complete_scan () {
 	printf "%s\n" "DONE" > main_pipe
 
 	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-INFO]	${GREEN}**** completed $transition_type scan **** ${NC}"
+	$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INFO]	${GREEN}**** completed $transition_type scan **** ${NC}"
 
 	#PUBLISH END OF COOPERATIVE SCAN
 	$PREF_MQTT_REPORT_SCAN_MESSAGES && publish_cooperative_scan_message "$transition_type/end"
