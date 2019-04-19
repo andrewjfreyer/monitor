@@ -170,35 +170,39 @@ ___
 
 Personally, I have four **raspberry pi zero w**s throughout the house and garage. My family spends most of our time on the first floor, so our main `monitor` node or sensor is on the first floor. Our other 'nodes' on the second and third floor and garage are set up for triggered use only - these will scan for ***ARRIVAL*** and ***DEPART*** only in response to mqtt messages, with option ```-tad```. The first floor node is set up to send mqtt arrive/depart scan instructions to these nodes by including the `-tr` flag ("report" to other nodes when an arrival or depart scan is triggered). 
 
-The first floor constantly monitors for beacons (`-b`) advertisements and anonymous advertisements, which may be sent by our phones listed in the `known_static_addresses` file. In response to a new anonymous advertisement, `monitor` will initiate an ***ARRIVAL*** scan for whichever of our phones is not present.  If one of those devices is seen, an mqtt message is sent to Home Assistant reporting that the scanned phone is "home" with a confidence of 100%. In addition, an mqtt message is sent to the second and third floor and garage to trigger a scan on those floors as well. 
+The first floor constantly monitors for beacons (`-b`) advertisements and anonymous advertisements, which may be sent by our phones listed in the `known_static_addresses` file. In response to a new anonymous advertisement, `monitor` will initiate an ***ARRIVAL*** scan for whichever of our phones is not present.  If one of those devices is seen, an mqtt message is sent to Home Assistant reporting that the scanned phone is "home" with a confidence of 100%. In addition, an mqtt message is sent to the second and third floor and garage to trigger a scan on those floors as well. As a result of this configuration, when we leave the house, we use either the front door or the garage door to trigger an mqtt trigger of ```monitor/scan/depart``` after a ten second delay to trigger a departure scan of our devices that were previously known to be present. The ten second delay gives us a chance to get out of Bluetooth range before a "departure" scan is triggered. Different houses/apartments will probably need different delays. 
 
-When we leave the house, we use either the front door or the garage door to trigger an mqtt trigger of ```monitor/scan/depart``` after a ten second delay to trigger a departure scan of our devices that were previously known to be present. The ten second delay gives us a chance to get out of Bluetooth range before a "departure" scan is triggered. Different houses/apartments will probably need different delays. 
+More specifically, eac of these `monitor` nodes uses the same name for each device so that states can be tracked easily by Home Assistant. For example, on each node, my `known_static_addresses` file looks like this (note that 00:00:00:00:00:00 is an example address - this should be your phone's private, static, Bluetooth address): 
 
-[Home Assistant](https://www.home-assistant.io) receives mqtt messages and stores the values as input to a number of [mqtt sensors](https://www.home-assistant.io/components/sensor.mqtt/). Output from these sensors is combined to give an accurate numerical occupancy confidence.  
+```bash
+00:00:00:00:00:00 alias #comment that is ignored
+```
 
-For example (note that 00:00:00:00:00:00 is an example address - this should be your phone's private, static, Bluetooth address):
+The address I want to track is separated by a space from the *alias* that I want to use to refer to this device in Home Assistant. If you prefer to use the address instead of an alias, set the value `PREF_ALIAS_MODE=false` in your `behavior_preferences` file.
+
+In this manner, [Home Assistant](https://www.home-assistant.io) receives mqtt messages and stores the values as input to a number of [mqtt sensors](https://www.home-assistant.io/components/sensor.mqtt/). Output from these sensors is combined to give an accurate numerical occupancy confidence:
 
 ```
 - platform: mqtt
-  state_topic: 'monitor/first floor/00:00:00:00:00:00'
+  state_topic: 'monitor/first floor/alias'
   value_template: '{{ value_json.confidence }}'
   unit_of_measurement: '%'
   name: 'First Floor'
 
 - platform: mqtt
-  state_topic: 'monitor/second floor/00:00:00:00:00:00'
+  state_topic: 'monitor/second floor/alias'
   value_template: '{{ value_json.confidence }}'
   unit_of_measurement: '%'
   name: 'Second Floor'
 
 - platform: mqtt
-  state_topic: 'monitor/third floor/00:00:00:00:00:00'
+  state_topic: 'monitor/third floor/alias'
   value_template: '{{ value_json.confidence }}'
   unit_of_measurement: '%'
   name: 'Third Floor'
 
 - platform: mqtt
-  state_topic: 'monitor/garage/00:00:00:00:00:00'
+  state_topic: 'monitor/garage/alias'
   value_template: '{{ value_json.confidence }}'
   unit_of_measurement: '%'
   name: 'Garage'
@@ -467,6 +471,7 @@ When `monitor` is first run, default preferences are created in the `behavior_pr
 | PREF_PASS_FILTER_MANUFACTURER_ARRIVE | .* | See above. |
 | PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE | NONE | See above. |
 | PREF_FAIL_FILTER_MANUFACTURER_ARRIVE | NONE | See above. |
+| PREF_ALIAS_MODE | true | Disable or enable alias mode; if disabled, MQTT messages are sent using a device's mac address. |
 
 3. **Advanced configuration options:**
 
@@ -488,11 +493,14 @@ PREF_DEVICE_TRACKER_REPORT|false|If true, this value will cause `monitor` to rep
 PREF_DEVICE_TRACKER_HOME_STRING|home|If `PREF_DEVICE_TRACKER_REPORT` is true, this is the string that is reported to the device_tracker when the device is home.
 PREF_DEVICE_TRACKER_AWAY_STRING|not_home|If `PREF_DEVICE_TRACKER_REPORT` is true, this is the string that is reported to the device_tracker when the device is not home.
 PREF_DEVICE_TRACKER_TOPIC_BRANCH|device_tracker|If `PREF_DEVICE_TRACKER_REPORT` is true, this is last path element of the mqtt topic path that will be used to publish the device tracker message.
+PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP|This is the minimum interval used to estimate advertisement intervals reported in the MQTT message. Default is 15 seconds.
+PREF_DEPART_SCAN_INTERVAL|If using periodic scanning mode, this is the minimum interval at which depart scans are triggered automatically. 
+PREF_ARRIVE_SCAN_INTERVAL|If using periodic scanning mode, this is the minimum interval at which arrive scans are triggered automatically. 
 
 
 ## RSSI Tracking
 
-This script can also track RSSI changes throughout the day. This can be useful for very rudimentary room-level tracking. Only devices in `known_static_addresses` that have been paired to a `monitor` node can have their RSSI tracked. Here's how to pair: 
+This script can also track RSSI changes throughout the day. This can be used for very rudimentary room- or floor-level tracking. Only devices in `known_static_addresses` that have been paired to a `monitor` node can have their RSSI tracked. Here's how to pair: 
 
 1. Stop `monitor` service:
 
