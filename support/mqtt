@@ -50,7 +50,7 @@ mqtt_announce_online(){
 	$mqtt_version_append \
 	$mqtt_ca_file_append \
 	-L "$mqtt_url$mqtt_topicpath/$mqtt_publisher_identity/status" \
-	-m "online" 2>&1 
+	-m "online" -q "2" 2>&1 
 }
 
 # ----------------------------------------------------------------------------------------
@@ -63,7 +63,8 @@ mqtt_echo(){
 	$mqtt_version_append \
 	$mqtt_ca_file_append \
 	-L "$mqtt_url$mqtt_topicpath/$mqtt_publisher_identity/echo" \
-	-m "ok" 2>&1 
+	-m "ok" \ 
+	-q "2" 2>&1 
 }
 
 
@@ -100,6 +101,7 @@ mqtt_broker_clean (){
 		$mqtt_ca_file_append \
 		-F '%t|%p' \
 		-W 1 \
+		-q 2 \
 		-L "$mqtt_url$mqtt_topicpath/$mqtt_publisher_identity/#" 2>&1 ) 
 
 	printf "%s\n" "> retained messages cleaned from broker"
@@ -130,6 +132,7 @@ mqtt_listener (){
 			$mqtt_ca_file_append \
 			-v \
 			-F '%t|%p' \
+			-q 2 \
 			-L "$mqtt_url$mqtt_topicpath/#" \
 			--will-topic "$mqtt_topicpath/$mqtt_publisher_identity/status" \
 			--will-payload "offline" 2>&1 ) 
@@ -271,6 +274,7 @@ publish_presence_message () {
 		$should_retain \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
+		-q 2 \
 		-L "$mqtt_url$topic" \
 		-m "$message" 2>&1)  	
 	fi
@@ -287,6 +291,7 @@ publish_cooperative_scan_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
+		-q 2 \
 		-L "$mqtt_url$mqtt_topicpath/scan/$1" \
 		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1)
 
@@ -296,6 +301,7 @@ publish_cooperative_scan_message () {
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
+		-q 2 \
 		-L "$mqtt_url$mqtt_topicpath/$2/$1" \
 		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1)
 
@@ -304,6 +310,7 @@ publish_cooperative_scan_message () {
 		($mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
+		-q 2 \
 		$mqtt_ca_file_append \
 		-L "$mqtt_url$mqtt_topicpath/scan" \
 		-m "{\"identity\":\"$mqtt_publisher_identity\"}" 2>&1)
