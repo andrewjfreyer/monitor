@@ -4,25 +4,7 @@
 
 ![version](https://img.shields.io/badge/version-0.2-green.svg?maxAge=2592000) ![mosquitto](https://img.shields.io/badge/mosquitto-1.5+-blue.svg?maxAge=2592000)
 
-____
-
-### *Table of Contents*
-
-  * [**FAQ**](https://github.com/andrewjfreyer/monitor/blob/master/support/README.md)
-
-  * [**Highlights**](#highlights)
-  
-  * [**Oversimplified Analogy of the Bluetooth Presence Problem**](#oversimplified-analogy-of-the-Bluetooth-presence-problem)
-
-  * [**Oversimplified Technical Description**](#oversimplified-technical-description)
-
-  * [**How `monitor` Works**](#how-monitor-works)
-
-  * [**Example with Home Assistant**](#example-with-home-assistant) 
-
-  * [**Installing on a Raspberry Pi Zero W**](#installation-instructions-for-raspberry-pi-zero-w) 
-
-____
+[**Frequently Asked Questions**](https://github.com/andrewjfreyer/monitor/blob/master/support/README.md)
 
 <details><summary>Background & Technical Details</summary>
 
@@ -304,6 +286,8 @@ ___
 
 </details>
 
+<details><summary>Home Assistant Example</summary>
+
 # Example with Home Assistant
 
 Personally, I have four **raspberry pi zero w**s throughout the house and garage. My family spends most of our time on the first floor, so our main `monitor` node or sensor is on the first floor. Our other 'nodes' on the second and third floor and garage are set up for triggered use only - these will scan for ***ARRIVAL*** and ***DEPART*** only in response to mqtt messages, with option ```-tad```. The first floor node is set up to send mqtt arrive/depart scan instructions to these nodes by including the `-tr` flag ("report" to other nodes when an arrival or depart scan is triggered). 
@@ -423,6 +407,7 @@ As an example:
 
 For more information, see [here](https://community.home-assistant.io/t/device-tracker-from-script/97295/7) and [here](https://github.com/andrewjfreyer/monitor/issues/138).
 
+</detail>
 
 <details><summary>Detailed Info & Fine Tuning</summary>
 
