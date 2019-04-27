@@ -154,16 +154,18 @@ btle_text_processor () {
 		fi
 		
 		#------------ MAC ADDRESS
-		if [[ $packet =~ Address:\ ([^|\(]*)\  ]]; then 
+		if [[ $packet =~ Address:\ ([^~\(]*)\  ]]; then 
 			received_mac_address=${BASH_REMATCH[1]}
+			received_mac_address=${received_mac_address//\|/}
 			received_mac_address=${received_mac_address^^}
 		else 
 			return 0
 		fi 
 
 		#------------ PDU TYPE
-		if [[ $packet =~ Event\ type:\ ([^|\(]*)\  ]]; then 
+		if [[ $packet =~ Event\ type:\ ([^~\(]*)\  ]]; then 
 			pdu_type=${BASH_REMATCH[1]}
+			pdu_type=${pdu_type//\|/}
 			pdu_type=${pdu_type##* }
 		else 
 			return 0
@@ -172,50 +174,59 @@ btle_text_processor () {
 		#------------ ADVERTISEMENT TYPE
 		if [[ $packet =~ Random ]] || [[ $packet =~ Public ]]; then 
 			tx_type=${BASH_REMATCH^^}
+			tx_type=${tx_type//\|/}
 			tx_type=${tx_type:0:4}
 		fi 
 
 		#------------ RSSI 
-		if [[ $packet =~ RSSI[^:]*?:([^|\(]*) ]]; then 
+		if [[ $packet =~ RSSI[^:]*?:([^~\(]*) ]]; then 
 			rssi_value=${BASH_REMATCH[1]}
+			rssi_value=${rssi_value//\|/}
 			rssi_value=${rssi_value//[^-0-9]/}
 		fi 
 
 		#------------ NAME
-		if [[ $packet =~ Name[^:]{0,}:\ {0,}([^|\(]*)\ {0,}(\||$|\() ]]; then 
+		if [[ $packet =~ Name[^:]{0,}:\ {0,}([^~\(]*)\ {0,}(~|$|\() ]]; then 
 			gap_name_str=${BASH_REMATCH[1]}
+			gap_name_str=${gap_name_str//\|/}
 			gap_name_str=$(trim_whitespace "$gap_name_str")
 		fi 
 
 		#------------ MANUFACTURER OF RADIO
-		if [[ $packet =~ Company:\ {0,}([^|\(]*)\ {0,}(\||$|\() ]]; then 
+		if [[ $packet =~ Company:\ {0,}([^|\(]*)\ {0,}(~|$|\() ]]; then 
 			manufacturer=${BASH_REMATCH[1]}
+			manufacturer=${manufacturer//\|/}
 			manufacturer=$(trim_whitespace "$manufacturer")
 		fi 
 
 		#------------ ADVERTISEMENT
-		if [[ $packet =~ Data:\ {0,}([^|\(]*)\ {0,}(\||$|\() ]]; then 
+		if [[ $packet =~ Data:\ {0,}([^~\(]*)\ {0,}(~|$|\() ]]; then 
 			adv_data=${BASH_REMATCH[1]}
+			adv_data=${adv_data//\|/}
 		fi 
 
 		#------------ DEVICE TYPE
-		if [[ $packet =~ Type:\ {0,}([^|\(]*)\ (\||$|\() ]]; then 
+		if [[ $packet =~ Type:\ {0,}([^~\(]*)\ (~|$|\() ]]; then 
 			device_type=${BASH_REMATCH[1]}
+			device_type=${device_type//\|/}
 		fi 
 
 		#------------ FLAGS 
-		if [[ $packet =~ Flags:\ {0,}([^|\(]*)(\||$|\() ]]; then 
+		if [[ $packet =~ Flags:\ {0,}([^~\(]*)(~|$|\() ]]; then 
 			flags=${BASH_REMATCH[1]}
+			flags=${flags//\|/}
 		fi 
 
 		#------------ HEX DATA
 		if [[ $packet =~ [a-f0-9-]{8,} ]]; then 
 			hex_data=$BASH_REMATCH
+			hex_data=${hex_data//\|/}
 		fi
 
 		#------------ OEM DATA 
-		if [[ $packet =~ 1\ entry\|([^|\(]{1,}) ]]; then 
+		if [[ $packet =~ 1\ entry~([^|\(]{1,}) ]]; then 
 			oem_data=${BASH_REMATCH[1]}
+			oem_data=${oem_data//\|/}
 			oem_data=$(trim_whitespace "$oem_data")
 
 			#IS THIS A VENDOR-SPECIFIC UUID? 
@@ -230,6 +241,7 @@ btle_text_processor () {
 		if [[ $packet =~ \(Non-Resolvable\) ]] || [[ $packet =~ \(Resolvable\) ]]; then 
 			resolvable=${BASH_REMATCH^^}
 			resolvable=${resolvable//-/_}
+			resolvable=${resolvable//\|/}
 			resolvable=${resolvable//[^A-Z_]/}
 		fi 
 
@@ -247,7 +259,7 @@ btle_text_processor () {
 		   	[[ ${pdu_type,,} =~ ${PREF_PASS_FILTER_PDU_TYPE,,} ]] && pdut_filter_color=${GREEN} || pdut_filter_color=${RED}
 
 		   	#REASSEMBLE FULL
-		   	full_packet=$(echo "$packet" | tr "|" "\n")
+		   	full_packet=$(echo "$packet" | tr "~" "\n")
 
 			#PRINT DEBUG MESSAGES 				
 			printf "\n%s\n" "${PURPLE}***************** ARRIVE/REJECT FILTER DEBUG ********************** ${NC}"
@@ -339,14 +351,14 @@ btle_text_listener () {
 
 
 			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]] || [[ $line =~ RSSI ]]; then
-				[[ $line =~ RSSI ]] && packet="$packet|$line"
+				[[ $line =~ RSSI ]] && packet="$packet~$line"
 				if [[ $packet =~ ^\> ]]; then 
 					printf "%s\n" "1$packet" > packet_pipe
 				fi 
 				packet=""
 				packet=$line
 			else 		
-				packet="$packet|$line" 
+				packet="$packet~$line" 
 			fi
 		done < <(timeout --signal SIGINT 90 stdbuf -oL -eL btmon 2>&1)
 

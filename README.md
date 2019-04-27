@@ -24,6 +24,8 @@ ____
 
 ____
 
+<details><summary>Background & Technical Details</summary>
+
 # *Highlights*
 
 `monitor` sends a JSON-formatted MQTT message including a confidence value from 0 to 100 to a specified broker when a specified Bluetooth device responds to a `name` query. By default, `name` queries are triggered after receiving an anonymous advertisement from a previously-unseen device. 
@@ -166,126 +168,9 @@ Since iBeacons include a UUID and a mac address, two presence messages are repor
 In some cases, certain manufacturers try to get sneaky and cause their beacons to advertise as "anonymous" (or "random") devices, despite that their addresses do not change at all. By default, `monitor` ignores anonymous devices, so to force `monitor` to recognize these devices, we add the "random" address to a file called `known_static_beacons`. After restarting, `monitor` will know that these addresses should be treated like a normal beacon. 
 ___
 
-# Example with Home Assistant
+</details>
 
-Personally, I have four **raspberry pi zero w**s throughout the house and garage. My family spends most of our time on the first floor, so our main `monitor` node or sensor is on the first floor. Our other 'nodes' on the second and third floor and garage are set up for triggered use only - these will scan for ***ARRIVAL*** and ***DEPART*** only in response to mqtt messages, with option ```-tad```. The first floor node is set up to send mqtt arrive/depart scan instructions to these nodes by including the `-tr` flag ("report" to other nodes when an arrival or depart scan is triggered). 
-
-The first floor constantly monitors for beacons (`-b`) advertisements and anonymous advertisements, which may be sent by our phones listed in the `known_static_addresses` file. In response to a new anonymous advertisement, `monitor` will initiate an ***ARRIVAL*** scan for whichever of our phones is not present.  If one of those devices is seen, an mqtt message is sent to Home Assistant reporting that the scanned phone is "home" with a confidence of 100%. In addition, an mqtt message is sent to the second and third floor and garage to trigger a scan on those floors as well. As a result of this configuration, when we leave the house, we use either the front door or the garage door to trigger an mqtt trigger of ```monitor/scan/depart``` after a ten second delay to trigger a departure scan of our devices that were previously known to be present. The ten second delay gives us a chance to get out of Bluetooth range before a "departure" scan is triggered. Different houses/apartments will probably need different delays. 
-
-More specifically, eac of these `monitor` nodes uses the same name for each device so that states can be tracked easily by Home Assistant. For example, on each node, my `known_static_addresses` file looks like this (note that 00:00:00:00:00:00 is an example address - this should be your phone's private, static, Bluetooth address): 
-
-```bash
-00:00:00:00:00:00 alias #comment that is ignored
-```
-
-The address I want to track is separated by a space from the *alias* that I want to use to refer to this device in Home Assistant. If you prefer to use the address instead of an alias, set the value `PREF_ALIAS_MODE=false` in your `behavior_preferences` file.
-
-In this manner, [Home Assistant](https://www.home-assistant.io) receives mqtt messages and stores the values as input to a number of [mqtt sensors](https://www.home-assistant.io/components/sensor.mqtt/). Output from these sensors is combined to give an accurate numerical occupancy confidence:
-
-```
-- platform: mqtt
-  state_topic: 'monitor/first floor/alias'
-  value_template: '{{ value_json.confidence }}'
-  unit_of_measurement: '%'
-  name: 'First Floor'
-
-- platform: mqtt
-  state_topic: 'monitor/second floor/alias'
-  value_template: '{{ value_json.confidence }}'
-  unit_of_measurement: '%'
-  name: 'Second Floor'
-
-- platform: mqtt
-  state_topic: 'monitor/third floor/alias'
-  value_template: '{{ value_json.confidence }}'
-  unit_of_measurement: '%'
-  name: 'Third Floor'
-
-- platform: mqtt
-  state_topic: 'monitor/garage/alias'
-  value_template: '{{ value_json.confidence }}'
-  unit_of_measurement: '%'
-  name: 'Garage'
-```
-
-These sensors can be combined using a [min_max](https://www.home-assistant.io/components/sensor.min_max/):
-
-```
-- platform: min_max
-  name: "Home Occupancy Confidence"
-  type: max
-  round_digits: 0
-  entity_ids:
-    - sensor.third_floor
-    - sensor.second_floor
-    - sensor.first_floor
-    - sensor.garage
-```
-
-Thereafter, I use the entity **sensor.home_occupancy_confidence** in automations to control the state of an **input_boolean** that represents a very high confidence of a user being home or not. 
-
-As an example:
-
-```
-- alias: Occupancy On
-  hide_entity: true
-  trigger:
-    - platform: numeric_state
-      entity_id: sensor.home_occupancy_confidence
-      above: 10
-  action:
-    - service: input_boolean.turn_on
-      data:
-        entity_id: input_boolean.occupancy
-
-- alias: Occupancy Off
-  hide_entity: true
-  trigger:
-    - platform: numeric_state
-      entity_id: sensor.home_occupancy_confidence
-      below: 10
-  action:
-    - service: input_boolean.turn_off
-      data:
-        entity_id: input_boolean.occupancy
-```
-
-If you prefer to use the `device_tracker` platform in Home Assistant, a unique solution is to use the undocumented `device_tracker.see` service:
-
-As an example:
-
-```
-- alias: Andrew Occupancy On
-  hide_entity: true
-  trigger:
-    - platform: numeric_state
-      entity_id: sensor.andrew_occupancy_confidence
-      above: 10
-  action:
-    - service: device_tracker.see
-      data:
-        dev_id: andrew
-        location_name: home
-        source_type: bluetooth
-
-- alias: Andrew Occupancy Off
-  hide_entity: true
-  trigger:
-    - platform: numeric_state
-      entity_id: sensor.andrew_occupancy_confidence
-      below: 10
-  action:
-    - service: device_tracker.see
-      data:
-        dev_id: andrew
-        location_name: not_home
-        source_type: bluetooth
-
-```
-
-For more information, see [here](https://community.home-assistant.io/t/device-tracker-from-script/97295/7) and [here](https://github.com/andrewjfreyer/monitor/issues/138).
-
-___
+<details><summary>Installation Instructions</summary>
 
 # Installation Instructions for Raspberry Pi Zero W
 
@@ -414,6 +299,132 @@ sudo bash monitor.sh -h
 ```
 
 Now the basic setup is complete. Your broker should be receiving messages and the `monitor` service will restart each time the Raspberry Pi boots. As currently configured, you should run `sudo bash monitor.sh` a few times from your command line to get a sense of how the script works. 
+
+___
+
+</details>
+
+# Example with Home Assistant
+
+Personally, I have four **raspberry pi zero w**s throughout the house and garage. My family spends most of our time on the first floor, so our main `monitor` node or sensor is on the first floor. Our other 'nodes' on the second and third floor and garage are set up for triggered use only - these will scan for ***ARRIVAL*** and ***DEPART*** only in response to mqtt messages, with option ```-tad```. The first floor node is set up to send mqtt arrive/depart scan instructions to these nodes by including the `-tr` flag ("report" to other nodes when an arrival or depart scan is triggered). 
+
+The first floor constantly monitors for beacons (`-b`) advertisements and anonymous advertisements, which may be sent by our phones listed in the `known_static_addresses` file. In response to a new anonymous advertisement, `monitor` will initiate an ***ARRIVAL*** scan for whichever of our phones is not present.  If one of those devices is seen, an mqtt message is sent to Home Assistant reporting that the scanned phone is "home" with a confidence of 100%. In addition, an mqtt message is sent to the second and third floor and garage to trigger a scan on those floors as well. As a result of this configuration, when we leave the house, we use either the front door or the garage door to trigger an mqtt trigger of ```monitor/scan/depart``` after a ten second delay to trigger a departure scan of our devices that were previously known to be present. The ten second delay gives us a chance to get out of Bluetooth range before a "departure" scan is triggered. Different houses/apartments will probably need different delays. 
+
+More specifically, each of these `monitor` nodes uses the same name for each device so that states can be tracked easily by Home Assistant. For example, on each node, my `known_static_addresses` file looks like this (note that 00:00:00:00:00:00 is an example address - this should be your phone's private, static, Bluetooth address): 
+
+```bash
+00:00:00:00:00:00 alias #comment that is ignored
+```
+
+The address I want to track is separated by a space from the *alias* that I want to use to refer to this device in Home Assistant. If you prefer to use the address instead of an alias, set the value `PREF_ALIAS_MODE=false` in your `behavior_preferences` file.
+
+In this manner, [Home Assistant](https://www.home-assistant.io) receives mqtt messages and stores the values as input to a number of [mqtt sensors](https://www.home-assistant.io/components/sensor.mqtt/). Output from these sensors is combined to give an accurate numerical occupancy confidence:
+
+```
+- platform: mqtt
+  state_topic: 'monitor/first floor/alias'
+  value_template: '{{ value_json.confidence }}'
+  unit_of_measurement: '%'
+  name: 'First Floor'
+
+- platform: mqtt
+  state_topic: 'monitor/second floor/alias'
+  value_template: '{{ value_json.confidence }}'
+  unit_of_measurement: '%'
+  name: 'Second Floor'
+
+- platform: mqtt
+  state_topic: 'monitor/third floor/alias'
+  value_template: '{{ value_json.confidence }}'
+  unit_of_measurement: '%'
+  name: 'Third Floor'
+
+- platform: mqtt
+  state_topic: 'monitor/garage/alias'
+  value_template: '{{ value_json.confidence }}'
+  unit_of_measurement: '%'
+  name: 'Garage'
+```
+
+These sensors can be combined using a [min_max](https://www.home-assistant.io/components/sensor.min_max/):
+
+```
+- platform: min_max
+  name: "Home Occupancy Confidence"
+  type: max
+  round_digits: 0
+  entity_ids:
+    - sensor.third_floor
+    - sensor.second_floor
+    - sensor.first_floor
+    - sensor.garage
+```
+
+Thereafter, I use the entity **sensor.home_occupancy_confidence** in automations to control the state of an **input_boolean** that represents a very high confidence of a user being home or not. 
+
+As an example:
+
+```
+- alias: Occupancy On
+  hide_entity: true
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.home_occupancy_confidence
+      above: 10
+  action:
+    - service: input_boolean.turn_on
+      data:
+        entity_id: input_boolean.occupancy
+
+- alias: Occupancy Off
+  hide_entity: true
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.home_occupancy_confidence
+      below: 10
+  action:
+    - service: input_boolean.turn_off
+      data:
+        entity_id: input_boolean.occupancy
+```
+
+If you prefer to use the `device_tracker` platform in Home Assistant, a unique solution is to use the undocumented `device_tracker.see` service:
+
+As an example:
+
+```
+- alias: Andrew Occupancy On
+  hide_entity: true
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.andrew_occupancy_confidence
+      above: 10
+  action:
+    - service: device_tracker.see
+      data:
+        dev_id: andrew
+        location_name: home
+        source_type: bluetooth
+
+- alias: Andrew Occupancy Off
+  hide_entity: true
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.andrew_occupancy_confidence
+      below: 10
+  action:
+    - service: device_tracker.see
+      data:
+        dev_id: andrew
+        location_name: not_home
+        source_type: bluetooth
+
+```
+
+For more information, see [here](https://community.home-assistant.io/t/device-tracker-from-script/97295/7) and [here](https://github.com/andrewjfreyer/monitor/issues/138).
+
+
+<details><summary>Detailed Info & Fine Tuning</summary>
 
 
 ## Fine Tuning
@@ -549,5 +560,7 @@ sensor:
         window_size: 00:01
         precision: 1
 ```
+
+</details>
 
 Anything else? Post a [question.](https://github.com/andrewjfreyer/monitor/issues/new)
