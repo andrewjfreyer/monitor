@@ -233,7 +233,7 @@ sudo wget http://repo.mosquitto.org/debian/mosquitto-stretch.list
 #update caches and install 
 apt-cache search mosquitto
 sudo apt-get update
-sudo apt-get install libmosquitto-dev mosquitto mosquitto-clients
+sudo apt-get install -f libmosquitto-dev=1.5.8-0mosquitto1 mosquitto=1.5.8-0mosquitto1 mosquitto-clients=1.5.8-0mosquitto1 libmosquitto1=1.5.8-0mosquitto1
 ```
 
 8. Clone `monitor` git:
