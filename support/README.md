@@ -15,11 +15,11 @@ ____
 
 #### Will this be able to track my Apple Watch/Smart Watch?
 
-Yes, with a caveat. Many users, including myself, have successfully added Apple Watch Bluetooth addresses to the `known_static_addresses` file. In my personal experience, an Apple Watch works just fine [once it has connected to at least one other Bluetooth device, apart from your iPhone.](https://github.com/andrewjfreyer/monitor#my-phone-doesnt-seem-to-automatically-broadcast-an-anonymous-bluetooth-advertisement-what-can-i-do). Other users have reported that the Apple Watch will occasionally not respond to `monitor`. Your mileage using the Apple Watch and/or other low-power connectible Bluetooth devices may vary. I strongly recommend tracking phones. 
+Yes, with a caveat. Many users, including myself, have successfully added Apple Watch Bluetooth addresses to the `known_static_addresses` file. In my personal experience, an Apple Watch works just fine [once it has connected to at least one other Bluetooth device, apart from your iPhone](https://github.com/andrewjfreyer/monitor#my-phone-doesnt-seem-to-automatically-broadcast-an-anonymous-bluetooth-advertisement-what-can-i-do). Other users have reported that the Apple Watch will occasionally not respond to `monitor`. Your mileage using the Apple Watch and/or other low-power connectible Bluetooth devices may vary. I strongly recommend tracking phones. 
 
 #### What special app do I need on my phone to get this to work? 
 
-None, except in very rare circumstances. The only requirement is that Bluetooth is left on. 
+None, except in rare circumstances. The only requirement is that Bluetooth is left on. Works best with iPhones and Android phones that have peripheral mode enabled. 
 
 #### Does `monitor` reduce battery life for my phone? 
 
@@ -48,6 +48,14 @@ For an automation or script (or other service trigger), use:
   data: 
     topic: location/scan/depart
 ```
+
+#### How can I add a known device without manually entering an address? 
+
+Post a message with the mac address separated from an alias (optional) by a space to: `monitor/setup/add known device`
+
+#### How can I delete a known device without manually editing an address? 
+
+Post a message with the mac address to: `monitor/setup/delete known device`
 
 #### How can I upgrade to the latest version without using ssh? 
 
