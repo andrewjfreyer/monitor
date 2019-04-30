@@ -154,6 +154,9 @@ ___
 
 <details><summary>Installation Instructions</summary>
 
+* <details><summary>Set Up Raspberry Pi From Scratch</summary>
+
+
 # Installation Instructions for Raspberry Pi Zero W
 
 ## Setup of SD Card
@@ -236,7 +239,12 @@ sudo apt-get update
 sudo apt-get install -f libmosquitto-dev mosquitto mosquitto-clients libmosquitto1
 ```
 
-8. Clone `monitor` git:
+</details>
+
+* <details><summary>Set up `monitor`</summary>
+
+
+1. Clone `monitor` git:
 ```bash
 #install git
 cd ~
@@ -253,7 +261,7 @@ git checkout beta
 
 ```
 
-9. Initial run:
+2. Initial run:
 
 Configuration files will be created with default preferences. Any executables that are not installed will be reported. All can be installed via `apt-get install ...`
 
@@ -262,19 +270,28 @@ sudo bash monitor.sh
 ```
 
 
-10. Edit **mqtt_preferences** file:
+3. Edit **mqtt_preferences** file:
 
 ```bash
 sudo nano mqtt_preferences
 ```
 
-11. Edit **known_static_addresses** (phones, laptops, some smart watches): 
+4. Edit **known_static_addresses** (phones, laptops, some smart watches): 
 
 ```bash
 sudo nano known_static_addresses
 ```
 
-12. Read helpfile:
+Alternatively, send an mqtt message to `monitor/setup/ADD STATIC DEVICE` with a message including a mac address and an alias separated by a space:
+
+
+**topic:** `monitor/setup/ADD STATIC DEVICE` 
+**message:** 00:11:22:33:44:55 alias
+
+
+Use, `monitor/setup/DELETE STATIC DEVICE` with a message containing a mac address to remove a device from all `monitor` nodes.
+
+5. Read helpfile:
 
 ```bash
 sudo bash monitor.sh -h
@@ -282,9 +299,11 @@ sudo bash monitor.sh -h
 
 Now the basic setup is complete. Your broker should be receiving messages and the `monitor` service will restart each time the Raspberry Pi boots. As currently configured, you should run `sudo bash monitor.sh` a few times from your command line to get a sense of how the script works. 
 
-___
+</details>
 
 </details>
+
+___
 
 <details><summary>Home Assistant Example</summary>
 
