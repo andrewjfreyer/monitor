@@ -154,6 +154,8 @@ ___
 
 <details><summary>Installation Instructions</summary>
 
+<br>
+
 <details><summary>Set Up Raspberry Pi From Scratch</summary>
 
 
@@ -240,8 +242,9 @@ sudo apt-get install -f libmosquitto-dev mosquitto mosquitto-clients libmosquitt
 ```
 </details>
 
-<details><summary>Set up `monitor`</summary>
+<details><summary>Monitor Setup</summary>
 
+## Setup `monitor`
 
 1. Clone `monitor` git:
 ```bash
@@ -300,9 +303,10 @@ Now the basic setup is complete. Your broker should be receiving messages and th
 
 </details>
 
+___
+
 </details>
 
-___
 
 <details><summary>Home Assistant Example</summary>
 
