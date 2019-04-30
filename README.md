@@ -6,7 +6,7 @@
 
 [**Frequently Asked Questions**](https://github.com/andrewjfreyer/monitor/blob/master/support/README.md)
 
-<details><summary>Background & Technical Details</summary>
+<details><summary><b>Background & Technical Details</b></summary>
 
 # *Highlights*
 
@@ -152,7 +152,7 @@ ___
 
 </details>
 
-<details><summary>Installation Instructions</summary>
+<details><summary><b>Installation Instructions</b></summary>
 
 <br>
 
@@ -308,7 +308,7 @@ ___
 </details>
 
 
-<details><summary>Home Assistant Example</summary>
+<details><summary><b>Home Assistant Example</b></summary>
 
 # Example with Home Assistant
 
