@@ -156,7 +156,7 @@ ___
 
 <br>
 
-<details><summary>Set Up Raspberry Pi From Scratch</summary>
+<details><summary><i>Set Up Raspberry Pi From Scratch</i></summary>
 
 
 # Installation Instructions for Raspberry Pi Zero W
@@ -242,7 +242,7 @@ sudo apt-get install -f libmosquitto-dev mosquitto mosquitto-clients libmosquitt
 ```
 </details>
 
-<details><summary>Monitor Setup</summary>
+<details><summary><i>Monitor Setup</i></summary>
 
 ## Setup `monitor`
 
