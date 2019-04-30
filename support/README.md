@@ -15,11 +15,11 @@ ____
 
 #### Will this be able to track my Apple Watch/Smart Watch?
 
-Yes, with a caveat. Many users, including myself, have successfully added Apple Watch Bluetooth addresses to the `known_static_addresses` file. In my personal experience, an Apple Watch works just fine [once it has connected to at least one other Bluetooth device, apart from your iPhone.](https://github.com/andrewjfreyer/monitor#my-phone-doesnt-seem-to-automatically-broadcast-an-anonymous-bluetooth-advertisement-what-can-i-do). Other users have reported that the Apple Watch will occasionally not respond to `monitor`. Your mileage using the Apple Watch and/or other low-power connectible Bluetooth devices may vary. I strongly recommend tracking phones. 
+Yes, with a caveat. Many users, including myself, have successfully added Apple Watch Bluetooth addresses to the `known_static_addresses` file. In my personal experience, an Apple Watch works just fine [once it has connected to at least one other Bluetooth device, apart from your iPhone](https://github.com/andrewjfreyer/monitor#my-phone-doesnt-seem-to-automatically-broadcast-an-anonymous-bluetooth-advertisement-what-can-i-do). Other users have reported that the Apple Watch will occasionally not respond to `monitor`. Your mileage using the Apple Watch and/or other low-power connectible Bluetooth devices may vary. I strongly recommend tracking phones. 
 
 #### What special app do I need on my phone to get this to work? 
 
-None, except in very rare circumstances. The only requirement is that Bluetooth is left on. 
+None, except in rare circumstances. The only requirement is that Bluetooth is left on. Works best with iPhones and Android phones that have peripheral mode enabled. 
 
 #### Does `monitor` reduce battery life for my phone? 
 
@@ -49,6 +49,14 @@ For an automation or script (or other service trigger), use:
     topic: location/scan/depart
 ```
 
+#### How can I add a known device without manually entering an address? 
+
+Post a message with the mac address separated from an alias (optional) by a space to: `monitor/setup/add known device`
+
+#### How can I delete a known device without manually editing an address? 
+
+Post a message with the mac address to: `monitor/setup/delete known device`
+
 #### How can I upgrade to the latest version without using ssh? 
 
 Post a message with blank content to `monitor/scan/update` or `monitor/scan/updatebeta` 
@@ -65,7 +73,7 @@ Or, post a message with blank content to `monitor/scan/restart`
 
 #### Why don't I see RSSI for my iPhone/Andriod/whatever phone? 
 
-See the RSSI section above. You'll have to connect your phone to `monitor` first.  
+See the RSSI section of this FAQ. You'll have to connect your phone to `monitor` first.  
 
 #### How do I force an RSSI update for a known device, like my phone? 
 
@@ -77,7 +85,7 @@ ____
 
 #### I'm running 5GHz Wi-Fi, I don't use Bluetooth for anything else, and I don't care whether I interfere with my neighbor's devices. Can't I just issue a name scan every few seconds to get faster arrival and depart detection?
 
-Not anymore. Periodic scanning has been removed from `monitor`. If you would like to scan every few seconds anyway, despite that you may be causing interference for others, you can use the `presence` project in my repository available [here.](https://github.com/andrewjfreyer/presence). This feature will not be added back into `monitor` in the foreseeable future. 
+Yes, use periodic scanning mode with `-r`.
 
 #### Can I use other Bluetooth services while `monitor` is running?
 
@@ -120,7 +128,11 @@ journalctl -u monitor -r
 
 #### My Android phone doesn't seem to send any anonymous advertisements, no matter what I do. Is there any solution?  
 
-Some phones, like the LG ThinQ G7 include an option in settings to enable file sharing via bluetooth. As resported by Home Assistant forum user @jusdwy, access this option via Settings >Connected Devices > File Sharing > File Sharing ON. For other android phones, an app like [Beacon Simulator](https://play.google.com/store/apps/details?id=net.alea.beaconsimulator&hl=en_US) may be a good option. You may also be able to see more information about Bluetooth on your phone using [nRF Connect](https://play.google.com/store/apps/details?id=no.nordicsemi.android.mcp&hl=en_US). I'm working on a solution. Stay tuned. 
+Some phones, like the LG ThinQ G7 include an option in settings to enable file sharing via bluetooth. As resported by Home Assistant forum user @jusdwy, access this option via Settings >Connected Devices > File Sharing > File Sharing ON. For other android phones, an app like [Beacon Simulator](https://play.google.com/store/apps/details?id=net.alea.beaconsimulator&hl=en_US) may be a good option. You may also be able to see more information about Bluetooth on your phone using [nRF Connect](https://play.google.com/store/apps/details?id=no.nordicsemi.android.mcp&hl=en_US). 
+
+Unfortunately, until Android OS includes at least one service that requires bluetooth peripheral mode to be enabled, Android devices will probably not advertise without an application running in the background. In short, as I understand it, Android/Google has been  slow to adopt BTLE peripheral mode as an option in addition to the default central mode. [Here is a decently comprehensive list of phones that support peripheral mode](https://altbeacon.github.io/android-beacon-library/beacon-transmitter-devices.html), should an application choose to leverage the appropriate API. It does not appear as though the native OS has an option (outside of the file sharing option mentioned above on LG phones) to enable this mode. 
+
+Unfortunately, it seems to me that absent an application causing an advertisement to send, Android users will not be able to use monitor in the same way as iOS users or beacon users. 
 
 #### My phone doesn't seem to automatically broadcast an anonymous Bluetooth advertisement ... what can I do? 
 
@@ -128,7 +140,7 @@ Many phones will only broadcast once they have already connected to *at least on
 
 #### I have connected my phone to Bluetooth devices before but my phone doesn't seem to automatically broadcast an anonymous Bluetooth advertisement ... what can I do? 
 
-Some android phones just don't seem to advertise... and that's a bummer. There are a number of beacon apps that can be used from the Play Store.
+See above. 
 
 #### Why does my MQTT broker show connection and disconnection so often? 
 
@@ -138,6 +150,9 @@ This is normal behavior for `mosquitto_pub` - nothing to worry about.
 
 Make sure you've updated `mosquitto` to v1.5 or higher. In order to support a wider userbase, backward compatibility for old versions of `mosquitto` was dropped. It is alos strongly recommended that you upgrade to bash 4.4+.
 
+#### I keep seeing MQTT Broker Offline messages in the `monitor` log. What's going on? 
+
+mosquitto fails to connect to a broker if your password has certain special characters such as: `@`, `:`,`/` - if this is the case, the easiest solution is to create a new user for `monitor` with a different password. 
 ____
 
 ## *Filters*
@@ -191,27 +206,29 @@ ____
 
 ## *Other Questions*
 
-#### It's annoying to have to keep track of mac addresses. Can't I just use an alias for the mac addresses for MQTT topics? 
+#### It's annoying to have to keep track of mac addresses. Can't I just use a nickname for the mac addresses for MQTT topics? 
 
-Yes! Create a file called `mqtt_aliases` in the configuration directory, and then add a line for each mac address of a known device that you'd like to create a alias. Comments starting with a pound/hash sign will be ignored. 
-
-So, if you have a known device with the mac address of 00:11:22:33:44:55 that you would like to call "Andrew's Phone", add one line to the `mqtt_aliases`:
+Yes, this is now default behavior. All you have to do is provide a name next to the address in the `known_static_addresses` file. For example, if you have a known device with the mac address of 00:11:22:33:44:55 that you would like to call "Andrew's Phone":
 
 ```bash
 00:11:22:33:44:55 Andrew's iPhone
 ```
 
-Then restart the `monitor` service. The script will now use "andrew_s_iphone" as the final mqtt topic path component. Important: 
+Then restart the `monitor` service. The script will now use "andrew_s_iphone" as the final mqtt topic path component. 
+
+***Important:***
 
 * any entry will be made **lowercase**
 
 * any non-digit or non-decimal character will be replaced with an underscore
 
-The same is true for beacons as well:
+The same is true for beacons in the `known_beacon_addresses` file as well:
 
 ```bash 
-09876543-3333-2222-1111-000000000000-9-10000 Doggo's Collar
+09876543-3333-2222-1111-000000000000-9-10000 Dog
 ```
+
+To disable this feature, set `PREF_ALIAS_MODE=false` in your `behavior_preferences` file. 
 
 #### I don't care about a few devices that are reporting. Can I block them? 
 
@@ -252,7 +269,3 @@ PREF_DEVICE_TRACKER_HOME_STRING='home'
 PREF_DEVICE_TRACKER_AWAY_STRING='away'
 PREF_DEVICE_TRACKER_TOPIC_BRANCH='anything you like'
 ```
-
-#### I keep seeing MQTT Broker Offline messages in the `monitor` log. What's going on? 
-
-mosquitto fails to connect to a broker if your password has certain special characters such as: `@`, `:`,`/` - if this is the case, the easiest solution is to create a new user for `monitor` with a different password. 

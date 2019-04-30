@@ -167,11 +167,12 @@ else
 	printf "%s\n" "
 # ---------------------------
 #
-# PUBLIC MAC ADDRESS LIST
+# STATIC MAC ADDRESS LIST
 #
+# 00:00:00:00:00:00 Alias #comment
 # ---------------------------
 
-00:00:00:00:00:00 Nickname #comment" > "$PUB_CONFIG"
+" > "$PUB_CONFIG"
 
 	#SET SHOULD EXIT
 	should_exit=true
@@ -301,6 +302,14 @@ if [ -f "$PREF_CONFIG" ]; then
 	PREF_DEVICE_TRACKER_HOME_STRING=${PREF_DEVICE_TRACKER_HOME_STRING:-home}
 	PREF_DEVICE_TRACKER_TOPIC_BRANCH=${PREF_DEVICE_TRACKER_TOPIC_BRANCH:-device_tracker}
 	PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP=${PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP:-15}
+	
+	#PERIODIC SCAN MODE(S)
+	PREF_DEPART_SCAN_INTERVAL=${PREF_DEPART_SCAN_INTERVAL:-30}
+	PREF_ARRIVE_SCAN_INTERVAL=${PREF_ARRIVE_SCAN_INTERVAL:-15}
+
+	#ALIAS MODE
+	PREF_ALIAS_MODE=${PREF_ALIAS_MODE:-true}
+
 
 	#IF PREFERENCES ARE NOT PROPERLY SET, EXIT
 	[ "$(printf "%s\n" "$preferences" | grep -c "error")" -gt "0" ] && printf "%s\n" "> ${ORANGE}> warning:${NC} preferences error, using defaults. reset to defaults? [y/n]" && read -t 10 should_restore_defaults

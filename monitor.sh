@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.150
+export version=0.2.187
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -147,40 +147,11 @@ mapfile -t known_static_beacons < <(sed 's/#.\{0,\}//gi' < "$BEAC_CONFIG" | awk 
 mapfile -t known_static_addresses < <(sed 's/#.\{0,\}//gi' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
 mapfile -t address_blacklist < <(sed 's/#.\{0,\}//gi' < "$ADDRESS_BLACKLIST" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
 
-#MQTT ALIASES
-if [ -f "$ALIAS_CONFIG" ]; then 
-
-	mapfile -t mqtt_alias_addresses < <(sed 's/#.\{0,\}//gi' < "$ALIAS_CONFIG")
-
-	#MQTT ALIASES 
-	for line in "${mqtt_alias_addresses[@]}"; do 
-		key=${line%% *}
-	   	value=${line#* }
-
-	   	#IF THE VALUE DOES NOT EXIST, USE THE KEY (MAC ADDRESS INSTEAD)
-	   	value=${value//[^A-Za-z0-9]/_}
-
-	   	#LOWERCASE
-	  	value=${value,,}
-
-	  	#REMOVE FINAL UNDERSCORES SHOUDL THERE BE
-	   	value=$(echo "$value" | sed 's/[^0-9a-z]\{1,\}$//gi;s/^[^0-9a-z]\{1,\}//gi;s/__*/_/gi')
-
-	  	#DEFAULT
-	   	value=${value:-key}
-
-	   	#ALIASES
-	   	[ -n "$key" ] && [ -n "$value" ] && mqtt_aliases[$key]="$value" 
-	done 
-
-fi 
-
 #ASSEMBLE COMMENT-CLEANED BLACKLIST INTO BLACKLIST ARRAY
-for addr in "${address_blacklist[@]}"; do 
+for addr in "${address_blacklist[@]^^}"; do 
 	blacklisted_devices[$addr]=1
 	printf "%s\n" "> ${RED}blacklisted device:${NC} $addr"
 done 
-
 
 # ----------------------------------------------------------------------------------------
 # POPULATE MAIN DEVICE ARRAY
@@ -190,10 +161,29 @@ done
 previously_connected_devices=$(echo "quit" | bluetoothctl | grep -Eio "Device ([0-9A-F]{2}:){5}[0-9A-F]{2}" | sed 's/Device //gi')
 
 #POPULATE KNOWN DEVICE ADDRESS
-for addr in "${known_static_addresses[@]}"; do 
+for addr in "${known_static_addresses[@]^^}"; do 
+
+	#================= SHOULD WE USE AN ALIAS? =====================
 
 	#WAS THERE A NAME HERE?
-	known_name=$(grep "$addr" "$PUB_CONFIG" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$addr //gi;s/  */ /gi" )
+	known_name=$(grep -i "$addr" "$PUB_CONFIG" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$addr //gi;s/  */ /gi" )
+
+   	#IF THE VALUE DOES NOT EXIST, USE THE KEY (MAC ADDRESS INSTEAD)
+   	alias_value=${known_name//[^A-Za-z0-9]/_}
+
+   	#LOWERCASE
+  	alias_value=${alias_value,,}
+
+  	#REMOVE FINAL UNDERSCORES SHOUDL THERE BE
+   	alias_value=$(echo "$alias_value" | sed 's/[^0-9a-z]\{1,\}$//gi;s/^[^0-9a-z]\{1,\}//gi;s/__*/_/gi')
+
+  	#DEFAULT
+   	alias_value=${alias_value:-$addr}
+
+   	#ALIASES
+   	[ -n "$addr" ] && [ -n "$alias_value" ] && mqtt_aliases[$addr]="$alias_value" 
+
+	#================= PROCESS THE KNOWN ADDR =====================
 
 	#IF WE FOUND A NAME, RECORD IT
 	[ -n "$known_name" ] && known_public_device_name[$addr]="$known_name"
@@ -203,7 +193,7 @@ for addr in "${known_static_addresses[@]}"; do
 	[[ $previously_connected_devices =~ .*$addr.* ]] && is_connected="previously connected"
 
 	#CORRECT 
-	mqtt_topic_branch=${mqtt_aliases[$addr]:-$addr}
+	$PREF_ALIAS_MODE && mqtt_topic_branch=${mqtt_aliases[$addr]:-$addr} || mqtt_topic_branch=$addr
 
 	#PUBLICATION TOPIC 
 	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch"
@@ -218,16 +208,33 @@ done
 # POPULATE BEACON ADDRESS ARRAY
 # ----------------------------------------------------------------------------------------
 #POPULATE KNOWN DEVICE ADDRESS
-for addr in "${known_static_beacons[@]}"; do 
+for addr in "${known_static_beacons[@]^^}"; do 
 
 	#WAS THERE A NAME HERE?
 	known_name=$(grep "$addr" "$BEAC_CONFIG" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$addr //gi;s/  */ /gi" )
+
+	#================= SHOULD WE USE AN ALIAS? =====================
+
+   	#IF THE VALUE DOES NOT EXIST, USE THE KEY (MAC ADDRESS INSTEAD)
+   	alias_value=${known_name//[^A-Za-z0-9]/_}
+
+   	#LOWERCASE
+  	alias_value=${alias_value,,}
+
+  	#REMOVE FINAL UNDERSCORES SHOUDL THERE BE
+   	alias_value=$(echo "$alias_value" | sed 's/[^0-9a-z]\{1,\}$//gi;s/^[^0-9a-z]\{1,\}//gi;s/__*/_/gi')
+
+  	#DEFAULT
+   	alias_value=${alias_value:-$addr}
+
+   	#ALIASES
+   	[ -n "$addr" ] && [ -n "$alias_value" ] && mqtt_aliases[$addr]="$alias_value" 
 
 	#IF WE FOUND A NAME, RECORD IT
 	[ -n "$known_name" ] && known_public_device_name[$addr]="$known_name"
 
 	#CORRECT 
-	mqtt_topic_branch=${mqtt_aliases[$addr]:-$addr}
+	$PREF_ALIAS_MODE && mqtt_topic_branch=${mqtt_aliases[$addr]:-$addr} || mqtt_topic_branch=$addr
 
 	#PUBLICATION TOPIC 
 	pub_topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch"
@@ -251,7 +258,7 @@ connectable_present_devices () {
 
 	#ITERATE THROUGH THE KNOWN DEVICES 
 	local known_addr
-	for known_addr in "${known_static_addresses[@]}"; do 
+	for known_addr in "${known_static_addresses[@]^^}"; do 
 		
 		#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
 		this_state="${known_public_device_log[$known_addr]}"
@@ -327,7 +334,7 @@ scannable_devices_with_state () {
 		 	
 	#ITERATE THROUGH THE KNOWN DEVICES 
 	local known_addr
-	for known_addr in "${known_static_addresses[@]}"; do 
+	for known_addr in "${known_static_addresses[@]^^}"; do 
 		
 		#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
 		this_state="${known_public_device_log[$known_addr]}"
@@ -401,7 +408,7 @@ perform_complete_scan () {
 	
 	#LOG START OF DEVICE SCAN 
 	$PREF_MQTT_REPORT_SCAN_MESSAGES && publish_cooperative_scan_message "$transition_type/start"
-	log "${GREEN}[CMD-INFO]	${GREEN}**** started $transition_type scan [x$repetitions max rep] **** ${NC}"
+	$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INFO]	${GREEN}**** started $transition_type scan [x$repetitions max rep] **** ${NC}"
 
 	#ITERATE THROUGH THE KNOWN DEVICES 	
 	local repetition 
@@ -663,7 +670,7 @@ perform_complete_scan () {
 	printf "%s\n" "DONE" > main_pipe
 
 	#GROUP SCAN FINISHED
-	log "${GREEN}[CMD-INFO]	${GREEN}**** completed $transition_type scan **** ${NC}"
+	$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INFO]	${GREEN}**** completed $transition_type scan **** ${NC}"
 
 	#PUBLISH END OF COOPERATIVE SCAN
 	$PREF_MQTT_REPORT_SCAN_MESSAGES && publish_cooperative_scan_message "$transition_type/end"
@@ -897,6 +904,7 @@ while true; do
 		most_recent_beacon=""
 		observed_max_advertisement_interval=""
 		temp_observation=""
+		device_state=""
 
 		#PROCEED BASED ON COMMAND TYPE
 		if [ "$cmd" == "ENQU" ] && [ "$uptime" -gt "$PREF_STARTUP_SETTLE_TIME" ]; then 
@@ -1055,7 +1063,7 @@ while true; do
 			data_of_instruction="${data##*|}"
 
 			#IGNORE INSTRUCTION FROM SELF
-			if [[ ${data_of_instruction^^} =~ .*${mqtt_publisher_identity^^}.* ]]; then 
+			if [[ ${data_of_instruction^^} =~ .*${mqtt_publisher_identity^^}.* ]] || [[ ${topic_path_of_instruction^^} =~ .*${mqtt_publisher_identity^^}.* ]]; then 
 				continue
 			fi 
 
@@ -1076,6 +1084,91 @@ while true; do
 					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] arrive scan rejected due to recent scan ${NC}"
 				fi 
 				
+			elif [[ $mqtt_topic_branch =~ .*KNOWN\ DEVICE\ STATES.* ]]; then 				
+
+				#SIMPLE STATUS MESSAGE FOR KNOWN
+				device_state=""
+				for addr in "${known_static_addresses[@]^^}"; do 
+					#GET STATE; ONLY SCAN FOR DEVICES WITH SPECIFIC STATE
+					device_state="${known_public_device_log[$addr]}"
+					device_state=${device_state:-0}
+
+					#SET TO CONFIDENCE RANGE
+					[ "$device_state" == "1" ] && device_state=100
+
+					#SEND STATUS UPDATE
+					publish_presence_message  \
+					"id=$addr" \
+					"confidence=$device_state" \
+					"type=KNOWN_MAC"
+				done
+				
+			elif [[ $mqtt_topic_branch =~ .*NEW\ STATIC\ DEVICE.* ]] || [[ $mqtt_topic_branch =~ .*DELETE\ STATIC\ DEVICE.* ]]; then 
+
+				if [[ "${data_of_instruction^^}" =~ ([A-F0-9]{2}:){5}[A-F0-9]{2} ]]; then 
+					#GET MAC ADDRESSES
+					mac="${BASH_REMATCH}"
+					if [ ! ${known_public_device_name[$mac]+true} ]; then 
+
+						#HERE, WE KNOW THAT WE HAVE A MAC ADDRESS AND A VALID INSTRUCTION
+						if [[ $mqtt_topic_branch =~ .*NEW\ STATIC\ DEVICE.* ]]; then 
+							#WAS THERE A NAME HERE?
+							name=$(echo "$data_of_instruction" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$mac //gi;s/  */ /gi" )
+
+							#IF THE VALUE DOES NOT EXIST, USE THE KEY (MAC ADDRESS INSTEAD)
+						   	alias_value=${name//[^A-Za-z0-9]/_}
+
+						   	#LOWERCASE
+						  	alias_value=${alias_value,,}
+
+						  	#REMOVE FINAL UNDERSCORES SHOUDL THERE BE
+						   	alias_value=$(echo "$alias_value" | sed 's/[^0-9a-z]\{1,\}$//gi;s/^[^0-9a-z]\{1,\}//gi;s/__*/_/gi')
+
+							#ADD TO KNOWN PUBLIC DEVICE ARRAY
+							known_public_device_name[$mac]="$name"
+
+							#ESTABLISH ALIAS
+							[ -n "$mac" ] && [ -n "$alias_value" ] && mqtt_aliases[$mac]="$alias_value" 
+
+							#ADD TO KNOWN_STATIC_ADDRESSES FILE
+							echo "$mac ${name:-}" >> $PUB_CONFIG
+							
+							#UPDATE FROM STATIC ADDRESSES TOO
+							mapfile -t known_static_addresses < <(sed 's/#.\{0,\}//gi' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
+
+							#LOGGING
+							$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] new static device ${GREEN}$mac${NC} added with alias ${GREEN}${name:-none}${NC}"
+
+							#PERFORM ARRIVAL SCAN FOR NEW DEVICE
+							perform_arrival_scan
+						fi
+						
+					else
+
+						#ONLY PERFORM IF WE HAVE A DEVICE TO DELETE
+						if [[ $mqtt_topic_branch =~ .*DELETE\ STATIC\ DEVICE.* ]]; then 
+
+							#HERE, WE NOW THAT WE HAVE TO DELETE THE DEVICE WITH THE MAC ADDRESS
+							sed -i '/'"$mac"'/Id' $PUB_CONFIG
+
+							#UNSET FROM MEMORY
+							unset "known_public_device_name[$mac]"
+							unset "mqtt_aliases[$mac]"
+
+							#REMOVE FROM STATIC ADDRESSES TOO
+							mapfile -t known_static_addresses < <(sed 's/#.\{0,\}//gi' < "$PUB_CONFIG" | awk '{print $1}' | grep -oiE "([0-9a-f]{2}:){5}[0-9a-f]{2}" )
+
+							#LOGGING
+							$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] removed static device ${GREEN}$mac${NC}"
+
+							#PERFORM DEPARTURE SCAN TO MAKE SURE THIS DEVICE IS GONE
+							perform_departure_scan
+						fi 
+					fi 
+				else
+					$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] new static device request did not contain a device address ${NC}"
+				fi
+
 			elif [[ $mqtt_topic_branch =~ .*DEPART.* ]]; then 
 				
 				#IGNORE OR PASS MQTT INSTRUCTION?
@@ -1115,7 +1208,8 @@ while true; do
 				
 				mqtt_echo
 			
-			elif [[ $mqtt_topic_branch =~ .*UPDATEBETA.* ]]; then 
+			elif [[ $mqtt_topic_branch =~ .*UPDATEBETA.* ]]; then
+
 				$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] beta update requested ${NC}"				
 				
 				#GIT FETCH
@@ -1134,6 +1228,7 @@ while true; do
 				exit 0
 				
 			elif [[ $mqtt_topic_branch =~ .*UPDATE.* ]]; then 
+
 				$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] update requested ${NC}"				
 				
 				#GIT FETCH
@@ -1151,16 +1246,21 @@ while true; do
 				#exit
 				exit 0
 
-			elif [[ ${mqtt_topic_branch^^} =~ .*START.* ]] || [[ ${mqtt_topic_branch^^} =~ .*END.* ]]; then 
+			elif [[ ${mqtt_topic_branch^^} =~ .*START.* ]] || [[ ${mqtt_topic_branch^^} =~ .*END.* ]] || [[ ${mqtt_topic_branch^^} =~ .*STATUS.* ]]; then 
 				#IGNORE ERRORS
-				$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-SCAN]	${NC}[${RED}ignore mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
+				#$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-SCAN]	${NC}[${RED}ignore mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
 
+				continue
+
+			elif [[ ${mqtt_topic_branch^^} =~ .*[0-9A-F:-]{2,}.* ]]; then 
+				#LOG THE OUTPU
+				#log "${GREEN}[CMD-INST]	${NC}[${ORANGE}ignored mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
 				continue
 
 			else
 
 				#LOG THE OUTPU
-				log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
+				#log "${GREEN}[CMD-INST]	${NC}[${RED}fail mqtt${NC}] ${BLUE}topic:${NC} $topic_path_of_instruction ${BLUE}data:${NC} $data_of_instruction${NC}"
 
 				#DO A LITTLE SPELL CHECKING HERE
 				if [[ ${mqtt_topic_branch^^} =~ .*ARR.* ]]; then 
@@ -1197,6 +1297,25 @@ while true; do
 					last_rssi_scan=$(date +%s)
 				fi 
 			fi 
+
+			#RETURN PERIODIC SCAN MODE	
+			if [ "$PREF_PERIODIC_MODE" == true ]; then 
+
+				#SCANNED RECENTLY? 
+				duration_since_arrival_scan=$((timestamp - last_arrival_scan))
+				
+				#CALCULATE DEPARTURE
+				duration_since_depart_scan=$((timestamp - last_depart_scan))
+
+				if [ "$duration_since_depart_scan" -gt "$PREF_DEPART_SCAN_INTERVAL" ]; then 
+
+					perform_departure_scan
+
+				elif [ "$duration_since_arrival_scan" -gt "$PREF_ARRIVE_SCAN_INTERVAL" ]; then 
+
+					perform_arrival_scan 
+				fi
+			fi
 
 			#**********************************************************************
 			#
@@ -1772,9 +1891,8 @@ while true; do
 				#FIND NAME
 				expected_name="$(determine_name "$mac")"
 
-
 				log "${PURPLE}[CMD-$cmd]${NC}	$mac ${GREEN}$name${NC} ${BLUE}$manufacturer${NC} $rssi dBm"
-				
+
 				publish_presence_message \
 				"id=$mac" \
 				"confidence=100" \
@@ -1787,9 +1905,40 @@ while true; do
 				"flags=${flags:-none}" \
 				"movement=${change_type:-none}" \
 				"oem_data=${oem_data:-not advertised}" \
-				"resolvable=${resolvable:-PUBLIC}" \
-				"hex_data=${hex_data:-none}" 
+				"hex_data=${hex_data:-none}" \
+				"resolvable=${resolvable:-PUBLIC}"
+
+				#PERFORM SCAN HERE AS WELL
+				if [ "$is_new" == true ]; then 
+					#REJECTION FILTER
+					if [[ ${flags,,} =~ ${PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE,,} ]] || [[ ${manufacturer,,} =~ ${PREF_FAIL_FILTER_MANUFACTURER_ARRIVE,,} ]]; then 
+
+						$PREF_VERBOSE_LOGGING && log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: ${BLUE}${mac:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${RED}${flags:-none}${NC} man: ${RED}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
+
+						continue
+					fi 
+
+					#FLAG AND MFCG FILTER
+					if [[ ${flags,,} =~ ${PREF_PASS_FILTER_ADV_FLAGS_ARRIVE,,} ]] && [[ ${manufacturer,,} =~ ${PREF_PASS_FILTER_MANUFACTURER_ARRIVE,,} ]]; then 
+						#PROVIDE USEFUL LOGGING
+						$PREF_VERBOSE_LOGGING && log "${RED}[CMD-$cmd]${NC}	[${GREEN}passed filter${NC}] data: ${BLUE}${mac:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${BLUE}${flags:-none}${NC} man: ${BLUE}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
+
+						#WE ARE PERFORMING THE FIRST ARRIVAL SCAN?
+						first_arrive_scan=false
+
+						#SCAN ONLY IF WE ARE NOT IN TRIGGER MODE
+						perform_arrival_scan 
+
+						continue
+					else 
+						#PROVIDE USEFUL LOGGING
+						$PREF_VERBOSE_LOGGING && log "${RED}[CMD-$cmd]${NC}	[${RED}failed filter${NC}] data: ${BLUE}${mac:-none}${NC} pdu: ${BLUE}${pdu_header:-none}${NC} rssi: ${BLUE}${rssi:-UKN} dBm${NC} flags: ${RED}${flags:-none}${NC} man: ${RED}${manufacturer:-unknown}${NC} delay: ${BLUE}${instruction_delay:-UKN}${NC}"
+
+						continue
+					fi 
+				fi 
 			fi 
+
 
 		elif [ "$cmd" == "RAND" ] && [ "$is_new" == true ] && [ "$PREF_TRIGGER_MODE_ARRIVE" == false ] && [ -z "${blacklisted_devices[$mac]}" ]; then 
 			
@@ -1827,4 +1976,9 @@ while true; do
 		fi 
 
 	done < main_pipe
+
+	#SHOUD WE PERFORM AN ARRIVAL SCAN AFTER THIS FIRST LOOP?
+	if [ "$first_arrive_scan" == true ] && [ "$uptime" -lt "$PREF_STARTUP_SETTLE_TIME" ] ; then 
+		perform_arrival_scan 
+	fi
 done

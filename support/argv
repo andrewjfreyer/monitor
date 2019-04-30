@@ -63,6 +63,7 @@ usage:
 	monitor -u	update 'monitor.service' to current command line settings
 			(excluding -u,-V, -F, and -d flags)
 
+	monitor -r	repeatedly scan for arrival & departure of known devices
 	monitor -s  report all mqtt messages to a single topic with 
 				\$mqtt_topicpath/\$mqtt_publisher_identity  (defined in MQTT preferences file)
 
@@ -111,8 +112,9 @@ PREF_DISABLE_LOGGING=false
 PREF_VERBOSE_LOGGING=false
 PREF_FILTER_DEBUG_LOGGING=false
 PREF_MQTT_SINGLE_TOPIC_MODE=false
+PREF_PERIODIC_MODE=false
 
-while getopts "h?vfFbut:EgSRCmsVadxD:c:" opt; do
+while getopts "h?vfFbut:EgSRCmrsVadxD:c:" opt; do
 	case "$opt" in
 		h|\?)
 			show_help_text
@@ -120,6 +122,10 @@ while getopts "h?vfFbut:EgSRCmsVadxD:c:" opt; do
 			;;
 		S)
 			PREF_DISABLE_LOGGING=true && printf "%s\n" "> logging is disabled, although startup messages will still be shown"
+			;;
+
+		r)  PREF_PERIODIC_MODE=true 
+			printf "%s\n" "> ${ORANGE}warning:${NC} periodic scan mode may cause interference with 2.4GHz networks if run on a Raspberry Pi"
 			;;
 		v)  
 			printf "%s\n" "$VERSION"

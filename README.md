@@ -4,23 +4,9 @@
 
 ![version](https://img.shields.io/badge/version-0.2-green.svg?maxAge=2592000) ![mosquitto](https://img.shields.io/badge/mosquitto-1.5+-blue.svg?maxAge=2592000)
 
-____
+[**Frequently Asked Questions**](https://github.com/andrewjfreyer/monitor/blob/master/support/README.md)
 
-### *Table of Contents*
-
-  * [**Highlights**](#highlights)
-  
-  * [**Oversimplified Analogy of the Bluetooth Presence Problem**](#oversimplified-analogy-of-the-Bluetooth-presence-problem)
-
-  * [**Oversimplified Technical Description**](#oversimplified-technical-description)
-
-  * [**How `monitor` Works**](#how-monitor-works)
-
-  * [**Example with Home Assistant**](#example-with-home-assistant) 
-
-  * [**Installing on a Raspberry Pi Zero W**](#installation-instructions-for-raspberry-pi-zero-w) 
-
-____
+<details><summary><b>Background & Technical Details</b></summary>
 
 # *Highlights*
 
@@ -164,39 +150,203 @@ Since iBeacons include a UUID and a mac address, two presence messages are repor
 In some cases, certain manufacturers try to get sneaky and cause their beacons to advertise as "anonymous" (or "random") devices, despite that their addresses do not change at all. By default, `monitor` ignores anonymous devices, so to force `monitor` to recognize these devices, we add the "random" address to a file called `known_static_beacons`. After restarting, `monitor` will know that these addresses should be treated like a normal beacon. 
 ___
 
+</details>
+
+<details><summary><b>Installation Instructions</b></summary>
+
+<br>
+
+<details><summary><i>Set Up Raspberry Pi From Scratch</i></summary>
+
+
+# Installation Instructions for Raspberry Pi Zero W
+
+## Setup of SD Card
+
+1. Download latest version of **raspbian** [here](https://downloads.raspberrypi.org/raspbian_lite_latest)
+
+2. Download etcher from [etcher.io](https://etcher.io)
+
+3. Image **raspbian lite stretch** to SD card. [Instructions here.](https://www.raspberrypi.org/magpi/pi-sd-etcher/)
+
+4. Mount **boot** partition of imaged SD card (unplug it and plug it back in)
+
+5. **To enable ssh,** create blank file, without any extension, in the root directory called **ssh**
+
+6. **To setup Wi-Fi**, create **wpa_supplicant.conf** file in root directory and add Wi-Fi details for home Wi-Fi:
+
+```bash
+country=US
+    ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+    update_config=1
+
+network={
+    ssid="Your Network Name"
+    psk="Your Network Password"
+    key_mgmt=WPA-PSK
+}
+```
+
+ 7. **On the first startup,** insert SD card and power on Raspberry Pi Zero W. On first boot, the newly-created **wpa_supplicant.conf** file and **ssh** will be moved to appropriate directories. Find the IP address of the Pi via your router. 
+
+## Configuration and Setup
+
+1. SSH into the Raspberry Pi (default password: raspberry):
+```bash
+ssh pi@theipaddress
+```
+
+2. Change the default password:
+```bash 
+sudo passwd pi
+```
+
+3. Update and upgrade:
+
+```bash
+sudo apt-get update
+sudo apt-get upgrade -y
+sudo apt-get dist-upgrade -y
+sudo reboot
+```
+
+5. Install Bluetooth Firmware, if necessary:
+```bash
+#install Bluetooth drivers for Pi Zero W
+sudo apt-get install pi-bluetooth
+
+```
+
+6. Reboot:
+```bash
+sudo reboot
+```
+
+7. Install Mosquitto 1.5+ **(important step!)**:
+```bash
+
+# get repo key
+wget http://repo.mosquitto.org/debian/mosquitto-repo.gpg.key
+
+#add repo
+sudo apt-key add mosquitto-repo.gpg.key
+
+#download appropriate lists file 
+cd /etc/apt/sources.list.d/
+sudo wget http://repo.mosquitto.org/debian/mosquitto-stretch.list
+
+#update caches and install 
+apt-cache search mosquitto
+sudo apt-get update
+sudo apt-get install -f libmosquitto-dev mosquitto mosquitto-clients libmosquitto1
+```
+</details>
+
+<details><summary><i>Monitor Setup</i></summary>
+
+## Setup `monitor`
+
+1. Clone `monitor` git:
+```bash
+#install git
+cd ~
+sudo apt-get install git
+
+#clone this repo
+git clone git://github.com/andrewjfreyer/monitor
+
+#enter `monitor` directory
+cd monitor/
+
+#switch to beta branch for latest updates and features (may be instable)
+git checkout beta       
+
+```
+
+2. Initial run:
+
+Configuration files will be created with default preferences. Any executables that are not installed will be reported. All can be installed via `apt-get install ...`
+
+```bash 
+sudo bash monitor.sh
+```
+
+
+3. Edit **mqtt_preferences** file:
+
+```bash
+sudo nano mqtt_preferences
+```
+
+4. Edit **known_static_addresses** (phones, laptops, some smart watches): 
+
+```bash
+sudo nano known_static_addresses
+```
+
+Alternatively, send an mqtt message to `monitor/setup/ADD STATIC DEVICE` with a message including a mac address and an alias separated by a space:
+
+
+**topic:** `monitor/setup/ADD STATIC DEVICE` 
+**message:** 00:11:22:33:44:55 alias
+
+
+Use, `monitor/setup/DELETE STATIC DEVICE` with a message containing a mac address to remove a device from all `monitor` nodes.
+
+5. Read helpfile:
+
+```bash
+sudo bash monitor.sh -h
+```
+
+Now the basic setup is complete. Your broker should be receiving messages and the `monitor` service will restart each time the Raspberry Pi boots. As currently configured, you should run `sudo bash monitor.sh` a few times from your command line to get a sense of how the script works. 
+
+</details>
+
+___
+
+</details>
+
+
+<details><summary><b>Home Assistant Example</b></summary>
+
 # Example with Home Assistant
 
 Personally, I have four **raspberry pi zero w**s throughout the house and garage. My family spends most of our time on the first floor, so our main `monitor` node or sensor is on the first floor. Our other 'nodes' on the second and third floor and garage are set up for triggered use only - these will scan for ***ARRIVAL*** and ***DEPART*** only in response to mqtt messages, with option ```-tad```. The first floor node is set up to send mqtt arrive/depart scan instructions to these nodes by including the `-tr` flag ("report" to other nodes when an arrival or depart scan is triggered). 
 
-The first floor constantly monitors for beacons (`-b`) advertisements and anonymous advertisements, which may be sent by our phones listed in the `known_static_addresses` file. In response to a new anonymous advertisement, `monitor` will initiate an ***ARRIVAL*** scan for whichever of our phones is not present.  If one of those devices is seen, an mqtt message is sent to Home Assistant reporting that the scanned phone is "home" with a confidence of 100%. In addition, an mqtt message is sent to the second and third floor and garage to trigger a scan on those floors as well. 
+The first floor constantly monitors for beacons (`-b`) advertisements and anonymous advertisements, which may be sent by our phones listed in the `known_static_addresses` file. In response to a new anonymous advertisement, `monitor` will initiate an ***ARRIVAL*** scan for whichever of our phones is not present.  If one of those devices is seen, an mqtt message is sent to Home Assistant reporting that the scanned phone is "home" with a confidence of 100%. In addition, an mqtt message is sent to the second and third floor and garage to trigger a scan on those floors as well. As a result of this configuration, when we leave the house, we use either the front door or the garage door to trigger an mqtt trigger of ```monitor/scan/depart``` after a ten second delay to trigger a departure scan of our devices that were previously known to be present. The ten second delay gives us a chance to get out of Bluetooth range before a "departure" scan is triggered. Different houses/apartments will probably need different delays. 
 
-When we leave the house, we use either the front door or the garage door to trigger an mqtt trigger of ```monitor/scan/depart``` after a ten second delay to trigger a departure scan of our devices that were previously known to be present. The ten second delay gives us a chance to get out of Bluetooth range before a "departure" scan is triggered. Different houses/apartments will probably need different delays. 
+More specifically, each of these `monitor` nodes uses the same name for each device so that states can be tracked easily by Home Assistant. For example, on each node, my `known_static_addresses` file looks like this (note that 00:00:00:00:00:00 is an example address - this should be your phone's private, static, Bluetooth address): 
 
-[Home Assistant](https://www.home-assistant.io) receives mqtt messages and stores the values as input to a number of [mqtt sensors](https://www.home-assistant.io/components/sensor.mqtt/). Output from these sensors is combined to give an accurate numerical occupancy confidence.  
+```bash
+00:00:00:00:00:00 alias #comment that is ignored
+```
 
-For example (note that 00:00:00:00:00:00 is an example address - this should be your phone's private, static, Bluetooth address):
+The address I want to track is separated by a space from the *alias* that I want to use to refer to this device in Home Assistant. If you prefer to use the address instead of an alias, set the value `PREF_ALIAS_MODE=false` in your `behavior_preferences` file.
+
+In this manner, [Home Assistant](https://www.home-assistant.io) receives mqtt messages and stores the values as input to a number of [mqtt sensors](https://www.home-assistant.io/components/sensor.mqtt/). Output from these sensors is combined to give an accurate numerical occupancy confidence:
 
 ```
 - platform: mqtt
-  state_topic: 'monitor/first floor/00:00:00:00:00:00'
+  state_topic: 'monitor/first floor/alias'
   value_template: '{{ value_json.confidence }}'
   unit_of_measurement: '%'
   name: 'First Floor'
 
 - platform: mqtt
-  state_topic: 'monitor/second floor/00:00:00:00:00:00'
+  state_topic: 'monitor/second floor/alias'
   value_template: '{{ value_json.confidence }}'
   unit_of_measurement: '%'
   name: 'Second Floor'
 
 - platform: mqtt
-  state_topic: 'monitor/third floor/00:00:00:00:00:00'
+  state_topic: 'monitor/third floor/alias'
   value_template: '{{ value_json.confidence }}'
   unit_of_measurement: '%'
   name: 'Third Floor'
 
 - platform: mqtt
-  state_topic: 'monitor/garage/00:00:00:00:00:00'
+  state_topic: 'monitor/garage/alias'
   value_template: '{{ value_json.confidence }}'
   unit_of_measurement: '%'
   name: 'Garage'
@@ -279,135 +429,9 @@ As an example:
 
 For more information, see [here](https://community.home-assistant.io/t/device-tracker-from-script/97295/7) and [here](https://github.com/andrewjfreyer/monitor/issues/138).
 
-___
+</detail>
 
-# Installation Instructions for Raspberry Pi Zero W
-
-## Setup of SD Card
-
-1. Download latest version of **raspbian** [here](https://downloads.raspberrypi.org/raspbian_lite_latest)
-
-2. Download etcher from [etcher.io](https://etcher.io)
-
-3. Image **raspbian lite stretch** to SD card. [Instructions here.](https://www.raspberrypi.org/magpi/pi-sd-etcher/)
-
-4. Mount **boot** partition of imaged SD card (unplug it and plug it back in)
-
-5. **To enable ssh,** create blank file, without any extension, in the root directory called **ssh**
-
-6. **To setup Wi-Fi**, create **wpa_supplicant.conf** file in root directory and add Wi-Fi details for home Wi-Fi:
-
-```bash
-country=US
-    ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-    update_config=1
-
-network={
-    ssid="Your Network Name"
-    psk="Your Network Password"
-    key_mgmt=WPA-PSK
-}
-```
-
- 7. **On the first startup,** insert SD card and power on Raspberry Pi Zero W. On first boot, the newly-created **wpa_supplicant.conf** file and **ssh** will be moved to appropriate directories. Find the IP address of the Pi via your router. 
-
-## Configuration and Setup
-
-1. SSH into the Raspberry Pi (default password: raspberry):
-```bash
-ssh pi@theipaddress
-```
-
-2. Change the default password:
-```bash 
-sudo passwd pi
-```
-
-3. Update and upgrade:
-
-```bash
-sudo apt-get update
-sudo apt-get upgrade -y
-sudo apt-get dist-upgrade -y
-sudo reboot
-```
-
-5. Install Bluetooth Firmware, if necessary:
-```bash
-#install Bluetooth drivers for Pi Zero W
-sudo apt-get install pi-bluetooth
-
-```
-
-6. Reboot:
-```bash
-sudo reboot
-```
-
-7. Install Mosquitto 1.5+ **(important step!)**:
-```bash
-
-# get repo key
-wget http://repo.mosquitto.org/debian/mosquitto-repo.gpg.key
-
-#add repo
-sudo apt-key add mosquitto-repo.gpg.key
-
-#download appropriate lists file 
-cd /etc/apt/sources.list.d/
-sudo wget http://repo.mosquitto.org/debian/mosquitto-stretch.list
-
-#update caches and install 
-apt-cache search mosquitto
-sudo apt-get update
-sudo apt-get install libmosquitto-dev mosquitto mosquitto-clients
-```
-
-8. Clone `monitor` git:
-```bash
-#install git
-cd ~
-sudo apt-get install git
-
-#clone this repo
-git clone git://github.com/andrewjfreyer/monitor
-
-#enter `monitor` directory
-cd monitor/
-
-#switch to beta branch for latest updates and features (may be instable)
-git checkout beta       
-
-```
-
-9. Initial run:
-
-Configuration files will be created with default preferences. Any executables that are not installed will be reported. All can be installed via `apt-get install ...`
-
-```bash 
-sudo bash monitor.sh
-```
-
-
-10. Edit **mqtt_preferences** file:
-
-```bash
-sudo nano mqtt_preferences
-```
-
-11. Edit **known_static_addresses** (phones, laptops, some smart watches): 
-
-```bash
-sudo nano known_static_addresses
-```
-
-12. Read helpfile:
-
-```bash
-sudo bash monitor.sh -h
-```
-
-Now the basic setup is complete. Your broker should be receiving messages and the `monitor` service will restart each time the Raspberry Pi boots. As currently configured, you should run `sudo bash monitor.sh` a few times from your command line to get a sense of how the script works. 
+<details><summary>Detailed Info & Fine Tuning</summary>
 
 
 ## Fine Tuning
@@ -465,6 +489,7 @@ When `monitor` is first run, default preferences are created in the `behavior_pr
 | PREF_PASS_FILTER_MANUFACTURER_ARRIVE | .* | See above. |
 | PREF_FAIL_FILTER_ADV_FLAGS_ARRIVE | NONE | See above. |
 | PREF_FAIL_FILTER_MANUFACTURER_ARRIVE | NONE | See above. |
+| PREF_ALIAS_MODE | true | Disable or enable alias mode; if disabled, MQTT messages are sent using a device's mac address. |
 
 3. **Advanced configuration options:**
 
@@ -486,11 +511,14 @@ PREF_DEVICE_TRACKER_REPORT|false|If true, this value will cause `monitor` to rep
 PREF_DEVICE_TRACKER_HOME_STRING|home|If `PREF_DEVICE_TRACKER_REPORT` is true, this is the string that is reported to the device_tracker when the device is home.
 PREF_DEVICE_TRACKER_AWAY_STRING|not_home|If `PREF_DEVICE_TRACKER_REPORT` is true, this is the string that is reported to the device_tracker when the device is not home.
 PREF_DEVICE_TRACKER_TOPIC_BRANCH|device_tracker|If `PREF_DEVICE_TRACKER_REPORT` is true, this is last path element of the mqtt topic path that will be used to publish the device tracker message.
+PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP|This is the minimum interval used to estimate advertisement intervals reported in the MQTT message. Default is 15 seconds.
+PREF_DEPART_SCAN_INTERVAL|If using periodic scanning mode, this is the minimum interval at which depart scans are triggered automatically. 
+PREF_ARRIVE_SCAN_INTERVAL|If using periodic scanning mode, this is the minimum interval at which arrive scans are triggered automatically. 
 
 
 ## RSSI Tracking
 
-This script can also track RSSI changes throughout the day. This can be useful for very rudimentary room-level tracking. Only devices in `known_static_addresses` that have been paired to a `monitor` node can have their RSSI tracked. Here's how to pair: 
+This script can also track RSSI changes throughout the day. This can be used for very rudimentary room- or floor-level tracking. Only devices in `known_static_addresses` that have been paired to a `monitor` node can have their RSSI tracked. Here's how to pair: 
 
 1. Stop `monitor` service:
 
@@ -539,5 +567,7 @@ sensor:
         window_size: 00:01
         precision: 1
 ```
+
+</details>
 
 Anything else? Post a [question.](https://github.com/andrewjfreyer/monitor/issues/new)
