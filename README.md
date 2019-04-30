@@ -154,7 +154,7 @@ ___
 
 <details><summary>Installation Instructions</summary>
 
-* <details><summary>Set Up Raspberry Pi From Scratch</summary>
+<details><summary>Set Up Raspberry Pi From Scratch</summary>
 
 
 # Installation Instructions for Raspberry Pi Zero W
@@ -238,10 +238,9 @@ apt-cache search mosquitto
 sudo apt-get update
 sudo apt-get install -f libmosquitto-dev mosquitto mosquitto-clients libmosquitto1
 ```
-
 </details>
 
-* <details><summary>Set up `monitor`</summary>
+<details><summary>Set up `monitor`</summary>
 
 
 1. Clone `monitor` git:
