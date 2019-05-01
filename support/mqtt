@@ -163,6 +163,7 @@ mqtt_error_handler () {
 		[[ ${1^^} =~ .*NETWORK.* ]] && return_value=0 && print_message="network is down. enqueuing command to try again after a delay."
 
 		[ $return_value == 0 ] && log "${RED}[CMD-POST]${NC}	${YELLOW} $print_message ${NC}"
+		return_value=1
 	fi
 
 	return $return_value
