@@ -274,9 +274,27 @@ publish_presence_message () {
 			fi
  		fi 
 
-		#DEBUGGING WITH SIMPLE
-		log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic${NC}"
-		$PREF_VERBOSE_LOGGING && printf "%s\n" "${YELLOW}$(json_unformat "$message")${NC}" 
+		#MESSAGE PRINTING
+		if [ $PREF_VERBOSE_LOGGING == true ]; then 
+
+
+			log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic${NC}"
+			#REDACTIONS?
+			if [ "$PREF_REDACT" == true ]; then 
+				printf "%s\n" "${YELLOW}$(json_unformat "$message" | sed "s/\([0-9A-Fa-f]\{2\}:\)\{5\}/ [REDACTED]:/gi;s/\([0-9A-Fa-f-]\{36\}\)/ [REDACTED]/gi" )${NC}" 
+			else
+				printf "%s\n" "${YELLOW}$(json_unformat "$message")${NC}" 
+
+			fi 
+		
+		elif [[ "${message,,}" =~ \"confidence\":\"([0-9]{1,3})\" ]]; then 
+
+			#GET CONFIDENCE VALUE
+			confidence_printable="${BASH_REMATCH[1]}"
+
+			#EXTRACT CONFIDENCE VALUE TO POST
+			log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic { ... confidence : $confidence_printable ... } ${NC}"
+		fi 
 
 		#POST TO MQTT
 		$mosquitto_pub_path \
