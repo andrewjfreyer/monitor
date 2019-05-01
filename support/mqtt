@@ -44,13 +44,17 @@ function json_format (){
 # MQTT ANNOUNCE ONLINE
 # ----------------------------------------------------------------------------------------
 mqtt_announce_online(){
+	local mqtt_error
+
 	#ANNOUCEE HEALTH 
-	$mosquitto_pub_path \
+	mqtt_error=$($mosquitto_pub_path \
 	-I "$mqtt_publisher_identity" \
 	$mqtt_version_append \
 	$mqtt_ca_file_append \
 	-L "$mqtt_url$mqtt_topicpath/$mqtt_publisher_identity/status" \
-	-m "online" -q "2" 2>&1 
+	-m "online" -q "2"  2>&1)
+
+	log "${RED}[CMD-POST]${NC}	${YELLOW}mqtt response: [$mqtt_error] ${NC} $LINENO"
 }
 
 # ----------------------------------------------------------------------------------------
@@ -113,6 +117,8 @@ mqtt_broker_clean (){
 mqtt_listener (){
 	#ANNOUNCE ONLINE PRESENCE
 	mqtt_announce_online
+
+	#DEFINE LOCALS
 	local topic_data
 	local topic_path
 
@@ -156,11 +162,11 @@ publish_rssi_message () {
 		local address
 		local message
 		local mqtt_topic_branch
+		local mqtt_error
 
 		#SET ISOLATED ADDRESS
 	    address="$1"
 		message="$2"
-
 		mqtt_topic_branch="$address"
 
 	    #ALIASES? 
@@ -171,12 +177,14 @@ publish_rssi_message () {
 		$PREF_VERBOSE_LOGGING && log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic${NC}"
 
 		#POST TO MQTT
-		$mosquitto_pub_path \
+		mqtt_error=$($mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-L "$mqtt_url$topic" \
-		-m "$message" 2>&1
+		-m "$message" 2>&1)
+
+		log "${RED}[CMD-POST]${NC}	${YELLOW}mqtt response: [$mqtt_error] ${NC} $LINENO"
 	fi
 }
 
@@ -196,6 +204,7 @@ publish_presence_message () {
 		local mqtt_topic_branch
 		local confidence_printable
 		local device_tracker_message
+		local mqtt_error
 
 		#SET ISOLATED ADDRESS
 	    isolated_address="${1##*=}"
@@ -264,13 +273,16 @@ publish_presence_message () {
 	 			fi 
 
 	 			#POST TO MQTT
-				$mosquitto_pub_path \
+				mqtt_error=$($mosquitto_pub_path \
 				-I "$mqtt_publisher_identity" \
 				$should_retain \
 				$mqtt_version_append \
 				$mqtt_ca_file_append \
 				-L "$mqtt_url$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH" \
-				-m "$device_tracker_message" 2>&1
+				-m "$device_tracker_message" 2>&1)
+
+				log "${RED}[CMD-POST]${NC}	${YELLOW}mqtt response: [$mqtt_error] ${NC} $LINENO"
+
 			fi
  		fi 
 
@@ -297,52 +309,59 @@ publish_presence_message () {
 		fi 
 
 		#POST TO MQTT
-		$mosquitto_pub_path \
+		mqtt_error=$($mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$should_retain \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-q 2 \
 		-L "$mqtt_url$topic" \
-		-m "$message" 2>&1
+		-m "$message" 2>&1)
+
+		log "${RED}[CMD-POST]${NC}	${YELLOW}mqtt response: [$mqtt_error] ${NC} $LINENO"
+
 	fi
 }
 
 publish_cooperative_scan_message () {
+	local mqtt_error
 
 	#ANNOUNCE ONLINE
 	mqtt_announce_online
 
 	if [ -n "$1" ] && [ -z "$2" ]; then 
 		#POST TO MQTT
-		$mosquitto_pub_path \
+		mqtt_error=$($mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-q 2 \
 		-L "$mqtt_url$mqtt_topicpath/scan/$1" \
-		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1
+		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1)
 
 	elif [ -n "$1" ] && [ -n "$2" ]; then 
 		#POST TO MQTT
-		$mosquitto_pub_path \
+		mqtt_error=$($mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-q 2 \
 		-L "$mqtt_url$mqtt_topicpath/$2/$1" \
-		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1
+		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1)
 
 	else 
 		
-		$mosquitto_pub_path \
+		mqtt_error=$($mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		-q 2 \
 		$mqtt_ca_file_append \
 		-L "$mqtt_url$mqtt_topicpath/scan" \
-		-m "{\"identity\":\"$mqtt_publisher_identity\"}" 2>&1
+		-m "{\"identity\":\"$mqtt_publisher_identity\"}" 2>&1)
 	fi 
+
+
+	log "${RED}[CMD-POST]${NC}	${YELLOW}mqtt response: [$mqtt_error] ${NC} $LINENO"
 }
 
 #SHOULD CLEAN? 
