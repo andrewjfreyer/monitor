@@ -166,7 +166,7 @@ mqtt_error_handler () {
 		[[ ${mqtt_error^^} =~ .*REFUSED.* ]] && print_message="mqtt broker refused connection - check username, password, and host address"
 		[[ ${mqtt_error^^} =~ .*NETWORK.* ]] && print_message="network is down. enqueuing command to try again after a delay."
 
-		[ -n "$print_message" ] && log "${RED}[CMD-ERROR]${NC}	${YELLOW} $print_message / $mqtt_error ${NC}"
+		log "${RED}[CMD-ERROR]${NC}	${YELLOW} $print_message / $mqtt_error ${NC}"
 	fi
 }
 
