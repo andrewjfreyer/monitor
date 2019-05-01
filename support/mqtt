@@ -44,7 +44,6 @@ function json_format (){
 # MQTT ANNOUNCE ONLINE
 # ----------------------------------------------------------------------------------------
 mqtt_announce_online(){
-	
 
 	#ANNOUCEE HEALTH 
 	mqtt_error_handler $($mosquitto_pub_path \
@@ -168,7 +167,7 @@ mqtt_error_handler () {
 		$return_value && log "${RED}[CMD-POST]${NC}	${YELLOW} $print_message ${NC}"
 	fi
 
-	return $return_value
+	echo $return_value
 }
 
 # ----------------------------------------------------------------------------------------
