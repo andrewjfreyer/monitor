@@ -171,12 +171,12 @@ publish_rssi_message () {
 		$PREF_VERBOSE_LOGGING && log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic${NC}"
 
 		#POST TO MQTT
-		($mosquitto_pub_path \
+		$mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-L "$mqtt_url$topic" \
-		-m "$message" 2>&1)
+		-m "$message" 2>&1
 	fi
 }
 
@@ -254,13 +254,13 @@ publish_presence_message () {
 	 			$PREF_VERBOSE_LOGGING && printf "%s\n" "${YELLOW}$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH $device_tracker_message${NC}"
 
 	 			#POST TO MQTT
-				($mosquitto_pub_path \
+				$mosquitto_pub_path \
 				-I "$mqtt_publisher_identity" \
 				$should_retain \
 				$mqtt_version_append \
 				$mqtt_ca_file_append \
 				-L "$mqtt_url$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH" \
-				-m "$device_tracker_message" 2>&1)
+				-m "$device_tracker_message" 2>&1
 			fi
  		fi 
 
@@ -269,14 +269,14 @@ publish_presence_message () {
 		$PREF_VERBOSE_LOGGING && printf "%s\n" "${YELLOW}$(json_unformat "$message")${NC}" 
 
 		#POST TO MQTT
-		($mosquitto_pub_path \
+		$mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$should_retain \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-q 2 \
 		-L "$mqtt_url$topic" \
-		-m "$message" 2>&1)  	
+		-m "$message" 2>&1
 	fi
 }
 
@@ -287,33 +287,33 @@ publish_cooperative_scan_message () {
 
 	if [ -n "$1" ] && [ -z "$2" ]; then 
 		#POST TO MQTT
-		($mosquitto_pub_path \
+		$mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-q 2 \
 		-L "$mqtt_url$mqtt_topicpath/scan/$1" \
-		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1)
+		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1
 
 	elif [ -n "$1" ] && [ -n "$2" ]; then 
 		#POST TO MQTT
-		($mosquitto_pub_path \
+		$mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-q 2 \
 		-L "$mqtt_url$mqtt_topicpath/$2/$1" \
-		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1)
+		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1
 
 	else 
 		
-		($mosquitto_pub_path \
+		$mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		-q 2 \
 		$mqtt_ca_file_append \
 		-L "$mqtt_url$mqtt_topicpath/scan" \
-		-m "{\"identity\":\"$mqtt_publisher_identity\"}" 2>&1)
+		-m "{\"identity\":\"$mqtt_publisher_identity\"}" 2>&1
 	fi 
 }
 

@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.187
+export version=0.2.188
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1103,7 +1103,7 @@ while true; do
 					"type=KNOWN_MAC"
 				done
 				
-			elif [[ $mqtt_topic_branch =~ .*NEW\ STATIC\ DEVICE.* ]] || [[ $mqtt_topic_branch =~ .*DELETE\ STATIC\ DEVICE.* ]]; then 
+			elif [[ $mqtt_topic_branch =~ .*ADD\ STATIC\ DEVICE.* ]] || [[ $mqtt_topic_branch =~ .*DELETE\ STATIC\ DEVICE.* ]]; then 
 
 				if [[ "${data_of_instruction^^}" =~ ([A-F0-9]{2}:){5}[A-F0-9]{2} ]]; then 
 					#GET MAC ADDRESSES
@@ -1111,7 +1111,7 @@ while true; do
 					if [ ! ${known_public_device_name[$mac]+true} ]; then 
 
 						#HERE, WE KNOW THAT WE HAVE A MAC ADDRESS AND A VALID INSTRUCTION
-						if [[ $mqtt_topic_branch =~ .*NEW\ STATIC\ DEVICE.* ]]; then 
+						if [[ $mqtt_topic_branch =~ .*ADD\ STATIC\ DEVICE.* ]]; then 
 							#WAS THERE A NAME HERE?
 							name=$(echo "$data_of_instruction" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$mac //gi;s/  */ /gi" )
 
