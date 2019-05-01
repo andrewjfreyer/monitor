@@ -299,6 +299,21 @@ publish_presence_message () {
 			fi
  		fi 
 
+		#POST TO MQTT
+		while mqtt_error_handler $($mosquitto_pub_path \
+		-I "$mqtt_publisher_identity" \
+		$should_retain \
+		$mqtt_version_append \
+		$mqtt_ca_file_append \
+		-q 2 \
+		-L "$mqtt_url$topic" \
+		-m "$message" 2>&1); do 
+
+			echo "TODO: handle error at $LINENO"
+			sleep 5
+		done 
+
+		
 		#MESSAGE PRINTING
 		if [ $PREF_VERBOSE_LOGGING == true ]; then 
 
@@ -320,20 +335,6 @@ publish_presence_message () {
 			#EXTRACT CONFIDENCE VALUE TO POST
 			log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic { ... confidence : $confidence_printable ... } ${NC}"
 		fi 
-
-		#POST TO MQTT
-		while mqtt_error_handler $($mosquitto_pub_path \
-		-I "$mqtt_publisher_identity" \
-		$should_retain \
-		$mqtt_version_append \
-		$mqtt_ca_file_append \
-		-q 2 \
-		-L "$mqtt_url$topic" \
-		-m "$message" 2>&1); do 
-
-			echo "TODO: handle error at $LINENO"
-			sleep 5
-		done 
 	fi
 }
 
