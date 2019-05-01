@@ -46,14 +46,12 @@ function json_format (){
 mqtt_announce_online(){
 
 	#ANNOUCEE HEALTH 
-	[ mqtt_error_handler $($mosquitto_pub_path \
+	mqtt_error_handler \
 	-I "$mqtt_publisher_identity" \
 	$mqtt_version_append \
 	$mqtt_ca_file_append \
 	-L "$mqtt_url$mqtt_topicpath/$mqtt_publisher_identity/status" \
-	-m "online" -q "2"  2>&1) == 0 ] && echo "TODO: handle error at $LINENO"
-
-	
+	-m "online" -q "2"  2>&1)
 }
 
 # ----------------------------------------------------------------------------------------
@@ -61,13 +59,13 @@ mqtt_announce_online(){
 # ----------------------------------------------------------------------------------------
 mqtt_echo(){
 	#ANNOUCEE HEALTH 
-	mqtt_error_handler $($mosquitto_pub_path \
+	mqtt_error_handler \
 	-I "$mqtt_publisher_identity" \
 	$mqtt_version_append \
 	$mqtt_ca_file_append \
 	-L "$mqtt_url$mqtt_topicpath/$mqtt_publisher_identity/echo" \
 	-m "ok" \ 
-	-q "2" 2>&1) && echo "TODO: handle error at $LINENO"
+	-q "2"
 }
 
 
@@ -154,20 +152,19 @@ mqtt_listener (){
 # MQTT ERROR HANDLER
 # ----------------------------------------------------------------------------------------
 mqtt_error_handler () {
-	local return_value
-	return_value=0
 
-	if [ -n "$1" ]; then 
-		local print_message
+	#RUN THE COMMAND
+	mqtt_error=$($mosquitto_pub_path $@ 2>&1)
+
+	#PROCESS ANY ERRORS THAT SHOULD OCCURR
+	if [ -n "$mqtt_error" ]; then 
 
 		#ERRORS 
-		[[ ${1^^} =~ .*REFUSED.* ]] && return_value=1 && print_message="mqtt broker refused connection - check username, password, and host address"
-		[[ ${1^^} =~ .*NETWORK.* ]] && return_value=1 && print_message="network is down. enqueuing command to try again after a delay."
+		[[ ${mqtt_error^^} =~ .*REFUSED.* ]] && print_message="mqtt broker refused connection - check username, password, and host address"
+		[[ ${mqtt_error^^} =~ .*NETWORK.* ]] && print_message="network is down. enqueuing command to try again after a delay."
 
-		[ $return_value == 1 ] && log "${RED}[CMD-POST]${NC}	${YELLOW} $print_message ${NC}"
+		log "${RED}[CMD-ERROR]${NC}	${YELLOW} $print_message ${NC}"
 	fi
-
-	return $return_value
 }
 
 # ----------------------------------------------------------------------------------------
@@ -195,12 +192,12 @@ publish_rssi_message () {
 		$PREF_VERBOSE_LOGGING && log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic${NC}"
 
 		#POST TO MQTT
-		mqtt_error_handler $($mosquitto_pub_path \
+		mqtt_error_handler \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-L "$mqtt_url$topic" \
-		-m "$message" 2>&1) && echo "TODO: handle error at $LINENO"
+		-m "$message"
 	fi
 }
 
@@ -289,13 +286,13 @@ publish_presence_message () {
 	 			fi 
 
 	 			#POST TO MQTT
-				mqtt_error_handler $($mosquitto_pub_path \
+				mqtt_error_handler \
 				-I "$mqtt_publisher_identity" \
 				$should_retain \
 				$mqtt_version_append \
 				$mqtt_ca_file_append \
 				-L "$mqtt_url$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH" \
-				-m "$device_tracker_message" 2>&1) && echo "TODO: handle error at $LINENO"
+				-m "$device_tracker_message"
 
 			fi
  		fi 
@@ -323,14 +320,14 @@ publish_presence_message () {
 		fi 
 
 		#POST TO MQTT
-		mqtt_error_handler $($mosquitto_pub_path \
+		mqtt_error_handler \
 		-I "$mqtt_publisher_identity" \
 		$should_retain \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-q 2 \
 		-L "$mqtt_url$topic" \
-		-m "$message" 2>&1) && echo "TODO: handle error at $LINENO"
+		-m "$message"
 
 		
 
@@ -345,33 +342,33 @@ publish_cooperative_scan_message () {
 
 	if [ -n "$1" ] && [ -z "$2" ]; then 
 		#POST TO MQTT
-		mqtt_error_handler $($mosquitto_pub_path \
+		mqtt_error_handler \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-q 2 \
 		-L "$mqtt_url$mqtt_topicpath/scan/$1" \
-		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1) && echo "TODO: handle error at $LINENO"
+		-m "{\"identity\":\"$mqtt_publisher_identity\"}" 
 
 	elif [ -n "$1" ] && [ -n "$2" ]; then 
 		#POST TO MQTT
-		mqtt_error_handler $($mosquitto_pub_path \
+		mqtt_error_handler \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-q 2 \
 		-L "$mqtt_url$mqtt_topicpath/$2/$1" \
-		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1) && echo "TODO: handle error at $LINENO"
+		-m "{\"identity\":\"$mqtt_publisher_identity\"}" 
 
 	else 
 		
-		mqtt_error_handler $($mosquitto_pub_path \
+		mqtt_error_handler \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		-q 2 \
 		$mqtt_ca_file_append \
 		-L "$mqtt_url$mqtt_topicpath/scan" \
-		-m "{\"identity\":\"$mqtt_publisher_identity\"}" 2>&1) && echo "TODO: handle error at $LINENO"
+		-m "{\"identity\":\"$mqtt_publisher_identity\"}"
 	fi 
 }
 
