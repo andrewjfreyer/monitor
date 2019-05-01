@@ -194,6 +194,7 @@ publish_presence_message () {
 		local message
 		local existing_alias
 		local mqtt_topic_branch
+		local confidence_printable
 		local device_tracker_message
 
 		#SET ISOLATED ADDRESS
@@ -250,8 +251,17 @@ publish_presence_message () {
  			#A COMPLETE CONFIDENCE MESSAGE
  			if [ -n "$device_tracker_message" ]; then 
 	 			#PRINT FOR DEVICE TRACKER
-	 			log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH${NC}"
-	 			$PREF_VERBOSE_LOGGING && printf "%s\n" "${YELLOW}$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH $device_tracker_message${NC}"
+	 			if [ $PREF_VERBOSE_LOGGING == true ]; then 
+	 				log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH $device_tracker_message${NC}"
+	 			
+	 			elif [[ "${message,,}" =~ \"confidence\":\"([0-9]{1,3})\" ]]; then 
+
+	 				#GET CONFIDENCE VALUE
+					confidence_printable="${BASH_REMATCH[1]}"
+ 
+	 				#EXTRACT CONFIDENCE VALUE TO POST
+	 				log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH { ... confidence : $confidence_printable ... } ${NC}"
+	 			fi 
 
 	 			#POST TO MQTT
 				$mosquitto_pub_path \
