@@ -157,6 +157,8 @@ mqtt_error_handler () {
 	#RUN THE COMMAND
 	mqtt_error=$($mosquitto_pub_path $@ 2>&1)
 
+	local print_message
+
 	#PROCESS ANY ERRORS THAT SHOULD OCCURR
 	if [ -n "$mqtt_error" ]; then 
 
@@ -164,7 +166,7 @@ mqtt_error_handler () {
 		[[ ${mqtt_error^^} =~ .*REFUSED.* ]] && print_message="mqtt broker refused connection - check username, password, and host address"
 		[[ ${mqtt_error^^} =~ .*NETWORK.* ]] && print_message="network is down. enqueuing command to try again after a delay."
 
-		log "${RED}[CMD-ERROR]${NC}	${YELLOW} $print_message ${NC}"
+		[ -n "$print_message" ] && log "${RED}[CMD-ERROR]${NC}	${YELLOW} $print_message / $mqtt_error ${NC}"
 	fi
 }
 
