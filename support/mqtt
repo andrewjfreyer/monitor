@@ -152,11 +152,9 @@ mqtt_listener (){
 # MQTT ERROR HANDLER
 # ----------------------------------------------------------------------------------------
 mqtt_error_handler () {
-	local received="$@"
+	local received="$*"
 	local return_value
 	return_value=1
-
-	printf "%s\n" "$received"
 
 	if [ -n "$received" ]; then 
 		local print_message
@@ -165,7 +163,7 @@ mqtt_error_handler () {
 		[[ ${received^^} =~ .*REFUSED.* ]] && return_value=0 && print_message="mqtt broker refused connection - check username, password, and host address"
 		[[ ${received^^} =~ .*NETWORK.* ]] && return_value=0 && print_message="network is down. enqueuing command to try again after a delay."
 
-		log "${RED}[CMD-POST]${NC}	${YELLOW} [$@] $print_message ${NC}"
+		log "${RED}[CMD-POST]${NC}	${YELLOW} $received / $print_message ${NC}"
 		return_value=0
 	fi
 
