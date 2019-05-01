@@ -163,7 +163,7 @@ mqtt_error_handler () {
 		[[ ${received^^} =~ .*REFUSED.* ]] && return_value=1 && print_message="mqtt broker refused connection - check username, password, and host address"
 		[[ ${received^^} =~ .*NETWORK.* ]] && return_value=0 && print_message="network is down. enqueuing command to try again after a delay"
 
-		log "${RED}[CMD-ERRO]${NC}	${YELLOW} $print_message ${NC}"
+		log "${RED}[CMD-ERRO]${NC}	${YELLOW}$print_message ${NC}"
 		return_value=0
 	fi
 
@@ -195,12 +195,14 @@ publish_rssi_message () {
 		$PREF_VERBOSE_LOGGING && log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic${NC}"
 
 		#POST TO MQTT
-		mqtt_error_handler $($mosquitto_pub_path \
+		while mqtt_error_handler $($mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-L "$mqtt_url$topic" \
-		-m "$message" 2>&1) && sleep 5 && publish_rssi_message "$1" "$2"
+		-m "$message" 2>&1); do 
+			sleep 15
+		done 
 	fi
 }
 
@@ -220,8 +222,8 @@ publish_presence_message () {
 		local mqtt_topic_branch
 		local confidence_printable
 		local device_tracker_message
-		
 
+	
 		#SET ISOLATED ADDRESS
 	    isolated_address="${1##*=}"
 		mqtt_topic_branch="$isolated_address"
@@ -275,6 +277,17 @@ publish_presence_message () {
  			#ONLY POST A MESSAGE TO DEVICE TRACKER BOARD IF WE HAVE 
  			#A COMPLETE CONFIDENCE MESSAGE
  			if [ -n "$device_tracker_message" ]; then 
+	 			#POST TO MQTT
+				while mqtt_error_handler $($mosquitto_pub_path \
+				-I "$mqtt_publisher_identity" \
+				$should_retain \
+				$mqtt_version_append \
+				$mqtt_ca_file_append \
+				-L "$mqtt_url$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH" \
+				-m "$device_tracker_message" 2>&1); do 
+					sleep 5
+				done
+
 	 			#PRINT FOR DEVICE TRACKER
 	 			if [ $PREF_VERBOSE_LOGGING == true ]; then 
 	 				log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH $device_tracker_message${NC}"
@@ -287,15 +300,6 @@ publish_presence_message () {
 	 				#EXTRACT CONFIDENCE VALUE TO POST
 	 				log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH { ... confidence : $confidence_printable ... } ${NC}"
 	 			fi 
-
-	 			#POST TO MQTT
-				mqtt_error_handler $($mosquitto_pub_path \
-				-I "$mqtt_publisher_identity" \
-				$should_retain \
-				$mqtt_version_append \
-				$mqtt_ca_file_append \
-				-L "$mqtt_url$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH" \
-				-m "$device_tracker_message" 2>&1) && echo "TODO: handle error at $LINENO"
 			fi
  		fi 
 
@@ -308,12 +312,10 @@ publish_presence_message () {
 		-q 2 \
 		-L "$mqtt_url$topic" \
 		-m "$message" 2>&1); do 
-
-			echo "TODO: handle error at $LINENO"
 			sleep 5
 		done 
 
-		
+
 		#MESSAGE PRINTING
 		if [ $PREF_VERBOSE_LOGGING == true ]; then 
 
@@ -346,33 +348,33 @@ publish_cooperative_scan_message () {
 
 	if [ -n "$1" ] && [ -z "$2" ]; then 
 		#POST TO MQTT
-		mqtt_error_handler $($mosquitto_pub_path \
+		$mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-q 2 \
 		-L "$mqtt_url$mqtt_topicpath/scan/$1" \
-		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1) && echo "TODO: handle error at $LINENO"
+		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1
 
 	elif [ -n "$1" ] && [ -n "$2" ]; then 
 		#POST TO MQTT
-		mqtt_error_handler $($mosquitto_pub_path \
+		$mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-q 2 \
 		-L "$mqtt_url$mqtt_topicpath/$2/$1" \
-		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1) && echo "TODO: handle error at $LINENO"
+		-m "{\"identity\":\"$mqtt_publisher_identity\"}"  2>&1
 
 	else 
 		
-		mqtt_error_handler $($mosquitto_pub_path \
+		$mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$mqtt_version_append \
 		-q 2 \
 		$mqtt_ca_file_append \
 		-L "$mqtt_url$mqtt_topicpath/scan" \
-		-m "{\"identity\":\"$mqtt_publisher_identity\"}" 2>&1) && echo "TODO: handle error at $LINENO"
+		-m "{\"identity\":\"$mqtt_publisher_identity\"}" 2>&1
 	fi 
 }
 
