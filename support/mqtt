@@ -141,7 +141,7 @@ mqtt_listener (){
 			--will-payload "offline" 2>&1 ) 
 
 		#LOG ERROR
-		log "${RED}[CMD-ERRO]${NC}	${RED}mqtt broker is offline, or a password/username combination was rejected.${NC}"
+		log "${RED}[CMD-ERRO]${NC}	${YELLOW}mqtt broker refused connection - check username, password, and host address${NC}"
 		
 		sleep 10
 	done 
@@ -160,10 +160,10 @@ mqtt_error_handler () {
 		local print_message
 
 		#ERRORS 
-		[[ ${received^^} =~ .*REFUSED.* ]] && return_value=0 && print_message="mqtt broker refused connection - check username, password, and host address"
-		[[ ${received^^} =~ .*NETWORK.* ]] && return_value=0 && print_message="network is down. enqueuing command to try again after a delay."
+		[[ ${received^^} =~ .*REFUSED.* ]] && return_value=1 && print_message="mqtt broker refused connection - check username, password, and host address"
+		[[ ${received^^} =~ .*NETWORK.* ]] && return_value=0 && print_message="network is down. enqueuing command to try again after a delay"
 
-		log "${RED}[CMD-POST]${NC}	${YELLOW} $received / $print_message ${NC}"
+		log "${RED}[CMD-ERRO]${NC}	${YELLOW} $print_message ${NC}"
 		return_value=0
 	fi
 
@@ -200,7 +200,7 @@ publish_rssi_message () {
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-L "$mqtt_url$topic" \
-		-m "$message" 2>&1) && echo "TODO: handle error at $LINENO"
+		-m "$message" 2>&1) && sleep 5 && publish_rssi_message "$1" "$2"
 	fi
 }
 
@@ -309,9 +309,9 @@ publish_presence_message () {
 				printf "%s\n" "${YELLOW}$(json_unformat "$message" | sed "s/\([0-9A-Fa-f]\{2\}:\)\{5\}/ [REDACTED]:/gi;s/\([0-9A-Fa-f-]\{36\}\)/ [REDACTED]/gi" )${NC}" 
 			else
 				printf "%s\n" "${YELLOW}$(json_unformat "$message")${NC}" 
-
 			fi 
 		
+		#EXTRACT RAW CONFIDENC
 		elif [[ "${message,,}" =~ \"confidence\":\"([0-9]{1,3})\" ]]; then 
 
 			#GET CONFIDENCE VALUE
@@ -322,17 +322,18 @@ publish_presence_message () {
 		fi 
 
 		#POST TO MQTT
-		mqtt_error_handler $($mosquitto_pub_path \
+		while mqtt_error_handler $($mosquitto_pub_path \
 		-I "$mqtt_publisher_identity" \
 		$should_retain \
 		$mqtt_version_append \
 		$mqtt_ca_file_append \
 		-q 2 \
 		-L "$mqtt_url$topic" \
-		-m "$message" 2>&1) && echo "TODO: handle error at $LINENO"
+		-m "$message" 2>&1); do 
 
-		
-
+			echo "TODO: handle error at $LINENO"
+			sleep 5
+		done 
 	fi
 }
 
