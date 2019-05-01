@@ -153,6 +153,11 @@ Make sure you've updated `mosquitto` to v1.5 or higher. In order to support a wi
 #### I keep seeing MQTT Broker Offline messages in the `monitor` log. What's going on? 
 
 mosquitto fails to connect to a broker if your password has certain special characters such as: `@`, `:`,`/` - if this is the case, the easiest solution is to create a new user for `monitor` with a different password. 
+
+#### Can I use a certfile for mosquitto instead of my password? 
+
+Yes, specify a path for `mqtt_certificate_path` in mqtt_preferences.
+
 ____
 
 ## *Filters*
