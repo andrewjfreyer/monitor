@@ -51,7 +51,8 @@ mqtt_announce_online(){
 	$mqtt_version_append \
 	$mqtt_ca_file_append \
 	-L "$mqtt_url$mqtt_topicpath/$mqtt_publisher_identity/status" \
-	-m "online" -q "2"  2>&1)
+	-m "online" \
+	-q "2"
 }
 
 # ----------------------------------------------------------------------------------------
@@ -64,7 +65,7 @@ mqtt_echo(){
 	$mqtt_version_append \
 	$mqtt_ca_file_append \
 	-L "$mqtt_url$mqtt_topicpath/$mqtt_publisher_identity/echo" \
-	-m "ok" \ 
+	-m "ok" \
 	-q "2"
 }
 
