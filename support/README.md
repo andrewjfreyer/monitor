@@ -5,7 +5,7 @@ ____
 
 <details><summary><b> Will this be able to track my Apple Watch/Smart Watch?</b></summary><p><p>
 
-Yes, with a caveat. Many users, including myself, have successfully added Apple Watch Bluetooth addresses to the `known_static_addresses` file. In my personal experience, an Apple Watch works just fine [once it has connected to at least one other Bluetooth device, apart from your iPhone](https://github.com/andrewjfreyer/monitor#my-phone-doesnt-seem-to-automatically-broadcast-an-anonymous-bluetooth-advertisement-what-can-i-do). Other users have reported that the Apple Watch will occasionally not respond to `monitor`. Your mileage using the Apple Watch and/or other low-power connectible Bluetooth devices may vary. I strongly recommend tracking phones. 
+Yes, with a caveat. Many users, including myself, have successfully added Apple Watch Bluetooth addresses to the `known_static_addresses` file. In my personal experience, an Apple Watch works just fine [once it has connected to at least one other Bluetooth device, apart from your iPhone](https://github.com/andrewjfreyer/monitor#my-phone-doesnt-seem-to-automatically-broadcast-an-anonymous-bluetooth-advertisement-what-can-i-do). Other users have reported that the Apple Watch will occasionally not respond to this script. Your mileage using the Apple Watch and/or other low-power connectible Bluetooth devices may vary. I strongly recommend tracking phones. 
 
 </details>
 
@@ -14,7 +14,7 @@ Yes, with a caveat. Many users, including myself, have successfully added Apple 
 None, except in rare circumstances. The only requirement is that Bluetooth is left on. Works best with iPhones and Android phones that have peripheral mode enabled. 
 </details>
 
-<details><summary><b> Does `monitor` reduce battery life for my phone?</b></summary><p><p> 
+<details><summary><b> Does this script reduce battery life for my phone?</b></summary><p><p> 
 
 Not noticeable in my several years of using techniques similar to this. 
 </details>
@@ -61,7 +61,7 @@ Post a message with the mac address to: `monitor/setup/delete known device`
 Post a message with blank content to `monitor/scan/update` or `monitor/scan/updatebeta` 
 </details>
 
-<details><summary><b> How can I restart a `monitor` node?</b></summary><p><p> 
+<details><summary><b> How can I restart a this script node?</b></summary><p><p> 
 
 Via command line: 
 
@@ -74,7 +74,7 @@ Or, post a message with blank content to `monitor/scan/restart`
 
 <details><summary><b> Why don't I see RSSI for my iPhone/Andriod/whatever phone?</b></summary><p><p> 
 
-See the RSSI section of this FAQ. You'll have to connect your phone to `monitor` first.  
+See the RSSI section of this FAQ. You'll have to connect your phone to this script first.  
 </details>
 
 <details><summary><b> How do I force an RSSI update for a known device, like my phone?</b></summary><p><p> 
@@ -92,22 +92,22 @@ ____
 Yes, use periodic scanning mode with `-r`.
 </details>
 
-<details><summary><b> Can I use other Bluetooth services while `monitor` is running?</b></summary><p><p>
+<details><summary><b> Can I use other Bluetooth services while this script is running?</b></summary><p><p>
 
 No. Monitor needs exclusive use of the Bluetooth radio to function properly. This is why it is designed to run on inexpensive hardware like the Raspberry Pi Zero W. 
 </details>
 
-<details><summary><b> Can `monitor` run on XYZ hardware or in XYZ container?</b></summary><p><p>
+<details><summary><b> Can this script run on XYZ hardware or in XYZ container?</b></summary><p><p>
 
 Probably. The script has been designed to minimize dependencies as much as possible. That said, I can't guarantee or provide support to all systems. 
 </details>
 
-<details><summary><b> Does `monitor` interfere with Wi-Fi, Zigbee, or Zwave?</b></summary><p><p> 
+<details><summary><b> Does this script interfere with Wi-Fi, Zigbee, or Zwave?</b></summary><p><p> 
 
-It can, if it scans too frequently, especially if you're running `monitor` from internal Raspberry Pi radios. Try to use all techniques for reducing `name` scans, including using trigger-only depart mode `-tdr`. When in this mode, `monitor` will never scan when all devices are home. Instead, `monitor` will wait until a `monitor/scan/depart` message is sent. Personally, I use my front door lock as a depart scan trigger.
+It can, if it scans too frequently, especially if you're running this script from internal Raspberry Pi radios. Try to use all techniques for reducing `name` scans, including using trigger-only depart mode `-tdr`. When in this mode, this script will never scan when all devices are home. Instead, this script will wait until a `monitor/scan/depart` message is sent. Personally, I use my front door lock as a depart scan trigger.
 </details>
 
-<details><summary><b> How can I check if a `monitor` node is up and hasn't shut down for some reason?</b></summary><p><p>  
+<details><summary><b> How can I check if a this script node is up and hasn't shut down for some reason?</b></summary><p><p>  
 
 Post a message to `monitor/scan/echo`, and you'll receive a response at the topic `$mqtt_topicpath/$mqtt_publisher_identity/echo`
 </details>
@@ -117,9 +117,9 @@ Post a message to `monitor/scan/echo`, and you'll receive a response at the topi
 Cheap Wi-Fi chipsets and cheap Bluetooth chipsets can perform poorly together if operated at the same time, especially on Raspberry Pi devices. If you still experience interference in your network, switching to a Wi-Fi dongle can help. 
 </details>
 
-<details><summary><b> I use a Bluetooth dongle, and `monitor` seems to become non-responsive after a while - what's going on?</b></summary><p><p> 
+<details><summary><b> I use a Bluetooth dongle, and this script seems to become non-responsive after a while - what's going on?</b></summary><p><p> 
 
-Many Bluetooth dongles do not properly filter out duplicate advertisements, so `monitor` gets overwhelmed trying to filter out hundreds of reports, when it expects dozens. I'm working on a solution, but for now the best option is to switch to internal Bluetooth or, alternatively, you can try another Bluetooth dongle. 
+Many Bluetooth dongles do not properly filter out duplicate advertisements, so this script gets overwhelmed trying to filter out hundreds of reports, when it expects dozens. I'm working on a solution, but for now the best option is to switch to internal Bluetooth or, alternatively, you can try another Bluetooth dongle. 
 </details>
 
 ___
@@ -131,7 +131,7 @@ ___
 If more than one program or executable try to use the Bluetooth hardware at the same time, your Bluetooth hardware will report an error. To correct this error, the hardware needs to be taken offline, then brought back. 
 </details>
 
-<details><summary><b> I can't do **XYZ**, is `monitor` broken?</b></summary><p><p> 
+<details><summary><b> I can't do **XYZ**, is this script broken?</b></summary><p><p> 
 
 Run via command line and post log output to github. Else, access `journalctl` to show the most recent logs: 
 
@@ -159,14 +159,14 @@ Many phones will only broadcast once they have already connected to *at least on
 This is normal behavior for `mosquitto_pub` - nothing to worry about. 
 </details>
 
-<details><summary><b> I updated and `monitor` is no longer working ... what gives?</b></summary><p><p> 
+<details><summary><b> I updated and this script is no longer working ... what gives?</b></summary><p><p> 
 
 Make sure you've updated `mosquitto` to v1.5 or higher. In order to support a wider userbase, backward compatibility for old versions of `mosquitto` was dropped. It is alos strongly recommended that you upgrade to bash 4.4+.
 </details>
 
-<details><summary><b> I keep seeing MQTT Broker Offline messages in the `monitor` log. What's going on?</b></summary><p><p> 
+<details><summary><b> I keep seeing MQTT Broker Offline messages in the this script log. What's going on?</b></summary><p><p> 
 
-mosquitto fails to connect to a broker if your password has certain special characters such as: `@`, `:`,`/` - if this is the case, the easiest solution is to create a new user for `monitor` with a different password. 
+mosquitto fails to connect to a broker if your password has certain special characters such as: `@`, `:`,`/` - if this is the case, the easiest solution is to create a new user for this script with a different password. 
 </details>
 
 <details><summary><b> Can I use a certfile for mosquitto instead of my password?</b></summary><p><p> 
@@ -207,7 +207,7 @@ PREF_DEVICE_TRACKER_REPORT=true
 
 Then, an additional mqtt message will be posted to the topic branch ending in  `/device_tracker`
 
-So, as an example for a `monitor` node named "first floor", a device tracker configuration for Home Assistant can look like: 
+So, as an example for a this script node named "first floor", a device tracker configuration for Home Assistant can look like: 
 
 ```yaml
 
@@ -222,7 +222,7 @@ The standard confidence report will also send.
 
 <details><summary><b> How do I determine what values to set for filters?</b></summary><p><p>  
 
-Try using the verbose logging option `-V` to see what `monitor` sees when a new bluetooth device advertisement is seen. Then, power cycle the bluetooth radio on the device you'd like to track - you'll probably see a pattern develop with flags or manufacturers. Use these values to create your arrival filters!
+Try using the verbose logging option `-V` to see what this script sees when a new bluetooth device advertisement is seen. Then, power cycle the bluetooth radio on the device you'd like to track - you'll probably see a pattern develop with flags or manufacturers. Use these values to create your arrival filters!
 
 Similarly, to set exclude filters, you can observe bluetooth traffic for a period of time to see what devices you simply do not care about seeing. 
 </details>
@@ -239,7 +239,7 @@ Yes, this is default behavior. All you have to do is provide a name next to the 
 00:11:22:33:44:55 Andrew's iPhone
 ```
 
-Then restart the `monitor` service. The script will now use "andrew_s_iphone" as the final mqtt topic path component. 
+Then restart the this script service. The script will now use "andrew_s_iphone" as the final mqtt topic path component. 
 
 ***Important:***
 
