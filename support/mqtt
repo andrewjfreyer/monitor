@@ -85,7 +85,7 @@ mqtt_broker_clean (){
 	while read instruction; do
 
 		#ERROR HANDLING
-		[[ ${instruction^^} =~ .*REFUSED.* ]] && return 0
+		mqtt_error_handler "$instruction" && break
 		
 		#EXTRACT TOPIC PATH FROM FORMATTED MQTT MESSAGE
 		topic_path_of_instruction="${instruction%%|*}"
@@ -128,7 +128,7 @@ mqtt_listener (){
 		while read instruction; do 
 
 			#ERROR HANDLING
-			[[ ${instruction^^} =~ .*REFUSED.* ]] && break
+			mqtt_error_handler "$instruction" && break
 
 			#PRINT THE INSTRUCTION BACK TO THE MAIN THREAD
 			printf "MQTT$instruction\n" > main_pipe 
@@ -144,9 +144,7 @@ mqtt_listener (){
 			--will-topic "$mqtt_topicpath/$mqtt_publisher_identity/status" \
 			--will-payload "offline" 2>&1 ) 
 
-		#LOG ERROR
-		log "${RED}[CMD-ERRO]${NC}	${YELLOW}mqtt broker refused connection - check username, password, and host address${NC}"
-		
+		#NEED TO RESUBSCRIBE
 		sleep 10
 	done 
 }
@@ -173,7 +171,7 @@ mqtt_error_handler () {
 		if [ "$last_error_message" == "$print_message" ]; then 
 			#HERE, WE HAVE A REPEATED ERROR
 			duplicate_error_count=$((duplicate_error_count + 1 ))
-			
+			last_error_message="$print_message"			
 			log "${RED}[CMD-ERRO]${NC}	${YELLOW}$print_message (x$duplicate_error_count) ${NC}"
 
 		else
