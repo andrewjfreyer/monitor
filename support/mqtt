@@ -182,7 +182,7 @@ mqtt_error_handler () {
 
 		elif [ -n "$print_message" ]; then 
 			#MESSAGE IS NOT REPEATED, SO FEEL FREE TO LOG IT
-			log "${YELLOW}[CMD-POST]${NC}	${YELLOW}warning: $print_message ${NC}"
+			log "${YELLOW}[CMD-MQTT]${NC}	${YELLOW}warning: $print_message ${NC}"
 			duplicate_error_count=0
 			last_error_message="$print_message"	
 
@@ -220,7 +220,7 @@ publish_rssi_message () {
 		
 		local topic="$mqtt_topicpath/$mqtt_publisher_identity/$mqtt_topic_branch/rssi"
 
-		$PREF_VERBOSE_LOGGING && log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic${NC}"
+		$PREF_VERBOSE_LOGGING && log "${YELLOW}[CMD-MQTT]${NC}	${YELLOW}$topic${NC}"
 
 		#POST TO MQTT
 		while mqtt_error_handler $($mosquitto_pub_path \
@@ -318,7 +318,7 @@ publish_presence_message () {
 
 	 			#PRINT FOR DEVICE TRACKER
 	 			if [ $PREF_VERBOSE_LOGGING == true ]; then 
-	 				log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH $device_tracker_message${NC}"
+	 				log "${YELLOW}[CMD-MQTT]${NC}	${YELLOW}$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH $device_tracker_message${NC}"
 	 			
 	 			elif [[ "${message,,}" =~ \"confidence\":\"([0-9]{1,3})\" ]]; then 
 
@@ -326,7 +326,7 @@ publish_presence_message () {
 					confidence_printable="${BASH_REMATCH[1]}"
  
 	 				#EXTRACT CONFIDENCE VALUE TO POST
-	 				log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH { ... confidence : $confidence_printable ... } ${NC}"
+	 				log "${YELLOW}[CMD-MQTT]${NC}	${YELLOW}$topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH { ... confidence : $confidence_printable ... } ${NC}"
 	 			fi 
 			fi
  		fi 
@@ -348,7 +348,7 @@ publish_presence_message () {
 		if [ $PREF_VERBOSE_LOGGING == true ]; then 
 
 
-			log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic${NC}"
+			log "${YELLOW}[CMD-MQTT]${NC}	${YELLOW}$topic${NC}"
 			#REDACTIONS?
 			if [ "$PREF_REDACT" == true ]; then 
 				printf "%s\n" "${YELLOW}$(json_unformat "$message" | sed "s/\([0-9A-Fa-f]\{2\}:\)\{5\}/ [REDACTED]:/gi;s/\([0-9A-Fa-f-]\{36\}\)/ [REDACTED]/gi" )${NC}" 
@@ -363,7 +363,7 @@ publish_presence_message () {
 			confidence_printable="${BASH_REMATCH[1]}"
 
 			#EXTRACT CONFIDENCE VALUE TO POST
-			log "${YELLOW}[CMD-POST]${NC}	${YELLOW}$topic { ... confidence : $confidence_printable ... } ${NC}"
+			log "${YELLOW}[CMD-MQTT]${NC}	${YELLOW}$topic { ... confidence : $confidence_printable ... } ${NC}"
 		fi 
 	fi
 }
