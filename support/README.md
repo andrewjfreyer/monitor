@@ -1,6 +1,3 @@
-# *Frequenty Asked Questions:*
-____
-
 ## *Basics*
 
 <details><summary><b> Will this be able to track my Apple Watch/Smart Watch?</b></summary><p><p>
@@ -87,7 +84,7 @@ ____
 
 ## *Wi-Fi Interference & Performance Issues*
 
-<details><summary><b> I'm running 5GHz Wi-Fi, I don't use Bluetooth for anything else, and I don't care whether I interfere with my neighbor's devices. Can't I just issue a name scan every few seconds to get faster arrival and depart detection?</b></summary><p><p>
+<details><summary><b> Can't I just issue a name scan every few seconds to get faster arrival and depart detection?</b></summary><p><p>
 
 Yes, use periodic scanning mode with `-r`.
 </details>
@@ -112,7 +109,7 @@ It can, if it scans too frequently, especially if you're running this script fro
 Post a message to `monitor/scan/echo`, and you'll receive a response at the topic `$mqtt_topicpath/$mqtt_publisher_identity/echo`
 </details>
 
-<details><summary><b> I *still* have interference and/or my ssh sessions to the raspberry pi are really slow and laggy. What gives?</b></summary><p><p> 
+<details><summary><b> I have interference and/or my ssh sessions are really slow and laggy. What gives?</b></summary><p><p> 
 
 Cheap Wi-Fi chipsets and cheap Bluetooth chipsets can perform poorly together if operated at the same time, especially on Raspberry Pi devices. If you still experience interference in your network, switching to a Wi-Fi dongle can help. 
 </details>
