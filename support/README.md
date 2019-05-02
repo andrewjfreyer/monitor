@@ -128,7 +128,7 @@ ___
 If more than one program or executable try to use the Bluetooth hardware at the same time, your Bluetooth hardware will report an error. To correct this error, the hardware needs to be taken offline, then brought back. 
 </details>
 
-<details><summary><b> I can't do **XYZ**, is this script broken?</b></summary><p><p> 
+<details><summary><b> How do I access logs?</b></summary><p><p> 
 
 Run via command line and post log output to github. Else, access `journalctl` to show the most recent logs: 
 
