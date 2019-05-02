@@ -10,9 +10,9 @@
 
 # *Highlights*
 
-`monitor` sends a JSON-formatted MQTT message including a confidence value from 0 to 100 to a specified broker when a specified Bluetooth device responds to a `name` query. By default, `name` queries are triggered after receiving an anonymous advertisement from a previously-unseen device. 
+`monitor` sends a JSON-formatted MQTT message including a confidence value from 0 to 100 to a specified broker when a specified Bluetooth device responds to a `name` query. By default, `name` queries are triggered after receiving an anonymous advertisement from a previously-unseen device (e.g., a device in peripheral mode advertising an ability to connect). 
 
-Example:
+Example JSON package:
 ```
 topic: monitor/{{name of monitor install}}/{{mac address}}
 message: {
@@ -29,8 +29,7 @@ message: {
 
 In addition, optionally, a JSON-formatted MQTT message can be reported to the same broker whenever a publicly-advertising beacon device or an iBeacon device advertises. 
 
-Example:
-
+Example JSON package:
 ```
 topic: monitor/{{name of monitor install}}/{{mac address or ibeacon uuid}}
 message: {
@@ -54,7 +53,7 @@ ___
 
 # *Oversimplified Analogy of the Bluetooth Presence Problem*
 
-Imagine you're blindfolded in a large room with other people. We want to find out who of your friends **is** there and who of your friends **isn't** there:
+Imagine you're blindfolded in a large room with other people. We want to find out who of your friends **is** present and who of your friends **isn't** present:
 
 ![First Picture](https://i.imgur.com/FOubz6T.png)
 
@@ -62,92 +61,94 @@ Some of the people in the room periodically make sounds (e.g., eating a chip, sn
 
 ![Second Picture](https://i.imgur.com/UwPJIMM.png)
 
-Here's the problem. You can’t just shout “WHO’S HERE” because then everyone would say their name at the same time and you couldn’t tell anything apart. That won't work. Obviously, you also can't simply ask "WHO ISN'T HERE." That's a pretty foolish suggestion...
+Here's the problem. You can’t just shout “WHO’S HERE” because then everyone would say their name at the same time and you couldn’t tell anything apart. Similarly, for obvious reasons, you can't simply ask "WHO ISN'T HERE?" 
 
-So, what about taking attendance like in a classroom? Great idea! Everyone in the room agrees beforehand to respond to an attendance call **only** when their own name is shouted. That way you can actually hear whether someone responds. Neat! 
-
-Since you're blindfolded, you don't know how big the room is. That means you have take attendance loudly because we don't want our friends to not hear their name being called - taking attendance quietly simply won't do.
+So, you take attendance like in a classroom. Everyone in the room responds **only** when their own name is shouted. 
 
 ![Third Picture](https://i.imgur.com/VCW8AmH.png)
 
-Ok, now how can you figure out which of your friends are in the room? If your friends say a name out loud randomly ("[Alan!](https://www.youtube.com/watch?v=RFhNJ8ozDBk)") it’s easy to know if they’re present or absent - all you have to do is listen for them in the din of the crowd. For most of your friends though, you need to take attendance from a list shouting names one at a time. All other sounds you hear in the room are totally anonymous ... you have no idea who made what sound.
-
-So, one way to take attendance is to shout for each friend on a list by name, one at a time, repeatedly. Shout, get a response, wait for a moment, and ask again. 
+So, one way to take attendance is to shout for each friend on a list by name, one at a time, repeatedly. Ask for someone, get a response, wait for a moment, and ask again. 
 
 Once a friend stops responding (for some period of time), you presume that he or she has left: 
 
 ![Simple Loop](https://i.imgur.com/ijGw2qb.png)
 
-This technique should work just fine, but there's a problem. You're constantly shouting into the room, which means that it's difficult for you to hear quiet responses and it's difficult for other people to carry on conversations. What else can we do? 
+This technique should work just fine, but there's a minor problem. You're constantly shouting into the room, which means that it's difficult for you to hear quiet responses and it's difficult for other people to carry on conversations. What else can we do? Can we use those random sounds for anything? 
 
-A smarter approach is to wait for an anonymous sound, *then* start asking whether your friend is there:
+Yes! A smarter approach is to wait for an anonymous sound, *then* start asking whether a friend *you know isn't present* has just arrived:
 
 ![Complex Loop](https://i.imgur.com/9Ugn27i.png)
+
+This way, you're not constantly asking the room for all of your friends. Efficient!
 
 This technique is a very simplified description of how `montior` works for devices like cell phones (friends on a list) and beacons (announce a name out loud). This also gives an idea of how `monitor` uses anonymous sounds to reduce the number of times that it has to send inquiries into the Bluetooth environment. 
 
 ___
 
-# *Oversimplified Technical Description*
+# *Oversimplified Technical Background*
 
-The Bluetooth Low Energy 4.0 spec was designed to make connecting Bluetooth devices simpler for the user. No more pin codes, no more code verifications, no more “discovery mode” - for the most part. It was also designed to be much more private than previous Bluetooth specs. But it’s hard to maintain privacy when you want to be able to connect to an unknown device without user intervention, so a compromise was made. The following is oversimplified and not technically accurate in most cases, but should give the reader a gist of how `monitor` determines presence. 
+The Bluetooth Low Energy spec was designed to make connecting Bluetooth devices simpler for the user. No more pin codes, no more code verifications, no more “discovery mode” - for the most part. It was also designed to be more private than previous Bluetooth implementations. That said, it’s hard to maintain privacy when you want to be able to connect to an unknown device without intervention. 
 
 ## Name Requests
 
-A part of the Blueooth spec is a special function called a `name` request that asks another Bluetooth device to send back a human-readable name of itself. In order to send a `name` request, we need to know a private (unchanging) address of the target device. 
+A part of the Blueooth spec is a special function called a `name` request that asks another Bluetooth device to send back a human-readable name of itself. In order to send a `name` request, however, we need to know a private (unchanging) address of the target device. 
 
-Issuing a `name` request to the same private mac address every few seconds is a reliable - albeit rudimentary - way of detecting whether that device is "**present**" (it responds to the `name` request) or "**absent**" (no response to the `name` request is received). However, issuing `name` requests too frequently (*e.g.*, every few seconds) uses quite a bit of 2.4GHz spectrum, which can cause substantial interference with Wi-Fi or other wireless communications.
+Issuing a `name` request to the same private mac address every few seconds is a reliable - albeit rudimentary - way of detecting whether that device is "**present**" (it responds to the `name` request) or "**absent**" (no response to the `name` request is received). However, issuing `name` requests too frequently (*e.g.*, every few seconds) uses quite a bit of 2.4GHz spectrum, which can cause interference with Wi-Fi or other wireless communications.
 
-## Connectable Devices
+Not all devices respond to `name` requests, however. For example, beacon devices do not respond. 
 
-Blueooth devices that can exchange information with other devices (almost always) advertise a random/anonymous address that other devices can use to negotiate a secure connection with that device's real, private, Bluetooth address. 
+## Connectible Devices
 
-Using a random address when publicly advertising prevents baddies from tracking people via Bluetooth monitoring. This is because monitoring for anonymous advertisement is not a reliable way to detect whether a device is **present** or **absent**. However, nearly all connectible devices respond to `name` requests if made to the device's private Bluetooth address.
+Blueooth devices that can exchange information with other devices (almost always) advertise a random/anonymous address that other devices can use to negotiate a secure connection and receive the first device's real, private, Bluetooth address. Using a random address in this way when publicly advertising prevents bad actors from tracking via passive Bluetooth monitoring. 
 
-## Beacon Devices
+## Beacon/Advertising Devices
 
-The Bluetooth spec has been used by Apple, Google, and others to create additional standards (e.g., iBeacon, Eddystone, and so on). These devices generally don't care to connect to other devices, so their random/anonymous addresses don't really matter. Instead, these devices encode additional information into each advertisement of an anonymous address. For example, iBeacon devices will broadcast a UUID that conforms to the 8-4-4-4-12 format defined by [IETC RFC4122](http://www.ietf.org/rfc/rfc4122.txt).
+The Bluetooth spec has been used by Apple, Google, and others to create additional standards (e.g., iBeacon, Eddystone, and so on). These devices generally don't care to connect to other devices, so use of random/anonymous addresses doesn't really matter. Instead, these devices encode additional information into each advertisement of an anonymous address. For example, iBeacon devices will broadcast a UUID that conforms to the 8-4-4-4-12 format defined by [IETC RFC4122](http://www.ietf.org/rfc/rfc4122.txt).
 
-Beacons do not respond to `name` requests, even if made to the device's private Bluetooth address. So, issuing periodic `name` requests to beacons is not a reliable way to detect whether a beacon device is **present** or **absent**. However, monitoring for beacon advertisement is a reliable way to detect whether a beacon device is **present** or **absent**.
+As noted above, most beacons do not respond to `name` requests, even if made to the device's private Bluetooth address. So, issuing periodic `name` requests to beacons is not a good way to detect whether a beacon device is **present** or **absent**. However, monitoring for beacon advertisement is a reliable way to detect whether a beacon device is **present** or **absent**.
 
 _____
 
 # *How `monitor` Works*
 
-This script combines `name` requests, anonymous advertisements, and beacon advertisements to logically determine (1) *when* to issue a `name` scan to determine whether a device is **present** and (2) *when* to issue a `name` scan to determine whether a device is **absent**. The script also listens for beacons. 
+This script combines `name` requests, anonymous advertisements, and beacon advertisements to logically determine (1) *when* to issue a `name` request to determine whether a device is **present** and (2) *when* to issue a `name` request to determine whether a device is **absent**. The script also listens for beacons. 
 
 ##### Known Static Addresses
-More specifically, `monitor` accesses private mac addresses that you have added to a file called `known_static_addresses`. These are the addresses for which `monitor` will issue `name` requests to determine whether or not these devices are **present** or **absent**. 
+`monitor` uses unchanging/static mac addresses for your devices that you have added to a file called `known_static_addresses`. These are the addresses for which `monitor` will issue `name` requests to determine whether or not these devices are **present** or **absent**. 
 
-Once a determination of presence is made, the script posts to an mqtt topic path defined in a file called `mqtt_preferences` that includes a JSON-formatted message with a confidence value that corresponds to a confidence of presence. For example, a confidence of 100 means that `monitor` is 100% sure the device is present and present. Similarly, a confidence of 0 means that `monitor` is 0% sure the device is present (*i.e.*, the `monitor` is 100% sure the device is absent).
+Once a determination of presence is made, the script posts to an mqtt topic path defined in a file called `mqtt_preferences` that includes a JSON-formatted message with a confidence value that corresponds to a confidence of presence. For example, a confidence of 100 means that `monitor` is 100% sure the device is present. Similarly, a confidence of 0 means that `monitor` is 0% sure the device is present (*i.e.*, the `monitor` is 100% sure the device is absent).
 
-To minimize the number of times that `monitor` issues `name` requests (thereby reducing 2.4GHz interference), the script performs either an ***ARRIVAL*** scan or a ***DEPART*** scan, instead of scanning all devices listed in the `known_static_addresses` each time.  More specifically:
+To minimize the number of times that `monitor` issues `name` requests (thereby reducing 2.4GHz interference), the script performs either an ***ARRIVAL*** scan or a ***DEPART*** scan, instead of scanning all devices listed in the `known_static_addresses` each time.  
 
-*  An ***ARRIVAL*** scan issues a `name` request *only* for devices from the `known_static_addresses` file that are known to be **absent**. 
+More specifically:
 
-*  Similarly, a ***DEPART*** scan issues a `name` request *only* for devices from the `known_static_addresses` file that are known to be **present**. 
+*  An ***ARRIVAL*** scan issues a `name` request, sequentially, for each device listed in the `known_static_addresses` file that is known to be **absent**. 
+
+*  Similarly, a ***DEPART*** scan issues a `name` request, sequentially, for each device listed in the `known_static_addresses` file that is known to be **present**. 
 
 For example, if there are two phone addresses listed in the `known_static_addresses` file, and both of those devices are **present**, an ***ARRIVAL*** scan will never occur. Similarly, if both of these addresses are **absent** then a ***DEPART*** scan will never occur. If only one device is present, an **ARRIVAL** scan will only scan for the device that is currently away. 
 
-To reduce the number of `name` scans that occur, `monitor` listens for anonymous advertisements and triggers an ***ARRIVAL*** scan for every *new* anonymous address. 
+To reduce the number of `name` requests that occur, `monitor` listens for anonymous advertisements and triggers an ***ARRIVAL*** scan for every *new* anonymous address. 
 
 The script will also trigger an ***ARRIVE*** scan in response to an mqtt message posted to the topic of `monitor/scan/arrive`. Advertisement-triggered scanning can be disabled by using the trigger argument if `-ta`, which causes `monitor` to *only* trigger ***ARRIVAL*** scans in response to mqtt messages. 
 
 If `monitor` has not heard from a particular anonymous address in a long time, `monitor` triggers a ***DEPART*** scan. The script will also trigger a ***DEPART*** scan in response to an mqtt message posted to the topic of `monitor/scan/depart`. Expiration-triggered scanning can be disabled by using the trigger argument if `-td`, which causes `monitor` to *only* trigger ***DEPART*** scans in response to mqtt messages. 
 
-To reduce scanning even further, `monitor` can filter which types of anonymous advertisements are used for ***ARRIVE*** scans. These are called "filters" and are defined in a file called `behavior_preferences`. The filters are bash RegEx strings that either pass or reject anonymous advertisements that match the filter. There are two filter types: 
+To reduce scanning even further, `monitor` can filter which types of anonymous advertisements are used for ***ARRIVE*** scans. These are called "filters" and are defined in a file called `behavior_preferences`. The filters are bash RegEx strings that either pass or reject anonymous advertisements that match the filter. 
+
+There are two filter types: 
 
 * **Manufacturer Filter** - filters based on data in an advertisement that is connected to a particular device manufacturer. This is almost always the OEM of the device that is transmitting the anonymous advertisement. By default, because of the prevalence of iPhones, Apple is the only manufacturer that triggers an ***ARRIVAL*** scan. Multiple manufacturers can be appended together by a pipe: `|`. An example filter for Apple and Samsung looks like: `Apple|Samsung`. To disable the manufacturer filter, use `.*`.
 
 * **Flag Filter:** filters based on flags contained in an advertisement. This varies by device type. By default, because of the prevalence of iPhones, the flag of `0x1b` triggers an ***ARRIVAL*** scan. Like with the manufacturer filter, multiple flags can be appended together by a pipe: `|`. To disable the manufacturer filter, use `.*`.
 
 ##### Beacons & iBeacons
-In addition, once installed and run with the `-b` beacon argument, `monitor` listens for beacon advertisements that report themselves as "public", meaning that their addresses will not change. The script can track these by default; these addresses do not have to be added anywhere - after all, `monitor` will obtain them just by listening. 
+In addition, when run with the `-b` beacon argument, `monitor` listens for beacon advertisements that report themselves as "public", meaning that their addresses will not change. The script can track these by default; these addresses do not have to be added anywhere - after all, `monitor` will obtain them just by listening. 
 
 Since iBeacons include a UUID and a mac address, two presence messages are reported via mqtt. 
 
 ## Known Beacon Addresses
-In some cases, certain manufacturers try to get sneaky and cause their beacons to advertise as "anonymous" (or "random") devices, despite that their addresses do not change at all. By default, `monitor` ignores anonymous devices, so to force `monitor` to recognize these devices, we add the "random" address to a file called `known_static_beacons`. After restarting, `monitor` will know that these addresses should be treated like a normal beacon. 
+In some cases, manufacturers try to get sneaky and cause their beacons to advertise as "anonymous" (or "random") devices, despite that their addresses do not change at all. By default, `monitor` does not report presence of anonymous advertisement devices, so to force `monitor` to recognize these devices, we add the "random" address to a file called `known_static_beacons`. After restarting, `monitor` will know that these addresses should be treated like a normal beacon. 
 ___
 
 </details>
@@ -258,7 +259,7 @@ git clone git://github.com/andrewjfreyer/monitor
 #enter `monitor` directory
 cd monitor/
 
-#switch to beta branch for latest updates and features (may be instable)
+#(optional) switch to beta branch for latest updates and features (may be unstable)
 git checkout beta       
 
 ```
@@ -473,7 +474,7 @@ Similarly, we can create a negative filter. If you or your neighbors use Google 
 PREF_FAIL_FILTER_MANUFACTURER_ARRIVE="Google"
 ```
 
-Filters are a great way to minimize the frequency of `name` scanning, which causes 2.4GHz interference and can, if your values are too aggressive, dramatically interfere with Wi-Fi and other services. 
+Filters are a great way to minimize the frequency of `name` requestning, which causes 2.4GHz interference and can, if your values are too aggressive, dramatically interfere with Wi-Fi and other services. 
 
 2. **Standard configuration options:**
 
@@ -498,7 +499,7 @@ In addition to the options described above, there are a number of advanced optio
 
 | **Option** | **Default Value** | **Description** |
 |-|-|-|
-PREF_INTERSCAN_DELAY|3|This is a fixed delay between `name` scans. Increasing the value will decrease interference, but will decrease responsiveness. Decreasing the value will risk a Bluetooth hardware fault.|
+PREF_INTERSCAN_DELAY|3|This is a fixed delay between `name` requests. Increasing the value will decrease interference, but will decrease responsiveness. Decreasing the value will risk a Bluetooth hardware fault.|
 PREF_RANDOM_DEVICE_EXPIRATION_INTERVAL|75|This is the interval after which an anonymous advertisement mac address is considered expired. Increasing this value will reduce arrival scan frequency, but will also increase memory footprint (minimal) and will decrease the frequency of depart scans.|
 PREF_RSSI_CHANGE_THRESHOLD|-20|If a beacon's rssi changes by at least this value, then the beacon will be reported again via mqtt.|
 PREF_RSSI_IGNORE_BELOW|-75|If an anonymous advertisement is "farther" away (lower RSSI), ignore the advertisement
@@ -540,33 +541,6 @@ message: -99 through 0
 ```
 
 If an rssi measurement cannot be obtained, the value of -99 is sent. 
-
-3. Using the rssi data for something:
-
-I strongly recommend using a filter to smooth the rssi data. An example for Home Assistant follows:
-
-
-```yaml
-sensor:
-
-  - platform: mqtt
-    state_topic: 'location/first floor/34:08:BC:15:24:F7/rssi'
-    name: 'Andrew First Floor RSSI raw'
-    unit_of_measurement: 'dBm'
-
-  - platform: filter
-    name: "Andrew First Floor RSSI"
-    entity_id: sensor.andrew_first_floor_rssi_raw
-    filters:
-      - filter: outlier
-        window_size: 2
-        radius: 1.0
-      - filter: lowpass
-        time_constant: 2
-      - filter: time_simple_moving_average
-        window_size: 00:01
-        precision: 1
-```
 
 </details>
 
