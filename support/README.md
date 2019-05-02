@@ -69,9 +69,9 @@ sudo systemctl restart monitor
 Or, post a message with blank content to `monitor/scan/restart`
 </details>
 
-<details><summary><b> Why don't I see RSSI for my iPhone/Andriod/whatever phone?</b></summary><p><p> 
+<details><summary><b> Why don't I see RSSI for my device?</b></summary><p><p> 
 
-See the RSSI section of this FAQ. You'll have to connect your phone to this script first.  
+For phones, you'll have to connect to `monitor` first using the `-c` flag. 
 </details>
 
 <details><summary><b> How do I force an RSSI update for a known device, like my phone?</b></summary><p><p> 
