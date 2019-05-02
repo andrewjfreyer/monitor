@@ -258,7 +258,7 @@ To disable this feature, set `PREF_ALIAS_MODE=false` in your `behavior_preferenc
 Yes. Create a file called `address_blacklist` in your configuration directory and add the mac addresses you'd like to block (or uuid-major-minor for iBeacons) one at a time. 
 </details>
 
-<details><summary><b> I can't use the `device_tracker` platform with the default status strings of `home` and `not_home` with my home automation software. What can I do?</b></summary><p><p> 
+<details><summary><b> I can't use the device_tracker platform with the default status strings of `home` and `not_home` with my home automation software. What can I do?</b></summary><p><p> 
 
 Set these options in `behavior_preferences`: 
 
