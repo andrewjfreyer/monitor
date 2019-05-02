@@ -82,7 +82,7 @@ Post a message with blank content to `monitor/scan/rssi`
 
 ____
 
-## *Wi-Fi Interference & Performance Issues*
+## *Performance*
 
 <details><summary><b> Can't I just issue a name scan every few seconds to get faster arrival and depart detection?</b></summary><p><p>
 
@@ -121,7 +121,7 @@ Many Bluetooth dongles do not properly filter out duplicate advertisements, so t
 
 ___
 
-## *Monitor Logs & Debugging*
+## *Debugging*
 
 <details><summary><b> I keep seeing that my Bluetooth hardware is "cycling" in the logs - what does that mean?</b></summary><p><p>
 
@@ -226,7 +226,7 @@ Similarly, to set exclude filters, you can observe bluetooth traffic for a perio
 
 ____
 
-## *Other Questions*
+## *Other*
 
 <details><summary><b> It's annoying to have to keep track of mac addresses. Can't I just use a nickname for the mac addresses for MQTT topics?</b></summary><p><p> 
 
