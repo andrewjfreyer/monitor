@@ -172,7 +172,7 @@ mqtt_error_handler () {
 			last_error_message="$print_message"			
 
 			if [ "$duplicate_error_count" -gt "3" ]; then 
-				log "${RED}[CMD-ERRO]${NC}	${RED}fatal mqtt error - messages may not be delivered as intended${NC}"
+				log "${RED}[CMD-ERRO]${NC}	${RED}fatal mqtt error - messages may not be delivered as intended ($print_message / $duplicate_error_count)${NC}"
 				duplicate_error_count=0
 				last_error_message=""
 			fi 
