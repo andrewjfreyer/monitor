@@ -175,17 +175,20 @@ mqtt_error_handler () {
 				log "${RED}[CMD-ERRO]${NC}	${RED}fatal mqtt error - messages may not be delivered as intended ($print_message / $duplicate_error_count)${NC}"
 				duplicate_error_count=0
 				last_error_message=""
-			fi 
+			fi
 
-		else
+			#SET TO TRUE TO CAUSE A LOOP OF 
+			return_value=0 
+
+		elif [ -n "$print_message"]; then 
 			#MESSAGE IS NOT REPEATED, SO FEEL FREE TO LOG IT
-			log "${YELLOW}[CMD-WARN]${NC}	${YELLOW}warning: $print_message ${NC}"
+			log "${YELLOW}[CMD-POST]${NC}	${YELLOW}warning: $print_message ${NC}"
 			duplicate_error_count=0
-			last_error_message="$print_message"			
-		fi 
+			last_error_message="$print_message"	
 
-		#SET TO TRUE TO CAUSE A LOOP OF 
-		return_value=0
+			#SET TO TRUE TO CAUSE A LOOP OF 
+			return_value=0		
+		fi 
 	else
 		duplicate_error_count=0
 		last_error_message=""
