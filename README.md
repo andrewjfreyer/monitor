@@ -431,7 +431,7 @@ For more information, see [here](https://community.home-assistant.io/t/device-tr
 
 </details>
 
-<details><summary>Detailed Info & Fine Tuning</summary>
+<details><summary><b>Advanced Configuration Options & Fine Tuning</b></summary>
 
 
 ## Fine Tuning
