@@ -429,7 +429,7 @@ As an example:
 
 For more information, see [here](https://community.home-assistant.io/t/device-tracker-from-script/97295/7) and [here](https://github.com/andrewjfreyer/monitor/issues/138).
 
-</detail>
+</details>
 
 <details><summary>Detailed Info & Fine Tuning</summary>
 
