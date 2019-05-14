@@ -511,9 +511,9 @@ PREF_DEVICE_TRACKER_REPORT|false|If true, this value will cause `monitor` to rep
 PREF_DEVICE_TRACKER_HOME_STRING|home|If `PREF_DEVICE_TRACKER_REPORT` is true, this is the string that is reported to the device_tracker when the device is home.
 PREF_DEVICE_TRACKER_AWAY_STRING|not_home|If `PREF_DEVICE_TRACKER_REPORT` is true, this is the string that is reported to the device_tracker when the device is not home.
 PREF_DEVICE_TRACKER_TOPIC_BRANCH|device_tracker|If `PREF_DEVICE_TRACKER_REPORT` is true, this is last path element of the mqtt topic path that will be used to publish the device tracker message.
-PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP|This is the minimum interval used to estimate advertisement intervals reported in the MQTT message. Default is 15 seconds.
-PREF_DEPART_SCAN_INTERVAL|If using periodic scanning mode, this is the minimum interval at which depart scans are triggered automatically. 
-PREF_ARRIVE_SCAN_INTERVAL|If using periodic scanning mode, this is the minimum interval at which arrive scans are triggered automatically. 
+PREF_ADVERTISEMENT_OBSERVED_INTERVAL_STEP|15|This is the minimum interval (in seconds) used to estimate advertisement intervals reported in the MQTT message.
+PREF_DEPART_SCAN_INTERVAL|30|If using periodic scanning mode, this is the minimum interval (in seconds) at which depart scans are triggered automatically. 
+PREF_ARRIVE_SCAN_INTERVAL|15|If using periodic scanning mode, this is the minimum interval (in seconds) at which arrive scans are triggered automatically. 
 
 
 ## RSSI Tracking
@@ -540,6 +540,10 @@ message: -99 through 0
 ```
 
 If an rssi measurement cannot be obtained, the value of -99 is sent. 
+
+## Report known states
+
+It is also possible tell monitor to report all currently known device states by sending an MQTT message to something like `monitor/first floor/KNOWN DEVICE STATES`. monitor.sh will then iterate over all known static addresses and report the current confidence level. This may be useful in home assistant to get the current state after a home assistant restart.
 
 </details>
 
