@@ -33,13 +33,13 @@ For an automation or script (or other service trigger), use:
 ```yaml
   service: 'mqtt.publish'
   data: 
-    topic: location/scan/arrive
+    topic: monitor/scan/arrive
 ```
 
 ```yaml
   service: 'mqtt.publish'
   data: 
-    topic: location/scan/depart
+    topic: monitor/scan/depart
 ```
 </details>
 
