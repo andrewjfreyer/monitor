@@ -162,9 +162,6 @@ mqtt_error_handler () {
 	return_value=1
 
 	if [ -n "$received" ]; then 
-
-		echo "$received"
-
 		#ERRORS 
 		[[ ${received^^} =~ .*CONNECTION.* ]] && [[ ${received^^} =~ .*REFUSED.* ]] && return_value=1 && print_message="mqtt broker refused connection - check username, password, and host address"
 		[[ ${received^^} =~ .*NETWORK.* ]] && [[ ${received^^} =~ .*UNREACHABLE.* ]] && return_value=0 && print_message="network is down. enqueuing command to try again after a delay"
