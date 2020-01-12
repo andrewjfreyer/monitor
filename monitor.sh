@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------
 
 #VERSION NUMBER
-export version=0.2.198
+export version=0.2.199
 
 #COLOR OUTPUT FOR RICH OUTPUT 
 ORANGE=$'\e[1;33m'
@@ -1100,7 +1100,9 @@ while true; do
 					publish_presence_message  \
 					"id=$addr" \
 					"confidence=$device_state" \
+					"name=${known_public_device_name[$addr]}" \
 					"type=KNOWN_MAC"
+
 				done
 				
 			elif [[ $mqtt_topic_branch =~ .*ADD\ STATIC\ DEVICE.* ]] || [[ $mqtt_topic_branch =~ .*DELETE\ STATIC\ DEVICE.* ]]; then 
