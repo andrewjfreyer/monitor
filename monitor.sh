@@ -158,7 +158,7 @@ done
 # ----------------------------------------------------------------------------------------
 
 #LIST CONNECTED DEVICES
-previously_connected_devices=$(echo "quit" | bluetoothctl | grep -Eio "Device ([0-9A-F]{2}:){5}[0-9A-F]{2}" | sed 's/Device //gi')
+previously_connected_devices=$(echo "paired-devices" | bluetoothctl | grep -Eio "Device ([0-9A-F]{2}:){5}[0-9A-F]{2}" | sed 's/Device //gi')
 
 #POPULATE KNOWN DEVICE ADDRESS
 for addr in "${known_static_addresses[@]^^}"; do 
