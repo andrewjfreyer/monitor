@@ -1203,7 +1203,7 @@ while true; do
 				#exit
 				exit 0	
 
-			elif [[ $mqtt_topic_branch =~ .*ECHO.* ]]; then 
+			elif [[ $mqtt_topic_branch =~ .*ECHO.* ]] && [[ -z "$data_of_instruction" ]]; then 
 				$PREF_VERBOSE_LOGGING && log "${GREEN}[CMD-INST]	${NC}[${GREEN}pass mqtt${NC}] echo  ${NC}"				
 				
 				mqtt_echo
