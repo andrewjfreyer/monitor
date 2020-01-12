@@ -163,10 +163,10 @@ mqtt_error_handler () {
 
 	if [ -n "$received" ]; then 
 		#ERRORS 
-		[[ ${received^^} =~ .*NO ROUTE TO HOST.* ]] && return_value=1 && print_message="networking errors, no route to host - check username, password, and host address"
-		[[ ${received^^} =~ .*CONNECTION REFUSED.* ]] && return_value=1 && print_message="mqtt broker refused connection - check username, password, and host address"
+		[[ ${received^^} =~ .*"NO ROUTE TO HOST".* ]] && return_value=1 && print_message="networking errors, no route to host - check username, password, and host address"
+		[[ ${received^^} =~ .*"CONNECTION REFUSED".* ]] && return_value=1 && print_message="mqtt broker refused connection - check username, password, and host address"
 		[[ ${received^^} =~ .*NETWORK.* ]] && [[ ${received^^} =~ .*UNREACHABLE.* ]] && return_value=0 && print_message="network is down. enqueuing command to try again after a delay"
-		[[ ${received^^} =~ .*LOOKUP ERROR.* ]] && return_value=0 && print_message="issue connecting to mqtt server (lookup error). enqueuing command to try again after a delay"
+		[[ ${received^^} =~ .*"LOOKUP ERROR".* ]] && return_value=0 && print_message="issue connecting to mqtt server (lookup error). enqueuing command to try again after a delay"
 
 
 		if [ -n "$last_error_message" ] && [ "$last_error_message" == "$print_message" ]; then 
