@@ -348,8 +348,8 @@ btle_text_listener () {
 
 		#DEFINE VARAIBLES
 		while IFS= read -r line; do
-
-
+			#maintain the pipe for faster machines. 
+			printf "%s\n" "" > packet_pipe
 			if [[ $line =~ ^\> ]] || [[ $line =~ ^\< ]] || [[ $line =~ RSSI ]]; then
 				[[ $line =~ RSSI ]] && packet="$packet~$line"
 				if [[ $packet =~ ^\> ]]; then 
