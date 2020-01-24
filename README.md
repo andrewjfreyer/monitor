@@ -429,6 +429,8 @@ As an example:
 
 For more information, see [here](https://community.home-assistant.io/t/device-tracker-from-script/97295/7) and [here](https://github.com/andrewjfreyer/monitor/issues/138).
 
+If you only have one node, an [add-on](https://github.com/Limych/hassio-addons) by @limych may be an excellent choice for you!
+
 </details>
 
 <details><summary><b>Advanced Configuration Options & Fine Tuning</b></summary>
