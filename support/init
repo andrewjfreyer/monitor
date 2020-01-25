@@ -27,7 +27,7 @@ git_path=$(which git)
 
 #RUNTYPE
 SERVICE_ACTIVE=true
-systemctl is-active --quiet monitor && SERVICE_ACTIVE=true || SERVICE_ACTIVE=false
+which systemctl >/dev/null && systemctl is-active --quiet monitor && SERVICE_ACTIVE=true || SERVICE_ACTIVE=false
 
 #VERSION CHECKER 
 mosquitto_sub_version=$($mosquitto_sub_path --help | grep -Eo "version [0-9.]{3,}" | sed 's/[^0-9.]//gi')
