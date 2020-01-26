@@ -21,7 +21,7 @@
 
 2. Download etcher from [etcher.io](https://etcher.io)
 
-3. Image **raspbian lite stretch** to SD card. [Instructions here.](https://www.raspberrypi.org/magpi/pi-sd-etcher/)
+3. Image **raspbian lite buster** to SD card. [Instructions here.](https://www.raspberrypi.org/magpi/pi-sd-etcher/)
 
 4. Mount **boot** partition of imaged SD card (unplug it and plug it back in)
 
@@ -87,7 +87,7 @@ sudo apt-key add mosquitto-repo.gpg.key
 
 #download appropriate lists file 
 cd /etc/apt/sources.list.d/
-sudo wget http://repo.mosquitto.org/debian/mosquitto-stretch.list
+sudo wget http://repo.mosquitto.org/debian/mosquitto-buster.list
 
 #update caches and install 
 apt-cache search mosquitto
