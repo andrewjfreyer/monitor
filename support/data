@@ -43,7 +43,7 @@ determine_manufacturer () {
 				_found=true
 			fi
 			if [ ! ${_found} ] && [ -f /usr/share/ieee-data/oui.csv ] ; then
-				remote_result=$(egrep ",${_temp}," /var/lib/ieee-data/oui.csv | cut -d\, -f3)
+				remote_result=$(egrep ",${_temp}," /usr/share/ieee-data/oui.csv | cut -d\, -f3)
 				_found=true
 			fi
 			[ -n "$remote_result" ] && echo "${address:0:8} $remote_result" >> .manufacturer_cache
