@@ -96,7 +96,7 @@ sudo apt-get install -f libmosquitto-dev mosquitto mosquitto-clients libmosquitt
 ```
 </details>
 
-<details><summary><i>Monitor Setup</i></summary>
+<details><summary><i>Monitor and Bluetooth-Proximity Setup</i></summary>
 
 ## Setup `monitor and bluetooth-proximity`
 
