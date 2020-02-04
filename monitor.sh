@@ -275,16 +275,13 @@ connectable_present_devices () {
 			#AVERAGE OVER THREE CYCLES; IF BLANK GIVE VALUE OF 100
 			known_device_rssi=$(counter=0; \
 				avg_total=0; \
-				hcitool cc "$known_addr"; \
 				avg_total=""; \
 				for i in 1 2 3; \
-				do scan_result=$(hcitool rssi "$known_addr" 2>&1); \
+				do scan_result=$(python rssi.py "$known_addr"); \
+				[[ "$scan_result" == "None" ]] && scan_result=99; \
 				scan_result=${scan_result//[^0-9]/}; \
-				scan_result=${scan_result:-99}; \
-				[[ "$scan_result" == "0" ]] && scan_result=99; \
 				counter=$((counter+1)); \
 				avg_total=$((avg_total + scan_result )); \
-				sleep 0.5; \
 				done; \
 				printf "%s" "$(( avg_total / counter ))")
 
