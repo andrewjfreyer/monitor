@@ -431,6 +431,8 @@ For more information, see [here](https://community.home-assistant.io/t/device-tr
 
 If you only have one node, an [add-on](https://github.com/Limych/hassio-addons) by @limych may be an excellent choice for you!
 
+If having several nodes and lots of users, there is an AppDaemon App that can easily manage the integration of of this system into Home Assistant automatically for you by @Odianosen25. More information can be found [here](https://github.com/Odianosen25/Monitor-App)
+
 </details>
 
 <details><summary><b>Advanced Configuration Options & Fine Tuning</b></summary>
