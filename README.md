@@ -107,7 +107,7 @@ cd ~
 sudo apt-get install git
 
 #install Python setuptools
-sudo apt-get install python-setuptools
+sudo apt-get install python3-setuptools
 
 #clone monitor and bluetooth-proximity repo
 git clone git://github.com/andrewjfreyer/monitor
@@ -115,7 +115,7 @@ git clone https://github.com/ewenchou/bluetooth-proximity.git
 
 #install bluetooth-proximity
 cd bluetooth-proximity
-sudo python setup.py install
+sudo python3 setup.py install
 
 #enter `monitor` directory
 cd monitor/
