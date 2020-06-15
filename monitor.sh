@@ -870,6 +870,9 @@ while true; do
 	#READ FROM THE MAIN PIPE
 	while read -r event; do
 
+		# Log the event for further debugging
+		$PREF_VERBOSE_LOGGING && log "${GREEN}[EVENT]	${NC} $event${NC}"
+
 		#DIVIDE EVENT MESSAGE INTO TYPE AND DATA
 		cmd="${event:0:4}"
 		data="${event:4}"
