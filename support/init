@@ -214,7 +214,7 @@ if [ "$should_install" == "y" ] || [ "$PREF_UPDATE_SERVICE" == true ] ; then
 	#REMOVE ALL INSTANCES
 	if [ -f "$service_path" ]; then
             rm "$service_path" 2>&1 >/dev/null
-        fi
+	fi
 
 	#CHECK FOR SYSTEMCTL FILE
 	base_directory=$(dirname "$(readlink -f "$0")")
