@@ -236,7 +236,7 @@ Yes! A smarter approach is to wait for an anonymous sound, *then* start asking w
 
 This way, you're not constantly asking the room for all of your friends. Efficient!
 
-This technique is a very simplified description of how `montior` works for devices like cell phones (friends on a list) and beacons (announce a name out loud). This also gives an idea of how `monitor` uses anonymous sounds to reduce the number of times that it has to send inquiries into the Bluetooth environment. 
+This technique is a very simplified description of how `monitor` works for devices like cell phones (friends on a list) and beacons (announce a name out loud). This also gives an idea of how `monitor` uses anonymous sounds to reduce the number of times that it has to send inquiries into the Bluetooth environment. 
 
 ___
 
