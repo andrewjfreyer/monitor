@@ -76,6 +76,7 @@ usage:
 				d \$mqtt_topicpath/scan/DEPART (defined in MQTT preferences file)
 				r send ARRIVE or DEPART messages to trigger other devices to scan 
 	monitor -D [dir]	use alternative directory for configuration files
+	monitor -m disable manufacture lookup
 	"
 }
 
@@ -113,6 +114,7 @@ PREF_VERBOSE_LOGGING=false
 PREF_FILTER_DEBUG_LOGGING=false
 PREF_MQTT_SINGLE_TOPIC_MODE=false
 PREF_PERIODIC_MODE=false
+PERF_DISABLE_MANUFACTURER_LOOKUP=false
 
 while getopts "h?vfFbut:EgSRCmrsVadxD:c:" opt; do
 	case "$opt" in
@@ -199,6 +201,8 @@ while getopts "h?vfFbut:EgSRCmrsVadxD:c:" opt; do
 			;;
         D)  PREF_CONFIG_DIR=$OPTARG && printf "%s\n" "> using custom config directory [$PREF_CONFIG_DIR]"
             [ ! -d "$PREF_CONFIG_DIR" ] && printf "%s\n" "> ${RED}error: ${NC}config directory [$PREF_CONFIG_DIR] doesn't exist" && exit 1
+                ;;
+        m) PERF_DISABLE_MANUFACTURER_LOOKUP=true && printf "%s\n" ">manufacture lookup disabled"
                 ;;
 		*)	printf "%s\n" "> unknown or depreciated argument: $opt"
 	esac

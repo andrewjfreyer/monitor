@@ -451,8 +451,12 @@ perform_complete_scan () {
 			fi 
 
 			#DETERMINE MANUFACTUERE
-			manufacturer="$(determine_manufacturer "$known_addr")"
-			manufacturer=${manufacturer:-Unknown}
+			if [[ "$PERF_DISABLE_MANUFACTURER_LOOKUP" == true ]]; then
+				manufacturer="disabled"
+			else
+				manufacturer="$(determine_manufacturer "$known_addr")"
+				manufacturer=${manufacturer:-Unknown}
+                        fi
 
 			#IN CASE WE HAVE A BLANK ADDRESS, FOR WHATEVER REASON
 			[ -z "$known_addr" ] && continue
@@ -649,8 +653,12 @@ perform_complete_scan () {
 			expected_name=${expected_name:-Unknown}
 
 					#DETERMINE MANUFACTUERE
-			manufacturer="$(determine_manufacturer "$known_addr")"
-			manufacturer=${manufacturer:-Unknown}
+			if [[ "$PERF_DISABLE_MANUFACTURER_LOOKUP" == true ]]; then
+				manufacturer="disabled"
+		  	else
+				manufacturer="$(determine_manufacturer "$known_addr")"
+				manufacturer=${manufacturer:-Unknown}
+			fi
 
 			#PUBLISH PRESENCE METHOD
 			publish_presence_message \
@@ -1560,7 +1568,11 @@ while true; do
 			previous_state=${previous_state:--1}
 
 			#GET MANUFACTURER INFORMATION
-			manufacturer="$(determine_manufacturer "$mac")"
+			if [[ "$PERF_DISABLE_MANUFACTURER_LOOKUP" == true ]]; then
+			  manufacturer="disabled"
+			else
+				manufacturer="$(determine_manufacturer "$mac")"
+			fi
 
 			#IF NAME IS DISCOVERED, PRESUME HOME
 			if [ -n "$name" ]; then 
@@ -1675,8 +1687,14 @@ while true; do
 			[ -n "$rssi" ] && rssi_log[$mac]="$rssi"
 
 			#MANUFACTURER
-			[ -z "$manufacturer" ] && manufacturer="$(determine_manufacturer "$mac")"
-		
+			if [ -z "$manufacturer" ]; then
+				if [[ "$PERF_DISABLE_MANUFACTURER_LOOKUP" == true ]]; then
+					manufacturer="disabled"
+				else
+					manufacturer="$(determine_manufacturer "$mac")"
+				fi
+			fi		
+
 		elif [ "$cmd" == "BEAC" ]; then 
 
 			#DATA IS DELIMITED BY VERTICAL PIPE
