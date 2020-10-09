@@ -147,7 +147,7 @@ while getopts "h?vfFbut:EgSRCmrsVadxD:c:" opt; do
 
 			#DEBUG ECHO
 			printf "%s\n" "> creating connection to $target_mac..."
-			printf "%s\n" "> witihin 5 seconds, please set $target_mac to discoverable..."
+			printf "%s\n" "> within 5 seconds, please set $target_mac to discoverable..."
 			
 			#WAIT 5 SECONDS FOR DISCOVERABLE MODE
 			sleep 5
