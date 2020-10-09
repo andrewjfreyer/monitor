@@ -212,7 +212,9 @@ FILTERED_ARGS=$(printf '%s\n' "$(IFS=' '; echo "${RUNTIME_ARGS[*]}")" | sed 's/ 
 #CHECK FOR CORRECT SERVICE; 
 if [ "$should_install" == "y" ] || [ "$PREF_UPDATE_SERVICE" == true ] ; then
 	#REMOVE ALL INSTANCES
-	rm "$service_path" 2>&1 >/dev/null
+	if [ -f "$service_path" ]; then
+            rm "$service_path" 2>&1 >/dev/null
+	fi
 
 	#CHECK FOR SYSTEMCTL FILE
 	base_directory=$(dirname "$(readlink -f "$0")")
