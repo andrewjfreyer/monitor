@@ -67,7 +67,7 @@ sudo reboot
 5. Install Bluetooth Firmware, if necessary:
 ```bash
 #install Bluetooth drivers for Pi Zero W
-sudo apt-get install pi-bluetooth
+sudo apt-get install pi-bluetooth bluetooth python-bluez
 
 ```
 
@@ -92,13 +92,13 @@ sudo wget http://repo.mosquitto.org/debian/mosquitto-buster.list
 #update caches and install 
 apt-cache search mosquitto
 sudo apt-get update
-sudo apt-get install -f libmosquitto-dev mosquitto mosquitto-clients libmosquitto1
+sudo apt-get install -f libmosquitto-dev mosquitto mosquitto-clients libmosquitto1 
 ```
 </details>
 
-<details><summary><i>Monitor Setup</i></summary>
+<details><summary><i>Monitor and Bluetooth-Proximity Setup</i></summary>
 
-## Setup `monitor`
+## Setup `monitor and bluetooth-proximity`
 
 1. Clone `monitor` git:
 ```bash
@@ -106,8 +106,16 @@ sudo apt-get install -f libmosquitto-dev mosquitto mosquitto-clients libmosquitt
 cd ~
 sudo apt-get install git
 
-#clone this repo
+#install Python setuptools
+sudo apt-get install python3-setuptools
+
+#clone monitor and bluetooth-proximity repo
 git clone git://github.com/andrewjfreyer/monitor
+git clone https://github.com/ewenchou/bluetooth-proximity.git
+
+#install bluetooth-proximity
+cd bluetooth-proximity
+sudo python3 setup.py install
 
 #enter `monitor` directory
 cd monitor/

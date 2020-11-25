@@ -273,20 +273,8 @@ connectable_present_devices () {
 				
 			#CREATE CONNECTION AND DETERMINE RSSI 
 			#AVERAGE OVER THREE CYCLES; IF BLANK GIVE VALUE OF 100
-			known_device_rssi=$(counter=0; \
-				avg_total=0; \
-				hcitool cc "$known_addr"; \
-				avg_total=""; \
-				for i in 1 2 3; \
-				do scan_result=$(hcitool rssi "$known_addr" 2>&1); \
-				scan_result=${scan_result//[^0-9]/}; \
-				scan_result=${scan_result:-99}; \
-				[[ "$scan_result" == "0" ]] && scan_result=99; \
-				counter=$((counter+1)); \
-				avg_total=$((avg_total + scan_result )); \
-				sleep 0.5; \
-				done; \
-				printf "%s" "$(( avg_total / counter ))")
+			known_device_rssi=$(python3 rssi.py "$known_addr" 3)
+
 
 			#PUBLISH MESSAGE TO RSSI SENSOR 
 			publish_rssi_message \
