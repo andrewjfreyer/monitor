@@ -372,7 +372,6 @@ As an example:
 
 ```
 - alias: Occupancy On
-  hide_entity: true
   trigger:
     - platform: numeric_state
       entity_id: sensor.home_occupancy_confidence
@@ -383,7 +382,6 @@ As an example:
         entity_id: input_boolean.occupancy
 
 - alias: Occupancy Off
-  hide_entity: true
   trigger:
     - platform: numeric_state
       entity_id: sensor.home_occupancy_confidence
@@ -400,7 +398,6 @@ As an example:
 
 ```
 - alias: Andrew Occupancy On
-  hide_entity: true
   trigger:
     - platform: numeric_state
       entity_id: sensor.andrew_occupancy_confidence
@@ -413,7 +410,6 @@ As an example:
         source_type: bluetooth
 
 - alias: Andrew Occupancy Off
-  hide_entity: true
   trigger:
     - platform: numeric_state
       entity_id: sensor.andrew_occupancy_confidence
