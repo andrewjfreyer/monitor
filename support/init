@@ -18,6 +18,7 @@
 
 #FIND DEPENDENCY PATHS, ELSE MANUALLY SET
 service_path="/etc/systemd/system/monitor.service"
+service_config_path="/etc/default/monitor"
 mosquitto_pub_path=$(which mosquitto_pub)
 mosquitto_sub_path=$(which mosquitto_sub)
 hcidump_path=$(which hcidump)
@@ -203,14 +204,11 @@ fi
 #----------------------------------------------------------------------------------------
 # CHECK MONITOR.SERVICE (IF APPLICABLE)
 #
-#	CREDITS & CONTRIBUTIONS: x99percent 
+#	CREDITS & CONTRIBUTIONS: x99percent, BrainDamage
 # ----------------------------------------------------------------------------------------
 
-#FILTER THE ARGV FROM THE PARENT SCRIPT TO REMOVE ONE-TIME USE VARIABLES
-FILTERED_ARGS=$(printf '%s\n' "$(IFS=' '; echo "${RUNTIME_ARGS[*]}")" | sed 's/ \?-d//gi;s/ \?-V//gi;s/ \?-F//gi;s/ \?-u//gi;s/&//g;s/  */ /gi')
-
-#CHECK FOR CORRECT SERVICE; 
-if [ "$should_install" == "y" ] || [ "$PREF_UPDATE_SERVICE" == true ] ; then
+#CHECK FOR CORRECT SERVICE;
+if [ "$should_install" == "y" ]; then
 	#REMOVE ALL INSTANCES
 	if [ -f "$service_path" ]; then
             rm "$service_path" 2>&1 >/dev/null
@@ -222,26 +220,61 @@ if [ "$should_install" == "y" ] || [ "$PREF_UPDATE_SERVICE" == true ] ; then
 printf "%s\n" "[Unit]
 Description=Monitor Service
 After=network.target
+After=bluetooth.service
+BindsTo=bluetooth.service
+Requires=bluetooth.service
 
 [Service]
 User=root
-ExecStart=/bin/bash $base_directory/$(basename $0) $FILTERED_ARGS &
+ExecStart=/bin/bash $base_directory/$(basename $0) \${MONITOR_ARGS}
 WorkingDirectory=$base_directory
-Restart=always
+EnvironmentFile=-$service_config_path
+Restart=on-failure
 RestartSec=10
 
-[Install]
-WantedBy=multi-user.target network.target" > "$service_path"
+LockPersonality=True
+NoNewPrivileges=True
+PrivateMounts=True
+ProtectClock=True
+ProtectControlGroups=True
+ProtectKernelLogs=True
+ProtectKernelModules=True
+ProtectKernelTunables=True
+ProtectHostname=True
+ProtectHome=True
+ProtectProc=invisible
+ProtectSystem=strict
+RestrictNamespaces=True
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_BLUETOOTH
+RestrictSUIDSGID=True
+RestrictRealtime=True
+SystemCallArchitectures=native
+SystemCallFilter=~@mount
 
-	#PRINT RESULTS
-	[ "$PREF_UPDATE_SERVICE" == true ]  && printf "%s\n" "> monitor.service updated with arguments: $FILTERED_ARGS" 
+ReadWritePaths=/sys/class/bluetooth
+ReadWritePaths=$base_directory
+ReadWritePaths=$service_config_path
+
+[Install]
+WantedBy=multi-user.target" > "$service_path"
 
 	sleep 3
 
 	#RELOAD DAEMON AND ENABLE SERVICE
 	systemctl daemon-reload
 	systemctl enable monitor.service
-fi 
+fi
+
+#FILTER THE ARGV FROM THE PARENT SCRIPT TO REMOVE ONE-TIME USE VARIABLES
+FILTERED_ARGS=$(printf '%s\n' "$(IFS=' '; echo "${RUNTIME_ARGS[*]}")" | sed 's/ \?-d//gi;s/ \?-V//gi;s/ \?-F//gi;s/ \?-u//gi;s/&//g;s/  */ /gi')
+
+if [ "$should_install" == "y" ] || [ "$PREF_UPDATE_SERVICE" == true ]; then
+	printf "%s\n" "MONITOR_ARGS=$FILTERED_ARGS" > "$service_path"
+
+	#PRINT RESULTS
+	[ "$PREF_UPDATE_SERVICE" == true ] && printf "%s\n" "> monitor.service updated with arguments: $FILTERED_ARGS"
+fi
+
 
 #----------------------------------------------------------------------------------------
 # BEFORE WE ECHO PREFERENCES, EXIT IF WE NEED TO 
