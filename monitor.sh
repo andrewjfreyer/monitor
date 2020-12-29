@@ -281,7 +281,7 @@ connectable_present_devices () {
 				do scan_result=$(hcitool rssi "$known_addr" 2>&1); \
 				scan_result=${scan_result//[^0-9]/}; \
 				scan_result=${scan_result:-99}; \
-				[[ "$scan_result" == "0" ]] && scan_result=99; \
+				# [[ "$scan_result" == "0" ]] && scan_result=99; \
 				counter=$((counter+1)); \
 				avg_total=$((avg_total + scan_result )); \
 				sleep 0.5; \
