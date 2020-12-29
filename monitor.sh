@@ -215,7 +215,7 @@ done
 for addr in "${known_static_beacons[@]^^}"; do 
 
 	#WAS THERE A NAME HERE?
-	known_name=$(grep "$addr" "$BEAC_CONFIG" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$addr //gi;s/  */ /gi" )
+	known_name=$(grep -i "$addr" "$BEAC_CONFIG" | tr "\\t" " " | sed 's/  */ /gi;s/#.\{0,\}//gi' | sed "s/$addr //gi;s/  */ /gi" )
 
 	#================= SHOULD WE USE AN ALIAS? =====================
 
