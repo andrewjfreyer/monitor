@@ -547,4 +547,18 @@ It is also possible tell monitor to report all currently known device states by 
 
 </details>
 
+<details><summary><b>Community Videos and Tutorials</b></summary>
+
+<br>
+More content will be added in the future
+## Videos
+This section contains video tutorials from the community where Monitor is involved.<br>
+* [Presence detection with Raspberry Pi, Home Assistant and Monitor](https://youtu.be/-uRq4L6bxrI)
+
+## Articles
+This section contains articles from the community where Monitor is involved.<br>
+* [Presence detection with Raspberry Pi, Home Assistant and Monitor](https://peyanski.com/presence-detection-with-raspberry-pi-home-assistant-and-monitor)
+
+</details>
+
 Anything else? Post a [question.](https://github.com/andrewjfreyer/monitor/issues/new)
