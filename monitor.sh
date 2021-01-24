@@ -1774,7 +1774,7 @@ while true; do
 				rssi_latest=${rssi_latest:--200}
 
 				#IS RSSI THE SAME? 
-				rssi_change=$((rssi - rssi_latest))
+				rssi_change=$((10#$rssi - 10#$rssi_latest))
 				abs_rssi_change=${rssi_change#-}
 
 				#DETERMINE MOTION DIRECTION
