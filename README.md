@@ -90,7 +90,7 @@ cd /etc/apt/sources.list.d/
 sudo wget http://repo.mosquitto.org/debian/mosquitto-buster.list
 
 #update caches and install 
-apt-cache search mosquitto
+sudo apt-cache search mosquitto
 sudo apt-get update
 sudo apt-get install -f libmosquitto-dev mosquitto mosquitto-clients libmosquitto1
 ```
