@@ -107,7 +107,7 @@ cd ~
 sudo apt-get install git
 
 #clone this repo
-git clone git://github.com/andrewjfreyer/monitor
+git clone https://github.com/andrewjfreyer/monitor.git
 
 #enter `monitor` directory
 cd monitor/
