@@ -407,7 +407,6 @@ As an example:
       data:
         dev_id: andrew
         location_name: home
-        source_type: bluetooth
 
 - alias: Andrew Occupancy Off
   trigger:
@@ -419,7 +418,6 @@ As an example:
       data:
         dev_id: andrew
         location_name: not_home
-        source_type: bluetooth
 
 ```
 
