@@ -46,7 +46,7 @@ fi
 # BETA WARNING ONLY IF ON THE BETA CHANNEL
 # ----------------------------------------------------------------------------------------
 
-if [[ $(git status) =~ .*beta.* ]]; then 
+if command -v git >/dev/null && [[ $(git status) =~ .*beta.* ]]; then 
 
 	printf "\n%s\n" 	"${RED}===================================================${NC}"
 	printf "\n%s\n"		"${RED}              ${PURPLE}*** BETA/DEV BRANCH ***${NC}"
