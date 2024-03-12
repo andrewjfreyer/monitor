@@ -262,7 +262,8 @@ publish_presence_message () {
     	$PREF_ALIAS_MODE && [ "${mqtt_aliases[$isolated_address]+abc}" ] && mqtt_topic_branch=${mqtt_aliases[$isolated_address]:-$isolated_address}
 
 		#SET TIMESTAMP
-		stamp=$(date "+%a %b %d %Y %H:%M:%S GMT%z (%Z)")
+		#stamp=$(date "+%a %b %d %Y %H:%M:%S GMT%z (%Z)")
+		stamp=$(date +"%Y-%m-%dT%H:%M:%S%z")
 		
 		#CLEAR PREVIOUS RETAINED MESSAGE
 		retain_flag="false"
