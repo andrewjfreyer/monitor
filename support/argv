@@ -16,7 +16,9 @@
 # REPORT CURRENT VERSION 
 # ----------------------------------------------------------------------------------------
 
-previous_version=$(cat ".previous_version")
+if [ -f ".previous_version" ]; then
+  previous_version=$(cat ".previous_version")
+fi
 
 #DETERMINE IF UPDATED SINCE LAST RUN
 if [ "$previous_version" != "$version" ]; then 
