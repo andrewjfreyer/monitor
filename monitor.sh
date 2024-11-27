@@ -206,6 +206,9 @@ for addr in "${known_static_addresses[@]^^}"; do
 	#FOR DEBUGGING
 	printf "%s\n" "> ${GREEN}$addr${NC} confidence topic: $pub_topic (has $is_connected to $PREF_HCI_DEVICE)"
 	[ "$PREF_DEVICE_TRACKER_REPORT" == 'true' ] && printf "%s\n" "> ${GREEN}$addr${NC} device_tracker topic: $pub_topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH [$PREF_DEVICE_TRACKER_AWAY_STRING or $PREF_DEVICE_TRACKER_HOME_STRING]"
+
+	#PUBLISH HOMEASSISTANT DISCOVERY CONFIG
+	[ "$PREF_DEVICE_TRACKER_REPORT" == 'true' ] && mqtt_homeassistant_discovery $mqtt_topic_branch $pub_topic/$PREF_DEVICE_TRACKER_TOPIC_BRANCH
 done
 
 # ----------------------------------------------------------------------------------------

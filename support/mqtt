@@ -72,6 +72,21 @@ mqtt_echo(){
 	-q "2" 2>&1)
 }
 
+# ----------------------------------------------------------------------------------------
+# MQTT HOMEASSISTANT DISCOVERY
+# ----------------------------------------------------------------------------------------
+mqtt_homeassistant_discovery() {
+	#ADD DISCOVERY CONFIG
+	mqtt_error_handler $($mosquitto_pub_path \
+	-I "$mqtt_publisher_identity" \
+	$mqtt_version_append \
+	$mqtt_ca_file_append \
+	-L "${mqtt_url}homeassistant/device_tracker/$mqtt_publisher_identity/$1/config" \
+	-m "{\"state_topic\": \"$2\", \"name\": \"$1\", \"payload_home\": \"$PREF_DEVICE_TRACKER_HOME_STRING\", \"payload_not_home\": \"$PREF_DEVICE_TRACKER_AWAY_STRING\", \"unique_id\": \"$1_${mqtt_publisher_identity}_monitor\", \"source_type\": \"bluetooth_le\"}" \
+	-r \
+	-q "2" 2>&1)
+}
+
 
 # ----------------------------------------------------------------------------------------
 # CLEAR RETAINED 
