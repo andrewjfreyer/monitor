@@ -58,16 +58,16 @@ sudo passwd pi
 3. Update and upgrade:
 
 ```bash
-sudo apt-get update
-sudo apt-get upgrade -y
-sudo apt-get dist-upgrade -y
+sudo apt update
+sudo apt upgrade -y
+sudo apt dist-upgrade -y
 sudo reboot
 ```
 
 5. Install Bluetooth Firmware, if necessary:
 ```bash
 #install Bluetooth drivers for Pi Zero W
-sudo apt-get install pi-bluetooth
+sudo apt install pi-bluetooth
 
 ```
 
@@ -80,10 +80,10 @@ sudo reboot
 ```bash
 
 # get repo key
-wget http://repo.mosquitto.org/debian/mosquitto-repo.gpg.key
+wget http://repo.mosquitto.org/debian/mosquitto-repo.gpg
 
 #add repo
-sudo apt-key add mosquitto-repo.gpg.key
+sudo apt-key add mosquitto-repo.gpg
 
 #download appropriate lists file 
 cd /etc/apt/sources.list.d/
@@ -91,8 +91,8 @@ sudo wget http://repo.mosquitto.org/debian/mosquitto-buster.list
 
 #update caches and install 
 sudo apt-cache search mosquitto
-sudo apt-get update
-sudo apt-get install -f libmosquitto-dev mosquitto mosquitto-clients libmosquitto1
+sudo apt update
+sudo apt install -f libmosquitto-dev mosquitto mosquitto-clients libmosquitto1
 ```
 </details>
 
@@ -104,7 +104,7 @@ sudo apt-get install -f libmosquitto-dev mosquitto mosquitto-clients libmosquitt
 ```bash
 #install git
 cd ~
-sudo apt-get install git
+sudo apt install git
 
 #clone this repo
 git clone https://github.com/andrewjfreyer/monitor.git
@@ -119,7 +119,7 @@ git checkout beta
 
 2. Initial run:
 
-Configuration files will be created with default preferences. Any executables that are not installed will be reported. All can be installed via `apt-get install ...`
+Configuration files will be created with default preferences. Any executables that are not installed will be reported. All can be installed via `apt install ...`
 
 ```bash 
 sudo bash monitor.sh
