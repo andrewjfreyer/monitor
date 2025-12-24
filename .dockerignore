@@ -1,0 +1,53 @@
+# ============================
+# VCS
+# ============================
+.git
+.gitignore
+.github
+
+# ============================
+# CI / build artifacts
+# ============================
+docker-compose*.yml
+*.log
+*.pid
+*.sock
+
+# ============================
+# Editor / OS junk
+# ============================
+.DS_Store
+Thumbs.db
+.idea
+.vscode
+
+# ============================
+# Python (future-proofing)
+# ============================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# ============================
+# Node / frontend (just in case)
+# ============================
+node_modules/
+
+# ============================
+# Secrets / runtime state
+# ============================
+.env
+.env.*
+mqtt_preferences
+secrets/
+config/
+
+# ============================
+# Docs & misc
+# ============================
+docs/
+README.md
+CHANGELOG.md
