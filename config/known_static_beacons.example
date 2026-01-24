@@ -1,0 +1,12 @@
+# ---------------------------
+#
+# KNOWN STATIC BEACONS
+#
+# List beacons that advertise as "random" but have static addresses
+# Format: MAC_ADDRESS (one per line)
+# ---------------------------
+
+# Add your beacon MAC addresses here
+# Example:
+# AA:BB:CC:DD:EE:FF
+
