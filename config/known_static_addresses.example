@@ -1,0 +1,13 @@
+# ---------------------------
+#
+# STATIC MAC ADDRESS LIST
+#
+# 00:00:00:00:00:00 Alias #comment
+# ---------------------------
+
+# Add your device MAC addresses here, one per line
+# Format: MAC_ADDRESS Alias
+# Example:
+# AA:BB:CC:DD:EE:FF MyPhone
+# 11:22:33:44:55:66 MySmartwatch
+

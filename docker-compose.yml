@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  monitor:
+    build: .
+    container_name: monitor
+    restart: unless-stopped
+
+    # Required for Bluetooth access
+    privileged: true
+    network_mode: host
+
+    # Mount configuration directory
+    volumes:
+      - ./config:/config
+
+    # Environment variables (optional - can be set in config files instead)
+    environment:
+      # Set this to enable colored output
+      - NO_COLOR=
+
+      # Optional: Override the HCI device (default is hci0)
+      # - PREF_HCI_DEVICE=hci0
+
+    # Default command arguments:
+    # -tad: triggered arrival and departure scanning only
+    # -a: report all anonymous advertisements
+    # -b: beacon mode
+    #
+    # You can override these by uncommenting and modifying the line below:
+    # command: ["-tad", "-a", "-b"]
+
+    # For Unraid, you may want to use:
+    # command: ["-b", "-tad"]

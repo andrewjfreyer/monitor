@@ -1,0 +1,27 @@
+# Git files
+.git
+.gitignore
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Configuration files (these should be mounted from the host)
+mqtt_preferences
+known_static_addresses
+known_static_beacons
+behavior_preferences
+config/
+
+# Logs and runtime files
+*.log
+*.pid
+*_pipe
+main_pipe
+log_pipe
+packet_pipe
+
+# System files
+.DS_Store
+Thumbs.db

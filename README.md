@@ -6,6 +6,8 @@
 
 [**Frequently Asked Questions**](https://github.com/andrewjfreyer/monitor/blob/master/support/README.md)
 
+[**Docker Installation (Unraid, Docker Compose, etc.)**](DOCKER.md)
+
 <details><summary><b>Installation Instructions</b></summary>
 
 <br>
