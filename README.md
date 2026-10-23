@@ -165,6 +165,29 @@ ___
 
 # *Highlights*
 
+### Bluetooth scan watchdog
+
+While background LE scanning is enabled, `monitor` resets the selected Bluetooth
+interface after five minutes without any device addresses in scan results. This
+detects controllers which silently stop scanning while the service remains running,
+even when no explicit Bluetooth error is printed. A controller that answers other
+HCI commands can still suffer this failure.
+
+Configure these settings in `behavior_preferences`:
+
+* `PREF_BLUETOOTH_SILENCE_TIMEOUT=300`: seconds without scan results before recovery;
+  set to `0` to disable, or increase for locations with little Bluetooth activity.
+* `PREF_BLUETOOTH_RECOVERY_INTERVAL=900`: minimum seconds between silence-triggered
+  resets, to avoid repeatedly resetting a controller in a genuinely quiet location.
+
+Silence is a heuristic, not proof of hardware failure. Recovery and interface-up
+failures are reported directly to stderr (the service journal), with the
+`[BT-WATCHDOG]` prefix. Scan and recovery commands have bounded timeouts. Trigger-only
+configurations which disable background scanning do not run the watchdog.
+
+Run `bash tests/bluetooth-watchdog.sh` to exercise the detection and cooldown logic
+without Bluetooth hardware.
+
 `monitor` sends a JSON-formatted MQTT message including a confidence value from 0 to 100 to a specified broker when a specified Bluetooth device responds to a `name` query. By default, `name` queries are triggered after receiving an anonymous advertisement from a previously-unseen device (e.g., a device in peripheral mode advertising an ability to connect). 
 
 Example JSON package:

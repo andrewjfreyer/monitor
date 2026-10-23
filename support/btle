@@ -16,6 +16,21 @@
 # ----------------------------------------------------------------------------------------
 # BLUETOOTH LE BACKGROUND SCANNING
 # ----------------------------------------------------------------------------------------
+# Return success when prolonged scan silence warrants a bounded recovery.
+# The state variables are local to btle_scanner (Bash dynamic scoping).
+btle_scan_watchdog () {
+	local scan_output="$1" now="$2"
+	if [[ $scan_output =~ ([[:xdigit:]]{2}:){5}[[:xdigit:]]{2} ]]; then
+		btle_last_activity=$now
+		return 1
+	fi
+	[ "$PREF_BLUETOOTH_SILENCE_TIMEOUT" -eq 0 ] && return 1
+	[ "$((now - btle_last_activity))" -lt "$PREF_BLUETOOTH_SILENCE_TIMEOUT" ] && return 1
+	[ "$((now - btle_last_recovery))" -lt "$PREF_BLUETOOTH_RECOVERY_INTERVAL" ] && return 1
+	btle_last_recovery=$now
+	return 0
+}
+
 btle_scanner () {
 
 	#PREVENT BLUETOOTH SCANNING IF IN TRIGGER-ONLY MODE
@@ -28,12 +43,19 @@ btle_scanner () {
 		return 0
 	fi 
 
+	local btle_last_activity=$SECONDS
+	local btle_last_recovery=$((SECONDS - PREF_BLUETOOTH_RECOVERY_INTERVAL))
 	while true; do 
 		#TIMEOUT THE HCITOOL SCAN TO RESHOW THE DUPLICATES WITHOUT SPAMMING THE MAIN LOOP BY USING THE --DUPLICATES TAG
-		local hcitool_raw=$(timeout --signal SIGINT 60 hcitool -i $PREF_HCI_DEVICE lescan 2>&1)
+		local hcitool_raw=$(timeout --signal SIGINT --kill-after=5 60 hcitool -i "$PREF_HCI_DEVICE" lescan 2>&1)
 
 		#FIND ERROR VALUES 
 		local error=$(echo "$hcitool_raw" | grep -iE 'input/output error|invalid device|invalid|error|network')
+		if btle_scan_watchdog "$hcitool_raw" "$SECONDS"; then
+			error="no Bluetooth devices observed for $((SECONDS - btle_last_activity)) seconds"
+			# Do not depend on the logging FIFO: its reader may also be stuck.
+			printf '%s\n' "[BT-WATCHDOG] $PREF_HCI_DEVICE: $error; cycling Bluetooth interface" >&2
+		fi
 
 		#PUBLISH ERRORS BACK TO MAIN LOOP
 		if [ -n "$error" ]; then 
@@ -41,9 +63,11 @@ btle_scanner () {
 			(>&2 log "${GREEN}[CMD-INFO]${NC}	cycling bluetooth hardware on $PREF_HCI_DEVICE. please wait a moment...")
 
 			#POWER CYCLE
-			hciconfig $PREF_HCI_DEVICE down
+			timeout --kill-after=2 10 hciconfig "$PREF_HCI_DEVICE" down
 			sleep 5 
-			hciconfig $PREF_HCI_DEVICE up
+			if ! timeout --kill-after=2 10 hciconfig "$PREF_HCI_DEVICE" up; then
+				printf '%s\n' "[BT-WATCHDOG] $PREF_HCI_DEVICE: interface recovery failed" >&2
+			fi
 
 			continue
 		fi 
